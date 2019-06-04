@@ -1,11 +1,14 @@
 # General info
-To use OpenDistro for ElasticSearch and Kibana one needs to generate SSL certificates and later set up users and roles for ElasticSearch cluster.
+To use OpenDistro for ElasticSearch and Kibana one needs to generate SSL certificates for these services and client applications using it. Moreover, one needs to set up users and roles used in ElasticSearch cluster.
 
-# Generation of certificates
+For the moment, in this example, we are using self-signed certificates.
+
+
+# Generation of self-signed certificates
 The scripts available are:
 - `create_root_ca_cert.sh` - creates root CA key and certificate,
 - `create_client_cert.sh` - creates the client key and certificate,
-- `create_keystore.sh` - creates the JKS keystore using previosuly generated certificates,
+- `create_keystore.sh` - creates the JKS keystore using previously generated (client) certificates,
 - `create_es_users.sh` - creates roles and users in ElasticSearch (`create_es_users_insecure.sh` does not need SSL certificates).
 
 ## Root CA
@@ -52,4 +55,4 @@ The available roles will be created:
 The following users will be created:
 - `cogstack_pipeline` - uses `ingest` role,
 - `nifi` - uses `ingest` role,
-- `cogstack_user` -- uses `cogstack_access` role.
+- `cogstack_user` - uses `cogstack_access` role.
