@@ -1,0 +1,14 @@
+# Some of these parameters are provided by the Docker environment variables
+server.name: kibana
+server.host: "0"
+#elasticsearch.url: https://localhost:9200
+elasticsearch.ssl.verificationMode: none
+
+# WARNING: revise all the lines below before you go into production
+elasticsearch.username: kibanaserver
+elasticsearch.password: kibanaserver
+elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+
+opendistro_security.multitenancy.enabled: true
+opendistro_security.multitenancy.tenants.preferred: ["Private", "Global"]
+opendistro_security.readonly_mode.roles: ["kibana_read_only"]

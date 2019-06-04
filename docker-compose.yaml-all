@@ -1,0 +1,264 @@
+version: '3.5'
+# need version '3.5' for setting external networks name
+
+#---------------------------------------------------------------------------#
+# Used services                                                             #
+#---------------------------------------------------------------------------#
+services:
+
+#---------------------------------------------------------------------------#
+# Postgres container with sample data                                       #
+#---------------------------------------------------------------------------#
+  samples-db:
+    image: postgres:11.1-alpine
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping postgres data
+      - ./services/pgsamples/db_dump:/data/:ro
+      - ./services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      - samples-vol:/var/lib/postgresql/data
+    ports:
+    # <host:container> expose the postgres DB to host for debugging purposes
+      - 5555:5432
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# CogStack-Pipeline related containers                                      #
+#---------------------------------------------------------------------------#
+  cogstack-pipeline:
+    image: cogstacksystems/cogstack-pipeline:dev-latest
+    environment:
+      - SERVICES_USED=cogstack-job-repo:5432,elasticsearch-1:9200
+      - LOG_LEVEL=info
+      - LOG_FILE_NAME=cogstack_job_log
+      - FILE_LOG_LEVEL=off
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # ingestion configuration
+      - ./services/aux-pipelines/cogstack-pipeline/job_config:/cogstack/job_config:ro
+      # security
+      - ./services/aux-pipelines/cogstack-pipeline/security:/cogstack/security:ro
+    depends_on:
+      - cogstack-job-repo
+      - elasticsearch-1
+    command: /cogstack/run_pipeline.sh /cogstack/cogstack-*.jar /cogstack/job_config
+    networks:
+      - cognet
+      - esnet
+
+  cogstack-job-repo:
+    image: postgres:11.1-alpine
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping postgres config
+      - ./services/aux-pipelines/pgjobrepo/create_repo.sh:/docker-entrypoint-initdb.d/create_repo.sh:ro
+      - cogstack-job-vol:/var/lib/postgresql/data
+    ports:
+      - 5432
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# NLP Service related containers                                            #
+#---------------------------------------------------------------------------#
+  nlp-gate-bioyodie:
+    image: lrog/nlp-rest-service-bioyodie:local
+    volumes:
+      # configuration files
+      - ./services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
+      # GATE app resources
+      - /Users/lroguski/data/UMLS/for-bioyodie/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
+      #- /gae/cogstack/resources/umls/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
+    ports:
+      - "8095:8095"
+      #- "8095"
+    command: "bash /app/nlp-service/run.sh"
+    networks:
+      - cognet
+
+  annotations-ingester:
+    image: cogstacksystems/annotations-ingester:dev-latest
+    environment:
+      - SERVICES_USED=elasticsearch-1:9200,nlp-gate-bioyodie:8095
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping ingestion job config
+      - ./services/aux-pipelines/annotations-ingester/config/config.yml:/app/config/config.yml:ro
+      # security
+      - ./security/root-ca.pem:/app/config/root-ca.pem
+      - ./security/cogstack.pem:/app/config/client.pem
+      - ./security/cogstack.key:/app/config/client.key
+    command: "bash run.sh"
+    networks:
+      - cognet
+      - esnet
+
+
+#---------------------------------------------------------------------------#
+# ElasticSearch cluster                                                     #
+#---------------------------------------------------------------------------#
+  elasticsearch-1:
+    image: amazon/opendistro-for-elasticsearch:0.8.0
+    #container_name: elasticsearch-1
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      # - discovery.type=zen
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping security config
+      - ./security/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
+      - ./services/elasticsearch/config/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
+      - ./services/elasticsearch/config/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
+      # configuration
+      - ./services/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      # volumes
+      - elasticsearch-vol-1:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      - esnet
+
+
+#---------------------------------------------------------------------------#
+# Kibana webapp                                                             #
+#---------------------------------------------------------------------------#
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana:0.8.0
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch-1:9200
+      SERVER_SSL_ENABLED: "false"
+      SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
+      SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
+    depends_on:
+      - elasticsearch-1
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping kibana config
+      - ./security/root-ca.pem:/usr/share/kibana/config/root-ca.pem:ro
+      - ./services/kibana/config/kibana.pem:/usr/share/kibana/config/kibana.pem:ro
+      - ./services/kibana/config/kibana.key:/usr/share/kibana/config/kibana.key:ro
+    ports:
+      - 5601:5601
+      #- 5601
+    networks:
+      - esnet
+
+
+#---------------------------------------------------------------------------#
+# NiFi webapp                                                               #
+#---------------------------------------------------------------------------#
+  nifi:
+    #image: apache/nifi:latest
+    build:
+      ./nifi/
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping nifi content from local host
+      # note: configuration can be only provided in custom image
+      - ./nifi/security:/opt/nifi/security:ro
+      # rest of volumes to preserve the state
+      - nifi-vol-conf:/opt/nifi/nifi-current/conf
+      - nifi-vol-logs:/opt/nifi/nifi-current/logs
+      - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+      - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      # errors generated during data processing
+      - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    ports:
+      #- "8090:8080"
+      - "8080:8080"
+      #- "8080"
+      - "10000" # site-to-site functionality 
+    networks:
+      - cognet
+      - esnet
+
+
+#---------------------------------------------------------------------------#
+# NGINX proxy                                                               #
+#---------------------------------------------------------------------------#
+  nginx:
+    image: nginx:1.13.1-alpine
+    restart: always
+    depends_on:
+      - nifi
+     # - kibana
+    ports:
+      #- "5601:5601"
+      #- "8081:8080"
+      #- "8081:80"
+      - "8081:8080"
+    volumes:
+      # mapping the proper timezone
+      #- /etc/timezone:/etc/timezone:ro
+      # mapping nginx config
+      - ./services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/nginx/auth/.htpasswd:/etc/apache2/.htpasswd:ro
+    networks:
+      - esnet
+      - cognet
+      - public
+
+#---------------------------------------------------------------------------#
+# Docker named volumes                                                      #
+#---------------------------------------------------------------------------#
+volumes:
+  samples-vol:
+    driver: local
+  # cogstack-pipeline related
+  cogstack-job-vol:
+    driver: local
+  # ELK-stack related
+  elasticsearch-vol-1:
+    driver: local
+#  elasticsearch-vol-2:
+#    driver: local
+#  elasticsearch-vol-3:
+#    driver: local
+  # NiFi related
+  nifi-vol-conf:
+    driver: local
+  nifi-vol-logs:
+    driver: local
+  nifi-vol-provenance:
+    driver: local
+  nifi-vol-database:
+    driver: local
+  nifi-vol-flowfiles:
+    driver: local
+  nifi-vol-content:
+    driver: local
+  nifi-vol-errors:
+    driver: local
+
+
+#---------------------------------------------------------------------------#
+# Docker networks.                                                          #
+#---------------------------------------------------------------------------#
+networks:
+  cognet:
+    driver: bridge
+  esnet:
+    driver: bridge
+    name: esnet-ext
+  public:
+    driver: bridge
