@@ -1,64 +1,55 @@
-# Security and generation of SSL certificates.
+# General info
+To use OpenDistro for ElasticSearch and Kibana one needs to generate SSL certificates and later set up users and roles for ElasticSearch cluster.
 
-## General info
+# Generation of certificates
+The scripts available are:
+- `create_root_ca_cert.sh` - creates root CA key and certificate,
+- `create_client_cert.sh` - creates the client key and certificate,
+- `create_keystore.sh` - creates the JKS keystore using previosuly generated certificates,
+- `create_es_users.sh` - creates roles and users in ElasticSearch (`create_es_users_insecure.sh` does not need SSL certificates).
 
-To use ElasticSearch with OpenDistro one needs to generate certificates and set up users and roles for ElasticSearch cluster.
+## Root CA
+Files generated (using `create_root_ca_cert.sh`):
+- key: `root-ca.key`
+- certificate: `root-ca.pem`
 
-## Generation of certificates
-The scripts are located in `./security` dir.
+## ElasticSearch + Kibana
+ElasticSearch and Kibana both require generating PEM certificates (using `create_client_cert.sh`).
 
-The script `create_cert.sh` creates the client certificates.
+ElasticSearch requires:
+- `es-node1.pem`
+- `es-node1.key`
 
-The script `create_keystore.sh` creates the JKS keystore using previosuly generated certificates.
+These files need to be placed in `services/elasticsearch/config/`. They are further referenced in `services/elasticsearch/config/elasticsearch.yml`.
 
-### Root CA
-Files used:
-- `./security/root-ca.pem`
+Kibana requires:
+- `kibana.pem`
+- `kibana.key`
 
-### ElasticSearch + Kibana
-Requires PEM certs.
+These files need to be placed in `services/kibana/config/`. They are further referenced in `services/kibana/config/elasticsearch.yml`.
 
-Files used:
-- `./security-pem/es-node1.pem`
-- `./security-pem/es-node1.key`
-- `./security-pem/kibana.pem`
-- `./security-pem/kibana.key`
+## NiFi
+**IMPORTANT: currently, NiFi is not configured to use SSL.**
 
-### CogStack-Pipeline
-Requires JKS keystore.
+However, if willing to use a secure connection, it requires the certificates in JKS keystore format (using `create_keystore.sh`).
 
-Files used:
-- `./pipelines/cogstack-pipeline/security/cogstack.jks`
-
-### NiFi
-Requires JKS keystore.
-
-Files used:
-- `./nifi/security/nifi.jks`
-
-### annotations-ingester
-Requires PEM certs. For the ease of deployment, uses the PEM certificates generated for CogStack-Pipeline
-
-Files used:
-- `./security/cogstack.pem`
-- `./security/cogstack.key`
+The `nifi.jks` needs then to be placed in `/nifi/security/nifi.jks`.
 
 
-## Users and roles in ElasticSearch
+# Users and roles in ElasticSearch
 
-### Setting up ElasticSearch
+## Setting up ElasticSearch
+The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster. Alternatively, when SSL is not used `create_es_users_insecure.sh` handles this.
 
-The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster.
+**IMPORTANT: please remember to change the default passwords of the users created before running this in production. ** 
 
-### Roles
+## Roles
+The available roles will be created:
+- `ingest` - used for data ingestion, only `cogstack_*` and `nifi_*` indices can be used,
+- `cogstack_accesss` - used for read-only access to the data.
 
-The available roles are:
-- `ingest` -- used for data ingestion -- only `cogstack_*` and `nifi_*` indices can be used,
-- `cogstack_accesss` -- used for read-only access to the data.
-
-### Users
-
-The following users are available:
-- `cogstack_pipeline` -- uses `ingest` role,
-- `nifi` -- uses `ingest` role,
-- `cogstack_user` --- uses `cogstack_access` role.
+## Users
+The following users will be created:
+- `cogstack_pipeline` - uses `ingest` role,
+- `nifi` - uses `ingest` role,
+- `cogstack_user` -- uses `cogstack_access` role.
