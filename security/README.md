@@ -41,7 +41,7 @@ The `nifi.jks` needs then to be placed in `/nifi/security/nifi.jks`.
 ## Setting up ElasticSearch
 The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster. Alternatively, when SSL is not used `create_es_users_insecure.sh` handles this.
 
-**IMPORTANT: please remember to change the default passwords of the users created before running this in production. ** 
+**IMPORTANT: please remember to change the default passwords of the users created before running this in production.** 
 
 ## Roles
 The available roles will be created:
