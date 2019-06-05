@@ -1,0 +1,185 @@
+openapi: 3.0.1
+info:
+  title: NLP Service REST API
+  description: "Description of the initial NLP Service REST API. \n You can find out\
+    \ more the application at [http://github.com/CogStack/nlp-rest-service](http://github.com/CogStack/nlp-rest-service)."
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+externalDocs:
+  description: Find out more about NLP Service
+  url: http://github.com/CogStack/nlp-rest-service
+servers:
+- url: ///api
+tags:
+- name: info
+  description: Informative only
+- name: process
+  description: Processing the documents
+- name: single-doc
+  description: Processing a single document at once
+- name: bulk-docs
+  description: Processing multiple documents in bulk
+paths:
+  /info:
+    get:
+      tags:
+      - info
+      summary: Display information about the NLP application
+      operationId: info
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NlpApplicationInformation'
+  /process:
+    post:
+      tags:
+      - process
+      - single-doc
+      summary: Process the content -- single document at once
+      operationId: process
+      requestBody:
+        description: The content of the document to process
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestContent'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponseContent'
+        400:
+          description: Empty or invalid payload supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponseContent'
+        500:
+          description: Internal error occured while processing the payload
+          content: {}
+  /process_bulk:
+    post:
+      tags:
+      - process
+      - bulk-docs
+      summary: Process the content -- documents in bulk
+      operationId: process_bulk
+      requestBody:
+        description: The content to documents to process
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestContentBulk'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponseContentBulk'
+        400:
+          description: Empty or invalid payload supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponseContentBulk'
+        500:
+          description: Internal error occured while processing the payload
+          content: {}
+components:
+  schemas:
+    GenericParameters:
+      type: object
+      additionalProperties:
+        type: object
+    ServiceRequestContentBulk:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/NlpInputPayload'
+        applicationParams:
+          $ref: '#/components/schemas/GenericParameters'
+    GenericMetadata:
+      type: object
+      additionalProperties:
+        type: object
+    NlpInputPayload:
+      type: object
+      properties:
+        text:
+          type: string
+        metadata:
+          $ref: '#/components/schemas/GenericMetadata'
+        footer:
+          $ref: '#/components/schemas/GenericMetadata'
+    NlpApplicationInformation:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        language:
+          type: string
+        parameters:
+          $ref: '#/components/schemas/GenericParameters'
+    ServiceResponseContent:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/NlpProcessingResult'
+    ServiceResponseContentBulk:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/NlpProcessingResult'
+    NlpProcessingResult:
+      type: object
+      properties:
+        text:
+          type: string
+        annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenericAnnotation'
+        metadata:
+          $ref: '#/components/schemas/GenericMetadata'
+        success:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessingError'
+        footer:
+          $ref: '#/components/schemas/GenericMetadata'
+    ProcessingError:
+      type: object
+      properties:
+        message:
+          type: string
+        description:
+          type: string
+    GenericAnnotation:
+      type: object
+      additionalProperties:
+        type: object
+    ServiceRequestContent:
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/NlpInputPayload'
+        applicationParams:
+          $ref: '#/components/schemas/GenericParameters'
