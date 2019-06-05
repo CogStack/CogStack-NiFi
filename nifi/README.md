@@ -7,24 +7,24 @@ For more information about Apache NiFi please refer to the [official website](ht
 
 
 # Custom docker image
-It is recommended to build a custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows. 
+It is recommended to build a custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows. Otherwise, one would need to set these up manually.
 
-The custom image recipe is defined in `Dockerfile`.
+The custom image recipe is defined in `Dockerfile` file.
 
-When deplying services stack using the main `docker-compose.yml` file Docker engine will automatically build the custom Apache NiFi image.
+When deplying services stack, using the main `docker-compose.yml` file, Docker engine will automatically build the provided custom Apache NiFi image.
 
 
 # Workflow templates
-Apache NiFi provides users the ability to build very large and complex data flows. These data flows can be later saved as *templates*, exported into XML format and shared with other users. In this example, we provide example data flows templates for ingesting the records from database into ElasticSearch and to perform extraction of NLP annotations from documents.
+Apache NiFi provides users the ability to build very large and complex data flows. These data flows can be later saved as *templates*, exported into XML format and shared with other users. In this example, we provide few example templates for ingesting the records from database into ElasticSearch and to perform extraction of NLP annotations from documents.
 
-The example workflow templates are stored in `user-templates`.
+The example workflow templates are stored in `user-templates` directory.
 
 ## Workflow `DB-ES`
 This template defines an example workflow consisting of:
 1. reading records from a sample database,
 2. storing these records to ElasticSearch.
 
-The workflow is defined in `Workflow__DB-ES_[large_table]_-_samples-db.xml` file.
+The template is stored in `Workflow__DB-ES_[large_table]_-_samples-db.xml` file.
 
 ## Workflow `DB-NLP-ES`
 This template defines an example workflow consisting of:
@@ -34,17 +34,17 @@ This template defines an example workflow consisting of:
 4. parsing the returned annotations from the response content,
 5. storing the annotations to ElasticSearch.
 
-The workflow is defined in `Workflow__DB-NLP-ES_[large_tables_+_bulk]_-_samples-db.xml` file.
+The template is stored in `Workflow__DB-NLP-ES_[large_tables_+_bulk]_-_samples-db.xml` file.
 
 
 # User scripts
 Apache NiFi gives users the ability to execute custom scripts inside the data flow (supported languages: Python, Groovy, Clojure, Ruby, Lua, ECMAScript).
 
-This custom image will use user scripts from `user-scripts` directory, where the essential ones are:
+This custom image will use provided user scripts from `user-scripts` directory, where the essential ones are:
 - `parse-db-records-for-nlp-request-bulk.groovy` - parses the records and prepares the request payload for the NLP Service,
 - `parse-anns-from-nlp-response-bulk.groovy` - parses the NLP Service response payload (annotations).
 
-Please note that these scripts implement parsing the records and preparing the payload to be used by the NLP Service in bulk mode. There are also provided scripts that process single record and document at time, yet processing documents one-by-one is a much less performant option.
+Please note that these scripts implement parsing the records and preparing the payload to be used by the NLP Service in **bulk** mode (processing many documents at once). There are also provided scripts that process single record and document at time, yet processing documents one-by-one can be a much less performant option.
 
 
 # Custom Drivers
@@ -70,10 +70,9 @@ java.arg.3=-Xmx4G
 ## `nifi.properties`
 This file allows users to configure operational settings for NiFi on more granular level, such as the max. number of flow files to be buffered, the amount of space dedicated for data provenance, etc.
 
-This custom image will use less resources and storage size for data provenance, flow files storage and indexing operations. The corresponding properties have been commented out in the file.
+This custom image will use less resources and storage size for data provenance, flow files storage and indexing operations (mostly to avoid exceeding Java Max Heap Size errors). The corresponding properties have been commented out in the file.
 
 ## `zookeeper.conf`
 Apache Zookeeper is a highly consistent, scalable and reliable cluster co-ordination service. When deploying Apache NiFi, an exernal Apache Zookeper service can be used or embedeed within NiFi service (the default option).
 
-This custom image will use Zookeeper Embedeed within NiFi service and uses the default `zookeeper.properties` file.
-
+This custom image will use embedeed Zookeeper within NiFi service and will use the default `zookeeper.properties` file.
