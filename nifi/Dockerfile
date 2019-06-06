@@ -1,4 +1,4 @@
-FROM apache/nifi:latest
+FROM apache/nifi:1.9.2
 
 # copy drivers
 WORKDIR /opt/nifi/
