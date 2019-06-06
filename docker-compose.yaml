@@ -44,7 +44,7 @@ services:
       - cognet
 
   nlp-medcat-umls:
-    image: lrog/cat:umls-latest
+    image: lrog/cat:latest-umls
     env_file:
       - ./services/nlp-services/applications/cat/envs/env_fullumls
     volumes:
@@ -61,7 +61,7 @@ services:
       - cognet
 
   nlp-medcat-medmen:
-    image: cat-medmen
+    image: lrog/cat:latest-medmen
     env_file:
       - ./services/nlp-services/applications/cat/envs/env_medann
     volumes:
