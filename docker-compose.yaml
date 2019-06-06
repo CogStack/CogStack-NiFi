@@ -43,6 +43,37 @@ services:
     networks:
       - cognet
 
+  nlp-medcat-umls:
+    image: lrog/cat:umls-latest
+    env_file:
+      - ./services/nlp-services/applications/cat/envs/env_fullumls
+    volumes:
+      # cogstack API
+      - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
+      # UMLS models -- TODO: tailor to local specs
+      - ./services/nlp-services/applications/cat/models/umls/cdb.dat:/cat/models/cdb.dat:ro
+      - ./services/nlp-services/applications/cat/models/umls/vcb.dat:/cat/models/vcb.dat:ro
+    ports:
+      #- "8096:5000"
+      - "5000:5000"
+    command: "/cat/api/cogstack_api.py"
+    networks:
+      - cognet
+
+  nlp-medcat-medmen:
+    image: cat-medmen
+    env_file:
+      - ./services/nlp-services/applications/cat/envs/env_medann
+    volumes:
+      # cogstack API
+      - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
+    ports:
+      - "8096:5000"
+      #- "5000:5000"
+    command: "/cat/api/cogstack_api.py"
+    networks:
+      - cognet
+
 
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
