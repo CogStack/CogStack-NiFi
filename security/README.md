@@ -8,8 +8,7 @@ For the moment, in this example, we are using self-signed certificates.
 The scripts available are:
 - `create_root_ca_cert.sh` - creates root CA key and certificate,
 - `create_client_cert.sh` - creates the client key and certificate,
-- `create_keystore.sh` - creates the JKS keystore using previously generated (client) certificates,
-- `create_es_users.sh` - creates roles and users in ElasticSearch (`create_es_users_insecure.sh` does not need SSL certificates).
+- `create_keystore.sh` - creates the JKS keystore using previously generated (client) certificates.
 
 ## Root CA
 Files generated (using `create_root_ca_cert.sh`):
@@ -41,17 +40,22 @@ The `nifi.jks` needs then to be placed in `/nifi/security/nifi.jks`.
 
 # Users and roles in ElasticSearch
 
+**IMPORTANT: please remember to change the default passwords for the users before running this in production.**
+
 ## Setting up ElasticSearch
-The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster. Alternatively, when SSL is not used `create_es_users_insecure.sh` handles this.
+On the first run, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenDistro documentation](https://opendistro.github.io/for-elasticsearch-docs/docs/install/docker-security/). To do so, one should:
+- run the script `generate_es_internal_passwords.sh` to generate hashes,
+- modify the `internal_users.yml` file with the generated hashes, 
+- restart the stack, but with using `docker-compose down -v` to remove the volumes.
 
-**IMPORTANT: please remember to change the default passwords of the users created before running this in production.** 
+Following, one should modify the default passwords for the other build-in users (`logstash`, `kibanaro`, `readall`, `snapshotrestore`) and to create new users, as specified below. The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster. Alternatively, when SSL is not used -- `create_es_users_insecure.sh` handles this.
 
-## Roles
+## New roles
 The available roles will be created:
 - `ingest` - used for data ingestion, only `cogstack_*` and `nifi_*` indices can be used,
-- `cogstack_accesss` - used for read-only access to the data.
+- `cogstack_accesss` - used for read-only access to the data only from `cogstack_*` and `nifi_*` indices.
 
-## Users
+## New users
 The following users will be created:
 - `cogstack_pipeline` - uses `ingest` role,
 - `nifi` - uses `ingest` role,
