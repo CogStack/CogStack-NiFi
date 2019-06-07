@@ -20,11 +20,10 @@ opendistro_security.ssl.http.pemtrustedcas_filepath: root-ca.pem
 opendistro_security.allow_default_init_securityindex: true
 opendistro_security.authcz.admin_dn:
 #  - CN=kirk,OU=client,O=client,L=test, C=de
-  - 'CN=nifi'
+  - 'CN=cogstack'
 
 opendistro_security.nodes_dn:
   - 'CN=elasticsearch-*'
-
 
 opendistro_security.audit.type: internal_elasticsearch
 opendistro_security.enable_snapshot_restore_privilege: true
