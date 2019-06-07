@@ -15,22 +15,16 @@ set -e
 ES_HOST=localhost
 ES_PORT=9200
 ES_ADMIN_USER=admin
-ES_ADMIN_PASS=admin
 
 
-# build-in roles config: logstash, kibanaro, readall, snapshotrestore
+# load the build-in users pass
 #
-LOGSTASH_PASS=logstash
-KIBANARO_PASS=kibanaro
-READALL_PASS=readall
-SNAPSHOTRESTORE_PASS=snapshotrestore
+source es_core_users.conf
 
 
-# new users config
+# load the custom users config
 #
-COGSTACK_USER_PASS=cogstack-user-pass
-COGSTACK_PIPELINE_PASS=cogstack-pipeline-pass
-NIFI_PASS=nifi-pass
+source es_cogstack_users.conf
 
 
 # create roles
@@ -110,7 +104,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistr
   \"roles\": [
     \"cogstack_ingest\"
   ],
-  \"password\": \"$NIFI_PASS\",
+  \"password\": \"$COGSTACK_NIFI_PASS\",
   \"attributes\": {}
 }"
 echo ""
@@ -153,7 +147,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistr
   \"roles\": [
     \"logstash\"
   ],
-  \"password\": \"$LOGSTASH_PASS\",
+  \"password\": \"$ES_LOGSTASH_PASS\",
   \"attributes\": {}
 }"
 echo ""
@@ -164,7 +158,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistr
     \"kibanauser\",
     \"readall\"
   ],
-  \"password\": \"$KIBANARO_PASS\",
+  \"password\": \"$ES_KIBANARO_PASS\",
   \"attributes\": {}
 }"
 echo ""
@@ -174,7 +168,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistr
   \"roles\": [
     \"readall\"
   ],
-  \"password\": \"$READALL_PASS\",
+  \"password\": \"$ES_READALL_PASS\",
   \"attributes\": {}
 }"
 echo ""
@@ -184,7 +178,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistr
   \"roles\": [
     \"snapshotrestore\"
   ],
-  \"password\": \"$SNAPSHOTRESTORE_PASS\",
+  \"password\": \"$ES_SNAPSHOTRESTORE_PASS\",
   \"attributes\": {}
 }"
 echo ""
