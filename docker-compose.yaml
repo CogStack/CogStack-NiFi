@@ -34,8 +34,8 @@ services:
       # configuration files
       - ./services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
       # GATE app resources
-      - /Users/lroguski/data/UMLS/for-bioyodie/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
-      #- /gae/cogstack/resources/umls/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
+      # IMPORTANT: change this path to your own local copy of UMLS resources
+      - ./services/nlp-services/applications/bio-yodie/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
     ports:
       - "8095:8095"
       #- "8095"
@@ -50,7 +50,8 @@ services:
     volumes:
       # cogstack API
       - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
-      # UMLS models -- TODO: tailor to local specs
+      # UMLS models
+      # IMPORTANT: change this path to your own local copy of UMLS resources
       - ./services/nlp-services/applications/cat/models/umls/cdb.dat:/cat/models/cdb.dat:ro
       - ./services/nlp-services/applications/cat/models/umls/vcb.dat:/cat/models/vcb.dat:ro
     ports:
