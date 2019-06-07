@@ -1,28 +1,42 @@
 #!/bin/bash
-
 ################################
 # 
 # This script creates example roles and users for ES
 #
-# WARNING! In production environment please remember to change the default passwords
+# IMPORTANT: for production deployment remember to change the default passwords below
 #
 #
 
 set -e
 
 
-# default conifig for ES
+# ES admin config for altering users and roles
 #
 ES_HOST=localhost
 ES_PORT=9200
-ES_USER=admin
-ES_PASS=admin
+ES_ADMIN_USER=admin
+ES_ADMIN_PASS=admin
+
+
+# build-in roles config: logstash, kibanaro, readall, snapshotrestore
+#
+LOGSTASH_PASS=logstash
+KIBANARO_PASS=kibanaro
+READALL_PASS=readall
+SNAPSHOTRESTORE_PASS=snapshotrestore
+
+
+# new users config
+#
+COGSTACK_USER_PASS=cogstack-user-pass
+COGSTACK_PIPELINE_PASS=cogstack-pipeline-pass
+NIFI_PASS=nifi-pass
 
 
 # create roles
 #
 echo "Creating roles ..."
-curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' --insecure -d'
 {
   "cluster": [
     "CLUSTER_COMPOSITE_OPS",
@@ -44,7 +58,7 @@ curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/
 }'
 echo ""
 
-curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' --insecure -d'
 {
   "cluster": [
     "CLUSTER_COMPOSITE_OPS"
@@ -71,41 +85,41 @@ echo ""
 # create users
 #
 echo "Creating users ..."
-curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' --insecure -d"
 {
-  "roles": [
-    "cogstack_access"
+  \"roles\": [
+    \"cogstack_access\"
   ],
-  "password": "cogstackpass",
-  "attributes": {}
-}'
+  \"password\": \"$COGSTACK_USER_PASS\",
+  \"attributes\": {}
+}"
 echo ""
 
-curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' --insecure -d"
 {
-  "roles": [
-    "cogstack_ingest"
+  \"roles\": [
+    \"cogstack_ingest\"
   ],
-  "password": "cogstackpass",
-  "attributes": {}
-}'
+  \"password\": \"$COGSTACK_PIPELINE_PASS\",
+  \"attributes\": {}
+}"
 echo ""
 
-curl -XPUT -u $ES_USER:$ES_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' --insecure -d"
 {
-  "roles": [
-    "cogstack_ingest"
+  \"roles\": [
+    \"cogstack_ingest\"
   ],
-  "password": "nifipass",
-  "attributes": {}
-}'
+  \"password\": \"$NIFI_PASS\",
+  \"attributes\": {}
+}"
 echo ""
 
 
 # create mapping roles
 #
 echo "Creating roles mapping ..."
-curl -XPUT -u $ES_USER:$ES_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' --insecure -d'
 {
   "backendroles": [
     "cogstack_access"
@@ -117,7 +131,7 @@ curl -XPUT -u $ES_USER:$ES_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security
 }'
 echo ""
 
-curl -XPUT -u $ES_USER:$ES_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' --insecure -d'
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' --insecure -d'
 {
   "backendroles": [
     "cogstack_ingest"
@@ -128,4 +142,49 @@ curl -XPUT -u $ES_USER:$ES_PASS  "http://$ES_HOST:$ES_PORT/_opendistro/_security
     "nifi"
   ]
 }'
+echo ""
+
+
+# mnodify passwords for internal build-in users
+#
+echo "Modifying passwords for internal build-in users ..."
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' --insecure -d"
+{
+  \"roles\": [
+    \"logstash\"
+  ],
+  \"password\": \"$LOGSTASH_PASS\",
+  \"attributes\": {}
+}"
+echo ""
+
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' --insecure -d"
+{
+  \"roles\": [
+    \"kibanauser\",
+    \"readall\"
+  ],
+  \"password\": \"$KIBANARO_PASS\",
+  \"attributes\": {}
+}"
+echo ""
+
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' --insecure -d"
+{
+  \"roles\": [
+    \"readall\"
+  ],
+  \"password\": \"$READALL_PASS\",
+  \"attributes\": {}
+}"
+echo ""
+
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "http://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' --insecure -d"
+{
+  \"roles\": [
+    \"snapshotrestore\"
+  ],
+  \"password\": \"$SNAPSHOTRESTORE_PASS\",
+  \"attributes\": {}
+}"
 echo ""
