@@ -85,5 +85,4 @@ All the necessary configuration files and scripts are located in `nginx/config/`
 
 
 # Missing
-- MEDCAT NLP Service
 - OCR Service
