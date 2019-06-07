@@ -119,6 +119,8 @@ services:
     image: amazon/opendistro-for-elasticsearch-kibana:0.8.0
     environment:
       ELASTICSEARCH_URL: http://elasticsearch-1:9200
+      ELASTICSEARCH_USER: kibanaserver
+      ELASTICSEARCH_PASSWORD: kibanaserver
       SERVER_SSL_ENABLED: "false"
       SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
       SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
