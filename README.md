@@ -1,6 +1,9 @@
 # Introduction
 This repository contains example recipes on deploying NiFi with a set of services for documents processing with NLP.
 
+**IMPORTANT: Please note that it is still a work-in-progress project and it is not production-ready.**
+
+
 # Project organisation
 The project is organised in the following directories:
 - `nifi` - configuration files for NiFi alongside the available drivers, workflows and custom user scripts,
@@ -20,4 +23,4 @@ In the main directory there is also `docker-compose.yml` file that defines the s
 Please note that NLP Services: Bio-Yodie and MEDCAT that use UMLS vocabulary due to licensing limitations come without UMLS provided. One needs to provide these resources manually.
 
 **Important!**
-Please note that in this example deployment SSL encryption is temporary disabled for the self-signed certificates. However, one still needs to generate SSL certificates, self-sign them (see: `security\README.md`) and provide to `elasticsearch-1` and `kibana` services.
+Please note that in this example deployment SSL encryption is temporary disabled for the self-signed certificates. However, one still needs to generate SSL certificates, self-sign them (see: `security/README.md`) and provide to `elasticsearch-1` and `kibana` services.
