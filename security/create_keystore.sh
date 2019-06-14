@@ -1,5 +1,11 @@
 #!/bin/bash
 
+################################################################
+# 
+# This script creates JAVA keystore with previously generated
+#  keys and certificates
+#
+
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ]; then

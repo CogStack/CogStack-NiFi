@@ -18,9 +18,9 @@ services:
       - ./services/pgsamples/db_dump:/data/:ro
       - ./services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       - samples-vol:/var/lib/postgresql/data
-    ports:
+    #ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-      - 5555:5432
+    #  - 5555:5432
     networks:
       - cognet
 
@@ -36,9 +36,10 @@ services:
       # GATE app resources
       # IMPORTANT: change this path to your own local copy of UMLS resources
       - ./services/nlp-services/applications/bio-yodie/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
-    ports:
-      - "8095:8095"
-      #- "8095"
+    #ports:
+    #  - "8095:8095"
+    #expose:
+    #   - 8095
     command: "bash /app/nlp-service/run.sh"
     networks:
       - cognet
@@ -54,9 +55,10 @@ services:
       # IMPORTANT: change this path to your own local copy of UMLS resources
       - ./services/nlp-services/applications/cat/models/umls/cdb.dat:/cat/models/cdb.dat:ro
       - ./services/nlp-services/applications/cat/models/umls/vcb.dat:/cat/models/vcb.dat:ro
-    ports:
+    #ports:
       #- "8096:5000"
-      - "5000:5000"
+    #expose:
+    #  - 5000
     command: "/cat/api/cogstack_api.py"
     networks:
       - cognet
@@ -68,9 +70,10 @@ services:
     volumes:
       # cogstack API
       - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
-    ports:
-      - "8096:5000"
-      #- "5000:5000"
+    #ports:
+    #  - "8096:5000"
+    #expose:
+    #   - 5000
     command: "/cat/api/cogstack_api.py"
     networks:
       - cognet
@@ -82,6 +85,7 @@ services:
   elasticsearch-1:
     image: amazon/opendistro-for-elasticsearch:0.8.0
     #container_name: elasticsearch-1
+    restart: always
     environment:
       - cluster.name=docker-cluster
       - discovery.type=single-node
@@ -105,9 +109,12 @@ services:
       memlock:
         soft: -1
         hard: -1
-    ports:
-      - 9200:9200
-      - 9600:9600
+    #ports:
+      #- 9200:9200
+      #- 9600:9600
+    #expose:
+    #  - 9200
+    #  - 9600
     networks:
       - esnet
 
@@ -117,11 +124,12 @@ services:
 #---------------------------------------------------------------------------#
   kibana:
     image: amazon/opendistro-for-elasticsearch-kibana:0.8.0
+    restart: always
     environment:
       ELASTICSEARCH_URL: http://elasticsearch-1:9200
-      ELASTICSEARCH_USER: kibanaserver
-      ELASTICSEARCH_PASSWORD: kibanaserver
-      SERVER_SSL_ENABLED: "false"
+      #ELASTICSEARCH_USER: kibanaserver
+      #ELASTICSEARCH_PASSWORD: kibanaserver
+      #SERVER_SSL_ENABLED: "false"
       SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
       SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
     depends_on:
@@ -133,9 +141,10 @@ services:
       - ./security/root-ca.pem:/usr/share/kibana/config/root-ca.pem:ro
       - ./security/kibana.pem:/usr/share/kibana/config/kibana.pem:ro
       - ./security/kibana.key:/usr/share/kibana/config/kibana.key:ro
-    ports:
-      - 5601:5601
-      #- 5601
+    #ports:
+      #- 5601:5601
+    #expose:
+    #  - 5601
     networks:
       - esnet
 
@@ -144,9 +153,10 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    #image: apache/nifi:latest
-    build:
-      ./nifi/
+    image: cogstacksystems/cogstack-nifi:latest
+    #build:
+    #  ./nifi/
+    restart: always
     volumes:
       # mapping the proper timezone
       #- /etc/timezone:/etc/timezone:ro
@@ -166,11 +176,12 @@ services:
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-    ports:
+    #ports:
       #- "8090:8080"
-      - "8080:8080"
-      #- "8080"
-      - "10000" # site-to-site functionality 
+      #- "8080:8080"
+    #expose:
+    #  - 8080
+    #  - 10000 # site-to-site functionality 
     networks:
       - cognet
       - esnet
@@ -185,10 +196,6 @@ volumes:
   # ELK-stack related
   elasticsearch-vol-1:
     driver: local
-#  elasticsearch-vol-2:
-#    driver: local
-#  elasticsearch-vol-3:
-#    driver: local
   # NiFi related
   nifi-vol-conf:
     driver: local
@@ -215,5 +222,3 @@ networks:
   esnet:
     driver: bridge
     name: esnet-ext
-  public:
-    driver: bridge

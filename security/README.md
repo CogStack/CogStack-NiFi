@@ -22,13 +22,13 @@ ElasticSearch requires:
 - `es-node1.pem`
 - `es-node1.key`
 
-These files need to be placed in `services/elasticsearch/config/`. They are further referenced in `services/elasticsearch/config/elasticsearch.yml`.
+These files need to be placed in `security/` directory. They are further referenced in `services/elasticsearch/config/elasticsearch.yml`. When setting up a multi-node ElasticSearch cluster, more keys need to be generated accordingly.
 
 Kibana requires:
 - `kibana.pem`
 - `kibana.key`
 
-These files need to be placed in `services/kibana/config/`. They are further referenced in `services/kibana/config/elasticsearch.yml`.
+These files need to be placed in `security/`. They are further referenced in `services/kibana/config/elasticsearch.yml`.
 
 ## NiFi
 **IMPORTANT: currently, NiFi is not configured to use SSL.**
@@ -40,15 +40,22 @@ The `nifi.jks` needs then to be placed in `/nifi/security/nifi.jks`.
 
 # Users and roles in ElasticSearch
 
+## Users and passwords
+The users and passwords are specified in the following `.env` files in `security/` directory:
+- `es_internal_users.env` - contains passwords for ElasticSearch internal users,
+- `es_kibana_user.env` - contains user and password used by Kibana,
+- `es_cogstack_users.env` - contains passwords for custom ElasticSearch users.
+
 **IMPORTANT: please remember to change the default passwords for the users before running this in production.**
 
+
 ## Setting up ElasticSearch
-On the first run, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenDistro documentation](https://opendistro.github.io/for-elasticsearch-docs/docs/install/docker-security/). To do so, one should:
+On the first run, after changing the default passwords, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenDistro documentation](https://opendistro.github.io/for-elasticsearch-docs/docs/install/docker-security/). To do so, one should:
 - run the script `generate_es_internal_passwords.sh` to generate hashes,
 - modify the `internal_users.yml` file with the generated hashes, 
-- restart the stack, but with using `docker-compose down -v` to remove the volumes.
+- restart the stack, but with using `docker-compose down -v` to remove the volume data.
 
-Following, one should modify the default passwords for the other build-in users (`logstash`, `kibanaro`, `readall`, `snapshotrestore`) and to create new users, as specified below. The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster. Alternatively, when SSL is not used -- `create_es_users_insecure.sh` handles this.
+Following, one should modify the default passwords for the other build-in users (`logstash`, `kibanaro`, `readall`, `snapshotrestore`) and to create custom users (`cogstack_pipeline`, `cogstack_user`, `nifi`), as specified below. The script `create_es_users.sh` creates and sets up users and roles in ElasticSearch cluster.
 
 ## New roles
 The available roles will be created:
