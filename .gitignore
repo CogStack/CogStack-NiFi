@@ -5,6 +5,7 @@
 *.jks
 *.csr
 *.srl
-#  env files with passwords
+#  env files with passwords or local paths
 security/*.env
 security/internal_users.yml
+.env
