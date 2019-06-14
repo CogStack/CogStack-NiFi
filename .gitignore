@@ -7,3 +7,4 @@
 *.srl
 #  env files with passwords
 security/*.env
+security/internal_users.yml
