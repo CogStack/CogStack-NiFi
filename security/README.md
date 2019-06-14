@@ -30,8 +30,8 @@ Kibana requires:
 
 These files need to be placed in `security/`. They are further referenced in `services/kibana/config/elasticsearch.yml`.
 
-## NiFi
-**IMPORTANT: currently, NiFi is not configured to use SSL.**
+## Apache NiFi
+**IMPORTANT: in the example deployment Apache NiFi is not configured to use SSL.**
 
 However, if willing to use a secure connection, it requires the certificates in JKS keystore format (using `create_keystore.sh`).
 
@@ -67,3 +67,10 @@ The following users will be created:
 - `cogstack_pipeline` - uses `ingest` role,
 - `nifi` - uses `ingest` role,
 - `cogstack_user` - uses `cogstack_access` role.
+
+
+# Setting up Apache NiFi web user
+
+In the example deployment, Apache NiFi is not using SSL certificates. A reverse-proxy NGINX instance is used to provide a secure the access to Apache NiFi web interface. The user and password to access Apache NiFi web interface is specified in `security/nginx_users.env` file.
+
+To generate necessary auth information for NGINX one needs to run a script `services/nginx/setup_passwd.sh`.
