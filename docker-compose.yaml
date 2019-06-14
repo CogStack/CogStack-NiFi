@@ -33,9 +33,8 @@ services:
     volumes:
       # configuration files
       - ./services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
-      # GATE app resources
-      # IMPORTANT: change this path to your own local copy of UMLS resources
-      - ./services/nlp-services/applications/bio-yodie/bio-yodie-resources:/gate/app/bioyodie/bio-yodie-resources:ro
+      # UMLS resources
+      - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
     #ports:
     #  - "8095:8095"
     #expose:
@@ -52,9 +51,8 @@ services:
       # cogstack API
       - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
       # UMLS models
-      # IMPORTANT: change this path to your own local copy of UMLS resources
-      - ./services/nlp-services/applications/cat/models/umls/cdb.dat:/cat/models/cdb.dat:ro
-      - ./services/nlp-services/applications/cat/models/umls/vcb.dat:/cat/models/vcb.dat:ro
+      - ${RES_CAT_UMLS_PATH}/cdb.dat:/cat/models/cdb.dat:ro
+      - ${RES_CAT_UMLS_PATH}/vcb.dat:/cat/models/vcb.dat:ro
     #ports:
       #- "8096:5000"
     #expose:
@@ -127,9 +125,6 @@ services:
     restart: always
     environment:
       ELASTICSEARCH_URL: http://elasticsearch-1:9200
-      #ELASTICSEARCH_USER: kibanaserver
-      #ELASTICSEARCH_PASSWORD: kibanaserver
-      #SERVER_SSL_ENABLED: "false"
       SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
       SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
     depends_on:
