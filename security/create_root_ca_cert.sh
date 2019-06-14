@@ -1,5 +1,10 @@
 #!/bin/bash
 
+################################################################
+# 
+# This script generates the root CA key and certificate
+#
+
 set -e
 
 CA_ROOT_CERT="root-ca.pem"

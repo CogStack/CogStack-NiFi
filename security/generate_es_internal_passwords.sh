@@ -1,14 +1,27 @@
 #!/bin/bash
 
-# load the ES users configuration
-source es_core_users.conf
+################################################################
+# 
+# This script generates the hashes of passwords for the internal
+#  users in OpenDistro for ElasticSearch that need to be afterwards
+#  manually imported
+#
+
+set -e
 
 
 # container name to connect to
-# INFO: change the container name of elasticsearch name deployed under a different one
-ES_CONTAINER_NAME=nifi_elasticsearch-1_1
+if [ -z "$1" ]; then
+	echo "Usage: $0 <es_container_name>"
+	exit 1
+fi
 
-# generate hashes
+# load the ES users configuration
+source es_internal_users.env
+
+ES_CONTAINER_NAME="$1"
+
+# connect to the container and generate hashes
 ES_ADMIN_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/elasticsearch/plugins/opendistro_security/tools/hash.sh -p $ES_ADMIN_PASS )
 ES_KIBANA_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/elasticsearch/plugins/opendistro_security/tools/hash.sh -p $ES_KIBANA_PASS )
 

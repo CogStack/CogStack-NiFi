@@ -1,5 +1,11 @@
 #!/bin/bash
 
+################################################################
+# 
+# This script creates client keys and certificates that can 
+#  be used by client's applications
+#
+
 set -e
 
 if [ -z "$1" ]; then

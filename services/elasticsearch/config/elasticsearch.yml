@@ -12,8 +12,8 @@ opendistro_security.ssl.transport.pemkey_filepath: esnode.key
 opendistro_security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
 opendistro_security.ssl.transport.enforce_hostname_verification: false
 
-# disabled SSL
-opendistro_security.ssl.http.enabled: false
+# disabled SSL -- set as docker-compose parameter
+#opendistro_security.ssl.http.enabled: false
 opendistro_security.ssl.http.pemcert_filepath: esnode.pem
 opendistro_security.ssl.http.pemkey_filepath: esnode.key
 opendistro_security.ssl.http.pemtrustedcas_filepath: root-ca.pem
