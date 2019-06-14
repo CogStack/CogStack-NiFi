@@ -15,7 +15,7 @@ services:
       # mapping the proper timezone
       #- /etc/timezone:/etc/timezone:ro
       # mapping postgres data
-      - ./services/pgsamples/db_dump:/data/:ro
+      - ./services/pgsamples/db_dump/db_samples.sql.gz:/data/db_samples.sql.gz:ro
       - ./services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       - samples-vol:/var/lib/postgresql/data
     #ports:
