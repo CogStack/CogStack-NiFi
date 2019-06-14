@@ -1,6 +1,9 @@
 .DS_Store
+# keys and certificates
 *.pem
 *.key
 *.jks
 *.csr
 *.srl
+#  env files with passwords
+security/*.env
