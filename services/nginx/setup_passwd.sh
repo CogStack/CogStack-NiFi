@@ -23,7 +23,7 @@ if [ ! -e $NGINX_PASSWD_FILE ]; then
 	fi
 
 	echo "-- Generating user:password --> for nginx proxy"
-	htpasswd -b -c $NGINX_PASSWD_FILE "$NGINX_NIFI_USER" "NGINX_NIFI_PASS"
+	htpasswd -b -c $NGINX_PASSWD_FILE "$NGINX_NIFI_USER" "$NGINX_NIFI_PASS"
 else
 	echo " -- NGINX password file already extsts: $NGINX_PASSWD_FILE"
 	exit 1
