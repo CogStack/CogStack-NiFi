@@ -21,21 +21,31 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    #ports:
+    ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-    #  - 5555:5432
-    expose:
-      - 5432
+      - "5555:5432"
+    #expose:
+    #  - 5432
+
+
+#---------------------------------------------------------------------------#
+# Apache Tika documents processing service                                  #
+#---------------------------------------------------------------------------#
+  tika-service:
+    ports:
+      - "8090:8090"
+    #expose:
+    #  - 8090
 
 
 #---------------------------------------------------------------------------#
 # NLP Service related containers                                            #
 #---------------------------------------------------------------------------#
   nlp-gate-bioyodie:
-    #ports:
-    #  - "8095:8095"
-    expose:
-       - 8095
+    ports:
+      - "8095:8095"
+    #expose:
+    #   - 8095
 
   nlp-medcat-umls:
     #ports:
@@ -44,10 +54,10 @@ services:
       - 5000
 
   nlp-medcat-medmen:
-    #ports:
-    #  - "8096:5000"
-    expose:
-       - 5000
+    ports:
+      - "8096:5000"
+    #expose:
+    #   - 5000
 
 
 #---------------------------------------------------------------------------#
@@ -58,12 +68,12 @@ services:
       - discovery.type=single-node
       # - discovery.type=zen
       - opendistro_security.ssl.http.enabled=false
-    #ports:
-      #- 9200:9200
-      #- 9600:9600
-    expose:
-      - 9200
-      - 9600
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    #expose:
+    #  - 9200
+    #  - 9600
 
 
 #---------------------------------------------------------------------------#
@@ -75,19 +85,22 @@ services:
       SERVER_SSL_ENABLED: "false"
     depends_on:
       - elasticsearch-1
-    #ports:
-      #- 5601:5601
-    expose:
-      - 5601
+    ports:
+      - "5601:5601"
+    #expose:
+    #  - 5601
 
 
 #---------------------------------------------------------------------------#
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    expose:
-      - 8080
-      - 10000 # needed for site-to-site functionality 
+    ports:
+      - "8080:8080"
+      - "10000:10000"
+    #expose:
+    #  - 8080
+    #  - 10000 # needed for site-to-site functionality 
 
 
 #---------------------------------------------------------------------------#
