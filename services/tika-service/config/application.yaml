@@ -1,0 +1,47 @@
+# application configuration
+#
+application:
+  version: 0.1.0
+
+
+# general spring boot configuration
+#
+server:
+  port: 8090
+
+spring:
+  servlet:
+    multipart.max-file-size: 100MB
+    multipart.max-request-size: 100MB
+
+
+# tika configuration
+#
+tika:
+  parsers:
+    tesseract-ocr:
+      language: eng
+      timeout: 300
+      enable-image-processing: false
+      apply-rotation: false
+
+    pdf-ocr-parser:
+      ocr-only-strategy: true
+      min-doc-text-length: 100
+      min-doc-byte-size: 10000
+      use-legacy-ocr-parser-for-single-page-doc: false
+
+    legacy-pdf-parser:
+      image-magick:
+        timeout: 300
+      tesseract-ocr:
+        timeout: 300
+      min-doc-text-length: 100
+
+
+# documents processing configuration
+#
+processing:
+  use-legacy-tika-processor-as-default: false
+  fail-on-empty-files: false
+  fail-on-non-document-types: true
