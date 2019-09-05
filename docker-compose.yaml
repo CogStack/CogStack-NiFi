@@ -46,44 +46,18 @@ services:
       - ./services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
       # UMLS resources
       - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
-    #ports:
-    #  - "8095:8095"
-    #expose:
-    #   - 8095
     command: "bash /app/nlp-service/run.sh"
     networks:
       - cognet
 
   nlp-medcat-umls:
-    image: lrog/cat:latest-umls
+    image: cogstacksystems/medcatservice:latest
     env_file:
       - ./services/nlp-services/applications/cat/envs/env_fullumls
     volumes:
-      # cogstack API
-      - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
       # UMLS models
       - ${RES_CAT_UMLS_PATH}/cdb.dat:/cat/models/cdb.dat:ro
       - ${RES_CAT_UMLS_PATH}/vcb.dat:/cat/models/vcb.dat:ro
-    #ports:
-      #- "8096:5000"
-    #expose:
-    #  - 5000
-    command: "/cat/api/cogstack_api.py"
-    networks:
-      - cognet
-
-  nlp-medcat-medmen:
-    image: lrog/cat:latest-medmen
-    env_file:
-      - ./services/nlp-services/applications/cat/envs/env_medann
-    volumes:
-      # cogstack API
-      - ./services/nlp-services/applications/cat/api/cogstack_api.py:/cat/api/cogstack_api.py:ro
-    #ports:
-    #  - "8096:5000"
-    #expose:
-    #   - 5000
-    command: "/cat/api/cogstack_api.py"
     networks:
       - cognet
 
