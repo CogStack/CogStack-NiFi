@@ -23,9 +23,19 @@ services:
   samples-db:
     #ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-    #  - 5555:5432
+    #  - "5555:5432"
     expose:
       - 5432
+
+
+#---------------------------------------------------------------------------#
+# Apache Tika documents processing service                                  #
+#---------------------------------------------------------------------------#
+  tika-service:
+    #ports:
+    #  - "8090:8090"
+    expose:
+      - 8090
 
 
 #---------------------------------------------------------------------------#
@@ -59,8 +69,8 @@ services:
       # - discovery.type=zen
       - opendistro_security.ssl.http.enabled=false
     #ports:
-      #- 9200:9200
-      #- 9600:9600
+    #  - "9200:9200"
+    #  - "9600:9600"
     expose:
       - 9200
       - 9600
@@ -76,7 +86,7 @@ services:
     depends_on:
       - elasticsearch-1
     #ports:
-      #- 5601:5601
+    #  - "5601:5601"
     expose:
       - 5601
 
@@ -85,6 +95,9 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
+    #ports:
+    #  - "8080:8080"
+    #  - "10000:10000"
     expose:
       - 8080
       - 10000 # needed for site-to-site functionality 

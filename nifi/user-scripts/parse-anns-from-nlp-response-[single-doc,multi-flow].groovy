@@ -53,8 +53,9 @@ Set ignoreAnnTypes = (ignore_annotation_types as String).split(',').collect { it
 
 
 // annotation template to clone
+assert inJson.result.footer
 def outAnnTemplate = [:]
-inJson.footer.each {k, v ->
+inJson.result.footer.each {k, v ->
     outAnnTemplate.put(FIELD_META_PREFIX + k, v)
 }
 
@@ -77,7 +78,11 @@ inJson.result.annotations.each { ann ->
     def newFlowFile = session.create(inFlowFile)
 
     def doc_id = outAnn[document_id_field as String]
+    assert doc_id
+
     def ann_id = outAnn[annotation_id_field as String]
+    assert ann_id
+
     def doc_ann_id = "d_${doc_id}-a_${ann_id}"
 
     // store annotation ID as the Flow file attriburte and store the new Flow file
