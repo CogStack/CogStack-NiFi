@@ -201,4 +201,3 @@ networks:
     driver: bridge
   esnet:
     driver: bridge
-    name: esnet-ext
