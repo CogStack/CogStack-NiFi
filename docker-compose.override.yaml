@@ -49,7 +49,7 @@ services:
 
   nlp-medcat-umls:
     #ports:
-      #- "8096:5000"
+    #  - "8096-9000:5000"
     expose:
       - 5000
 
@@ -95,7 +95,6 @@ services:
     expose:
       - 8080
       - 10000 # needed for site-to-site functionality 
-
 
 #---------------------------------------------------------------------------#
 # NGINX reverse-proxy                                                       #
