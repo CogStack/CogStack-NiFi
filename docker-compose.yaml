@@ -66,7 +66,7 @@ services:
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   elasticsearch-1:
-    image: amazon/opendistro-for-elasticsearch:0.8.0
+    image: amazon/opendistro-for-elasticsearch:1.2.0
     #container_name: elasticsearch-1
     restart: always
     environment:
@@ -92,12 +92,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-    #ports:
-      #- 9200:9200
-      #- 9600:9600
-    #expose:
-    #  - 9200
-    #  - 9600
     networks:
       - esnet
 
@@ -106,10 +100,11 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:0.8.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.2.0
     restart: always
     environment:
       ELASTICSEARCH_URL: http://elasticsearch-1:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch-1:9200
       SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
       SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
     depends_on:
@@ -121,10 +116,6 @@ services:
       - ./security/root-ca.pem:/usr/share/kibana/config/root-ca.pem:ro
       - ./security/kibana.pem:/usr/share/kibana/config/kibana.pem:ro
       - ./security/kibana.key:/usr/share/kibana/config/kibana.key:ro
-    #ports:
-      #- 5601:5601
-    #expose:
-    #  - 5601
     networks:
       - esnet
 
@@ -156,12 +147,6 @@ services:
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-    #ports:
-      #- "8090:8080"
-      #- "8080:8080"
-    #expose:
-    #  - 8080
-    #  - 10000 # site-to-site functionality 
     networks:
       - cognet
       - esnet
