@@ -13,28 +13,7 @@ import org.apache.nifi.processor.io.StreamCallback
 import java.nio.charset.StandardCharsets
 
 
-/* MedCAT columns definition in PosgreSQL
-
-    id BIGSERIAL,
-    doc_id BIGINT NOT NULL,            -- document from which it originates
-    processing_timestamp TIMESTAMPTZ,  -- nlp processing timestamp
-    ent_id INT NOT NULL,
-    cui TEXT,
-    tui TEXT,
-    start_idx INT,
-    end_idx INT,
-    source_value TEXT,
-    type TEXT,
-    acc REAL,
-    icd10 TEXT,
-    umls TEXT,
-    snomed TEXT,
-    pretty_name TEXT
-
-*/
-
-// Avro schema used in the database
-// and as provided by Tika Service
+// Avro schema used in the database and as provided by Tika Service
 //
 def avroMedcatSchema = 
 '''
@@ -62,6 +41,7 @@ def avroMedcatSchema =
   ]
 }
 '''
+
 
 def flowFile = session.get();
 if (flowFile == null) {
