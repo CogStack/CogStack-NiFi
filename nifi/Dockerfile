@@ -6,8 +6,9 @@ WORKDIR /opt/nifi/
 COPY ./drivers ./drivers
 #COPY ./security ./security
 
-# copy user scripts and templates
+# copy user scripts, schemas and templates
 COPY ./user-scripts ./user-scripts
+COPY ./user-schemas ./user-schemas
 
 WORKDIR /opt/nifi/nifi-current/conf/templates/
 COPY ./user-templates ./
