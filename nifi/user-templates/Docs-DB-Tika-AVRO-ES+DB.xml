@@ -1,39 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.2">
-    <description>Full pipeline:
-- read records from database
-- send the binary documents to tika
-- send the text to NLP (MedCAT)
-- convert the JSON result to AVRO
+    <description>Full pipeline: 
+- read records from database 
+- send the binary documents to tika 
+- convert JSON result to AVRO
 - store the result in ES and DB</description>
     <groupId>d8c803bb-016d-1000-434b-06893806e64d</groupId>
-    <name>DB-Tika-NLP-AVRO-ES+DB</name>
+    <name>Docs-DB-Tika-AVRO-ES+DB</name>
     <snippet>
-        <connections>
-            <id>02657c8f-7f32-3275-0000-000000000000</id>
-            <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
-            <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
-            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
-            <destination>
-                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>e31e1369-1655-37e8-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </destination>
-            <flowFileExpiration>0 sec</flowFileExpiration>
-            <labelIndex>1</labelIndex>
-            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
-            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
-            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <name></name>
-            <selectedRelationships>success</selectedRelationships>
-            <source>
-                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>73748738-c20a-324b-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </source>
-            <zIndex>0</zIndex>
-        </connections>
         <connections>
             <id>05fd25e7-a924-3b6e-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
@@ -60,7 +34,7 @@
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>238ea2f9-f330-35a4-0000-000000000000</id>
+            <id>400549ac-d0db-3993-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
@@ -79,20 +53,20 @@
             <selectedRelationships>success</selectedRelationships>
             <source>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>73748738-c20a-324b-0000-000000000000</id>
+                <id>614be727-96a2-32b4-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>2a59389e-c2b0-3cca-0000-000000000000</id>
+            <id>54cf06ad-dda1-3f78-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>5ce096b6-e3f8-32f0-0000-000000000000</id>
-                <type>FUNNEL</type>
+                <id>e31e1369-1655-37e8-0000-000000000000</id>
+                <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
             <labelIndex>1</labelIndex>
@@ -101,10 +75,10 @@
             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <name></name>
-            <selectedRelationships>failure</selectedRelationships>
+            <selectedRelationships>success</selectedRelationships>
             <source>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>73748738-c20a-324b-0000-000000000000</id>
+                <id>614be727-96a2-32b4-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
@@ -180,31 +154,6 @@
             <source>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
                 <id>89eef85f-3cfa-303b-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </source>
-            <zIndex>0</zIndex>
-        </connections>
-        <connections>
-            <id>64ff9569-1c1a-353a-0000-000000000000</id>
-            <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
-            <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
-            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
-            <destination>
-                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>73748738-c20a-324b-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </destination>
-            <flowFileExpiration>0 sec</flowFileExpiration>
-            <labelIndex>1</labelIndex>
-            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
-            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
-            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <name></name>
-            <selectedRelationships>success</selectedRelationships>
-            <source>
-                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
-                <id>005c59d5-16b8-375e-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
@@ -292,11 +241,11 @@
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <bends>
                 <x>16.404296875</x>
-                <y>1310.1246999968628</y>
+                <y>1504.6322683562378</y>
             </bends>
             <bends>
                 <x>0.0</x>
-                <y>1372.4281057585815</y>
+                <y>1566.9356741179565</y>
             </bends>
             <destination>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
@@ -349,12 +298,12 @@
             <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <bends>
-                <x>1204.5765113355947</x>
-                <y>1336.7199029525693</y>
+                <x>1271.2222632887197</x>
+                <y>1535.7715081771787</y>
             </bends>
             <bends>
-                <x>1204.5765113355947</x>
-                <y>1386.7199029525693</y>
+                <x>1271.2222632887197</x>
+                <y>1585.7715081771787</y>
             </bends>
             <destination>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
@@ -383,11 +332,11 @@
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <bends>
                 <x>939.7549885605858</x>
-                <y>547.5189729641029</y>
+                <y>742.0265413234779</y>
             </bends>
             <bends>
                 <x>939.7549885605858</x>
-                <y>597.5189729641029</y>
+                <y>792.0265413234779</y>
             </bends>
             <destination>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
@@ -405,6 +354,56 @@
             <source>
                 <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
                 <id>89eef85f-3cfa-303b-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>f70c770d-ac3a-3e16-0000-000000000000</id>
+            <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
+                <id>614be727-96a2-32b4-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
+            <selectedRelationships>success</selectedRelationships>
+            <source>
+                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
+                <id>005c59d5-16b8-375e-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>fd1c4d6e-4737-36ce-0000-000000000000</id>
+            <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
+                <id>5ce096b6-e3f8-32f0-0000-000000000000</id>
+                <type>FUNNEL</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
+            <selectedRelationships>failure</selectedRelationships>
+            <source>
+                <groupId>c1783d42-645f-3380-0000-000000000000</groupId>
+                <id>614be727-96a2-32b4-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
@@ -832,15 +831,15 @@
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>647.7356539573861</x>
-                <y>1554.778015323408</y>
+                <y>1749.285583682783</y>
             </position>
         </funnels>
         <funnels>
             <id>5ce096b6-e3f8-32f0-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
-                <x>142.79131168856384</x>
-                <y>1057.8577520690612</y>
+                <x>118.55644840731384</x>
+                <y>1212.9837133727722</y>
             </position>
         </funnels>
         <funnels>
@@ -848,7 +847,7 @@
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>135.7738251162982</x>
-                <y>537.5893118224792</y>
+                <y>732.0968801818542</y>
             </position>
         </funnels>
         <processors>
@@ -856,7 +855,7 @@
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>481.0919481559031</x>
-                <y>749.0545177343226</y>
+                <y>943.5620860936976</y>
             </position>
             <bundle>
                 <artifact>nifi-scripting-nar</artifact>
@@ -936,7 +935,7 @@
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>469.0333772940867</x>
-                <y>256.72517203119764</y>
+                <y>451.23274039057264</y>
             </position>
             <bundle>
                 <artifact>nifi-scripting-nar</artifact>
@@ -1032,11 +1031,11 @@
             <type>org.apache.nifi.processors.script.ExecuteScript</type>
         </processors>
         <processors>
-            <id>730f5ba3-49b4-3b4f-0000-000000000000</id>
+            <id>614be727-96a2-32b4-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
-                <x>1383.418441782482</x>
-                <y>1168.1736935480085</y>
+                <x>477.0649282638128</x>
+                <y>1212.9791440550794</y>
             </position>
             <bundle>
                 <artifact>nifi-groovyx-nar</artifact>
@@ -1072,6 +1071,12 @@
                             <name>groovyx-additional-classpath</name>
                         </value>
                     </entry>
+                    <entry>
+                        <key>avro_schema_path</key>
+                        <value>
+                            <name>avro_schema_path</name>
+                        </value>
+                    </entry>
                 </descriptors>
                 <executionNode>ALL</executionNode>
                 <lossTolerant>false</lossTolerant>
@@ -1079,7 +1084,7 @@
                 <properties>
                     <entry>
                         <key>groovyx-script-file</key>
-                        <value>/devel/user-scripts/parse-docs-from-es-to-avro.groovy</value>
+                        <value>/devel/user-scripts/parse-tika-result-json-to-avro.groovy</value>
                     </entry>
                     <entry>
                         <key>groovyx-script-body</key>
@@ -1091,6 +1096,10 @@
                     <entry>
                         <key>groovyx-additional-classpath</key>
                     </entry>
+                    <entry>
+                        <key>avro_schema_path</key>
+                        <value>/devel/user-scripts/schemas/document.avsc</value>
+                    </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
                 <schedulingPeriod>0 sec</schedulingPeriod>
@@ -1098,7 +1107,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>ExecuteGroovyScript-ConvertToAvro</name>
+            <name>ExecuteGroovyScript-ConvertJsonToAvro</name>
             <relationships>
                 <autoTerminate>false</autoTerminate>
                 <name>failure</name>
@@ -1112,91 +1121,11 @@
             <type>org.apache.nifi.processors.groovyx.ExecuteGroovyScript</type>
         </processors>
         <processors>
-            <id>73748738-c20a-324b-0000-000000000000</id>
-            <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
-            <position>
-                <x>487.4494921012156</x>
-                <y>1029.4486980321742</y>
-            </position>
-            <bundle>
-                <artifact>nifi-scripting-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.9.2</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <comments></comments>
-                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>Script Engine</key>
-                        <value>
-                            <name>Script Engine</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Script File</key>
-                        <value>
-                            <name>Script File</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Script Body</key>
-                        <value>
-                            <name>Script Body</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Module Directory</key>
-                        <value>
-                            <name>Module Directory</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>Script Engine</key>
-                        <value>Groovy</value>
-                    </entry>
-                    <entry>
-                        <key>Script File</key>
-                        <value>/devel/user-scripts/parse-tika-result-json-to-avro.groovy</value>
-                    </entry>
-                    <entry>
-                        <key>Script Body</key>
-                    </entry>
-                    <entry>
-                        <key>Module Directory</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>ExecuteScript-ConvertJsonToAvro</name>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>STOPPED</state>
-            <style/>
-            <type>org.apache.nifi.processors.script.ExecuteScript</type>
-        </processors>
-        <processors>
             <id>89eef85f-3cfa-303b-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>476.75498856058584</x>
-                <y>507.51897296410283</y>
+                <y>702.0265413234779</y>
             </position>
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
@@ -1520,8 +1449,8 @@
             <id>9ca0eb06-eb43-3e1a-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
-                <x>741.5765113355947</x>
-                <y>1296.7199029525693</y>
+                <x>808.2222632887197</x>
+                <y>1495.7715081771787</y>
             </position>
             <bundle>
                 <artifact>nifi-elasticsearch-nar</artifact>
@@ -1770,7 +1699,7 @@
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
                 <x>145.334228515625</x>
-                <y>1275.5928701628784</y>
+                <y>1470.1004385222534</y>
             </position>
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
@@ -1983,7 +1912,7 @@
             <id>f6dfc4f4-2311-371b-0000-000000000000</id>
             <parentGroupId>c1783d42-645f-3380-0000-000000000000</parentGroupId>
             <position>
-                <x>467.12770665186235</x>
+                <x>465.67616856592485</x>
                 <y>0.0</y>
             </position>
             <bundle>
@@ -2186,5 +2115,5 @@
             <type>org.apache.nifi.processors.standard.QueryDatabaseTable</type>
         </processors>
     </snippet>
-    <timestamp>12/09/2019 10:56:47 UTC</timestamp>
+    <timestamp>12/09/2019 16:08:33 UTC</timestamp>
 </template>

@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "document",
+  "fields":
+  [
+    { "name": "doc_id", "type": "int" },
+    { "name": "processing_timestamp", "type": { "type" : "string", "logicalType" : "timestamp-millis" } },
+
+    { "name": "ent_id", "type": "int" },
+    { "name": "cui", "type": ["null", "string"], "default": null },
+    { "name": "tui", "type": ["null", "string"], "default": null },
+    { "name": "start_idx", "type": "int", "default": 0 },
+    { "name": "end_idx", "type": "int", "default": 0 },
+    { "name": "source_value", "type": "string", "default": "" },
+    { "name": "type", "type": ["null", "string"], "default": null },
+    { "name": "acc", "type": "float", "default": 0.0 },
+
+    { "name": "icd10", "type": ["null", "string"], "default": null },
+    { "name": "umls", "type": ["null", "string"], "default": null },
+    { "name": "snomed", "type": ["null", "string"], "default": null },
+    { "name": "pretty_name", "type": ["null", "string"], "default": null }
+  ]
+}
