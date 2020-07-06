@@ -1,6 +1,7 @@
 # Some of these parameters are provided by the Docker environment variables
 server.name: kibana
 server.host: "0"
+# INFO: ES URL provided as docker parameter
 #elasticsearch.url: https://localhost:9200
 elasticsearch.ssl.verificationMode: none
 

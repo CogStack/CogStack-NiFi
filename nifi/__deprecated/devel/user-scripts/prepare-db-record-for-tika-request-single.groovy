@@ -1,11 +1,3 @@
-/*
-
-This script prepares an AVRO record to
- JSON format to be processed by TIKA.
-
-*/
-
-
 @Grab('org.apache.avro:avro:1.8.1')
 import org.apache.avro.*
 import org.apache.avro.file.*
@@ -43,7 +35,10 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
   // get the document binary content -- normally, this should be just raw byte content
   Object rawContent = currRecord.get(binary_field as String)
-  assert rawContent
+  if (rawContent == null) {
+    rawContent = ByteBuffer.wrap("".getBytes())
+  }
+  //assert rawContent
 
   // extract the document id that will be stored in the flow file attributes
   documentIdValue = currRecord.get(document_id_field as String)

@@ -1,10 +1,3 @@
-/*
-
-This script parses the TIKA document content from
- JSON format to AVRO.
-
-*/
-
 @Grab('org.apache.avro:avro:1.8.1')
 import org.apache.avro.*
 import org.apache.avro.file.*
@@ -102,21 +95,30 @@ def parseJsonToAvro(inJson, avroSchema) {
 
 // process the flow file
 //
-flowFile = session.write(flowFile, { inputStream, outputStream ->
+//try {
+    flowFile = session.write(flowFile, { inputStream, outputStream ->
 
-	def content = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
-	def inJson = new JsonSlurper().parseText(content)
+    	def content = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
+    	def inJson = new JsonSlurper().parseText(content)
 
-	// Defining avro writer
-	DataFileWriter<GenericRecord> writer = new DataFileWriter<>(new GenericDatumWriter<GenericRecord>())
-    writer.create(SchemaInstance.avroSchema, outputStream)
+    	// Defining avro writer
+    	DataFileWriter<GenericRecord> writer = new DataFileWriter<>(new GenericDatumWriter<GenericRecord>())
+        writer.create(SchemaInstance.avroSchema, outputStream)
 
-    docRecord = parseJsonToAvro(inJson, SchemaInstance.avroSchema)
-    writer.append(docRecord)
-    
-    // do not forget to close the writer
-    writer.close()
-} as StreamCallback)
+        docRecord = parseJsonToAvro(inJson, SchemaInstance.avroSchema)
+        writer.append(docRecord)
+        
+        // do not forget to close the writer
+        writer.close()
+    } as StreamCallback)
 
-// transfer the seesions file
-session.transfer(flowFile, REL_SUCCESS)
+    // transfer the seesions file
+    session.transfer(flowFile, REL_SUCCESS)
+//} 
+//catch(e) {
+    /*
+    log.error('Error while parsing to avro record', e)
+    flowFile = session.penalize(flowFile)
+    session.transfer(flowFile, REL_FAILURE)
+    */
+//}

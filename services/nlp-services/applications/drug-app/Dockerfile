@@ -15,4 +15,4 @@ WORKDIR /app/nlp-service
 COPY ./config /app/nlp-service/config
 
 # initialize the GATE Application
-RUN ["bash", "init_gate.sh"]
+RUN ["bash", "init_gate_app.sh"]
