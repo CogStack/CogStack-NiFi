@@ -30,7 +30,7 @@ services:
 #---------------------------------------------------------------------------#
 # Apache Tika documents processing service                                  #
 #---------------------------------------------------------------------------#
-  tika:
+  tika-service:
     image: cogstacksystems/tika-service:latest
     container_name: cogstack-tika
     restart: always
@@ -234,11 +234,13 @@ services:
     container_name: cogstack-nifi
     restart: always
     volumes:
-      # mapping nifi content from local host -- templates and scripts
-      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
-      - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
-      # mapping custom development directory
+      # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
+      # INFO: if there are  local changes, map these content from local host to container
+      #       (normally, these 3 directories  below are bundled with our NiFi image)
+      #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
+      #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
+      #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       #- ../security:/opt/nifi/security:ro
       #
