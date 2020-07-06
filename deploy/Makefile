@@ -12,7 +12,7 @@ start-elastic:
 	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1 kibana
 
 start-tika:
-	docker-compose -f services.yml $(DC_START_CMD) tika
+	docker-compose -f services.yml $(DC_START_CMD) tika-service
 
 start-samples:
 	docker-compose -f services.yml $(DC_START_CMD) samples-db
@@ -42,7 +42,7 @@ stop-elastic:
 	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 kibana
 
 stop-tika:
-	docker-compose -f services.yml $(DC_STOP_CMD) tika
+	docker-compose -f services.yml $(DC_STOP_CMD) tika-service
 
 stop-samples:
 	docker-compose -f services.yml $(DC_STOP_CMD) samples-db

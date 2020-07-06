@@ -933,7 +933,7 @@
                     </entry>
                     <entry>
                         <key>avro_schema_path</key>
-                        <value>/opt/nifi/user-scripts/schemas/document.avsc</value>
+                        <value>/opt/nifi/user-schemas/document.avsc</value>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -1459,7 +1459,7 @@
                     </entry>
                     <entry>
                         <key>Remote URL</key>
-                        <value>http://tika:8090/api/process</value>
+                        <value>http://tika-service:8090/api/process</value>
                     </entry>
                     <entry>
                         <key>SSL Context Service</key>
