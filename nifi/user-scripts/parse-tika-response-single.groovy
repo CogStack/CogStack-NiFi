@@ -1,4 +1,10 @@
-//import groovy.json.JsonBuilder
+/*
+
+This script parses the parsed TIKA response
+ with extracted free-text content
+
+*/
+
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.apache.commons.io.IOUtils

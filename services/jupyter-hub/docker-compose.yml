@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+  jupyter-hub:
+    build: .
+    restart: always
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+       - "./notebooks/:/home/jovyan/notebooks"
+    ports:
+      - "10000:8888"
