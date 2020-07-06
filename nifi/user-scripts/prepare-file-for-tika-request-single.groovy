@@ -1,3 +1,10 @@
+/*
+
+This script parses a file AVRO content 
+ to JSON format for TIKA processing.
+
+*/
+
 import org.apache.commons.io.IOUtils
 import org.apache.nifi.processor.io.StreamCallback
 import java.nio.charset.StandardCharsets

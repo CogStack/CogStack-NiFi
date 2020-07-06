@@ -1,3 +1,10 @@
+/*
+
+This script parses the TIKA document content from
+ JSON format to AVRO.
+
+*/
+
 @Grab('org.apache.avro:avro:1.8.1')
 import org.apache.avro.*
 import org.apache.avro.file.*
@@ -69,7 +76,7 @@ def parseJsonToAvro(inJson, avroSchema) {
     //
     assert inJson.containsKey('metadata')
     if (inJson.metadata.containsKey('X-OCR-Applied'))
-        docRecord.put("metadata_x_ocr_applied", inJson.metadata['X-OCR-Applied'])
+        docRecord.put("metadata_x_ocr_applied", Boolean.parseBoolean(inJson.metadata['X-OCR-Applied']))
 
     if (inJson.metadata.containsKey('X-Parsed-By'))
         docRecord.put("metadata_x_parsed_by", new org.apache.avro.util.Utf8(String.join(";", inJson.metadata['X-Parsed-By'])))
@@ -78,7 +85,7 @@ def parseJsonToAvro(inJson, avroSchema) {
     // optional metadata fields
     //
     if (inJson.metadata.containsKey('Page-Count'))
-        docRecord.put("metadata_page_count", inJson.metadata['Page-Count'])
+        docRecord.put("metadata_page_count", Integer.parseInt(inJson.metadata['Page-Count']))
 
     if (inJson.metadata.containsKey('Content-Type'))
         docRecord.put("metadata_content_type", new org.apache.avro.util.Utf8(inJson.metadata['Content-Type']))
@@ -95,30 +102,21 @@ def parseJsonToAvro(inJson, avroSchema) {
 
 // process the flow file
 //
-//try {
-    flowFile = session.write(flowFile, { inputStream, outputStream ->
+flowFile = session.write(flowFile, { inputStream, outputStream ->
 
-    	def content = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
-    	def inJson = new JsonSlurper().parseText(content)
+	def content = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
+	def inJson = new JsonSlurper().parseText(content)
 
-    	// Defining avro writer
-    	DataFileWriter<GenericRecord> writer = new DataFileWriter<>(new GenericDatumWriter<GenericRecord>())
-        writer.create(SchemaInstance.avroSchema, outputStream)
+	// Defining avro writer
+	DataFileWriter<GenericRecord> writer = new DataFileWriter<>(new GenericDatumWriter<GenericRecord>())
+    writer.create(SchemaInstance.avroSchema, outputStream)
 
-        docRecord = parseJsonToAvro(inJson, SchemaInstance.avroSchema)
-        writer.append(docRecord)
-        
-        // do not forget to close the writer
-        writer.close()
-    } as StreamCallback)
+    docRecord = parseJsonToAvro(inJson, SchemaInstance.avroSchema)
+    writer.append(docRecord)
+    
+    // do not forget to close the writer
+    writer.close()
+} as StreamCallback)
 
-    // transfer the seesions file
-    session.transfer(flowFile, REL_SUCCESS)
-//} 
-//catch(e) {
-    /*
-    log.error('Error while parsing to avro record', e)
-    flowFile = session.penalize(flowFile)
-    session.transfer(flowFile, REL_FAILURE)
-    */
-//}
+// transfer the seesions file
+session.transfer(flowFile, REL_SUCCESS)
