@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "document",
+  "fields":
+  [
+    { "name": "doc_id", "type": "int" },
+    { "name": "doc_text", "type": "string", "default": "" },
+    { "name": "processing_timestamp", "type": { "type" : "string", "logicalType" : "timestamp-millis" } },
+    { "name": "metadata_x_ocr_applied", "type": "boolean" },
+    { "name": "metadata_x_parsed_by", "type": "string" },
+    { "name": "metadata_content_type", "type": ["null", "string"], "default": null },
+    { "name": "metadata_page_count", "type": ["null", "int"], "default": null },
+    { "name": "metadata_creation_date", "type": ["null", { "type" : "string", "logicalType" : "timestamp-millis" }], "default": null },
+    { "name": "metadata_last_modified", "type": ["null", { "type" : "string", "logicalType" : "timestamp-millis" }], "default": null }
+  ]
+}

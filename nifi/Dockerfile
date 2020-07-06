@@ -1,5 +1,4 @@
-FROM apache/nifi:1.9.2
-
+FROM apache/nifi:1.11.4
 
 # copy drivers
 WORKDIR /opt/nifi/
@@ -18,6 +17,7 @@ WORKDIR /opt/nifi/nifi-current/conf/
 COPY ./conf/bootstrap.conf ./
 COPY ./conf/nifi.properties ./
 COPY ./conf/zookeeper.properties ./
+
 
 #USER nifi
 RUN mkdir -p /opt/nifi/groovy

@@ -1,0 +1,68 @@
+version: '3.5'
+
+#---------------------------------------------------------------------------#
+# Used services                                                             #
+#---------------------------------------------------------------------------#
+services:
+
+
+#---------------------------------------------------------------------------#
+# NiFi pipeline engine                                                      #
+#---------------------------------------------------------------------------#
+  nifi:
+    #image: cogstacksystems/cogstack-nifi:dev-latest
+    build: ../nifi/
+    container_name: cogstack-nifi
+    restart: always
+    volumes:
+      # mapping nifi content from local host -- templates and scripts
+      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
+      - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
+      # mapping custom development directory
+      - ../nifi/devel:/opt/nifi/devel
+      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
+      #- ../nifi/security:/opt/nifi/security:ro
+      #
+      # rest of volumes to persist the state
+      - nifi-vol-conf:/opt/nifi/nifi-current/conf
+      - nifi-vol-logs:/opt/nifi/nifi-current/logs
+      - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+      - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      # errors generated during data processing
+      - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    ports:
+      - "8080:8080"
+    expose:
+      - "10000"
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# Docker named volumes                                                      #
+#---------------------------------------------------------------------------#
+volumes:
+  nifi-vol-conf:
+    driver: local
+  nifi-vol-logs:
+    driver: local
+  nifi-vol-provenance:
+    driver: local
+  nifi-vol-database:
+    driver: local
+  nifi-vol-flowfiles:
+    driver: local
+  nifi-vol-content:
+    driver: local
+  nifi-vol-errors:
+    driver: local
+
+
+#---------------------------------------------------------------------------#
+# Docker networks.                                                          #
+#---------------------------------------------------------------------------#
+networks:
+  cognet:
+    name: cogstack-net
