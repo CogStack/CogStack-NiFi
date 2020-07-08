@@ -1221,6 +1221,12 @@
                             <name>document_id_field</name>
                         </value>
                     </entry>
+                    <entry>
+                        <key>ignore_annotation_types</key>
+                        <value>
+                            <name>ignore_annotation_types</name>
+                        </value>
+                    </entry>
                 </descriptors>
                 <executionNode>ALL</executionNode>
                 <lossTolerant>false</lossTolerant>
@@ -1247,6 +1253,10 @@
                     <entry>
                         <key>document_id_field</key>
                         <value>meta.docid</value>
+                    </entry>
+                    <entry>
+                        <key>ignore_annotation_types</key>
+                        <value>none</value>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
