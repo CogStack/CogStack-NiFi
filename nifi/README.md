@@ -15,6 +15,14 @@ When deplying services stack, using the main `docker-compose.yml` file, Docker e
 
 
 # Workflow templates
+
+# Example Apache NiFi workflows
+- DB2ES - text only
+- DB2ES - via tika
+- DB2ES - via medcat
+- ES2ES - via medcat
+
+
 Apache NiFi provides users the ability to build very large and complex data flows. These data flows can be later saved as *templates*, exported into XML format and shared with other users. In this example, we provide few example templates for ingesting the records from database into ElasticSearch and to perform extraction of NLP annotations from documents.
 
 The example workflow templates are stored in `user-templates` directory.
