@@ -1,8 +1,8 @@
 # Introduction
 This file covers the available services in the example deployment.
 
-Apart from the above key files, the individual services configuration is provided in `../services` directory.
-Apache NiFi-related files are provided in `../nifi` directory.
+Apart from the above key files, the individual services configuration is provided in [`../services`](../services) directory.
+Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
 
@@ -145,7 +145,7 @@ The Apache NiFi user interface can be hence accessed by navigating on the host (
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
 For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [README](../nifi/README.md) in `nifi` directory.
-The available example workflows are covered in [WORKFLOWS.md](./WORKFLOWS.md) file.
+The available example workflows are covered in [WORKFLOWS](./WORKFLOWS.md) file.
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
 

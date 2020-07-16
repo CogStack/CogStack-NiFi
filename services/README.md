@@ -1,21 +1,27 @@
 # General info
-This directory contains configuration files and resources for services used in the example deployment. Some of these services are used by NiFi when executing the flow. 
-
-The available services are:
-- `elasticsearch-1` - a single-node [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) ElasticSearch cluster,
-- `kibana` - the [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) version of Kibana user-interface,
-- `tika-service` - [Apache Tika](https://tika.apache.org/) running as a web service exposing REST API (see: [tika-service repository](https://github.com/CogStack/tika-service)),
-- `nlp-medcat-medmen` - [MEDCAT](https://github.com/CogStack/MedCAT) NLP application running as a web serviuce exposing REST API,
-- `nlp-gate-bioyodie` - the [Bio-Yodie](https://github.com/GateNLP/Bio-YODIE) NLP application running as a web service exposing a REST API,
-- `samples-db` - a PostgreSQL database with sample data to play with,
-- `nginx` - a reverse proxy for securing the access to used services (at the moment, not used).
-
-Please note thst some alternative pipeline engines have been provided `aux-pipelines/` directory, however, these are only for general testing purposes.
-
-**IMPORTANT: Please note that some of the necessary configuration parameters, variables and paths are also defined in the `docker-compose.yml` file in the main distribution directory. This file also defines which ports will be mapped from containers to the host and exposed.**
+This directory contains configuration files and resources for services used in the example deployment. 
+Many of these services are used by Apache NiFi when executing the flow. 
+Please see [example deployment](../deploy/README.md) for more details.
 
 
 # Available services
+The available services are:
+- Elasticsearch - a single-node [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) ElasticSearch cluster,
+- `kibana` - the [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) version of Kibana user-interface,
+- `tika-service` - [Apache Tika](https://tika.apache.org/) running as a web service exposing REST API (see: [tika-service repository](https://github.com/CogStack/tika-service)),
+- `nlp-medcat-medmen` - [MEDCAT](https://github.com/CogStack/MedCAT) NLP application running as a web serviuce exposing REST API,
+- `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
+- `medcat-trainer-nginx` - a NGINX reverse-proxy for MedCAT Trainer,
+- `nlp-gate-bioyodie` - the [Bio-Yodie](https://github.com/GateNLP/Bio-YODIE) NLP application running as a web service exposing a REST API,
+- `samples-db` - a PostgreSQL database with sample data to play with,
+- `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data,
+- `nginx` - a reverse proxy for securing the access to used services (at the moment, not used).
+
+
+**IMPORTANT**
+Please note that some of the necessary configuration parameters, variables and paths are also defined in the `services.yml` file in the `deploy` directory. 
+This file also defines which ports will be mapped from containers to the host and exposed.**
+
 
 ## ElasticSearch + Kibana
 In this example deployment we use the [OpenDistro for ElasticSearch and Kibana](https://opendistro.github.io/for-elasticsearch/) version. The configuration files for ElasticSearch and Kibana are provided in `elasticsearch/config/` and `kibana/config/` directories respectively. 
