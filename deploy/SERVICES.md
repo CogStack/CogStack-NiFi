@@ -1,8 +1,6 @@
 # Introduction
 This file covers the available services in the example deployment.
 
-Apart from the above key files, the individual services configuration is provided in [`../services`](../services) directory.
-
 Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
