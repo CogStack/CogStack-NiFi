@@ -54,6 +54,8 @@ The `docid` field is set as the primary key of the `medical_reports_text` table 
 
 ## Configuring DB connector
 However, apart from specifying the DB tables, the DB connector controller `DBCPConnectionPool-MTSamples` needs to configured and activated.
+The example data is stored in `db_samples` database. 
+User `test` with password `test` was created to connect to it.
 Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - this is presented on the picture below.
 ![db-reader-w1](./docs-assets/configure-db-connector-w1.png)
 
