@@ -2,6 +2,7 @@
 This file covers the available services in the example deployment.
 
 Apart from the above key files, the individual services configuration is provided in [`../services`](../services) directory.
+
 Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
@@ -13,16 +14,16 @@ Please note that all the services are deployed using [Docker](https://docker.io)
 All the services are defined in `services.yml` file and these are:
 - `samples-db` - a PostgreSQL database with sample data to play with,
 - `nifi` - a single instance of Apache NiFi processor (with Zookeper embedded) with exposing a web user interface,
-- `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [tika-service repository](https://github.com/CogStack/tika-service/)).
+- `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
 - `nlp-gate-drugapp` - an example drug names extraction NLP application using [GATE NLP Service runner exposing a REST API](https://github.com/CogStack/gate-nlp-service),
 - `nlp-medcat-medmen` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
 - `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
-- `medcat-trainer-nginx` - a NGINX reverse-proxy for MedCAT Trainer,
+- `medcat-trainer-nginx` - a [NGINX](https://www.nginx.com/) reverse-proxy for MedCAT Trainer,
 - `elasticsearch-1` - a single-node cluster of Elasticsearch based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution, 
 - `kibana` - Kibana user-interface based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution,
 - `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data.
 
-## Secondary NLP services
+## Optional NLP services
 In addition, there are defined such NLP services:
 - `nlp-medcat-snomed` - same as `nlp-medcat-medmen` but serving a SNOMED CT model,
 - `nlp-gate-bioyodie` - same as `nlp-gate-drugapp` but serving [Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) NLP application.
@@ -38,10 +39,14 @@ MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www
 These paths can be defined in `.env` file in the deployment directory.
 
 
+For more information on available services resources, please see [README](../services/README.md) in `services` directory.
+
+
+
 ## Security
 **Important**
 Please note that for the demonstration purposes, the services are run with default built-in usernames / passwords.
-Moreover, SSL encryption was also disabled in the configuration files.
+Moreover, SSL encryption is also disabled or not set up in the configuration files.
 For more information please see the [README](../security/README.md) in `security` directory.
 
 
@@ -170,14 +175,17 @@ The available endpoints are:
 - **GET** `/api/info` - for displaying general information about the used NLP application,
 - **POST** `/api/process` - for processing text documents (single document mode),
 - **POST**  `/api/process_bulk` - for processing multiple text documents (bulk mode).
-When plugging-in the NLP services into Apache NiFi workflows, the endpoint for processing single or multiple documents will be used to extract the annotations from documents.
-Please see example Apache NiFi workflow templates and user scripts in `../nifi` subdirectory on using and parsing the payloads with NiFi.
 
-For further details please refer to the [OpenAPI specification](../services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
+When plugging-in the NLP services into Apache NiFi workflows, the endpoint for processing single or multiple documents will be used to extract the annotations from documents.
+Please see example Apache NiFi [WORKFLOWS](./WORKFLOWS.md) and [user scripts](../nifi/user-scripts) in `nifi` sub-directory on using and parsing the payloads with NiFi.
+
+For further details on the used API please refer to the [OpenAPI specification](../services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
 
 ### GATE NLP
 `nlp-gate-drugapp` serves a simple drug names extraction NLP application using [GATE NLP Service](https://github.com/CogStack/gate-nlp-service).
-The GATE application definition and resources are available in directory `../services/nlp-services/applications/drug-app/`.
+This simple application implements annotation of common drugs and medications. 
+It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. 
+The GATE application definition and resources are available in directory [`../services/nlp-services/applications/drug-app`](../services/nlp-services/applications/drug-app/).
 
 When deployed `nlp-gate-drugapp` exposes port `8095` on the container.
 The port is also bound from container to the host machine `8095` port.
@@ -191,11 +199,12 @@ For more information on the GATE NLP Service configuration and use please refer 
 
 
 ### MedCAT NLP
-MedCAT deployment consists of MedCAT NLP Service serving NLP models via RESTful API and MedCAT Trainer for collecting annotations and refinement of the NLP models.
+[MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.
+MedCAT deployment consists of [MedCAT NLP Service](https://github.com/CogStack/MedCATservice) serving NLP models via RESTful API and [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) for collecting annotations and refinement of the NLP models.
 
 ### MedCAT Service
 `nlp-medcat-medmen` serves a basic UMLS model trained on MedMentions dataset via RESTful API.
-The served model data is available in `../services/nlp-services/applications/medcat/models/medmen/` directory.
+The served model data is available in [`../services/nlp-services/applications/medcat/models/medmen/`](../services/nlp-services/applications/medcat/models/medmen`) directory.
 
 When deployed `nlp-medcat-medmen` exposes port `5000` on the container and binds it to port `5000` on the host machine.
 For example, to access the API endpoint to process a document by a service from `cognet` Docker network, the endpoint address would be `http://nlp-medcat-medmen:5000/api/process`.
@@ -207,7 +216,7 @@ For more information on the MedCAT NLP Service configuration and use please refe
 
 
 ### MedCAT Trainer
-`medcat-trainer-ui` serves the [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models.
+`medcat-trainer-ui` serves the MedCAT Trainer web application used for training and refining MedCAT NLP models.
 Such trained models can be later saved as files and loaded into MedCAT Service.
 Alternatively, the models can be loaded into custom application.
 
