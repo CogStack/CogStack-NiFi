@@ -1,4 +1,5 @@
 # Introduction
+
 Our custom Apache NiFi image comes with 4 example template workflows bundled that available in [user templates](../nifi/user-templates) in `../nifi` directory.
 These are:
 1. `Ingest raw text from DB to ES` - performing ingestion of free-text notes from database to Elasticsearch.
@@ -11,11 +12,11 @@ These are:
 In the workflow examples, the following services are used:
 - `samples-db` - storing the example input data,
 - `nifi` - the actual Apache NiFi data pipeline engine with user interface,
-- `elasticsearch-1` - for storing the resulting documents data,
+- `elasticsearch-1` - for storing the resulting documents and annotations data,
 - `tika-service` - extraction of text from binary documents,
 - `nlp-medcat-medmen` - an example NLP application for extracting annotations from free-text.
 
-To deploy the above services, one can type: 
+To deploy the above services, one can type in the `deploy` directory: 
 ```
 make start-data-infra
 make start-nlp-medcat
@@ -28,7 +29,7 @@ Please refer to [SERVICES](./SERVICES.md) for a more detailed description of the
 # Apache NiFi web user interface
 Before start, please see [the official Apache NiFi guide on using the web user interface](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#User_Interface) that covers extensively the available functionality.
 
-In this README, only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
+In this README only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
 
 Once deployed, Apache NiFi web interface will be accessible from the host (e.g. localhost) machine at `http://localhost:8080`.
 
@@ -41,14 +42,14 @@ During normal work, the user has possibility to create and store own template wo
 These workflows are represented as XML files and so can be easily further shared or modified.
 
 
-# Ingesting free-text documents (DB-ES)
+# Ingesting free-text documents (DB → ES)
 This workflow implements a common data ingestion pipeline: reading from a database and storing the free-text data alongside selected structured fields into Elasticsearch.
-All records passing though the pipeline are considered *Flow Files*.
 The workflow was presented on the figure above.
+
 
 ## Reading records from database
 Free-text data alongside available structured fields are read from `samples-db` database from `medical_reports_text` table. 
-This operation in implemented by NiFi components: `GenerateTableFetch` and `ExecuteSQLRecord`,  where the configuration of the former component is described on the picture below.
+This operation is implemented by NiFi components: `GenerateTableFetch` and `ExecuteSQLRecord`,  where the configuration of the former component is described on the picture below.
 The `docid` field is set as the primary key of the `medical_reports_text` table and is used persist the state of the last read record and to partition the records while reading.
 ![db-reader](./docs-assets/configure-db-reader-w1.png)
 
@@ -56,21 +57,22 @@ The `docid` field is set as the primary key of the `medical_reports_text` table 
 However, apart from specifying the DB tables, the DB connector controller `DBCPConnectionPool-MTSamples` needs to configured and activated.
 The example data is stored in `db_samples` database. 
 User `test` with password `test` was created to connect to it.
-Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - this is presented on the picture below.
+
+Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - all of this is illustrated on the picture below.
 ![db-reader-w1](./docs-assets/configure-db-connector-w1.png)
 
 ## Indexing records by Elasticsearch
 The records are finally stored in Elasticsearch data store under index `medical_reports_text` and using url endpoint `http://elasticsearch-1:9200`.
 This operation is implemented by NiFi component `PutElasticsearchHttpRecord` with its configuration presented on the picture below.
-The Elasticsearch user credentials need to be provided, which in this example would be the built-in user `admin` with password `admin`.
-When indexing the records as documents, the record's primary key field `/docid` will be used as the document identifier in Elasticsearch.
+The Elasticsearch user credentials need to be provided which in this example would be the built-in user `admin` with password `admin`.
+When indexing the records as documents the record's primary key field `/docid` will be used as the document identifier in Elasticsearch.
 Optionally, the default Date / Time / Timestamp Format can be overridden for corresponding fields being ingested.
 In this example case, the Timestamp Format was overridden as `yyyy-MM-dd'T'HH:mm:ss.SSS`.
 ![es-writer-w1](./docs-assets/configure-es-writer-w1.png)
 
 ## Executing the workflow
 Once the NiFi components are properly configured and required connectors and controllers are activated, one can run the ingestion pipeline.
-To run the pipeline, one needs to select the workflow components and click on the run button ( **▶** ) on the operations panel.
+To run the pipeline, one needs to select the workflow components and click on the run button ( **►** ) on the operations panel.
 Similarly, to stop execution, click on the stop button ( **■** ).
 At any moment, one can stop and resume execution either of the full workflow or individual components to interactively inspect or troubleshoot the data processing.
 The figure below presents how to execute the current workflow.
@@ -96,7 +98,7 @@ with the expected response:
 ```
 
 
-# Ingesting text from PDF documents (DB-ES)
+# Ingesting text from PDF documents (DB → ES)
 This workflow implements an extended version of the initial data ingestion pipeline.
 This time, the documents are stored in the database in binary format and so the text needs to be extracted from them prior to being indexed in Elasticsearch.
 The text extraction is handled by Apache Tika that is running as Tika Service (see: [description of all available services](./SERVICES.md)).
@@ -109,7 +111,7 @@ This enables further inspecting and isolating invalid or unsupported payloads, s
 
 ## Reading records from database
 Similarly, as in the previous workflow, the records are read from the same database using the same database connector controller `DBCPConnectionPool-MTSamples`.
-This time, the documents data are read from table `medical_reports_raw` and uch columns are being queried: `docid, sampleid, dct, binarydoc`, where the `binarydoc` column contains the binary data of the documents.
+This time, the documents data are read from table `medical_reports_raw` and such columns are being queried: `docid, sampleid, dct, binarydoc`, where the `binarydoc` column contains the binary data of the documents.
 However, this time we limit the database reader to fetch one row at once as configured in a single `QueryDatabaseTable` component (instead of two: `GenerateTableFetch` and `ExecuteSQLRecord`).
 This is in order to have a more granular control over possibly failed documents by Tika that can be directly inspected and to avoid out-of-memory exceptions when a bulk of large scanned documents would be fetched at once.
 
@@ -143,9 +145,9 @@ Please note that these 4 components can be merged into a specialised component f
 This example uses the same configuration for `PutElasticsearchHttpRecord` component as before, but the records are now stored under `medical_reports_text_tika` index.
 
 
-# Annotating free-text documents (DB-ES)
+# Annotating free-text documents (DB → ES)
 This workflow implements the NLP annotations ingestion pipeline based on the previous examples.
-The documents are stored in the initial database in free-text format, but we are interested in extracting only the NLP annotations,
+The documents are stored in the initial database in free-text format, but we are interested in extracting only the NLP annotations.
 The annotations will extracted from free-text notes via NLP Service.
 Finally, the annotations will be stored in Elasticsearch.
 
@@ -183,7 +185,7 @@ This example uses similar configuration for `PutElasticsearchHttpRecord` compone
 The annotations are now stored under `medical_reports_anns_medcat_medmen` index where the document identifier is specified by `document_annotation_id` field of the Flow File (it is being generated by the payload parsing script before).
 
 
-# Annotating free-text documents (ES-ES)
+# Annotating free-text documents (ES → ES)
 This workflow implements a modified NLP annotations ingestion pipeline based on the previous example.
 It is assumed that now free-text documents were already ingested into Elasticsearch.
 Moreover, here we are interested in extracting the NLP annotations only from documents matching a specific query for Elasticsearch.
