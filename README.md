@@ -10,11 +10,11 @@ Please note that the project it is still under development and is not production
 
 # Project organisation
 The project is organised in the following directories:
-- `nifi` - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources,
-- `security` - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements,
-- `services` - available services with their corresponding configuration files and resources,
-- `deploy` - an example deployment of Apache NiFi with related services.
+- [`nifi`](./nifi) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources,
+- [`security`](./security) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements,
+- [`services`](./services) - available services with their corresponding configuration files and resources,
+- [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
 
 For more information please refer to individual README files provided in each of these directories.
 
-Please see [example deployment](./deploy/README.md) for more details.
+As a good starting point, please see deployment [README](./deploy/README.md) for more details on running an example project deployment.
