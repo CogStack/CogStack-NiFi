@@ -91,7 +91,7 @@ inJson.result.each {res ->
     def doc_id = outAnn[document_id_field as String]
     assert doc_id
     def ann_id = outAnn[annotation_id_field as String]
-    assert doc_ann_id
+    assert ann_id
     def doc_ann_id = "d_${doc_id}-a_${ann_id}"
 
     // store annotation ID as the Flow file attriburte and store the new Flow file

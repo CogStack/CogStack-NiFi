@@ -1,0 +1,22 @@
+DEBUG=False
+
+# can include only one model for NER
+APP_MODEL_NAME=MedMen
+APP_MODEL_CDB_PATH=/cat/models/cdb.dat
+APP_MODEL_VOCAB_PATH=/cat/models/vocab.dat
+
+# optionally, can include multiple models for meta tasks, separated using ':'
+#APP_MODEL_META_PATH_LIST=/cat/models/mc_status
+
+# optionally, an filter the reported concepts by CUIs
+#APP_MODEL_CUI_FILTER_PATH=/cat/filter/cui_list.txt
+
+# NLP processing
+APP_BULK_NPROC=8
+APP_TRAINING_MODE=False
+
+# Flask server config
+SERVER_HOST=0.0.0.0
+SERVER_PORT=5000
+SERVER_WORKERS=1
+SERVER_WORKER_TIMEOUT=300

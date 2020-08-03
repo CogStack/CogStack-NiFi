@@ -1,0 +1,335 @@
+version: '3.5'
+
+#---------------------------------------------------------------------------#
+# Used services                                                             #
+#---------------------------------------------------------------------------#
+services:
+
+#---------------------------------------------------------------------------#
+# Postgres container with sample data                                       #
+#---------------------------------------------------------------------------#
+  samples-db:
+    image: postgres:11.4-alpine
+    container_name: cogstack-samples-db
+    restart: always
+    volumes:
+      # mapping postgres data dump and initialization
+      - ../services/pgsamples/db_dump/db_samples-pdf-text-small.sql.gz:/data/db_samples.sql.gz:ro
+      - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      # data persistence
+      - samples-vol:/var/lib/postgresql/data
+    ports:
+    # <host:container> expose the postgres DB to host for debugging purposes
+      - 5555:5432
+    #expose:
+    #  - 5432
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# Apache Tika documents processing service                                  #
+#---------------------------------------------------------------------------#
+  tika-service:
+    image: cogstacksystems/tika-service:latest
+    container_name: cogstack-tika
+    restart: always
+    # INFO: Tika pipeline-specific configuration is mounted via volume
+    volumes:
+      - ../services/tika-service/config:/app/config:ro
+    expose:
+      - 8090
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# NLP Services containers                                                   #
+#   * using example free models / resources                                 #
+#---------------------------------------------------------------------------#
+  nlp-medcat-medmen:
+    image: cogstacksystems/medcat-service:latest
+    container_name: cogstack-medcat-medmen
+    restart: always
+    # INFO: MedCAT configuration is specified via 'env' files
+    env_file:
+      - ../services/nlp-services/applications/medcat/config/env_app
+      - ../services/nlp-services/applications/medcat/config/env_medcat
+    environment:
+      - APP_MODEL_NAME=medmen-demo
+    # INFO: MedCAT models are mounted via volumes
+    volumes:
+      - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
+      - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
+    #expose:
+    #  - 5000
+    ports:
+      - "5000:5000"
+    networks:
+      - cognet
+
+  nlp-gate-drugapp:
+    image: cogstacksystems/nlp-rest-service-gate:dev-latest
+    #build: ../services/nlp-services/applications/drug-app/
+    container_name: cogstack-gate-drugapp
+    restart: always
+    volumes:
+      # INFO: CogStack GATE runner configuration files
+      - ../services/nlp-services/applications/drug-app/config:/app/nlp-service/config:ro
+      - ../services/nlp-services/applications/drug-app/gate:/gate/app/drug-app:ro
+    command: "bash /app/nlp-service/run.sh"
+    #expose:
+    #  - 8095
+    ports:
+      - "8095:8095"
+    networks:
+      - cognet
+
+#---------------------------------------------------------------------------#
+# NLP Services containers                                                   #
+#   * using internal models / resources                                     #
+#---------------------------------------------------------------------------#
+  nlp-medcat-snomed:
+    image: cogstacksystems/medcat-service:latest
+    container_name: cogstack-medcat-snomed
+    restart: always
+    env_file:
+      - ../services/nlp-services/applications/medcat/config/env_app
+      - ../services/nlp-services/applications/medcat/config/env_medcat
+    environment:
+      - APP_MODEL_NAME=snomed-mimic
+    volumes:
+      - ${RES_MEDCAT_SNOMED_PATH}/cdb.dat:/cat/models/cdb.dat:ro
+      - ${RES_MEDCAT_SNOMED_PATH}/vocab.dat:/cat/models/vocab.dat:ro
+    expose:
+      - 5000
+    networks:
+      - cognet
+
+  nlp-gate-bioyodie:
+    image: cogstacksystems/nlp-rest-service-gate:latest
+    container_name: cogstack-gate-bioyodie
+    restart: always
+    volumes:
+      # INFO: CogStack GATE runner configuration files
+      - ../services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
+      # TODO: properly set BioYODIE UMLS resources
+      - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
+    #command: "bash /app/nlp-service/run.sh"
+    expose:
+      - 8095
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# MedCAT Trainer                                                            #
+#---------------------------------------------------------------------------#
+  medcat-trainer-ui:
+    image: cogstacksystems/medcat-trainer:latest
+    container_name: cogstack-medcat-trainer-ui
+    restart: always
+    # INFO: MedCAT library config provided via env file
+    env_file:
+      - ../services/medcat-trainer/envs/env
+    volumes:
+      - medcat-api-media:/home/api/media
+      - medcat-api-static:/home/api/static
+      - medcat-api-db:/home/api/db
+    expose:
+      - "8000"
+    command: /home/run.sh
+
+  medcat-trainer-nginx:
+    image: cogstacksystems/medcat-trainer-nginx:latest
+    container_name: cogstack-medcat-trainer-nginx
+    restart: always
+    volumes:
+      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled/:ro
+      - medcat-api-media:/home/api/media
+      - medcat-api-static:/home/api/static
+    ports:
+      - "8001:8000"
+    depends_on:
+      - medcat-trainer-ui
+
+
+#---------------------------------------------------------------------------#
+# ElasticSearch cluster                                                     #
+#---------------------------------------------------------------------------#
+  elasticsearch-1:
+    image: amazon/opendistro-for-elasticsearch:1.6.0
+    #image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: cogstack-elasticsearch-1
+    restart: always
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      # INFO: enable 'zen' for multi-node cluster
+      # - discovery.type=zen
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
+      # INFO: set 'true' to enable SSL
+      - opendistro_security.ssl.http.enabled=false
+      #- opendistro_security.ssl.transport.enabled=false
+    volumes:
+      # mapping security config
+      # INFO: uncomment below to add SSL keys
+      #- ../security/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
+      #- ../security/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
+      #- ../security/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
+      #- ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
+      #
+      # INFO: ES configuration mapped via volume
+      #- ../services/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      # ES data persistence
+      - elasticsearch-vol-1:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    expose:
+      - 9600
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# Kibana webapp                                                             #
+#---------------------------------------------------------------------------#
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana:1.6.0
+    #image: docker.elastic.co/kibana/kibana:7.8.0
+    container_name: cogstack-kibana
+    restart: always
+    #env_file: ./security/es_kibana_user.env
+    environment:
+      # INFO: use HTTPS instead of HTTP when enabled SSL
+      ELASTICSEARCH_URL: http://elasticsearch-1:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch-1:9200
+      # INFO: uncomment below to enable SSL keys
+      SERVER_SSL_ENABLED: "false"
+      #SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
+      #SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
+    depends_on:
+      - elasticsearch-1
+    #volumes:
+      # mapping kibana config
+      # INFO: uncomment below to add SSL keys
+      #- ./security/root-ca.pem:/usr/share/kibana/config/root-ca.pem:ro
+      #- ./security/kibana.pem:/usr/share/kibana/config/kibana.pem:ro
+      #- ./security/kibana.key:/usr/share/kibana/config/kibana.key:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# NiFi webapp                                                               #
+#---------------------------------------------------------------------------#
+  nifi:
+    image: cogstacksystems/cogstack-nifi:dev-latest
+    #build: ../nifi/
+    container_name: cogstack-nifi
+    restart: always
+    volumes:
+      # INFO: mapping custom development directory
+      - ../nifi/devel:/opt/nifi/devel
+      # INFO: if there are  local changes, map these content from local host to container
+      #       (normally, these 3 directories  below are bundled with our NiFi image)
+      #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
+      #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
+      #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
+      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
+      #- ../security:/opt/nifi/security:ro
+      #
+      # rest of volumes to persist the state
+      - nifi-vol-conf:/opt/nifi/nifi-current/conf
+      - nifi-vol-logs:/opt/nifi/nifi-current/logs
+      - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+      - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      # errors generated during data processing
+      - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    ports:
+      - "8080:8080"
+    expose:
+      - "10000"
+    networks:
+      - cognet
+
+
+#---------------------------------------------------------------------------#
+# Jupyter Hub                                                               #
+#---------------------------------------------------------------------------#
+  jupyter-hub:
+    image: lrog/cogstack-jupyter-hub:latest
+    build: ../services/jupyter-hub/
+    container_name: cogstack-jupyter-hub
+    restart: always
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - "../services/jupyter-hub/notebooks:/home/jovyan/notebooks"
+      # INFO: uncomment below to map security certificates if needed
+      #- "../security/jupyter.pem:/etc/ssl/notebook/jupyter.pem:ro"
+      #- "../security/jupyter.key:/etc/ssl/notebook/jupyter.key:ro"
+      #- "../security/root-ca.pem:/etc/ssl/notebook/root-ca.pem:ro"
+    command: "start-notebook.sh \
+                  --NotebookApp.password=${JUPYTERHUB_PASSWORD}"
+      # INFO: uncomment below to use SSL keys (as a part of start-up cmd) 
+      #           --keyfile=/etc/ssl/notebook/jupyter.key \
+      #           --certfile=/etc/ssl/notebook/jupyter.pem \
+    ports:
+      - "8888:8888"
+    networks:
+      - cognet
+
+
+
+#---------------------------------------------------------------------------#
+# Docker named volumes                                                      #
+#---------------------------------------------------------------------------#
+volumes:
+  samples-vol:
+    driver: local
+
+  # ELK-stack related
+  elasticsearch-vol-1:
+    driver: local
+
+  # NiFi related
+  nifi-vol-conf:
+    driver: local
+  nifi-vol-logs:
+    driver: local
+  nifi-vol-provenance:
+    driver: local
+  nifi-vol-database:
+    driver: local
+  nifi-vol-flowfiles:
+    driver: local
+  nifi-vol-content:
+    driver: local
+  nifi-vol-errors:
+    driver: local
+
+  # MedCAT Trainer
+  medcat-api-media:
+    driver: local
+  medcat-api-static:
+    driver: local
+  medcat-api-db:
+    driver: local
+
+
+#---------------------------------------------------------------------------#
+# Docker networks.                                                          #
+#---------------------------------------------------------------------------#
+networks:
+  cognet:
+    name: cogstack-net

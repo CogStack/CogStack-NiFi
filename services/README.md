@@ -1,108 +1,134 @@
 # General info
-This directory contains configuration files and resources for services used in the example deployment. Some of these services are used by NiFi when executing the flow. 
+This directory contains configuration files and resources for services used in the example deployment. 
+Many of these services are used by Apache NiFi when executing the flow. 
 
-The available services are:
-- `elasticsearch-1` - a single-node [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) ElasticSearch cluster,
-- `kibana` - the [Amazon OpenDistro](https://opendistro.github.io/for-elasticsearch/) version of Kibana user-interface,
-- `tika-service` - [Apache Tika](https://tika.apache.org/) running as a web service exposing REST API (see: [tika-service repository](https://github.com/CogStack/tika-service)),
-- `nlp-medcat-medmen` - [MEDCAT](https://github.com/CogStack/MedCAT) NLP application running as a web serviuce exposing REST API,
-- `nlp-gate-bioyodie` - the [Bio-Yodie](https://github.com/GateNLP/Bio-YODIE) NLP application running as a web service exposing a REST API,
-- `samples-db` - a PostgreSQL database with sample data to play with,
-- `nginx` - a reverse proxy for securing the access to used services (at the moment, not used).
+This README covers only the available resources listed in `services` directory.
+Please see [example deployment](../deploy/README.md) for more details on the used services and their configuration.
 
-Please note thst some alternative pipeline engines have been provided `aux-pipelines/` directory, however, these are only for general testing purposes.
-
-**IMPORTANT: Please note that some of the necessary configuration parameters, variables and paths are also defined in the `docker-compose.yml` file in the main distribution directory. This file also defines which ports will be mapped from containers to the host and exposed.**
+**IMPORTANT**
+Please note that some of the necessary configuration parameters, variables and paths are also defined in the [`services.yml`](../deploy/services.yml) file in the `deploy` directory. 
 
 
-# Available services
+# Available service resources
 
-## ElasticSearch + Kibana
-In this example deployment we use the [OpenDistro for ElasticSearch and Kibana](https://opendistro.github.io/for-elasticsearch/) version. The configuration files for ElasticSearch and Kibana are provided in `elasticsearch/config/` and `kibana/config/` directories respectively. 
+## Samples DB
+For an example deployment, a PostgreSQL database that contains some example data to play with was generated [synthetic records](https://github.com/synthetichealth/synthea) enrinched with free-text from [MTSamples](https://www.mtsamples.com/).
+All the necessary resources, data and scripts are stored in `pgsamples/` directory.
+During the service initialization, the script `init_db.sh` will populate the database with sample data read from a database dump stored in `db_dump` directory.
+The directory [`scripts`](./pgsamples/scripts) contains SQL schemas with scripts that will generate the database dump using sample data.
 
-### Access and security
-Please note that both ElasticSearch and Kibana use security module from the OpenDistro to manage user access permissions and roles. However, users and roles need to be set up otherwise the default built-in ones will be used and with default passwords. For more details on setting up the security in this example deployment please refer to `security` directory in the main distribution directory.
 
-By default, one can accesss the Kibana and ElasticSearch by using ther default `admin` user with pass `admin`.
+## ELK stack
+The [ELK stack](https://www.elastic.co/what-is/elk-stack) used in this project is based on [OpenDistro for ElasticSearch and Kibana](https://opendistro.github.io/for-elasticsearch/) distribution.
+OpenDistro for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
+It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support. 
+Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenDistro remain the same. 
+Hence, OpenDistro can be used as a drop-in replacement for the standard ELK stack.
 
-**IMPORTANT: Please note that in some scenarios a manual creation of index mapping may be required prior to starting ingestion. A script `es_index_initializer.py` has been provided in `elasticsearch/scripts/` directory to help with that.**
+The used configuration files for ElasticSearch and Kibana are provided in [`elasticsearch/config/`](./elasticsearch/config) and [`kibana/config/`](./kibana/config) directories respectively.
+
+Please note that both ElasticSearch and Kibana use security module from the OpenDistro to manage user access permissions and roles. 
+However, for production use, proper users and roles need to be set up otherwise the default built-in ones will be used and with default passwords. 
+For more details on setting up the security in this example deployment please refer to [`security`](../security) directory in the main distribution directory.
+
+Please note that in some scenarios a manual creation of index mapping may be a good idea prior to starting ingestion. 
+A script `es_index_initializer.py` has been provided in [`elasticsearch/scripts/`](./elasticsearch/scripts) directory to help with that.
 
 
 ## Tika service
-In order to extract text from binary documents Apache Tika is used. The application is deployed running as a webservice that exposes a REST API. The application data, alongside configuration file, is stored in `tika-service` directory.
+In order to extract text from binary documents [Apache Tika](https://tika.apache.org/) is used. 
+The application is deployed running as a webservice that exposes a REST API. 
+The application data, alongside configuration file, is stored in [`tika-service`](./tika-service) directory.
 
-
-### REST API
-The current version of API specs is specified in the [tika-service documentation](https://github.com/CogStack/tika-service).
-
-### Configuration
-The Tika service configuration file is specified in `tika-service/config/application.yaml` file. Please refer to the [tika-service documentation](https://github.com/CogStack/tika-service) for the description of the available parameters.
+The Tika service configuration file is specified in `tika-service/config/application.yaml` file. 
+Please refer to the [Tika Service documentation](https://github.com/CogStack/tika-service) for the description of the available parameters.
 
 
 ## NLP applications
-In this example we use NLP applications running as a service exposing REST API. The applications are stored in `nlp-services/applications` directory.
-
-### REST API
-The current version of API specs is specified in `nlp-services/api-specs/` directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
-
+In the example deployment we use NLP applications running as a service exposing REST API. 
+The current version of API specs is specified in [`nlp-services/api-specs/`](./nlp-services/api-specs) directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
+The applications are stored in [`nlp-services/applications`](./nlp-services/applications) directory.
 
 ### MedCAT
-
-#### MedCAT application
 [MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.
+MedCAT is deployed as a service exposing RESTful API using the implementation from [MedCATservice](https://github.com/CogStack/MedCATservice).
 
-#### NLP Service
-The application files are stored in `nlp-services/applications/cat/` directory.
+### MedCAT Service
+MedCAT Service resources are stored in [`nlp-services/applications/medcat/`](./nlp-services/applications/medcat) directory. 
+The key configuration properties stored as as environment variables are defined in [`config/`](./nlp-services/applications/medcat/config) sub-directory. 
+The models used by MedCAT are stored in [`nlp-services/applications/cat/models/`](./nlp-services/applications/medcat/models).
+A default model to play with is provided `MedMen` and there is a script `download_medmen.sh` used to download it.
 
-MedCAT service configuration is stored in `nlp-services/applications/cat/` directory. The key configuration properties are defined in `envs/` sub-directory. The models used by MedCAT are stored in `nlp-services/applications/cat/models/`.
-
-**IMPORTANT: Please note that in this example we use a custom build Docker image with MedCAT application that is based on the previous Flask server. The newest one is using Django (see: [MedCATweb](https://github.com/CogStack/MedCATweb)).**
-
-
-### Bio-Yodie
-
-#### BioYodie application
-[Bio-Yodie](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
-
-#### NLP Service
-The application files are stored in `nlp-services/applications/bio-yodie/` directory.
-
-The Bio-Yodie service configuration is stored in `nlp-services/applications/bio-yodie/config/` directory - the key service configuration properties are defined in `application.properties` file.
-
-**IMPORTANT: Please note that in this example we use a custom build Docker image with Bio-Yodie application already present in the container and initialized. However, the UMLS resources are missing due to licensing limitation - these require to be provided on the host machine with its path linked to the container internal path (see: `docker-compose.yml` in the main distribution directory).**
+For more information on the MedCAT Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
 
 
-### Drug-App
+**Important**
+For the example deployment we use only a simple and publicly open MedCAT model.
+However, custom and more advanced MedCAT models can be used based on license-restricted terminology dictionaries such as [UMLS](https://www.nlm.nih.gov/research/umls/index.html) or [SNOMED CT](http://www.snomed.org/).
+Which model is being used by the deployed MedCAT Service is defined both in the MedCAT Service config file and the deployment configuration file (see: [README](../deploy/README.md) in `deploy` directory).
 
-#### NLP Application
-This simple application implements annotation of common drugs and medications. It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. The application was been created in GATE Developer studio and exported into `gapp` format. This application is hence ready to be used by GATE and is stored in `nlp-services/applications/drug-app/gate` directory as `drug.gapp` alongside the used resources.
 
-The list of drugs and medications to annotate is based on a publicly available list of FDA-approved drugs and active ingredients. The data can be downloaded directly from [Drugs@FDA database](https://www.fda.gov/drugs/informationondrugs/ucm079750.htm). 
+### MedCAT Trainer
+Apart from MedCAT Service, there is provided [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) that serves a web application used for training and refining MedCAT NLP models.
+Such trained models can be later saved as files and loaded into MedCAT Service.
+Alternatively, the models can be loaded into custom application.
 
-#### NLP Service
+MedCAT Trainer resources are stored in [`medcat-trainer`](./medcat-trainer) directory. 
+The key configuration is stored in [`env`](./medcat-trainer/envs/env) file.
+
+As a companion service, it uses a NGINX reverse-proxy for providing content from MedCAT Trainer web service.
+The NGINX configuration is stored in [`nginx`](./medcat-trainer/nginx) directory.
+
+For more information on the MedCAT Trainer configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATtrainer).
+
+
+### GATE NLP apps
+
+### Drugs and medications
+This simple application implements annotation of common drugs and medications. 
+It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. 
+The application was been created in GATE Developer studio and exported into `gapp` format. 
+This application is hence ready to be used by GATE and is stored in `nlp-services/applications/drug-app/gate` directory as `drug.gapp` alongside the used resources.
+
+The list of drugs and medications to annotate is based on a publicly available list of FDA-approved drugs and active ingredients. 
+The data can be downloaded directly from [Drugs@FDA database](https://www.fda.gov/drugs/informationondrugs/ucm079750.htm). 
+
 This applications is being run using a NLP Service runner application that uses internally [GATE Embedded](https://gate.ac.uk/family/embedded.html) (for running GATE applications) and exposes a REST API.
-
 The NLP Service necessary configuration files are stored in `nlp-services/applications/drug-app/config/` directory - the key service configuration properties are defined in `application.properties` file.
 
 If you would like to build the docker image with already initialized NLP application, service and necessary resources bundled, please use provided `Dockerfile` in the `nlp-services/applications/drug-app/` directory.
 
-**IMPORTANT: Please note that this application is provided just as a proof-of-concept and by default is not running as a part of services stack.**
+**Important**
+Please note that this application is provided just as a proof-of-concept of running GATE applications.
 
 
+#### Bio-YODIE
+[Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
 
-## Samples DB
-In this example, `samples-db` service runs as a PostgreSQL database that contains some example data to play with - generated [synthetic records](https://github.com/synthetichealth/synthea) enrinched with free-text from [MTSamples](https://www.mtsamples.com/).
+The application files are stored in [`nlp-services/applications/bio-yodie/`](./nlp-services/applications/bio-yodie) directory.
 
-### Initialization
-During the service initialization, the script `init_db.sh` will populate the database with sample data read from a database dump. All the necessary data and scripts are stored in `pgsamples/` directory.
+The Bio-Yodie service configuration is stored in [`nlp-services/applications/bio-yodie/config/`](./nlp-services/applications/bio-yodie/config) directory - the key service configuration properties are defined in `application.properties` file.
 
-### Connecting to the database
-The example data is stored in `db_samples` database. Use user `test` with password `test` to connect to it.
+**Important**
+Please note that the required Bio-YODIE UMLS resources cannot be publicly shared due to licensing limitation and are not included, hence the application cannot be run out-of-the-box.
+The resources need to be provided on the host machine with its path linked to the container internal path (see: [README](../deploy/README.md) in `deploy` directory) prior running Bio-YODIE.
+
+
+## JupyterHub
+[JupyterHub](https://jupyter.org/hub) allows to serve Jupyter Notebooks to users.
+It gives users access to computational environments and resources without burdening the users with installation and maintenance tasks.
+
+For the example deployment, there is a custom JupyterHub Docker image being built.
+It includes additional database drivers and Python packages.
+All the resources are available in [`jupyter-hub`](./jupyter-hub) directory.
+
+The JupyterHub comes with an example Jupyter notebook that is stored in [`notebooks`](./jupyter-hub/notebooks) directory.
+
+For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
 
 
 ## NGINX
-In this example, Nginx is used as a reverse proxy, limiting the access to the used services that normally expose endpoint for the end-user. In this example, it is used only for securing access to NiFi web endpoint.
+Although by default not used in the deployment example, NGINX is primarily used as a reverse proxy, limiting the access to the used services that normally expose endpoint for the end-user. 
+For a simple scenario, it can used only for securing access to Apache NiFi webservice endpoint.
 
-All the necessary configuration files and scripts are located in `nginx/config/` directory where the user and password generation script `setup_passwd.sh`. 
-
-**IMPORTANT: For the moment, by default `nginx` is not being used and is disabled during services start-up (see: `docker-compose.yml`).**
+All the necessary configuration files and scripts are located in [`nginx/config/`](./nginx/config) directory where the user and password generation script `setup_passwd.sh`. 
