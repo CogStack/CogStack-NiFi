@@ -1,3 +1,11 @@
+/*
+
+This script prepares an AVRO record to
+ JSON format to be processed by TIKA.
+
+*/
+
+
 @Grab('org.apache.avro:avro:1.8.1')
 import org.apache.avro.*
 import org.apache.avro.file.*

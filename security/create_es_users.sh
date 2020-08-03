@@ -50,53 +50,84 @@ source es_cogstack_users.env
 
 echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
 
+
+# create tenants
+#
+echo "Creating tenants ..."
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+{
+  "description": "A tenant for the NiFi"
+}'
+echo ""
+
+curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+{
+  "description": "A tenant for the CogStack"
+}'
+echo ""
+
+
 # create roles
 #
 echo "Creating roles ..."
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
-  "cluster": [
-    "CLUSTER_COMPOSITE_OPS",
+  "cluster_permissions": [
+    "cluster_composite_ops",
     "indices:data/read/scroll*"
   ],
-  "indices": {
-    "nifi_*": {
-      "*": [
-        "INDICES_ALL"
+  "index_permissions": [{
+    "index_patterns" : [
+      "nifi_*",
+      "cogstack_*" 
+      ],
+      "fls": [],
+      "masked_fields": [],
+      "allowed_actions": [
+        "indices_all"
       ]
-    },
-    "cogstack_*": {
-      "*": [
-        "INDICES_ALL"
-      ]
-    }
-  },
-  "tenants": {}
+  }],
+  "tenant_permissions": [{
+    "tenant_patterns": [
+      "nifi_tenant",
+      "cogstack_tenant"
+    ],
+    "allowed_actions": [
+      "kibana_all_write"
+    ]
+  }]
 }'
 echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
-  "cluster": [
-    "CLUSTER_COMPOSITE_OPS"
+  "cluster_permissions": [
+    "cluster_composite_ops"
   ],
-  "indices": {
-    "nifi_*": {
-      "*": [
-        "READ",
-        "SEARCH"
+  "index_permissions": [{
+    "index_patterns" : [
+      "cogstack_*",
+      "nifi_*"
+      ],
+      "fls": [],
+      "masked_fields": [],
+      "allowed_actions": [
+        "search",
+        "read",
+        "get"
       ]
-    },
-    "cogstack_*": {
-      "*": [
-        "SEARCH",
-        "READ"
-      ]
-    }
-  },
-  "tenants": {}
+  }],
+  "tenant_permissions": [{
+    "tenant_patterns": [
+      "cogstack_tenant"
+    ],
+    "allowed_actions": [
+      "kibana_all_write"
+    ]
+  }]
 }'
 echo ""
+
 
 
 # create users
@@ -104,8 +135,9 @@ echo ""
 echo "Creating users ..."
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
-    \"cogstack_access\"
+  \"backend_roles\": [
+    \"cogstack_access\",
+    \"kibanauser\"
   ],
   \"password\": \"$COGSTACK_USER_PASS\",
   \"attributes\": {}
@@ -114,7 +146,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"cogstack_ingest\"
   ],
   \"password\": \"$COGSTACK_PIPELINE_PASS\",
@@ -124,7 +156,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"cogstack_ingest\"
   ],
   \"password\": \"$COGSTACK_NIFI_PASS\",
@@ -138,7 +170,7 @@ echo ""
 echo "Creating roles mapping ..."
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
-  "backendroles": [
+  "backend_roles": [
     "cogstack_access"
   ],
   "hosts": [],
@@ -150,7 +182,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
-  "backendroles": [
+  "backend_roles": [
     "cogstack_ingest"
   ],
   "hosts": [],
@@ -167,7 +199,7 @@ echo ""
 echo "Modifying passwords for internal build-in users ..."
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"logstash\"
   ],
   \"password\": \"$ES_LOGSTASH_PASS\",
@@ -177,7 +209,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"kibanauser\",
     \"readall\"
   ],
@@ -188,7 +220,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"readall\"
   ],
   \"password\": \"$ES_READALL_PASS\",
@@ -198,7 +230,7 @@ echo ""
 
 curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
-  \"roles\": [
+  \"backend_roles\": [
     \"snapshotrestore\"
   ],
   \"password\": \"$ES_SNAPSHOTRESTORE_PASS\",
