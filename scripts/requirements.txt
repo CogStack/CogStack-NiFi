@@ -1,0 +1,2 @@
+elasticsearch==7.12.1
+psycopg2==2.8.6
