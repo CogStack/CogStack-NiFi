@@ -66,9 +66,9 @@ stop-all: stop-data-infra stop-jupyter stop-nlp-medcat stop-nlp-gate
 # cleanup
 #
 down-all:
-	docker-compose -f services.yml down
+	docker-compose -f services.yml $(DC_DOWN_CMD)
 
 cleanup:
-	docker-compose -f services.yml down -v
+	docker-compose -f services.yml $(DC_DOWN_CMD) -v
 
 .PHONY: down-all cleanup
