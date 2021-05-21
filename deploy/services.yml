@@ -158,11 +158,11 @@ services:
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   elasticsearch-1:
-    image: amazon/opendistro-for-elasticsearch:1.6.0
-    #image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
     container_name: cogstack-elasticsearch-1
     restart: always
     environment:
+      - node.name=es01
       - cluster.name=docker-cluster
       - discovery.type=single-node
       # INFO: enable 'zen' for multi-node cluster
@@ -170,8 +170,8 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
       # INFO: set 'true' to enable SSL
-      - opendistro_security.ssl.http.enabled=false
-      #- opendistro_security.ssl.transport.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
     volumes:
       # mapping security config
       # INFO: uncomment below to add SSL keys
@@ -200,8 +200,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.6.0
-    #image: docker.elastic.co/kibana/kibana:7.8.0
+    image: docker.elastic.co/kibana/kibana:7.8.0
     container_name: cogstack-kibana
     restart: always
     #env_file: ./security/es_kibana_user.env
