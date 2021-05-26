@@ -14,6 +14,7 @@ The project is organised in the following directories:
 - [`security`](./security) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements,
 - [`services`](./services) - available services with their corresponding configuration files and resources,
 - [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
+- [`scripts`](./scripts) - helper scripts such as the one ingesting samples into Elasticsearch.
 
 For more information please refer to individual README files provided in each of these directories.
 
