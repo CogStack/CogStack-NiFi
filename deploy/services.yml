@@ -57,6 +57,7 @@ services:
       - ../services/nlp-services/applications/medcat/config/env_medcat
     environment:
       - APP_MODEL_NAME=medmen-demo
+      - SERVICE_WORKERS=2
     # INFO: MedCAT models are mounted via volumes
     volumes:
       - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro

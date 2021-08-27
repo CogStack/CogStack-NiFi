@@ -5,7 +5,7 @@ Each component implementing key functionality, such as Text Extraction or Natura
 Moreover, NLP services are expected to implement an uniform RESTful API to enable easy plugging-in into existing document processing pipelines, making it possible to use any NLP application in the stack.
  
 **Important!**
-Please note that the project it is still under development and is not production-ready.
+Please note that the project it is under development and is not production-ready.
 
 
 # Project organisation
