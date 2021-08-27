@@ -1,4 +1,4 @@
-FROM jupyter/datascience-notebook:dc9744740e12
+FROM jupyter/datascience-notebook:ubuntu-18.04
 #FROM jupyter/datascience-notebook:latest
 
 USER root
