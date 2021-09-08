@@ -1,0 +1,52 @@
+#----------------------
+# single node cluster conf
+#----------------------
+## Use single node discovery in or https
+discovery.type: single-node
+
+#----------------------
+# multi node cluster conf
+#----------------------
+network.host: 0.0.0.0
+discovery.seed_hosts: ["0.0.0.0"]
+http.port: 9200
+transport.host: 0.0.0.0
+#discovery.zen.ping.unicast.hosts: 0.0.0.0
+
+# # minimum_master_nodes need to be explicitly set when bound on a public IP
+# # set to 1 to allow single node clusters
+# # Details: https://github.com/elastic/elasticsearch/pull/17288
+# minimum_master_nodes need to be explicitly set when bound on a public IP
+# set to 1 to allow single node clusters
+discovery.zen.minimum_master_nodes: 1
+
+# # Breaking change in 7.0
+# # https://www.elastic.co/guide/en/elasticsearch/reference/7.0/breaking-changes-7.0.html#breaking_70_discovery_changes
+
+# cluster.initial_master_nodes: [ "es01" ]
+
+#----------------------
+# X-Pack features
+# disabled by default when using '-oss' images
+# need to be disabled manually when using standard images from elastic
+#----------------------
+xpack.license.self_generated.type: trial
+xpack.security.enabled: true
+xpack.security.http.ssl.enabled: false
+xpack.security.authc.api_key.enabled : true
+xpack.security.authc.api_key.cache.ttl : 1d
+xpack.security.authc.api_key.cache.max_keys : 20000
+xpack.security.authc.api_key.cache.hash_algo : ssha256
+
+# xpack.security.http.ssl.key: certs/node1.key
+# xpack.security.http.ssl.certificate: certs/node1.crt
+# xpack.security.http.ssl.certificate_authorities: certs/ca.crt
+# xpack.security.transport.ssl.key: certs/node1.key
+# xpack.security.transport.ssl.certificate: certs/node1.crt
+# xpack.security.transport.ssl.certificate_authorities: certs/ca.crt
+
+#xpack.graph.enabled: false
+#xpack.ml.enabled: false
+#xpack.monitoring.enabled: false
+#xpack.reporting.enabled: false
+#xpack.watcher.enabled: false

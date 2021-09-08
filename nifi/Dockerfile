@@ -1,4 +1,4 @@
-FROM apache/nifi:1.11.4
+FROM apache/nifi:1.14.0
 
 # copy drivers
 WORKDIR /opt/nifi/
@@ -18,17 +18,16 @@ COPY ./conf/bootstrap.conf ./
 COPY ./conf/nifi.properties ./
 COPY ./conf/zookeeper.properties ./
 
-
 #USER nifi
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
-RUN wget https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.5.8.zip && \
-        unzip apache-groovy-binary-2.5.8.zip && \
-        rm apache-groovy-binary-2.5.8.zip
+RUN wget https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-3.0.9.zip && \
+        unzip apache-groovy-binary-3.0.9.zip && \
+        rm apache-groovy-binary-3.0.9.zip
 
-ENV GROOVY_BIN=/opt/nifi/groovy/groovy-2.5.8/bin
+ENV GROOVY_BIN=/opt/nifi/groovy/groovy-3.0.9/bin
 
-RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.8.1
+RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.10.2
 
 
 # finalize

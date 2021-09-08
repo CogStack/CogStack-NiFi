@@ -11,5 +11,8 @@ elasticsearch.password: kibanaserver
 elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
 
 opendistro_security.multitenancy.enabled: true
+opendistro_security.multitenancy.tenants.enable_global: true
+opendistro_security.multitenancy.tenants.enable_private: true
 opendistro_security.multitenancy.tenants.preferred: ["Private", "Global"]
 opendistro_security.readonly_mode.roles: ["kibana_read_only"]
+opendistro_security.multitenancy.enable_filter: false
