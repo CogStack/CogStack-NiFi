@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 MAIN_PATH='/Users/lroguski/devel/projects/github/cogstack/CogStack-Pipeline/examples'

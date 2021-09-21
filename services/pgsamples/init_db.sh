@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 
 # global variables
 #
-DB_USER='test'
-DB_NAME='db_samples'
+DB_USER="test"
+DB_NAME="db_samples"
 
 DATA_DIR="/data"
 DB_DUMP_FILE="db_samples.sql.gz"

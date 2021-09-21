@@ -9,9 +9,14 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    image: postgres:11.4-alpine
+    image: postgres:13.4-alpine
     container_name: cogstack-samples-db
+    shm_size: 256mb
     restart: always
+    environment:
+      # PG env vars
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
     volumes:
       # mapping postgres data dump and initialization
       - ../services/pgsamples/db_dump/db_samples-pdf-text-small.sql.gz:/data/db_samples.sql.gz:ro
@@ -33,6 +38,7 @@ services:
   tika-service:
     image: cogstacksystems/tika-service:latest
     container_name: cogstack-tika
+    shm_size: 256mb
     restart: always
     # INFO: Tika pipeline-specific configuration is mounted via volume
     volumes:
