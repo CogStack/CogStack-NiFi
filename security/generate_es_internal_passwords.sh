@@ -22,8 +22,8 @@ source es_internal_users.env
 ES_CONTAINER_NAME="$1"
 
 # connect to the container and generate hashes
-ES_ADMIN_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/elasticsearch/plugins/opendistro_security/tools/hash.sh -p $ES_ADMIN_PASS )
-ES_KIBANA_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/elasticsearch/plugins/opendistro_security/tools/hash.sh -p $ES_KIBANA_PASS )
+ES_ADMIN_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p $ES_ADMIN_PASS )
+ES_KIBANA_HASH=$( docker exec $ES_CONTAINER_NAME /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p $ES_KIBANA_PASS )
 
 echo "--------------------------------"
 echo "user:     \"admin\""
