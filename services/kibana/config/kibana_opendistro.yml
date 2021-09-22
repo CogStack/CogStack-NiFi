@@ -2,17 +2,14 @@
 server.name: kibana
 server.host: "0"
 # INFO: ES URL provided as docker parameter
-#elasticsearch.url: https://localhost:9200
-elasticsearch.ssl.verificationMode: none
+#opensearch.hosts: ['https://localhost:9200']
+opensearch.ssl.verificationMode: none
 
 # WARNING: revise all the lines below before you go into production
-elasticsearch.username: kibanaserver
-elasticsearch.password: kibanaserver
-elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+opensearch.username: kibanaserver
+opensearch.password: kibanaserver
+opensearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
 
-opendistro_security.multitenancy.enabled: true
-opendistro_security.multitenancy.tenants.enable_global: true
-opendistro_security.multitenancy.tenants.enable_private: true
-opendistro_security.multitenancy.tenants.preferred: ["Private", "Global"]
-opendistro_security.readonly_mode.roles: ["kibana_read_only"]
-opendistro_security.multitenancy.enable_filter: false
+opensearch_security.multitenancy.enabled: true
+opensearch_security.multitenancy.tenants.preferred: ["Private", "Global"]
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]
