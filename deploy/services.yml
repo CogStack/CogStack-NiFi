@@ -231,6 +231,8 @@ services:
       #- ./security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
       #- ./security/kibana.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
       #- ./security/kibana.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      # INFO: Kibana configuration mapped via volume
+      #- ../services/kibana/config/kibana.yml:/usr/share/opensearch/config/opensearch.yml
     ports:
       - "5601:5601"
     networks:
