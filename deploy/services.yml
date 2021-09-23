@@ -11,7 +11,7 @@ services:
   samples-db:
     image: postgres:13.4-alpine
     container_name: cogstack-samples-db
-    shm_size: 256mb
+    shm_size: 128mb
     restart: always
     environment:
       # PG env vars
@@ -40,7 +40,10 @@ services:
     container_name: cogstack-tika
     shm_size: 256mb
     restart: always
-    # INFO: Tika pipeline-specific configuration is mounted via volume
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
     volumes:
       - ../services/tika-service/config:/app/config:ro
     expose:
@@ -139,6 +142,10 @@ services:
     # INFO: MedCAT library config provided via env file
     env_file:
       - ../services/medcat-trainer/envs/env
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
     volumes:
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
@@ -151,6 +158,10 @@ services:
     image: cogstacksystems/medcat-trainer-nginx:latest
     container_name: cogstack-medcat-trainer-nginx
     restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
     volumes:
       - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled/:ro
       - medcat-api-media:/home/api/media
@@ -170,6 +181,10 @@ services:
     shm_size : 1024mb
     restart: always
     environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      # ES only configs
       - node.name=es01
       - cluster.name=docker-cluster
       - discovery.type=single-node
@@ -243,14 +258,16 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:dev-latest
-    #build: ../nifi/
+    #image: cogstacksystems/cogstack-nifi:dev-latest
+    #image: apache/nifi:latest
+    build: ../nifi/
     container_name: cogstack-nifi
     restart: always
+    shm_size: 256mb
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
-
+      
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
@@ -258,8 +275,12 @@ services:
       #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
 
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      #- ../security:/opt/nifi/security:ro
-    
+      - ../security/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
+      - ../security/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+
+      - ../security/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks:ro
+      - ../security/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks:ro
+
       # rest of volumes to persist the state
       - nifi-vol-conf:/opt/nifi/nifi-current/conf
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -271,10 +292,19 @@ services:
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    environment:
+     - http_proxy=$HTTP_PROXY
+     - https_proxy=$HTTPS_PROXY
+     - no_proxy=$no_proxy
+    
+    #entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
+    privileged: true
+    tty: true
     ports:
       - "8080:8080"
+      - "8443:8443"
     expose:
-      - "10000"
+      - "10443"
     networks:
       - cognet
 
