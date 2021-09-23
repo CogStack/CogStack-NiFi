@@ -9,3 +9,5 @@
 security/*.env
 security/internal_users.yml
 .env
+
+security/nifi_toolkit
