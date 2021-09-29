@@ -22,7 +22,7 @@ COPY ./conf/zookeeper.properties ./
 #USER nifi
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
-RUN wget https://dl.bintray.com/groovy/maven/apache-groovy-binary-2.5.8.zip && \
+RUN wget https://archive.apache.org/dist/groovy/2.5.8/distribution/apache-groovy-binary-2.5.8.zip && \
         unzip apache-groovy-binary-2.5.8.zip && \
         rm apache-groovy-binary-2.5.8.zip
 
