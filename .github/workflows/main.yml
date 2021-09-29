@@ -1,8 +1,5 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Docker
 
-# Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -16,28 +13,30 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+
   build:
-    # The type of runner that the job will run on
+
     runs-on: ubuntu-latest
+    
+    env:
+      working-directory: ./nifi
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         
       - name: checkout repo
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
         uses: actions/checkout@v2
-            
         
       - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@v1
         with:
-          #registry: ${{ env.REGISTRY }}
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           
@@ -49,15 +48,14 @@ jobs:
       
       - name: Build and push Docker images
         id: docker_build
-        # You may pin to the exact commit or the version.
-        uses: docker/build-push-action@v2.7.0
+        uses: docker/build-push-action@v2
         with:
-          push: true
-          context : .
-          file : ./nifi/Dockerfile
+          context : ./nifi
+          file : "./nifi/Dockerfile"
           allow: network.host
           github-token: ${{ github.token }}
-          tags: devel #${GITHUB_REF##*/}
-          
+          tags: cogstacksystems/cogstack-nifi:latest
+          push: true
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
