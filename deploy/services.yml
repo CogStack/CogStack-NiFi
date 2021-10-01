@@ -25,7 +25,7 @@ services:
       - samples-vol:/var/lib/postgresql/data
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-      - 5555:5432
+      - 5554:5432
     #expose:
     #  - 5432
     networks:
@@ -196,9 +196,9 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
       # INFO: set 'true' to enable SSL, DISABLE THESE IF YOU ARE USING ELASTICSEARCH NATIVE
-      - opendistro_security.disabled=true
-      - opendistro_security.ssl.http.enabled=false
-      - opendistro_security.ssl.transport.enabled=false
+      #- opendistro_security.disabled=true
+      #- opendistro_security.ssl.http.enabled=false
+      #- opendistro_security.ssl.transport.enabled=false
 
       # INFO: set 'true' to enable SSL
       - plugins.security.ssl.http.enabled=false
@@ -255,7 +255,7 @@ services:
     #env_file: ./security/es_kibana_user.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
-      OPENSEARCH_HOSTS: ['http://elasticsearch-1:9200']
+      OPENSEARCH_HOSTS: 'http://elasticsearch-1:9200'
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: "false"
 

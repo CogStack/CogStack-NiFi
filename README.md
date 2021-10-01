@@ -23,6 +23,8 @@ As a good starting point, please see deployment [README](./deploy/README.md) for
 
 # Security 
 
+Default username : admin     password:admincogstacknifi
+
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
 
 Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
@@ -43,3 +45,5 @@ Before starting the NIFI container it's important to take note of the following 
 - the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
 
 URL: https://localhost:8443/nifi/login
+
+Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume rm $(docker volume list -q)`
