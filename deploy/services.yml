@@ -223,6 +223,8 @@ services:
       #- ../security/es-node1.pem:/usr/share/opensearch/config/esnode.pem:ro
       #- ../security/es-node1.key:/usr/share/opensearch/config/esnode-key.pem:ro
       - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
+      - ../security/roles_mapping.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/roles_mapping.yml:ro
+      - ../security/roles.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/roles.yml:ro
       #
       # INFO: ES configuration mapped via volume
       #- ../services/elasticsearch/config/elasticsearch.yml:/usr/share/opensearch/config/opensearch.yml

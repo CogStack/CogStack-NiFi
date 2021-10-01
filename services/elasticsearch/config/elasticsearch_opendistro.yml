@@ -27,8 +27,8 @@ plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.pem
 #plugins.security.allow_unsafe_democertificates: true
 plugins.security.allow_default_init_securityindex: true
 plugins.security.authcz.admin_dn:
-#  - CN=kirk,OU=client,O=client,L=test, C=de
-  - 'CN=cogstack' 
+  - CN=kirk,OU=client,O=client,L=test, C=de
+#  - 'CN=cogstack' 
 
 plugins.security.nodes_dn:
   - 'CN=elasticsearch-*'
@@ -38,5 +38,8 @@ plugins.security.enable_snapshot_restore_privilege: true
 plugins.security.check_snapshot_restore_write_privileges: true
 plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
 cluster.routing.allocation.disk.threshold_enabled: false
+plugins.security.system_indices.enabled: true
+plugins.security.system_indices.indices: [".opendistro-alerting-config", ".opendistro-alerting-alert*", ".opendistro-anomaly-results*", ".opendistro-anomaly-detector*", ".opendistro-anomaly-checkpoints", ".opendistro-anomaly-detection-state", ".opendistro-reports-*", ".opendistro-notifications-*", ".opendistro-notebooks", ".opendistro-asynchronous-search-response*"]
+
 node.max_local_storage_nodes: 3
 ######## End OpenDistro for Elasticsearch Security Demo Configuration ########
