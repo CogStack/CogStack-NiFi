@@ -12,4 +12,4 @@ security/internal_users.yml
 
 security/nifi_toolkit
 
-./nifi/nifi-app.log
+nifi/nifi-app.log

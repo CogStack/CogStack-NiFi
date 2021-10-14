@@ -1,5 +1,15 @@
 FROM apache/nifi:1.14.0
 
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG no_proxy
+
+ENV HTTP_PROXY $HTTP_PROXY
+ENV HTTPS_PROXY $HTTPS_PROXY
+ENV no_proxy $no_proxy
+
+RUN echo $HTTP_PROXY
+
 # copy drivers
 WORKDIR /opt/nifi/
 COPY ./drivers ./drivers

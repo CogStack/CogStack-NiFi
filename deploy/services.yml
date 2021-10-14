@@ -124,7 +124,7 @@ services:
       # INFO: CogStack GATE runner configuration files
       - ../services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
       # TODO: properly set BioYODIE UMLS resources
-      - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
+      # - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
     #command: "bash /app/nlp-service/run.sh"
     expose:
       - 8095
@@ -297,7 +297,12 @@ services:
   nifi:
     #image: cogstacksystems/cogstack-nifi:dev-latest
     #image: apache/nifi:latest
-    build: ../nifi/
+    build:
+      context: ../nifi/
+      args:      
+          HTTP_PROXY: $HTTP_PROXY
+          HTTPS_PROXY: $HTTPS_PROXY
+          no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
     shm_size: 256mb
@@ -333,8 +338,13 @@ services:
      - http_proxy=$HTTP_PROXY
      - https_proxy=$HTTPS_PROXY
      - no_proxy=$no_proxy
-    
+
+    # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
+    #        a bit messy this way as you will need to copy the credentials back
+    #        to the "login-identity-providers.xml" section.
+
     #entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
+
     privileged: true
     tty: true
     ports:
