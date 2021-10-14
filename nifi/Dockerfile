@@ -27,7 +27,7 @@ USER nifi
 
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
-RUN wget https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-3.0.9.zip && \
+RUN curl https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-3.0.9.zip --output apache-groovy-binary-3.0.9.zip --max-time 60 && \
     unzip apache-groovy-binary-3.0.9.zip && \
     rm apache-groovy-binary-3.0.9.zip
 
