@@ -8,7 +8,8 @@ ENV HTTP_PROXY $HTTP_PROXY
 ENV HTTPS_PROXY $HTTPS_PROXY
 ENV no_proxy $no_proxy
 
-RUN echo $HTTP_PROXY
+# solve groovy grape proxy issues, grape ignores the current environment's proxy settings
+RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROXY -Dhttp.nonProxyHosts=$no_proxy"
 
 # copy drivers
 WORKDIR /opt/nifi/
@@ -21,7 +22,7 @@ COPY ./user-schemas ./user-schemas
 
 #####
 WORKDIR /opt/nifi/nifi-current/conf/templates/
-COPY ./user-templates ./
+COPY ./user-templates ./    
 
 USER nifi
 
