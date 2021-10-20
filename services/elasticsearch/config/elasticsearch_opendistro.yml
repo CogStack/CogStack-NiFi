@@ -1,16 +1,16 @@
-cluster.name: "docker-cluster"
 network.host: 0.0.0.0
+
+
+###### CLUSTER CONFIGURATION ######
+
+# To allow multiple nodes add the node's IP addresses to the discovery pool. 
+# ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
+discovery.seed_hosts: ["127.0.0.1", "elasticsearch-2", "elasticsearch-1"]
 
 # # Details: https://github.com/elastic/elasticsearch/pull/17288
 # minimum_master_nodes need to be explicitly set when bound on a public IP
 # set to 1 to allow single node clusters
-discovery.zen.minimum_master_nodes: 1
-
-# # Breaking change in 7.0
-# # https://www.elastic.co/guide/en/elasticsearch/reference/7.0/breaking-changes-7.0.html#breaking_70_discovery_changes
-# cluster.initial_master_nodes: 
-#    - elasticsearch1
-#    - docker-test-node-1 
+# discovery.zen.minimum_master_nodes: 2
 
 
 ######## Start OpenDistro for Elasticsearch Security Demo Configuration ########
