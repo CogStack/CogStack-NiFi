@@ -252,6 +252,8 @@ services:
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
       - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      # logs
+      - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
     ports:
