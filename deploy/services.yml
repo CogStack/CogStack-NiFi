@@ -230,7 +230,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:dev-latest
+    image: cogstacksystems/cogstack-nifi:latest
     #build: ../nifi/
     container_name: cogstack-nifi
     restart: always
