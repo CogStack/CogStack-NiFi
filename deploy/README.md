@@ -26,3 +26,19 @@ These data flows can be later saved as workflow *templates*, exported into XML f
 We provide few example templates for ingesting the records from database into Elasticsearch and to perform extraction of NLP annotations from documents.
 
 Please see [example workflows](./WORKFLOWS.md) for more details.
+
+
+# Troubleshooting
+
+Always start with fresh containers and volumes, to make sure that there are no volumes from previous experimentations, make sure to always delete all/any cogstack running containers by executing:
+
+`docker container rm samples-db elasticsearch-1 kibana nifi nlp-medcat-medmen tika-service nlp-gate-drugapp nlp-medcat-snomed nlp-gate-bioyodie medcat-trainer-ui medcat-trainer-nginx jupyter-hub -f`
+
+followed by a cleanup or dangling volumes (careful as this will remove all volumes which are NOT being used by a container, if you want to remove specific volumes you will have to manually specifiy the volume names):
+
+`docker volume prune -f`
+
+## Known Issues/errors
+When dealing with contaminated deplyoments ( containers using volumes from previous instances ) :
+    - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
+    - building the NiFi image manually on a restricted system, this is usually not necessary, but if for some reason this needs to be done then some settings such as proxy configs might need to be set up in the `nifi/Dockerfile` epecially ones related to the `grape` application and dealing with external downloads.
