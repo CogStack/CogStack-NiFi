@@ -26,6 +26,7 @@ import groovy.json.JsonSlurper
 import org.apache.commons.io.IOUtils
 import org.apache.nifi.processor.io.StreamCallback
 import java.nio.charset.StandardCharsets
+import  org.apache.nifi.logging.ComponentLog
 
 
 // constants:
@@ -60,27 +61,44 @@ Set ignoreAnnTypes = (ignore_annotation_types as String).split(',').collect { it
 //
 def outFlowFiles = [] as List<FlowFile>
 
+def nlp_service_info = [:]
+
+if(inJson.keySet().contains("medcat_info"))
+{
+  nlp_service_info = inJson.medcat_info
+}
+
 inJson.result.each {res ->
 
-  // annotation template containing footer that will be used 
-  //.  by the all of the annotations in the same record
-  def outAnnTemplate = [:]
-  res.footer.each {k, v ->
-      outAnnTemplate.put(FIELD_META_PREFIX + k, v)
-  }
+  def result_json = new JsonSlurper().parseText(res)
+  def annotations = result_json.annotations
+  
+  def outAnn = [:]
 
+  result_json.footer.each {k, v ->
+      outAnn.put(FIELD_META_PREFIX + k, v)
+  }
+  
   // iterate over all the annotations
-  //
-  res.annotations.each { ann -> 
+  annotations.each { ann -> 
+
     // filter the ignored annotations (by type)
-    def annType = ann.type.trim().toLowerCase()
-    if (ignoreAnnTypes.contains(annType)) {
-      return
+    def annotationTypes =  ann.value.types.collect{ it.trim().toLowerCase() }
+
+    ignoreAnnTypes.each{ ignored_type -> 
+      if (annotationTypes.contains(ignored_type))
+        return
     }
 
-    outAnn = outAnnTemplate.clone()
-    ann.each {k, v ->
+    // annotation template containing footer that will be used 
+    //.  by the all of the annotations in the same record
+
+    ann.value.each { k, v ->
         outAnn.put(FIELD_NLP_PREFIX + k, v)
+    }
+
+    nlp_service_info.each{ k, v ->
+      outAnn.put("service_" + k, v)
     }
 
     // create a separate flow file per annotation
@@ -92,7 +110,7 @@ inJson.result.each {res ->
     assert doc_id
     def ann_id = outAnn[annotation_id_field as String]
     assert ann_id
-    def doc_ann_id = "d_${doc_id}-a_${ann_id}"
+    def doc_ann_id = "doc_id_${doc_id}-annotation_id_${ann_id}"
 
     // store annotation ID as the Flow file attriburte and store the new Flow file
     newFlowFile = session.putAttribute(newFlowFile, 'document_annotation_id', doc_ann_id)
@@ -102,7 +120,8 @@ inJson.result.each {res ->
       as OutputStreamCallback )
 
       outFlowFiles << newFlowFile
-    }
+   
+   }
 }
 
 // NiFi: transfer all the flow files

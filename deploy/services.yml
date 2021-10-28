@@ -61,6 +61,7 @@ services:
     volumes:
       - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
       - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
+      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/mc_status:ro
     #expose:
     #  - 5000
     ports:
@@ -98,6 +99,7 @@ services:
       - ../services/nlp-services/applications/medcat/config/env_medcat
     environment:
       - APP_MODEL_NAME=snomed-mimic
+      - RES_MEDCAT_SNOMED_PATH="./"
     volumes:
       - ${RES_MEDCAT_SNOMED_PATH}/cdb.dat:/cat/models/cdb.dat:ro
       - ${RES_MEDCAT_SNOMED_PATH}/vocab.dat:/cat/models/vocab.dat:ro
@@ -110,11 +112,13 @@ services:
     image: cogstacksystems/nlp-rest-service-gate:latest
     container_name: cogstack-gate-bioyodie
     restart: always
+    environment:
+      - RES_BIOYODIE_UMLS_PATH="./"
     volumes:
       # INFO: CogStack GATE runner configuration files
       - ../services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
       # TODO: properly set BioYODIE UMLS resources
-      - ${RES_BIOYODIE_UMLS_PATH}:/gate/app/bioyodie/bio-yodie-resources:ro
+      - ${RES_BIOYODIE_UMLS_PATH}/:/gate/app/bioyodie/bio-yodie-resources:ro
     #command: "bash /app/nlp-service/run.sh"
     expose:
       - 8095
@@ -239,11 +243,11 @@ services:
       - ../nifi/devel:/opt/nifi/devel
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
-      #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
-      #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
-      #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
+      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
+      - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
+      - ../nifi/user-schemas:/opt/nifi/user-schemas:ro
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      #- ../security:/opt/nifi/security:ro
+      # - ../security:/opt/nifi/security:ro
       #
       # rest of volumes to persist the state
       - nifi-vol-conf:/opt/nifi/nifi-current/conf
@@ -256,13 +260,14 @@ services:
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    user: 1000:1000
+    tty: true
     ports:
       - "8080:8080"
     expose:
       - "10000"
     networks:
       - cognet
-
 
 #---------------------------------------------------------------------------#
 # Jupyter Hub                                                               #
@@ -289,8 +294,23 @@ services:
       - "8888:8888"
     networks:
       - cognet
-
-
+#---------------------------------------------------------------------------#
+# Annotation ingester service                                               #
+#---------------------------------------------------------------------------#
+  annotation-ingester:
+     image: cogstacksystems/annotations-ingester:latest
+     shm_size : 128mb
+     restart: always
+     environment:
+       - http_proxy=$HTTP_PROXY
+       - https_proxy=$HTTPS_PROXY
+       - no_proxy=$no_proxy
+     volumes:
+       - ../services/annotation_ingester/config/config.yml:/app/config/config.yml:ro
+     command: "/app/run.sh"
+     networks:
+      - cognet
+    
 
 #---------------------------------------------------------------------------#
 # Docker named volumes                                                      #
