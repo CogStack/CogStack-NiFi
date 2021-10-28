@@ -1,0 +1,677 @@
+{
+  "letter_header_splitter": {
+    "pattern": "^Dear\\s+([A-Z]{1,}[A-Za-z\\-])*\\s+(.*)$",
+    "flags": [
+      "multiline"
+    ],
+    "data_labels": [
+      "title",
+      "name"
+    ],
+    "data_type": "letter receiver"
+  },
+  "letter_end_splitter": {
+    "pattern": "^(Yours){0,}\\s+(sincerely|faithfully)\\,{0,}$",
+    "flags": [
+      "multiline",
+      "ignorecase"
+    ],
+    "data_type": "letter end text"
+  },
+  "sent_rules": {
+    "studies": [
+      {
+        "pattern": "for\\s+((\\w+)(\\s+\\w+){0,2}\\s+(study|trial))",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "study|trials"
+      }
+    ],
+    "NO.": [
+      {
+        "pattern": "(No\\.)\\:{0,}\\s{0,}(\\d+)\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "NO."
+      }
+    ],
+    "medica": [
+      {
+        "pattern": "(\\s+(medic|stobhill|Thailand|medica reporting ltd|RADAR Alzheimer's|RIE)\\s+)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "dict_terms"
+      },
+      {
+        "pattern": "(\\s+(medica|medica healthcare ltd|medica insights|medica insight)\\s+)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "dict_terms"
+      }
+    ],
+    "ward": [
+      {
+        "pattern": "\\b(location)\\: {0,}(.*)$",
+        "flags": [
+          "ignorecase",
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "ward"
+      },
+      {
+        "pattern": "\\b(ward\\s+([\\w]+))",
+        "flags": [
+          "ignorecase",
+          "multiline"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "ward"
+      }
+    ],
+    "CHI": [
+      {
+        "pattern": "(CHI NUMBER|Hospital number|Hospital no|Code)\\:\\s{0,}(\\w+|\\d+){0,}",
+        "flags": [
+          "ignorecase",
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "CHI"
+      }
+    ],
+    "National_insrance_number":
+    [
+      {
+        "pattern": "^\\s*[a-zA-Z]{2}(?:\\s*\\d\\s*){6}[a-zA-Z]?\\s*$",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels":["label", "value"],
+        "data_type" : "National_insrance_number"
+      }
+    ],
+    "Other_Hospital_details": [
+      {
+        "pattern": "(Document Ref|Our Ref|Unique Pathway ID|Patient Pathway ID)\\:\\s{0,}((\\w+|\\d+){0,}\/{0,1}\\s{0,4}(\\w+|\\d+)?\/{0,}(\\d|\\w){0,5})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels":["label","name"],
+        "data_type" : "Hospital details"
+      },
+      {
+        "pattern": "(Document Ref|Our Ref|Unique)\\:{0,1}\\s{0,}((\\d|\\w){2,10})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels":["label","name"],
+        "data_type" : "Hospital details"
+      }
+    ],
+    "Email_Subject": [
+      {
+        "pattern":"(Re)\\:(\\s{0,}\\w{0,}\\s{0,}\\w{0,}\\s{0,}\\w{0,})",
+        "flags": ["ignorecase"],
+        "data_labels":["label", "name"],
+        "data_type" : "Email_Subject"
+      }
+    ],
+    "NHS_only": [
+      {
+        "pattern": "(NHS Number|NHS no)\\:\\s(\\d{0,}\\s\\d{0,}\\s\\d{0,})",
+        "flags": ["ignorecase"],
+        "data_labels":["label", "name"],
+        "data_type" : "NHS_only"
+      }
+    ],
+    "Phone/Fax Extensions":[
+      {
+        "pattern": "(\\d{4,5}(\\s|\\-){0,1}\\d{3,6})",
+        "flags": ["ignorecase", "multiline"],
+        "data_labels":["name"],
+        "data_type" : "Phone/Fax_Extensions"
+      }
+    ],
+
+    "IDs": [
+      {
+        "pattern": "\\b(ID)\\:{0,}\\s{0,}(\\d+)\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "ID"
+      },
+      {
+        "pattern": "(\\d+)\\s+\\d{1,2}\\/\\d{1,2}\\/\\d{2,4}\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "ID"
+      }
+    ],
+    "GMC": [
+      {
+        "pattern": "(GMC|GMC number|GMC code)\\s{0,}(?:\\:|\\-){0,}\\s{0,}(\\w{0,1}\\d+)",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "GMC"
+      }
+    ],
+    "Consultant": [
+      {
+        "pattern": "(Referring Consultant|Consultant Physician)\\:(.*)$",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "Referring Consultant"
+      }
+    ],
+    "Exam num": [
+      {
+        "pattern": "(Examination Number)\\: {0,}(\\d+)",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "Examination Number"
+      }
+    ],
+    "DOB": [
+      {
+        "pattern": "(DOB)\\: {0,}(\\d+/\\d+/\\d+)",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "DOB"
+      }
+    ],
+    "doctor": [
+      {
+        "pattern": "\\b(Dr|Prof|Professor|Radiologist|Consultant|Surgeon) {0,}\\.{0,1} +([\\w\\.0-9\\,]+( +[\\w\\.0-9\\(\\)\\-]+){0,2})\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "doctor"
+      },
+      {
+        "pattern": "\\b(Dr|Prof)\\. {0,}([\\w\\.0-9\\,]+( +[\\w\\.0-9\\-]+){0,2})\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "doctor"
+      }
+    ],
+    "patient": [
+      {
+        "pattern": "\\b(Miss|Ms|Mrs|Name|Surname|Forename\\(s\\)|Forename|first name|last name)\\.{0,1}\\:{0,1}\\s+([A-Za-z\\-]+(\\,{0,1}\\s+[A-Za-z\\-]+){0,1})\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "patient"
+      },
+      {
+        "pattern": "([A-Za-z\\-]+(\\,{0,1}\\s+[A-Za-z\\-]+){0,1})\\s+\\(\\d{1,2}\\/\\d{1,2}\\/\\d{2,4}[^\\)]+\\)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "patient"
+      },
+      {
+        "pattern": "\\b(Mr)\\.{0,1} +([A-Za-z\\-]+(\\,{0,1}\\s+[A-Za-z\\-]+){0,1})\\b",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "patient"
+      }
+    ],
+    "clinic": [
+      {
+        "pattern": "\\bplease\\s+contact(\\s+\\w+(\\s+\\w+){0,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "institute"
+      },
+      {
+        "pattern": "\\s+referral to(\\s+\\w+(\\s+\\w+){0,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "institute"
+      },
+      {
+        "pattern": "(([A-Za-z]* {1,}){1,2}(Hospital|Prim Ctre|Clinic|Infirmary|hosp|unit|Practice|Surgery)(\\,\\s{0,}\\w+){0,1})\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "clinic"
+      },
+      {
+        "pattern": "(([A-Za-z]* {1,}){1,2}(medical practice|royal)(\\,\\s{0,}\\w+){0,1})\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "clinic"
+      },
+      {
+        "pattern": "\\btransferred to (([^\\s]*))\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "clinic"
+      },
+      {
+        "pattern": "\\bfollowed at (([^\\s]*))\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "clinic"
+      },
+      {
+        "pattern": "\\bcome to (([^\\s]*))\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "clinic"
+      }
+    ],
+    "assistant": [
+      {
+        "pattern": "(.*)(secretary|nurse)",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name",
+          "inst_type"
+        ],
+        "data_type": "assistant",
+        "disabled": true
+      },
+      {
+        "pattern": "(secretary|nurse|registra)\\s+([A-Za-z\\-\\(\\)]{3,})\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "assistant"
+      },
+      {
+        "pattern": "(reported|checked|verified|dictated|typed|entered|signed|uploaded|referred|read|transcribed|Validated electronically) by\\:{0,1} +([A-Za-z\\.\\(\\)]+(( {0,}\\,){0,1} +[A-Za-z\\.]+){0,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "assistant"
+      },
+      {
+        "pattern": "(specialist|signed\\:)\\:{0,1}\\s+([A-Za-z\\.]+(( {0,}\\,){0,1} +[A-Za-z\\.]+){0,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "assistant"
+      },
+      {
+        "pattern": "(report to)\\:{0,1}\\s+([A-Za-z\\.]+(\\,{0,1} +[A-Za-z\\.]+){0,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "title",
+          "name"
+        ],
+        "data_type": "assistant"
+      }
+    ],
+    "phone": [
+      {
+        "pattern": " {0,}(telephone|phone|contact|tel no|Tel. No|Fax No|Fax number|Appointments|Facsimile|fax|tel|bleep|Tel \\(secretary\\)|Tel \\(support secretary\\))\\.{0,1}\\s{0,1}\\:{0,1}\\s+((\\d{2,}( |\\-){0,1}){1,}).*",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "label",
+          "name"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "tel(\\d+)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "(?:bleep|paged|pager)(?:\\:){0,1}\\s+(\\w+)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "((secretary to|reception)[^\\d]+((\\d{2,}( |\\-){0,1}){1,}))",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "full",
+          "label",
+          "number"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "(\\(\\d+\\) {0,}\\d{2,}( |\\-){0,}\\d{2,})",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "extension\\s+([\\d\\/]+)",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "\\b(07\\d{9})\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "phone"
+      },
+      {
+        "pattern": "^\\s{0,}((20|19)\\d{2,}([\\d\\.]+))$",
+        "flags": [
+          "ignorecase",
+          "multiline"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "phone"
+      }
+    ],
+    "email": [
+      {
+        "pattern": "\\b([^@\\s]+@[^@\\s]+)\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "email"
+      }
+    ],
+    "ending_initials": [
+      {
+        "pattern": "^([A-Z]{2,3}(\\/[A-Z]{2,3}){0,1})$",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name"
+        ],
+        "data_type": "end-initials"
+      }
+    ],
+    "date": [
+      {
+        "pattern": "(\\d{1,2}\\:\\d{1,2})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      },
+      {
+        "pattern": "\\bat\\s+(\\d{4})",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      },
+      {
+        "pattern": "\\bon\\s+(\\d{1,2}/\\d{1,2})\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      },
+      {
+        "pattern": "\\b((?:20|19)\\d{2})\\b",
+        "flags": [
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      },
+      {
+        "pattern": "(\\d{1,4}(/|\\.|\\-)\\d{1,2}(/|\\.|\\-)\\d{2,4})",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      },
+      {
+        "pattern": "\\b((\\d{1,4}(th|nd|st){0,1}\\s+(of\\s+){0,1}){0,1}(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)(\\s+\\d{2,4}){0,1})\\b",
+        "flags": [
+          "multiline"
+        ],
+        "data_labels": [
+          "number"
+        ],
+        "data_type": "date"
+      }
+    ],
+    "address": [
+      {
+        "pattern": "([^\\n]{0,}(([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\\s?[0-9][A-Za-z]{2})))",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name",
+          "partial",
+          "postcode"
+        ],
+        "data_type": "address postcode line",
+        "disabled": false
+      },
+      {
+        "pattern": "((.*\\n){4}[^\\n]{0,}^(([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\\s?[0-9][A-Za-z]{2})) {0,}$)",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name",
+          "partial",
+          "postcode"
+        ],
+        "data_type": "address 4 lines",
+        "disabled": false
+      },
+      {
+        "pattern": "(((flat|room)[^\\n]+){0,}\\d{1,}[^\\n]+(([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\\s?[0-9][A-Za-z]{2})))",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "name",
+          "partial",
+          "postcode"
+        ],
+        "data_type": "address",
+        "disabled": true
+      },
+      {
+        "pattern": "\\blive(s|d){0,1} in (([^\\s]*))\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "partial",
+          "name"
+        ],
+        "data_type": "address"
+      },
+      {
+        "pattern": "\\bhome in (([^\\s]*))\\b",
+        "flags": [
+          "multiline",
+          "ignorecase"
+        ],
+        "data_labels": [
+          "partial",
+          "name"
+        ],
+        "data_type": "address"
+      }
+    ]
+  }
+}
