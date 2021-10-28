@@ -7,7 +7,9 @@ RUN apt-get update && \
     apt-get install -y \
     gnupg \
     libssl1.0.0 \
-    libssl-dev
+    libssl-dev \
+    wget \
+    curl
 
 # using Ubuntu 18.04 as base image
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
@@ -34,6 +36,8 @@ RUN conda install --quiet --yes \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
-RUN pip install -U medcat && \
-      pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.2.4/en_core_sci_md-0.2.4.tar.gz && \
-      python -m spacy download en_core_web_sm
+RUN pip install -U medcat && pip install -U opensearch-py &&\
+      pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
+      python -m spacy download en_core_web_sm && \
+      python -m spacy download en_core_web_md && \
+      python -m spacy download en_core_web_lg

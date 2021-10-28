@@ -13,15 +13,15 @@ if [[ ! -f "$MODEL_CDB"  || ! -f "$MODEL_VCB" ]]; then
     mkdir $MEDMEN_DIR
   fi
   # download the model as described in the MedCAT repo
-  curl https://s3-eu-west-1.amazonaws.com/zkcl/vocab.dat > $MODEL_VCB
-  curl https://s3-eu-west-1.amazonaws.com/zkcl/cdb-medmen.dat > $MODEL_CDB
+  curl https://medcat.rosalind.kcl.ac.uk/media/vocab.dat > $MODEL_VCB
+  curl https://medcat.rosalind.kcl.ac.uk/media/cdb-medmen-v1.dat > $MODEL_CDB
 else
   echo "MedMentions model already present -- skipping download"
 fi
 
 if [[ ! -d "$MODEL_META" ]]; then
   echo "Downloading meta model: status"
-  curl https://zkcl.s3-eu-west-1.amazonaws.com/mc_status.zip > $MEDMEN_DIR/mc_status.zip && \
+  curl https://medcat.rosalind.kcl.ac.uk/media/mc_status.zip > $MEDMEN_DIR/mc_status.zip && \
     (cd $MEDMEN_DIR && unzip mc_status.zip) && \
     rm $MEDMEN_DIR/mc_status.zip
 else

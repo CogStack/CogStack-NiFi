@@ -1,4 +1,8 @@
 FROM apache/nifi:1.14.0
+ARG UID=1000
+ARG GID=1000
+
+USER nifi
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -23,8 +27,6 @@ COPY ./user-schemas ./user-schemas
 #####
 WORKDIR /opt/nifi/nifi-current/conf/templates/
 COPY ./user-templates ./    
-
-USER nifi
 
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
