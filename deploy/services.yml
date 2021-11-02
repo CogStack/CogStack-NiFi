@@ -37,6 +37,8 @@ services:
     # INFO: Tika pipeline-specific configuration is mounted via volume
     volumes:
       - ../services/tika-service/config:/app/config:ro
+    ports:
+      - 8090:8090
     expose:
       - 8090
     networks:
