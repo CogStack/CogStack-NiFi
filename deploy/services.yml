@@ -47,6 +47,8 @@ services:
       - no_proxy=$no_proxy
     volumes:
       - ../services/tika-service/config:/app/config:ro
+    ports:
+      - 8090:8090
     expose:
       - 8090
     networks:
