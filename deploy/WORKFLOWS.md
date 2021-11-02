@@ -61,6 +61,38 @@ User `test` with password `test` was created to connect to it.
 Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - all of this is illustrated on the picture below.
 ![db-reader-w1](./docs-assets/configure-db-connector-w1.png)
 
+
+## Adding your own data to the DB 
+
+The easiest way to do this is to create your own sql schema file (to keep things separated) stored in the pgsamples folder( for example `services/pgsamples/new_schema.sql​` ) put your sql code there and mount it on the pg-samples container, like so:
+```
+  samples-db:
+      image: postgres:11.4-alpine
+      container_name: cogstack-samples-db
+      restart: always
+      volumes:
+        # mapping postgres data dump and initialization
+        - ../services/pgsamples/new_schema.sql:/data/new_schema.sql:ro  # <----- this is the new line
+```
+Pay attention to the mapped volume file path, we added a new line.
+
+Afterwards, in the `services/pgsamples/init_db.sh​ file`, you will need to add a line that imports the sql file created directly when the DB container is first initialized
+
+```
+# create schemas
+#
+echo "Defining DB schemas"
+psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME -f $DATA_DIR/"new_schema.sql"    
+```
+
+After this is done , the only things that need to be changed are in the NiFi flow config, as follows:
+  - in the "GenerateTableFetch" process (make sure it is not running, and that you right click it go to view state​ and then click on the "Clear State" button, this resets the ingested records), we change the table_name from medical_reports_text to your own custom `index_table_name` , and the Maximum-value Columns to any field that we wish to select DB rows by, preferably some unique ID field that could also be a primary key `unique_id_column` ( if it's the actual key you wish to select the documents by) .
+  - in the "PutElasticsearchHttpRecord" process, change the "Identifier Record Path" from "/docid" to "/unique_id_column"
+
+Additional steps may be required : delete current Db-samples container, then the volume (samples-vol) and restart this container, of course the  
+
+Restart all nifi-processes and the ingestion should work.
+
 ## Indexing records by Elasticsearch
 The records are finally stored in Elasticsearch data store under index `medical_reports_text` and using url endpoint `http://elasticsearch-1:9200`.
 This operation is implemented by NiFi component `PutElasticsearchHttpRecord` with its configuration presented on the picture below.
