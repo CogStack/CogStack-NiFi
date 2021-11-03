@@ -30,7 +30,6 @@ class SchemaInstance {
     }
 }
 
-
 // loads the schema when processor starts
 //
 static onStart(ProcessContext context) { 
@@ -76,7 +75,7 @@ def parseJsonToAvro(inJson, avroSchema) {
     //
     assert inJson.containsKey('metadata')
     if (inJson.metadata.containsKey('X-OCR-Applied'))
-        docRecord.put("metadata_x_ocr_applied", Boolean.parseBoolean(inJson.metadata['X-OCR-Applied']))
+        docRecord.put("metadata_x_ocr_applied", inJson.metadata['X-OCR-Applied'])
 
     if (inJson.metadata.containsKey('X-Parsed-By'))
         docRecord.put("metadata_x_parsed_by", new org.apache.avro.util.Utf8(String.join(";", inJson.metadata['X-Parsed-By'])))
@@ -85,7 +84,7 @@ def parseJsonToAvro(inJson, avroSchema) {
     // optional metadata fields
     //
     if (inJson.metadata.containsKey('Page-Count'))
-        docRecord.put("metadata_page_count", Integer.parseInt(inJson.metadata['Page-Count']))
+        docRecord.put("metadata_page_count", inJson.metadata['Page-Count'])
 
     if (inJson.metadata.containsKey('Content-Type'))
         docRecord.put("metadata_content_type", new org.apache.avro.util.Utf8(inJson.metadata['Content-Type']))
