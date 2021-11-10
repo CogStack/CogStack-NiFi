@@ -13,3 +13,5 @@ security/internal_users.yml
 security/nifi_toolkit
 
 nifi/nifi-app.log
+
+ scripts/data_processing/anonymistion_hw_clean/anonymised
