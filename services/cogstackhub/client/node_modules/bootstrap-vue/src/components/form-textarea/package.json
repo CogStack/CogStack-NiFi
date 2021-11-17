@@ -1,0 +1,58 @@
+{
+  "name": "@bootstrap-vue/form-textarea",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Form Textarea",
+    "description": "Create multi-line text inputs with support for auto height sizing, minimum and maximum number of rows, and contextual validation states.",
+    "components": [
+      {
+        "component": "BFormTextarea",
+        "aliases": [
+          "BTextarea"
+        ],
+        "events": [
+          {
+            "event": "input",
+            "description": "Input event triggered by user interaction. Emitted after any formatting and after the v-model is updated",
+            "args": [
+              {
+                "arg": "value",
+                "description": "Current value of textarea"
+              }
+            ]
+          },
+          {
+            "event": "change",
+            "description": "Change event triggered by user interaction. Emitted after any formatting and after the v-model is updated.",
+            "args": [
+              {
+                "arg": "value",
+                "description": "Current value of the textarea"
+              }
+            ]
+          },
+          {
+            "event": "update",
+            "description": "Emitted to update the v-model",
+            "args": [
+              {
+                "arg": "value",
+                "description": "Value of textarea, after any formatting. Not emitted if the value does nto change"
+              }
+            ]
+          },
+          {
+            "event": "blur",
+            "description": "Emitted after the textarea looses focus",
+            "args": [
+              {
+                "arg": "event",
+                "description": "Native blur event (before any formmating)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

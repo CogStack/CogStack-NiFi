@@ -1,0 +1,37 @@
+{
+  "name": "@bootstrap-vue/form-file",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Form File",
+    "description": "Customized, cross-browser consistent, file input control that supports single file, multiple files, and directory upload.",
+    "components": [
+      {
+        "component": "BFormFile",
+        "aliases": [
+          "BFile"
+        ],
+        "slots": [
+          {
+            "name": "file-name",
+            "description": "Scoped slot for formatting the file names. Scoped props: files - array of File objects, names: array of file names"
+          }
+        ],
+        "events": [
+          {
+            "event": "change",
+            "description": "original native change event on input",
+            "args": [
+              {
+                "arg": "event"
+              }
+            ]
+          },
+          {
+            "event": "input",
+            "description": "[see above docs]"
+          }
+        ]
+      }
+    ]
+  }
+}

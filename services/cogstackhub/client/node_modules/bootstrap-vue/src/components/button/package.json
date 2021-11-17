@@ -1,0 +1,46 @@
+{
+  "name": "@bootstrap-vue/button",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Button",
+    "description": "Use BootstrapVue's <b-button> component for actions in forms, dialogs, and more. Includes support for a handful of contextual variations, sizes, states, and more.",
+    "components": [
+      {
+        "component": "BButton",
+        "aliases": [
+          "BBtn"
+        ],
+        "events": [
+          {
+            "event": "click",
+            "description": "Emitted when non-disabled button clicked",
+            "args": [
+              {
+                "name": "event",
+                "description": "Native click event object"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "BButtonClose",
+        "aliases": [
+          "BBtnClose"
+        ],
+        "events": [
+          {
+            "event": "click",
+            "description": "Emitted when non-disabled button clicked",
+            "args": [
+              {
+                "name": "event",
+                "description": "Native click event object"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

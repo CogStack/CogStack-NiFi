@@ -1,0 +1,16 @@
+  elasticsearch:
+    image: amazon/opendistro-for-elasticsearch:1.13.1
+    container_name: api-tests-elasticsearch
+    restart: always
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
+      - opendistro_security.ssl.http.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9300:9200

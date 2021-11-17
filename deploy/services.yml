@@ -8,9 +8,9 @@ services:
 #---------------------------------------------------------------------------#
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
-  samples-db:
+  cogstack-postgres:
     image: postgres:11.4-alpine
-    container_name: cogstack-samples-db
+    container_name: cogstack-postgres
     restart: always
     volumes:
       # mapping postgres data dump and initialization
@@ -23,6 +23,10 @@ services:
       - 5555:5432
     #expose:
     #  - 5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: cogstack_db
     networks:
       - cognet
 
@@ -296,6 +300,7 @@ services:
       - "8888:8888"
     networks:
       - cognet
+
 #---------------------------------------------------------------------------#
 # Annotation ingester service                                               #
 #---------------------------------------------------------------------------#
@@ -312,7 +317,43 @@ services:
      command: "/app/run.sh"
      networks:
       - cognet
-    
+
+#---------------------------------------------------------------------------#
+# Cogstackhub Client                                                        #
+#---------------------------------------------------------------------------#
+  cogstackhub-client:
+    build:
+      context: ../services/cogstackhub/client
+    container_name: cogstackhub-client
+    restart: always
+    depends_on:
+      - cogstackhub-api
+    ports:
+      - 8080:8080
+    networks:
+      - cognet
+
+#---------------------------------------------------------------------------#
+# Cogstackhub API                                                           #
+#---------------------------------------------------------------------------#
+  cogstackhub-api:
+    build:
+      context: ../services/cogstackhub/api
+    container_name: cogstackhub-api
+    restart: always
+    depends_on:
+      - elasticsearch-1
+      - cogstack-postgres
+    environment:
+      - ES_HOST=elasticsearch-1
+      - DB=cogstack-postgres
+    ports:
+      - 5001:5001
+    network_mode: bridge
+    # links:
+    #   - "elasticsearch:elasticsearch"
+
+  
 
 #---------------------------------------------------------------------------#
 # Docker named volumes                                                      #

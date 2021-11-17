@@ -1,0 +1,66 @@
+{
+  "name": "@bootstrap-vue/nav",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Nav",
+    "enhanced": true,
+    "description": "Navigation components that share general markup and styles, from the base <b-nav> class to the active and disabled states. Swap modifier props to switch between each style.",
+    "plugins": [
+      "Dropdown"
+    ],
+    "components": [
+      "BNav",
+      "BNavItem",
+      "BNavText",
+      "BNavForm",
+      {
+        "component": "BNavItemDropdown",
+        "aliases": [
+          "BNavItemDd",
+          "BNavDropdown",
+          "BNavDd"
+        ],
+        "slots": [
+          {
+            "name": "button-content",
+            "description": "Can be used to implement custom text with icons and more styling."
+          }
+        ],
+        "events": [
+          {
+            "event": "show",
+            "description": "Emitted just before dropdown is shown. Cancelable.",
+            "args": [
+              {
+                "arg": "bvEvt",
+                "description": "BvEvent object. Call bvEvt.preventDefault() to cancel show."
+              }
+            ]
+          },
+          {
+            "event": "shown",
+            "description": "Emitted when dropdown is shown."
+          },
+          {
+            "event": "hide",
+            "description": "Emitted just before dropdown is hidden. Cancelable.",
+            "args": [
+              {
+                "arg": "bvEvt",
+                "description": "BvEvent object. Call bvEvt.preventDefault() to cancel hide."
+              }
+            ]
+          },
+          {
+            "event": "hidden",
+            "description": "Emitted when dropdown is hidden."
+          },
+          {
+            "event": "toggle",
+            "description": "Emitted when toggle button is clicked."
+          }
+        ]
+      }
+    ]
+  }
+}

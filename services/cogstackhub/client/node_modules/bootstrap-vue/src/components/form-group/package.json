@@ -1,0 +1,34 @@
+{
+  "name": "@bootstrap-vue/form-group",
+  "version": "1.0.0",
+  "meta": {
+    "title": "Form Group",
+    "description": "Easily add some structure to forms. Its purpose is to pair form controls with a legend or label, and to provide help text and invalid/valid feedback text, as well as visual (color) contextual state feedback.",
+    "components": [
+      {
+        "component": "BFormGroup",
+        "alias": [
+          "BFormFieldset"
+        ],
+        "slots": [
+          {
+            "name": "label",
+            "description": "Content to place inside the <label> element."
+          },
+          {
+            "name": "description",
+            "description": "Content to place in the description area."
+          },
+          {
+            "name": "invalid-feedback",
+            "description": "Content to place in the invalid feedback area"
+          },
+          {
+            "name": "valid-feedback",
+            "description": "Content to place in the valid feedback area"
+          }
+        ]
+      }
+    ]
+  }
+}
