@@ -6,22 +6,24 @@ USER nifi
 
 # copy drivers
 WORKDIR /opt/nifi/
-COPY --chown=nifi:nifi ./drivers ./drivers
-#COPY --chown=nifi:nifi ./security ./security
+COPY ./drivers ./drivers
+#COPY ./security ./security
 
 # copy user scripts, schemas and templates
-COPY --chown=nifi:nifi ./user-scripts ./user-scripts
-COPY --chown=nifi:nifi ./user-schemas ./user-schemas
+COPY ./user-scripts ./user-scripts
+COPY ./user-schemas ./user-schemas
 
 WORKDIR /opt/nifi/nifi-current/conf/templates/
-COPY --chown=nifi:nifi ./user-templates ./
+COPY ./user-templates ./
 
 # copy configuration files
 WORKDIR /opt/nifi/nifi-current/conf/
 
-COPY --chown=nifi:nifi ./conf/bootstrap.conf ./
-COPY --chown=nifi:nifi ./conf/nifi.properties ./
-COPY --chown=nifi:nifi ./conf/zookeeper.properties ./
+COPY ./conf/bootstrap.conf ./
+COPY ./conf/nifi.properties ./
+COPY ./conf/zookeeper.properties ./
+
+RUN chown -R nifi:nifi /opt/nifi
 
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
