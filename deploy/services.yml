@@ -245,6 +245,7 @@ services:
       - ../nifi/devel:/opt/nifi/devel
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
+      # N.B. The container user may not have the permission to read these directories/files.
       - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
       - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
       - ../nifi/user-schemas:/opt/nifi/user-schemas:ro
@@ -262,7 +263,7 @@ services:
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-    user: 1000:1000
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
     tty: true
     ports:
       - "8080:8080"

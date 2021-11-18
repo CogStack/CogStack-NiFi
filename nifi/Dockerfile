@@ -23,10 +23,6 @@ COPY ./conf/bootstrap.conf ./
 COPY ./conf/nifi.properties ./
 COPY ./conf/zookeeper.properties ./
 
-USER root
-RUN chown -R nifi:nifi /opt/nifi
-USER nifi
-
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
 RUN wget https://archive.apache.org/dist/groovy/2.5.8/distribution/apache-groovy-binary-2.5.8.zip && \
