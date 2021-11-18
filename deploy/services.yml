@@ -276,27 +276,33 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: lrog/cogstack-jupyter-hub:latest
-    build: ../services/jupyter-hub/
+    image: cogstacksystems/cogstack-jupyter-hub:latest
+    build:
+      context: ../services/jupyter-hub/
+      args:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     environment:
       - JUPYTER_ENABLE_LAB=yes
     volumes:
-      - "../services/jupyter-hub/notebooks:/home/jovyan/notebooks"
+      - jupyter-notebooks:/home/jovyan/notebooks
       # INFO: uncomment below to map security certificates if needed
       #- "../security/jupyter.pem:/etc/ssl/notebook/jupyter.pem:ro"
       #- "../security/jupyter.key:/etc/ssl/notebook/jupyter.key:ro"
       #- "../security/root-ca.pem:/etc/ssl/notebook/root-ca.pem:ro"
     command: "start-notebook.sh \
                   --NotebookApp.password=${JUPYTERHUB_PASSWORD}"
-      # INFO: uncomment below to use SSL keys (as a part of start-up cmd) 
+      # INFO: uncomment below to use SSL keys (as a part of start-up cmd)
       #           --keyfile=/etc/ssl/notebook/jupyter.key \
       #           --certfile=/etc/ssl/notebook/jupyter.pem \
     ports:
       - "8888:8888"
     networks:
       - cognet
+
 #---------------------------------------------------------------------------#
 # Annotation ingester service                                               #
 #---------------------------------------------------------------------------#
@@ -350,6 +356,9 @@ volumes:
   medcat-api-db:
     driver: local
 
+  # Jupyter Hub
+  jupyter-notebooks:
+    driver: local
 
 #---------------------------------------------------------------------------#
 # Docker networks.                                                          #

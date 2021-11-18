@@ -1,6 +1,14 @@
 FROM jupyter/datascience-notebook:ubuntu-18.04
 #FROM jupyter/datascience-notebook:latest
 
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV no_proxy=$no_proxy
+
 USER root
 
 RUN apt-get update && \
@@ -20,9 +28,9 @@ RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql17 && \
     ACCEPT_EULA=Y apt-get install -y mssql-tools && \
     apt-get -y --no-install-recommends install \
-	   unixodbc \ 
-	   unixodbc-dev \ 
-	   odbcinst
+        unixodbc \
+        unixodbc-dev \
+        odbcinst
 
 
 USER $NB_UID
@@ -36,8 +44,7 @@ RUN conda install --quiet --yes \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
-RUN pip install -U medcat && pip install -U opensearch-py &&\
+RUN pip install -U medcat && pip install -U opensearch-py && \
+      pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.0.0/en_core_web_md-3.0.0.tar.gz && \
       pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
-      python -m spacy download en_core_web_sm && \
-      python -m spacy download en_core_web_md && \
-      python -m spacy download en_core_web_lg
+      pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
