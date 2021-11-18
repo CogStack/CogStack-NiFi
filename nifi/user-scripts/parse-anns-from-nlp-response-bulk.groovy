@@ -107,9 +107,9 @@ inJson.result.each {res ->
     // 'document_id_field' and 'annotation_id_field' are provided by the user
     //.  and are used to creater a unique identifier
     def doc_id = outAnn[document_id_field as String]
-    assert doc_id
+    assert doc_id.toString()
     def ann_id = outAnn[annotation_id_field as String]
-    assert ann_id
+    assert ann_id.toString()
     def doc_ann_id = "doc_id_${doc_id}-annotation_id_${ann_id}"
 
     // store annotation ID as the Flow file attriburte and store the new Flow file
