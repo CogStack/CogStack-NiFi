@@ -159,7 +159,7 @@ services:
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
     ports:
-      - "8001:8000"
+      - "8012:8000"
     depends_on:
       - medcat-trainer-ui
 
@@ -345,8 +345,8 @@ services:
       - elasticsearch-1
       - cogstack-postgres
     environment:
-      - ES_HOST=elasticsearch-1
-      - DB=cogstack-postgres
+      - ES_HOST=host.docker.internal
+      - DB=host.docker.internal
     ports:
       - 5001:5001
     network_mode: bridge

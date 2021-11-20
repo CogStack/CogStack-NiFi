@@ -72,7 +72,8 @@ class ElasticService:
             }
             
             for meta_field in meta_fields:
-                entry[meta_field] = row[meta_field].strip().replace(' ', '_')
+                print(f'loading meta_field {meta_field}')
+                entry[meta_field] = str(row[meta_field]).strip().replace(' ', '_')
 
             self.es.index(index=index_name, id=idx, body=entry, refresh=refresh)
 

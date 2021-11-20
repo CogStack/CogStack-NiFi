@@ -3,10 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+import os
 
 user = 'root'
 password = 'root'
-host = 'host.docker.internal'
+host = os.getenv("DB", "0.0.0.0")
 port = '5555'
 database = 'cogstack_db'
 db_config = f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}'
