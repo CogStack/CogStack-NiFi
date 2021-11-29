@@ -77,8 +77,8 @@ def parseJsonToAvro(inJson, avroSchema) {
     if (inJson.metadata.containsKey('X-OCR-Applied'))
         docRecord.put("metadata_x_ocr_applied", inJson.metadata['X-OCR-Applied'])
 
-    if (inJson.metadata.containsKey('X-Parsed-By'))
-        docRecord.put("metadata_x_parsed_by", new org.apache.avro.util.Utf8(String.join(";", inJson.metadata['X-Parsed-By'])))
+    if (inJson.metadata.containsKey('X-TIKA:Parsed-By'))
+        docRecord.put("metadata_x_parsed_by", new org.apache.avro.util.Utf8(String.join(";", inJson.metadata['X-TIKA:Parsed-By'])))
 
 
     // optional metadata fields
