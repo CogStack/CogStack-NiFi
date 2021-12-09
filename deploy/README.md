@@ -10,9 +10,11 @@ Apart from the above key files, the individual services configuration is provide
 
 Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
 
+## NiFi access credentials
+For the usernames & passwords used for NiFi, please see the ```nifi/README.md``` file.
+
 **Important!**
 Please note that in this example, for the ease of deployment and demonstration, SSL encryption is not used and services are used with default build-in usernames / passwords. 
-
 
 # Services
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
@@ -38,11 +40,37 @@ followed by a cleanup or dangling volumes (careful as this will remove all volum
 
 `docker volume prune -f`
 
-## Known Issues/errors
-When dealing with contaminated deplyoments ( containers using volumes from previous instances ) :
+## <strong>Known Issues/errors</strong>
+Common issues that can be encountered across services.
+<br>
+<br>
+### **NiFi**
+When dealing with contaminated deployments (containers using volumes from previous instances):
     <br />   
     - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
     <br />   
     - building the NiFi image manually on a restricted system, this is usually not necessary, but if for some reason this needs to be done then some settings such as proxy configs might need to be set up in the `nifi/Dockerfile` epecially ones related to the `grape` application and dealing with external downloads.
     <br />  
     - `keystore.jks`/`truststore.jks` related errors, remove the nifi container & related volumes then restart the nifi instance. 
+    <br />
+<br>
+###  **Elasticsearch Errors**
+It is quite a common issue for both opensearchand native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
+
+```
+ERROR: [1] bootstrap checks failed
+[1]: max virtual memory areas vm.max_map_count [65111] is too low, increase to at least [262144]
+```
+To solve this one needs to simply execute :
+    <br>
+    - on Linux : 
+    ```sysctl -w vm.max_map_count=262144``` in terminal. 
+    To make the same change systemwide plase add ```vm.max_map_count=262144``` to /etc/sysctl.conf and restart the dockerservice/machine.
+    <br>
+    - on Windows you need to enter the following commands in a powershell instance:
+    <br>
+    ```wsl -d docker-desktop```
+    <br>
+    ```sysctl -w vm.max_map_count=262144```
+
+For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html

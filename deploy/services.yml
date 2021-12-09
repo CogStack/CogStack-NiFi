@@ -60,7 +60,7 @@ services:
 #   * using example free models / resources                                 #
 #---------------------------------------------------------------------------#
   nlp-medcat-medmen:
-    image: cogstacksystems/medcat-service:latest
+    image: cogstacksystems/medcat-service:dev-latest
     container_name: cogstack-medcat-medmen
     restart: always
     # INFO: MedCAT configuration is specified via 'env' files
@@ -78,7 +78,7 @@ services:
     #expose:
     #  - 5000
     ports:
-      - "5000:5000"
+      - "5555:5000"
     networks:
       - cognet
 
@@ -183,7 +183,6 @@ services:
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   elasticsearch-1:
-
     #image: amazon/opendistro-for-elasticsearch:1.12.0
     #image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
     image: opensearchproject/opensearch:1.0.0
@@ -191,6 +190,7 @@ services:
     platform: linux
     shm_size : 1024mb
     restart: always
+    # mem_limit: 2g
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -205,8 +205,7 @@ services:
       - cluster.initial_master_nodes=es01,es02
     
       # OTHER SETTINGS
-      #- vm.max_map_count=262144
-      - bootstrap.memory_lock=true
+      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
       - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
       # INFO: set 'true' to enable SSL, DISABLE THESE IF YOU ARE USING ELASTICSEARCH NATIVE
       # - opendistro_security.disabled=false
@@ -262,7 +261,6 @@ services:
       - cognet
 
   elasticsearch-2:
-
     #image: amazon/opendistro-for-elasticsearch:1.12.0
     #image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
     image: opensearchproject/opensearch:1.0.0
@@ -270,7 +268,7 @@ services:
     platform: linux
     shm_size : 1024mb
     restart: always
-
+    # mem_limit: 2g
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -278,19 +276,19 @@ services:
       # CLUSTER CONFIGS
       - node.name=es02
       - cluster.name=docker-cluster
-      - discovery.type=zen       # INFO: enable 'zen' for multi-node cluster
-      - discovery.seed_hosts=elasticsearch-1,elasticsearch-2
+      - discovery.type=zen # INFO: enable "zen" for multi-node cluster
+      - discovery.seed_hosts=elasticsearch-1, elasticsearch-2
       - cluster.initial_master_nodes=es01,es02
 
       # OTHER SETTINGS
-      - bootstrap.memory_lock=true
+      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
       - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
-      # INFO: set 'true' to enable SSL, DISABLE THESE IF YOU ARE USING ELASTICSEARCH NATIVE
+      # INFO: set "true" to enable SSL, DISABLE THESE IF YOU ARE USING ELASTICSEARCH NATIVE
       # - opendistro_security.disabled=true
       # - opendistro_security.ssl.http.enabled=false
       # - opendistro_security.ssl.transport.enabled=false
 
-      # INFO: set 'true' to enable SSL
+      # INFO: set "true" to enable SSL
       - plugins.security.ssl.http.enabled=false
       #- plugins.security.ssl.transport.enabled=false
 
@@ -344,7 +342,6 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-
     #image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
     #image: docker.elastic.co/kibana/kibana:7.14.0
     image: opensearchproject/opensearch-dashboards:1.0.0

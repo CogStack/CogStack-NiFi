@@ -43,6 +43,36 @@ When deploying Apache NiFi, an exernal Apache Zookeper service can be used or em
 
 This custom image will use embedeed Zookeeper within NiFi service and will use the default `zookeeper.properties` file.
 
+## NIFI security setup
+Default username : 
+<br>
+```
+username: admin     
+password : admincogstacknifi
+```
+
+In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
+
+Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
+
+- the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file. 
+- in order to be able to generate new keys for production use you should DELETE the localhost folder in `security/localhost` and `nifi-cert.pem` + `nifi-key.key` files.
+
+
+```
+    nifi.security.keystorePasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
+    nifi.security.keyPasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
+    nifi.security.truststore=./conf/truststore.jks
+    nifi.security.truststoreType=jks
+    nifi.security.truststorePasswd=lzMGadNB1JXQjgQEnFStLiNkJ6Wbbgw0bFdCTICKtKo
+```
+
+- nifi USER credentials, usually for a single user login you only need to check the `nifi.sensitive.props.key` which can be set to a random string of minimum 10 characters. Once this is set do NOT modify (https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi)
+- the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
+
+URL: https://localhost:8443/nifi/login
+
+Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume rm $(docker volume list -q)`
 
 # Drivers
 The drivers are provided in [`drivers`](./drivers) directory.

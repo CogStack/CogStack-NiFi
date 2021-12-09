@@ -36,9 +36,7 @@ Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) reso
 MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SNOMED_PATH` directory.
 These paths can be defined in `.env` file in the deployment directory.
 
-
 For more information on available services resources, please see [README](../services/README.md) in `services` directory.
-
 
 
 ## Security
@@ -46,7 +44,6 @@ For more information on available services resources, please see [README](../ser
 Please note that for the demonstration purposes, the services are run with default built-in usernames / passwords.
 Moreover, SSL encryption is also disabled or not set up in the configuration files.
 For more information please see the [README](../security/README.md) in `security` directory.
-
 
 # Deployment
 The example deployment recipes are defined in `Makefile` file.
