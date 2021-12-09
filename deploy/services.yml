@@ -27,8 +27,8 @@ services:
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
       - 5554:5432
-    #expose:
-    #  - 5432
+    expose:
+      - 5432
     networks:
       - cognet
 
@@ -75,8 +75,8 @@ services:
       - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
       - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
       - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/mc_status:ro
-    #expose:
-    #  - 5000
+    expose:
+      - 5000
     ports:
       - "5555:5000"
     networks:
