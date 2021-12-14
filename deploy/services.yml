@@ -240,6 +240,8 @@ services:
     #build: ../nifi/
     container_name: cogstack-nifi
     restart: always
+    environment:
+      - "JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
