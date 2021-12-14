@@ -242,6 +242,7 @@ services:
     restart: always
     environment:
       - "JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
+      - "LOG4J_FORMAT_MSG_NO_LOOKUPS=true"
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
