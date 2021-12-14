@@ -164,7 +164,9 @@ services:
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   elasticsearch-1:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    # image: docker.elastic.co/elasticsearch/elasticsearch:7.16.1
+    # image: amazon/opendistro-for-elasticsearch:1.2.1
+    image: amazon/opendistro-for-elasticsearch:1.13.3
     container_name: cogstack-elasticsearch-1
     restart: always
     environment:
@@ -206,7 +208,9 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
+    # image: docker.elastic.co/kibana/kibana:7.16.1
+    # image: opensearchproject/opensearch-dashboards:1.2.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.13.2
     container_name: cogstack-kibana
     restart: always
     #env_file: ./security/es_kibana_user.env
