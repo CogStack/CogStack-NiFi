@@ -19,3 +19,7 @@ The project is organised in the following directories:
 For more information please refer to individual README files provided in each of these directories.
 
 As a good starting point, please see deployment [README](./deploy/README.md) for more details on running an example project deployment.
+
+# IMPORTANT NEWS AND UPDATES
+
+Please check [IMPORTANT_NEWS](./IMPORTANT_NEWS.md) for any major changes that might affect your deployment and <strong>security problems</strong> that have been discovered.
