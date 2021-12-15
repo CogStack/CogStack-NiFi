@@ -37,3 +37,4 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.8.1
 WORKDIR /opt/nifi/nifi-current/
 
 RUN export JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true"
+RUN export LOG4J_FORMAT_MSG_NO_LOOKUPS=true
