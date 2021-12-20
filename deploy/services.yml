@@ -139,6 +139,7 @@ services:
     env_file:
       - ../services/medcat-trainer/envs/env
     volumes:
+      - ../services/medcat-trainer/configs:/home/configs
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
       - medcat-api-db:/home/api/db
