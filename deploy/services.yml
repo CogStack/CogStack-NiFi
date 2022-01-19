@@ -18,8 +18,7 @@ services:
       - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
       - samples-vol:/var/lib/postgresql/data
-    ports:
-    # <host:container> expose the postgres DB to host for debugging purposes
+    ports:  
       - 5555:5432
     #expose:
     #  - 5432
@@ -27,8 +26,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: cogstack_db
-    networks:
-      - cognet
+    network_mode: bridge
 
 
 #---------------------------------------------------------------------------#
@@ -322,23 +320,20 @@ services:
 # Cogstackhub Client                                                        #
 #---------------------------------------------------------------------------#
   cogstackhub-client:
-    build:
-      context: ../services/cogstackhub/client
+    image: cogstack2/cogstackhub_cogstackhub-client:latest
     container_name: cogstackhub-client
     restart: always
     depends_on:
       - cogstackhub-api
     ports:
       - 8080:8080
-    networks:
-      - cognet
+    network_mode: bridge
 
 #---------------------------------------------------------------------------#
 # Cogstackhub API                                                           #
 #---------------------------------------------------------------------------#
   cogstackhub-api:
-    build:
-      context: ../services/cogstackhub/api
+    image: cogstack2/cogstackhub_cogstackhub-api:latest
     container_name: cogstackhub-api
     restart: always
     depends_on:
