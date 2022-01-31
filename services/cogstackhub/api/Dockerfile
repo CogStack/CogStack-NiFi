@@ -15,4 +15,4 @@ RUN apt-get update && \
     apt-get install -qy curl && \
     curl -sSL https://get.docker.com/ | sh
 
-CMD python -u run.py
+CMD python initialiasedbscript.py ;python -u run.py
