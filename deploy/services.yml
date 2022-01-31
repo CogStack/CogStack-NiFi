@@ -6,7 +6,7 @@ version: '3.5'
 services:
 
 #---------------------------------------------------------------------------#
-# Postgres container with sample data                                       #
+# cogstack postgres db                                                      #
 #---------------------------------------------------------------------------#
   cogstack-postgres:
     image: postgres:11.4-alpine
@@ -20,12 +20,15 @@ services:
       - samples-vol:/var/lib/postgresql/data
     ports:  
       - 5555:5432
-    #expose:
-    #  - 5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: cogstack_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d cogstack_db -U root -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     network_mode: bridge
 
 
@@ -325,9 +328,14 @@ services:
     restart: always
     depends_on:
       - cogstackhub-api
+    environment:
+      - VUE_APP_URL=127.0.0.1
     ports:
       - 8080:8080
+    volumes:
+      - ../services/cogstackhub/client/Dockerfile:/cogstackhub/client/Dockerfile
     network_mode: bridge
+
 
 #---------------------------------------------------------------------------#
 # Cogstackhub API                                                           #
@@ -337,19 +345,20 @@ services:
     container_name: cogstackhub-api
     restart: always
     depends_on:
-      - elasticsearch-1
-      - cogstack-postgres
+      elasticsearch-1:
+        condition: service_started
+      cogstackhub-postgres:
+        condition: service_healthy
     environment:
       - ES_HOST=host.docker.internal
       - DB=host.docker.internal
     ports:
       - 5001:5001
+    volumes:
+      - ../services/cogstackhub/api/Dockerfile:/cogstackhub/api/Dockerfile
     network_mode: bridge
-    # links:
-    #   - "elasticsearch:elasticsearch"
 
   
-
 #---------------------------------------------------------------------------#
 # Docker named volumes                                                      #
 #---------------------------------------------------------------------------#
