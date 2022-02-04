@@ -25,8 +25,26 @@ Apache NiFi provides users the ability to build very large and complex data flow
 These data flows can be later saved as workflow *templates*, exported into XML format and shared with other users.
 We provide few example templates for ingesting the records from database into Elasticsearch and to perform extraction of NLP annotations from documents.
 
-Please see [example workflows](./WORKFLOWS.md) for more details.
+## Deployment using Makefile
+For deployments based on the example workflows, please see [example workflows](./WORKFLOWS.md) for more details.
 
+## Deployment using a custom Docker-compose
+When using a fork of this repository for a customized deployments, it can be useful to copy `services.yml` to a deployment-specific `docker-compose.yml`. In this Compose file you can specify the services you need for your instance and configure all parameters per service, as well as track this file in a branch in your own fork. This way you can use your own version control and rebase on `CogStack/CogStack-NiFi` master without running into merge conflicts.
+
+# Customization
+For custom deployments, copy `.env-examples` files to `.env` (which are not tracked by Git) and add deployment specific configurations to these files. For example:
+
+```bash
+cp deploy/.env-example deploy/.env
+cp security/nifi.env-example security/nifi.env
+cp security/elasticsearch.env-example security/elasticsearch.env
+```
+
+## Multiple deployments on the same machine
+When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all container, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `-1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
+```yml
+ELASTICSEARCH_URL: http://${COMPOSE_PROJECT_NAME}_elasticsearch-1-1:9200
+```
 
 # Troubleshooting
 
@@ -50,7 +68,3 @@ When dealing with contaminated deployments ( containers using volumes from previ
     - `System Error: Invalid host header : this occurs when nifi host has not been properly configured`, please check the `/nifi/conf/nifi.properties` file and set the `nifi.web.proxy.host` property to the IP address of the server along with the port `<host>:<port>`, if this does not work then it is usually a proxy/network configuration problem (also check firewalls), another workaround would be to comment out the following subsections of the `nifi` service in the `services.yml` file : `ports:` and `networks` with all their child settings. After this is done the following property should be added `network_mode: host`, restart the instance using the `docker-compoes -f services.yml up -d nifi` command afterwards. 
     <br />
     -  Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if older DB system is used)
-
-    
-
-   
