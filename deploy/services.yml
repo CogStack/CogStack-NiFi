@@ -347,7 +347,7 @@ services:
     depends_on:
       elasticsearch-1:
         condition: service_started
-      cogstackhub-postgres:
+      cogstack-postgres:
         condition: service_healthy
     environment:
       - ES_HOST=host.docker.internal
