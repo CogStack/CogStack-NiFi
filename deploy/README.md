@@ -41,9 +41,9 @@ cp security/elasticsearch.env-example security/elasticsearch.env
 ```
 
 ## Multiple deployments on the same machine
-When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all container, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `-1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
+When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all container, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `_1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
 ```yml
-ELASTICSEARCH_URL: http://${COMPOSE_PROJECT_NAME}_elasticsearch-1-1:9200
+ELASTICSEARCH_URL: http://${COMPOSE_PROJECT_NAME}_elasticsearch-1_1:9200
 ```
 
 # Troubleshooting
