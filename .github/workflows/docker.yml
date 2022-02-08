@@ -57,6 +57,7 @@ jobs:
           push: true
 
       - name: Build and push Docker Jupyter image
+        uses: docker/build-push-action@v2
         with:
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile"
