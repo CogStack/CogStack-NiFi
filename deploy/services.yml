@@ -181,13 +181,15 @@ services:
       # INFO: set 'true' to enable SSL
       - opendistro_security.ssl.http.enabled=false
       #- opendistro_security.ssl.transport.enabled=false
+    env_file:
+      - ${ELASTICSEARCH_ENV_FILE}
     volumes:
       # mapping security config
       # INFO: uncomment below to add SSL keys
-      #- ../security/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
-      #- ../security/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
-      #- ../security/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
-      #- ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
+      #- ${ELASTICSEARCH_SECURITY_DIR}/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
+      #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
+      #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
+      #- ${ELASTICSEARCH_SECURITY_DIR}/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
       #
       # INFO: ES configuration mapped via volume
       #- ../services/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
@@ -248,6 +250,8 @@ services:
     environment:
       - "JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
       - "LOG4J_FORMAT_MSG_NO_LOOKUPS=true"
+    env_file:
+      - ${NIFI_ENV_FILE}
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -258,8 +262,8 @@ services:
       - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
       - ../nifi/user-schemas:/opt/nifi/user-schemas:ro
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      # - ../security:/opt/nifi/security:ro
-      #
+      # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
+
       # rest of volumes to persist the state
       - nifi-vol-conf:/opt/nifi/nifi-current/conf
       - nifi-vol-logs:/opt/nifi/nifi-current/logs

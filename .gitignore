@@ -1,17 +1,17 @@
-.DS_Store
 # keys and certificates
 *.pem
 *.key
 *.jks
 *.csr
 *.srl
-#  env files with passwords or local paths
-security/*.env
-security/internal_users.yml
-.env
 
+# env files with passwords or local paths
+*.env
+security/internal_users.yml
 security/nifi_toolkit
 
+# other
 nifi/nifi-app.log
-
- scripts/data_processing/anonymistion_hw_clean/anonymised
+scripts/data_processing/anonymistion_hw_clean/anonymised
+.DS_Store
+.idea
