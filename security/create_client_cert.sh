@@ -8,6 +8,10 @@
 
 set -e
 
+ES_CERTIFICATES_FOLDER="./es_certificates/"
+
+CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+
 if [ -z "$1" ]; then
 	echo "Usage: $0 <cert_name>"
 	exit 1
@@ -21,18 +25,21 @@ if [ ! -e $CA_ROOT_CERT ]; then
 	exit 1
 fi
 
-echo "Generating a key for: $1"
-openssl genrsa -out "$1-pkcs12.key" 2048 
+SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1/emailAddress=admin@cogstack.net"
 
-echo "Converting the key ..."
+echo "Generating a key for: $1"
+openssl genrsa -out "$1-pkcs12.key" 4096
+
+echo "Converting the key to PKCS 12"
 openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$1-pkcs12.key" -topk8 -out "$1.key" -nocrypt
 
 echo "Generating the certificate ..."
-openssl req -new -key "$1.key" -out "$1.csr"
-# ** replace above line if need to use Subject Alternative Names and with 365 days of validity
-#openssl req -new -days 365 -key "$1.key" -out "$1.csr" -reqexts SAN -extensions SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:elasticsearch-1,DNS:cogstack-elasticsearch-1,DNS:localhost"))
+openssl req -new -key "$1.key" -out "$1.csr" -subj $SUBJ_LINE -config <(cat /etc/ssl/openssl.cnf <(printf "\nsubjectAltName=DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost"))
 
 echo "Signing the certificate ..."
-openssl x509 -req -in "$1.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$1.pem" -sha256
-# ** replace above line if need to use Subject Alternative Names and with 365 days of validity
-#openssl x509 -req -extfile <(printf "subjectAltName=DNS:elasticsearch-1,DNS:cogstack-elasticsearch-1,DNS:localhost") -days 365 -in "$1.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$1.pem"
+openssl x509 -req -extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$1.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$1.pem"
+
+mv "$1-pkcs12.key" $ES_CERTIFICATES_FOLDER
+mv "$1.key" $ES_CERTIFICATES_FOLDER
+mv "$1.csr" $ES_CERTIFICATES_FOLDER
+mv "$1.pem" $ES_CERTIFICATES_FOLDER
