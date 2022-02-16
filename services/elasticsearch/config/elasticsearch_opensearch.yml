@@ -23,9 +23,12 @@ plugins.security.allow_unsafe_democertificates: false
 plugins.security.allow_default_init_securityindex: true
 plugins.security.authcz.admin_dn:
   - CN=ADMIN,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK
+
+# IMPORTANT: Make sure you define the CN (Company Name) settings correctly, below you can see they match the server addresses of the containers i.e: elasticsearch-1, elasticsearch-2,
+# and also extra patterns defined, these could also be domain names etc.
 plugins.security.nodes_dn:
-  - "CN=esnode-1,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
-  - "CN=esnode-2,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-1,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-2,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
   - "CN=esnode*"
   - "CN=cogstack*"
   - "CN=elasticsearch*"

@@ -71,7 +71,7 @@ opensearch.ssl.key: "/usr/share/opensearch-dashboards/config/kibana.key"
 
 # Optional setting that enables you to specify a path to the PEM file for the certificate
 # authority for your OpenSearch instance.
-opensearch.ssl.certificateAuthorities: [ "/usr/share/opensearch-dashboards/config/root-ca.pem", "/usr/share/opensearch-dashboards/config/elasticsearch-1.pem", "/usr/share/opensearch-dashboards/config/elasticsearch-2.pem" ]
+opensearch.ssl.certificateAuthorities: [ "/usr/share/opensearch-dashboards/config/root-ca.pem", "/usr/share/opensearch-dashboards/config/admin.pem", "/usr/share/opensearch-dashboards/config/elasticsearch-1.pem", "/usr/share/opensearch-dashboards/config/elasticsearch-2.pem" ]
 
 # To disregard the validity of SSL certificates, change this setting's value to 'none'.
 opensearch.ssl.verificationMode: full
