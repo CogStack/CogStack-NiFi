@@ -75,3 +75,5 @@ To solve this one needs to simply execute :
     ```sysctl -w vm.max_map_count=262144```
 
 For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+
+
