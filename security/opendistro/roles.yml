@@ -1,3 +1,7 @@
+_meta:
+  type: "roles"
+  config_version: 2
+  
 complex-role:
   reserved: false
   hidden: false
@@ -21,6 +25,3 @@ complex-role:
     allowed_actions:
     - "kibana_all_write"
   static: false
-_meta:
-  type: "roles"
-  config_version: 2

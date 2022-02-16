@@ -1,3 +1,7 @@
+_meta:
+  type: "rolesmapping"
+  config_version: 2
+  
 manage_snapshots:
   reserved: true
   hidden: false
@@ -6,6 +10,7 @@ manage_snapshots:
   hosts: []
   users: []
   and_backend_roles: []
+
 logstash:
   reserved: false
   hidden: false
@@ -14,6 +19,7 @@ logstash:
   hosts: []
   users: []
   and_backend_roles: []
+  
 own_index:
   reserved: false
   hidden: false
@@ -23,6 +29,7 @@ own_index:
   - "*"
   and_backend_roles: []
   description: "Allow full access to an index named like the username"
+
 kibana_user:
   reserved: false
   hidden: false
@@ -32,18 +39,7 @@ kibana_user:
   users: []
   and_backend_roles: []
   description: "Maps kibanauser to kibana_user"
-complex-role:
-  reserved: false
-  hidden: false
-  backend_roles:
-  - "ldap-analyst"
-  hosts: []
-  users:
-  - "new-user"
-  and_backend_roles: []
-_meta:
-  type: "rolesmapping"
-  config_version: 2
+
 all_access:
   reserved: true
   hidden: false
@@ -53,6 +49,7 @@ all_access:
   users: []
   and_backend_roles: []
   description: "Maps admin to all_access"
+
 readall:
   reserved: true
   hidden: false
@@ -61,6 +58,7 @@ readall:
   hosts: []
   users: []
   and_backend_roles: []
+
 kibana_server:
   reserved: true
   hidden: false
@@ -68,4 +66,14 @@ kibana_server:
   hosts: []
   users:
   - "kibanaserver"
+  and_backend_roles: []
+
+complex-role:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "ldap-analyst"
+  hosts: []
+  users:
+  - "new-user"
   and_backend_roles: []
