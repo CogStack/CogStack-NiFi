@@ -1,9 +1,9 @@
 # Available Services
-This doc covers the available services in the example deployment.
+This file covers the available services in the example deployment.
 
-Apache NiFi-related files are provided in [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi) directory.
-
-Please note that all the services are deployed using [Docker](https://docker.io) engine and requires docker deamon to be running / functioning. 
+Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
+ 
+Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
 
 ## Primary services
 All the services are defined in `services.yml` file and these are:
@@ -19,12 +19,13 @@ All the services are defined in `services.yml` file and these are:
 - `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data.
 
 ## Optional NLP services
-In addition, NLP services are:
+In addition, there are defined such NLP services:
 - `nlp-medcat-snomed` - same as `nlp-medcat-medmen` but serving a SNOMED CT model,
 - `nlp-gate-bioyodie` - same as `nlp-gate-drugapp` but serving [Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) NLP application.
 
 These services are optional and won't be started by default.
 They were left in the `services.yml` file for informative purposes if one would be interested in deploying these having access to necessary resources.
+
 
 **Important**
 Please note that `nlp-medcat-snomed` and `nlp-gate-bioyodie` NLP services use license-restricted resources and these need to be provided by the user prior running these services.
@@ -32,13 +33,16 @@ Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) reso
 MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SNOMED_PATH` directory.
 These paths can be defined in `.env` file in the deployment directory.
 
-For more information on available services resources, please see [README](../services/README.md) in `services` directory.
 
-## Security
+For more information on available services resources, please see [service resources](../services.md).
+
+
+
+### Security
 **Important**
 Please note that for the demonstration purposes, the services are run with default built-in usernames / passwords.
 Moreover, SSL encryption is also disabled or not set up in the configuration files.
-For more information please see the [README](../security/README.md) in `security` directory.
+For more information please see the [security](../security.md)
 
 
 ## Deployment
@@ -58,9 +62,9 @@ To stop the services, type:
 make stop-data-infra
 ```
 
-## NLP services
+### NLP services
 
-### GATE
+#### GATE
 To deploy an example GATE NLP Drug names extraction application as a service, type:
 ```
 make start-nlp-gate
@@ -73,7 +77,7 @@ To stop the service, type:
 make stop-nlp-gate
 ```
 
-### MedCAT
+#### MedCAT
 To deploy MedCAT application stack, type:
 ```
 make start-nlp-medcat
@@ -86,7 +90,7 @@ To stop the services, type:
 make stop-nlp-medcat
 ```
 
-## Jupyter Hub
+### Jupyter Hub
 To deploy Jupyter Hub, type:
 ```
 make start-jupyter
@@ -98,14 +102,15 @@ To stop the services, type:
 make stop-jupyter
 ```
 
-## Cleanup
+### Cleanup
 To tear down all the containers and the data persisted in mounted volumes, type:
 ```
 make cleanup
 ```
 
-## Individual Service description
-Service configurations are completely defined in the `services.yml` file.
+
+## Services description
+All the essential details on the services configuration are defined in `services.yml` file.
 
 Please note that all the services are running within a private `cognet` Docker network hence the endpoints are all accessible within the deployed services.
 However, for the ease of use, some of the services have their ports bound from container to the host machine.
@@ -141,8 +146,8 @@ Since this is a single-node NiFi instance, it also contains the default, embedde
 The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8080`.
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
-For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [README](../nifi/README.md) in `nifi` directory.
-The available example workflows are covered in [WORKFLOWS](./WORKFLOWS.md) file.
+For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [nifi](../nifi.md).
+The available example workflows are covered in [workflows](./workflows.md)
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
 
@@ -159,7 +164,7 @@ For more details on configuration, API definition and example use of Tika Servic
 ### NLP Services
 
 #### NLP API
-All the NLP services implement a RESTful API that is defined in [OpenAPI specification](../services/nlp-services/api-specs/openapi.yaml).
+All the NLP services implement a RESTful API that is defined in [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml).
 
 The available endpoints are:
 - **GET** `/api/info` - for displaying general information about the used NLP application,
@@ -167,15 +172,15 @@ The available endpoints are:
 - **POST**  `/api/process_bulk` - for processing multiple text documents (bulk mode).
 
 When plugging-in the NLP services into Apache NiFi workflows, the endpoint for processing single or multiple documents will be used to extract the annotations from documents.
-Please see example Apache NiFi [WORKFLOWS](./WORKFLOWS.md) and [user scripts](../nifi/user-scripts) in `nifi` sub-directory on using and parsing the payloads with NiFi.
+Please see example Apache NiFi [workflows](./workflows.md) and [user scripts](https://github.com/CogStack/Cogstack-Nifi/nifi/user-scripts) on using and parsing the payloads with NiFi.
 
-For further details on the used API please refer to the [OpenAPI specification](../services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
+For further details on the used API please refer to the [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
 
 #### GATE NLP
 `nlp-gate-drugapp` serves a simple drug names extraction NLP application using [GATE NLP Service](https://github.com/CogStack/gate-nlp-service).
 This simple application implements annotation of common drugs and medications. 
 It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. 
-The GATE application definition and resources are available in directory [`../services/nlp-services/applications/drug-app`](../services/nlp-services/applications/drug-app/).
+The GATE application definition and resources are available in directory [`./services/nlp-services/applications/drug-app`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/drug-app/).
 
 When deployed `nlp-gate-drugapp` exposes port `8095` on the container.
 The port is also bound from container to the host machine `8095` port.
@@ -194,7 +199,7 @@ MedCAT deployment consists of [MedCAT NLP Service](https://github.com/CogStack/M
 
 #### MedCAT Service
 `nlp-medcat-medmen` serves a basic UMLS model trained on MedMentions dataset via RESTful API.
-The served model data is available in [`../services/nlp-services/applications/medcat/models/medmen/`](../services/nlp-services/applications/medcat/models/medmen`) directory.
+The served model data is available in [`./services/nlp-services/applications/medcat/models/medmen/`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/medcat/models/medmen`) directory.
 
 When deployed `nlp-medcat-medmen` exposes port `5000` on the container and binds it to port `5000` on the host machine.
 For example, to access the API endpoint to process a document by a service from `cognet` Docker network, the endpoint address would be `http://nlp-medcat-medmen:5000/api/process`.
@@ -232,8 +237,8 @@ In the example deployment, the default built-in user credentials are used, such 
 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
-For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security/README.md) in `security` directory.
-The security aspects are covered expensively in [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security.md).
+The security aspects are covered extensively in [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
 
 
 #### Elasticsearch
@@ -242,7 +247,7 @@ It exposes port `9200` on the container and binds it to the same port on the hos
 The service endpoint should be available to all the services running inside the `cognet` Docker network under address `http://elasticsearch-1:9200`.
 
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
-However, for manual tailoring the available configuration parameters are available in `elasticsearch.yml` [configuration file](../services/elasticsearch/config/elasticsearch.yml).
+However, for manual tailoring the available configuration parameters are available in the `elasticsearch.yml` [configuration file](https://github.com/CogStack/CogStack-Nifi/services/elasticsearch/config/elasticsearch.yml).
 
 For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
 
@@ -253,7 +258,7 @@ It exposes port `5601` on the container and binds it to the same port on the hos
 To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `http://localhost:5601`.
 
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
-However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](../services/kibana/config/kibana.yml).
+However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](https://github.com/CogStack/CogStack-Nifi/services/kibana/config/kibana.yml).
 
 For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
 
