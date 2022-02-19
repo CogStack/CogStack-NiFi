@@ -205,8 +205,8 @@ services:
     
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=75.00 -XX:MinRAMPercentage=20.00"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=75.00 -XX:MinRAMPercentage=20.00"
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
 
       # INFO: set 'true' to enable SSL
       # - plugins.security.disabled=false
@@ -281,8 +281,8 @@ services:
 
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=75.00 -XX:MinRAMPercentage=20.00"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=75.00 -XX:MinRAMPercentage=20.00"
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
       
       # INFO: set 'true' to enable SSL
       #- plugins.security.disabled=false
@@ -373,10 +373,8 @@ services:
       # INFO: uncomment below to add SSL keys
       - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
       - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch-dashboards/config/elasticsearch-1.pem:ro
-      - ../security/es_certificates/elasticsearch-1.key:/usr/share/opensearch-dashboards/config/elasticsearch-1.key:ro
       - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch-dashboards/config/elasticsearch-2.pem:ro
-      - ../security/es_certificates/elasticsearch-2.key:/usr/share/opensearch-dashboards/config/elasticsearch-2.key:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config//admin.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
       - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
       - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
     ports:
@@ -398,7 +396,15 @@ services:
           no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
-    shm_size: 256mb
+    shm_size: 1024mb
+    environment:
+     - http_proxy=$HTTP_PROXY
+     - https_proxy=$HTTPS_PROXY
+     - no_proxy=$no_proxy
+     - USER_ID=1000
+     - GROUP_ID=1000
+     #- NIFI_WEB_PROXY_HOST="0.0.0.0:8443"
+
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -409,15 +415,20 @@ services:
       #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
       #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
 
+
+      
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ../security/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
-      - ../security/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+      - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
+      - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
 
-      - ../security/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks:ro
-      - ../security/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks:ro
-
+      # # Nifi properties file:
+      #- ../security/nifi_certificates/localhost/nifi.properties:/opt/nifi/nifi-current/conf/nifi.properties
+      - ../nifi/conf/:/opt/nifi/nifi-current/conf/
+      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+         
       # rest of volumes to persist the state
-      - nifi-vol-conf:/opt/nifi/nifi-current/conf
+      #- nifi-vol-conf:/opt/nifi/nifi-current/conf
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
@@ -427,10 +438,14 @@ services:
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-    environment:
-     - http_proxy=$HTTP_PROXY
-     - https_proxy=$HTTPS_PROXY
-     - no_proxy=$no_proxy
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
@@ -438,7 +453,8 @@ services:
 
     #entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
 
-    privileged: true
+    #command: ["sh", "-c", "chown -R 1000:1000 /opt/nifi/nifi-current/conf/nifi.properties", "&&", "chmod -R 777  /opt/nifi/nifi-current/conf/"] 
+    entrypoint : "../scripts/start.sh"
     tty: true
     ports:
       - "8080:8080"

@@ -1,4 +1,4 @@
-FROM apache/nifi:1.15.0
+FROM apache/nifi:1.15.3
 ARG UID=1000
 ARG GID=1000
 
@@ -18,7 +18,7 @@ RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROX
 # copy drivers
 WORKDIR /opt/nifi/
 COPY ./drivers ./drivers
-#COPY ./security ./security
+#COPY ../security ./security
 
 # copy user scripts, schemas and templates
 COPY ./user-scripts ./user-scripts
@@ -31,13 +31,13 @@ COPY ./user-templates ./
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
 
-RUN curl https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-3.0.9.zip --output apache-groovy-binary-3.0.9.zip --max-time 3600 && \
-    unzip apache-groovy-binary-3.0.9.zip && \
-    rm apache-groovy-binary-3.0.9.zip
+RUN curl https://archive.apache.org/dist/groovy/4.0.0/distribution/apache-groovy-binary-4.0.0.zip --output apache-groovy-binary-4.0.0.zip --max-time 3600 && \
+    unzip apache-groovy-binary-4.0.0.zip && \
+    rm apache-groovy-binary-4.0.0.zip
 
-ENV GROOVY_BIN=/opt/nifi/groovy/groovy-3.0.9/bin
+ENV GROOVY_BIN=/opt/nifi/groovy/groovy-4.0.0/bin
 
-RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.10.2
+RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.11.0
 
 WORKDIR  /opt/nifi/nifi-toolkit-current/
 
@@ -50,5 +50,13 @@ COPY ./conf/zookeeper.properties ./
 
 COPY ./conf/login-identity-providers.xml ./
 
+
 # finalize
 WORKDIR /opt/nifi/nifi-current/
+
+USER root
+
+RUN chown -R nifi:nifi ./conf
+RUN chmod -R 777 ./conf
+
+USER nifi
