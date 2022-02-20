@@ -403,8 +403,8 @@ services:
      - no_proxy=$no_proxy
      - USER_ID=1000
      - GROUP_ID=1000
-     #- NIFI_WEB_PROXY_HOST="0.0.0.0:8443"
-
+     - NIFI_WEB_PROXY_HOST="0.0.0.0:8443,cogstack:8443,nifi:8443"
+     - NIFI_WEB_PROXY_CONTEXT_PATH="/,/nifi,/nifi-api,/nifi-api/,/nifi/"
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -414,8 +414,6 @@ services:
       #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
       #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
       #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
-
-
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
@@ -457,10 +455,31 @@ services:
     entrypoint : "../scripts/start.sh"
     tty: true
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "8082:8443"
     expose:
       - "10443"
+      - "8443"
+    networks:
+      - cognet
+
+  nifi-nginx:
+    build: ../services/nginx/
+    container_name: cogstack-nifi-nginx
+    restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+    volumes:
+      - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ../security/root-ca.pem:/etc/nginx/root-ca.pem:ro
+      - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
+      - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
+      - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
+    ports:
+      - "8080:8080"
+      - "8443:8443"
     networks:
       - cognet
 
@@ -468,7 +487,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: lrog/cogstack-jupyter-hub:latest
+    #image: lrog/cogstack-jupyter-hub:latest
     build: ../services/jupyter-hub/
     container_name: cogstack-jupyter-hub
     restart: always

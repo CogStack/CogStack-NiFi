@@ -29,7 +29,7 @@ HOSTNAME_1="localhost"
 OUTPUT_DIRECTORY="./nifi_certificates"
 
 # -C,--clientCertDn <arg> Generate client certificate suitable for use in browser with specified DN (Can be specified multiple times)
-# this should respect whatever is used to generate the other certificate with regards CN=cogstack
+# this should respect whatever is used to generate the other certificate with regards CN=nifi, this needs to match the HOSTNAME of the nifi container(s)
 SUBJ_LINE_CERTIFICATE_CN="C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
 
 # Overwite existing files use the "-O" flag.
