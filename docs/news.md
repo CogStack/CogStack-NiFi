@@ -1,3 +1,4 @@
+# News
 <strong>This document covers important news with regards to the components of CogStack as a whole, any major security issues or major changes that might break existing deployments are covered here along with how to handle them.</strong>
 </br>
 </br>

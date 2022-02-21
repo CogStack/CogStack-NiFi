@@ -3,9 +3,6 @@ This repository proposes a possible next step for the free-text data processing 
 CogStack-NiFi contains example recipes using [Apache NiFi](https://nifi.apache.org/) as the key data workflow engine with a set of services for documents processing with NLP. 
 Each component implementing key functionality, such as Text Extraction or Natural Language Processing, runs as a service where the data routing between the components and data source/sink is handled by Apache NiFi.
 Moreover, NLP services are expected to implement an uniform RESTful API to enable easy plugging-in into existing document processing pipelines, making it possible to use any NLP application in the stack.
- 
-**Important!**
-Please note that the project it is still under development and is not production-ready.
 
 
 # Project organisation
@@ -16,10 +13,10 @@ The project is organised in the following directories:
 - [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
 - [`scripts`](./scripts) - helper scripts such as the one ingesting samples into Elasticsearch.
 
-For more information please refer to individual README files provided in each of these directories.
+As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/) walks through an example deployment workflow examples.
 
-As a good starting point, please see deployment [README](./deploy/README.md) for more details on running an example project deployment.
+Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/) 
 
 # IMPORTANT NEWS AND UPDATES
 
-Please check [IMPORTANT_NEWS](./IMPORTANT_NEWS.md) for any major changes that might affect your deployment and <strong>security problems</strong> that have been discovered.
+Please check [IMPORTANT_NEWS](./news.md) for any major changes that might affect your deployment and <strong>security problems</strong> that have been discovered.

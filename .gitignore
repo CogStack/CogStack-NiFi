@@ -15,3 +15,6 @@ nifi/nifi-app.log
 scripts/data_processing/anonymistion_hw_clean/anonymised
 .DS_Store
 .idea
+
+# docs
+docs/build/*
