@@ -38,13 +38,25 @@ services:
 #---------------------------------------------------------------------------#
   tika-service:
     image: cogstacksystems/tika-service:latest
-    container_name: cogstack-tika
-    shm_size: 256mb
+    container_name: cogstack-tika-service
+    shm_size: 1024mb
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
+      
+      # limit the number of processing threads used by tesseract OCR,
+      # this should be used with care as processing for smaller documents (i.e < 10mb) is faster when limiting threads as
+      # the thread IPC and management does not interfere when using a single thread
+      # leave it to 1 if documents are small ( < 10mb) otherwise leave it as it is, changing to 0 will invalidate the variable
+      - OMP_THREAD_LIMIT=64
+      - OMP_NUM_THREADS=2
+      - OMP_DYNAMIC=TRUE
+      - OMP_NESTED=TRUE
+
+      # This option might be necessary on some systems if there's a java related error thrown
+      - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
     volumes:
       - ../services/tika-service/config:/app/config:ro
     ports:
@@ -60,7 +72,7 @@ services:
 #   * using example free models / resources                                 #
 #---------------------------------------------------------------------------#
   nlp-medcat-medmen:
-    image: cogstacksystems/medcat-service:dev-latest
+    image: cogstacksystems/medcat-service:latest
     container_name: cogstack-medcat-medmen
     restart: always
     # INFO: MedCAT configuration is specified via 'env' files
@@ -411,9 +423,9 @@ services:
       
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
-      #- ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
-      #- ../nifi/user-scripts:/opt/nifi/user-scripts:ro
-      #- ../nifi/user-schemas:/opt/nifi/user-schemas:ro
+      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
+      - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
+      - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
@@ -448,11 +460,9 @@ services:
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
     #        to the "login-identity-providers.xml" section.
-
-    #entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
-
-    #command: ["sh", "-c", "chown -R 1000:1000 /opt/nifi/nifi-current/conf/nifi.properties", "&&", "chmod -R 777  /opt/nifi/nifi-current/conf/"] 
-    entrypoint : "../scripts/start.sh"
+    # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
+    # command: ["sh", "-c", "chown -R 1000:1000 /opt/nifi/nifi-current/conf/nifi.properties", "&&", "chmod -R 777  /opt/nifi/nifi-current/conf/"] 
+  
     tty: true
     ports:
       - "8082:8443"
@@ -487,7 +497,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    #image: lrog/cogstack-jupyter-hub:latest
+    image: cogstacksystems/cogstack-jupyter-hub:latest
     build: ../services/jupyter-hub/
     container_name: cogstack-jupyter-hub
     restart: always
