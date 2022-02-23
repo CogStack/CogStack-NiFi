@@ -10,11 +10,19 @@ Apart from the above key files, the individual services configuration is provide
 
 Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
 
-## NiFi access credentials
-For the usernames & passwords used for NiFi, please see the ```nifi/README.md``` file.
+
+# IMPORTANT SECURITY PREREQUISITES TO Elasticsearch and Nifi
+As of the upgrade NiFi 1.15, we have put in place a series of new configurations that allow users to secure their deployment more easily.
+For both ES and Nifi please see the ```security/README.md``` file .
+
+## Nifi
+Please take note of the certificates required for Nifi (more on that available in ```nifi/README.md```)
+For the usernames & passwords used for NiFi, please see the ```nifi/README.md``` file (this is optional and not required).
+
 
 **Important!**
 Please note that in this example, for the ease of deployment and demonstration, SSL encryption is not used and services are used with default build-in usernames / passwords. 
+
 
 # Services
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.

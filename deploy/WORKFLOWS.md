@@ -7,6 +7,9 @@ These are:
 3. `MedCAT annotate from DB to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
 4. `MedCAT annotate from DB to ES` - the same as (3) but reading notes from Elasticsearch.
 
+If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), then you would need to use the equivalent templates:
+1. `INGEST_RAW_FROM_DB_TO_ES_SSL` - same as 1. from above but with SSL configurations
+
 
 # Used services
 In the workflow examples, the following services are used:
@@ -25,7 +28,6 @@ make start-nlp-medcat
 Please note that all the above services will be accessible by services within internal `cognet` Docker network while only some of them will be accessible from host machine.
 Please refer to [SERVICES](./SERVICES.md) for a more detailed description of the available services and their deployment.
 
-
 # Apache NiFi web user interface
 Before start, please see [the official Apache NiFi guide on using the web user interface](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#User_Interface) that covers extensively the available functionality.
 
@@ -40,7 +42,6 @@ Following, to select an example workflow template to run, drag and drop the **te
 Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user-templates`](../nifi/user-templates) directory.
 During normal work, the user has possibility to create and store own template workflows.
 These workflows are represented as XML files and so can be easily further shared or modified.
-
 
 # Ingesting free-text documents (DB → ES)
 This workflow implements a common data ingestion pipeline: reading from a database and storing the free-text data alongside selected structured fields into Elasticsearch.
@@ -128,7 +129,6 @@ with the expected response:
   }
 }
 ```
-
 
 # Ingesting text from PDF documents (DB → ES)
 This workflow implements an extended version of the initial data ingestion pipeline.

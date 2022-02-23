@@ -3,7 +3,7 @@ This directory contains files related with our custom Apache NiFi image and exam
 Apache NiFi is used as a customizable data pipeline engine for controlling and executing data flow between used services. 
 There are multiple workflow templates provided with custom user scripts to work with NiFi.
 
-For more information about Apache NiFi please refer to [the official website](https://nifi.apache.org/).
+For more information about Apache NiFi please refer to [the official website](https://nifi.apache.org/) and the [guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi).
 
 
 # Custom Docker image
@@ -44,11 +44,14 @@ When deploying Apache NiFi, an exernal Apache Zookeper service can be used or em
 This custom image will use embedeed Zookeeper within NiFi service and will use the default `zookeeper.properties` file.
 
 ## NIFI security setup
+
+This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go, just  
+<br>
 Default username : 
 <br>
 ```
 username: admin     
-password : admincogstacknifi
+password:admincogstacknifi
 ```
 
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
@@ -56,9 +59,11 @@ In previous nifi versions by default there was no user assigned and authenticati
 Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
 
 - the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file. 
-- in order to be able to generate new keys for production use you should DELETE the localhost folder in `security/localhost` and `nifi-cert.pem` + `nifi-key.key` files.
+- the trust/store keys generated for production will be in the `nifi_certificates/localhost` folder and  the `nifi-cert.pem` + `nifi-key.key` files. in the baes `nifi_certificates` folder.
 
+- as port of the security process the `nifi.sensitive.props.key` should be set to a random string or a password of minimum 12 characters. Once this is set do NOT modify it as all the other sensitive passwords will be hashed with this string. By default this is set to <strong>```cogstackNiFipass```</strong>
 
+Example:
 ```
     nifi.security.keystorePasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
     nifi.security.keyPasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
@@ -67,7 +72,6 @@ Before starting the NIFI container it's important to take note of the following 
     nifi.security.truststorePasswd=lzMGadNB1JXQjgQEnFStLiNkJ6Wbbgw0bFdCTICKtKo
 ```
 
-- nifi USER credentials, usually for a single user login you only need to check the `nifi.sensitive.props.key` which can be set to a random string of minimum 10 characters. Once this is set do NOT modify (https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi)
 - the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
 
 URL: https://localhost:8443/nifi/login
