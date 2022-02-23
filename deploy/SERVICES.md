@@ -12,6 +12,7 @@ Please note that all the services are deployed using [Docker](https://docker.io)
 All the services are defined in `services.yml` file and these are:
 - `samples-db` - a PostgreSQL database with sample data to play with,
 - `nifi` - a single instance of Apache NiFi processor (with Zookeper embedded) with exposing a web user interface,
+- `nifi-nginx` - used for reverse proxy to enable secure access to NiFi and other services.
 - `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
 - `nlp-gate-drugapp` - an example drug names extraction NLP application using [GATE NLP Service runner exposing a REST API](https://github.com/CogStack/gate-nlp-service),
 - `nlp-medcat-medmen` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
@@ -142,8 +143,11 @@ The tables used in the deployment example are marked with `(*)`.
 `nifi` serves a single-node instance of Apache NiFi that includes the data processing engine with user interface for defining data flows and monitoring.
 Since this is a single-node NiFi instance, it also contains the default, embedded [Apache Zookeper](https://zookeeper.apache.org/) instance for managing state.
 
-`nifi` container exposes port `8080` which is also bound to the host machine at the same number.
-The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8080`.
+`nifi` container exposes port `8443` which is also bound to the host machine on port 8082.
+<br>
+
+`nifi-nginx` contianer exposes the 8443 port directly, reverser-proxying the connection to nifi.
+The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8443`.
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
 For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [README](../nifi/README.md) in `nifi` directory.

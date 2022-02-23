@@ -45,15 +45,6 @@ This custom image will use embedeed Zookeeper within NiFi service and will use t
 
 ## NIFI security setup
 
-This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go, just  
-<br>
-Default username : 
-<br>
-```
-username: admin     
-password:admincogstacknifi
-```
-
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
 
 Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
@@ -70,6 +61,19 @@ Example:
     nifi.security.truststore=./conf/truststore.jks
     nifi.security.truststoreType=jks
     nifi.security.truststorePasswd=lzMGadNB1JXQjgQEnFStLiNkJ6Wbbgw0bFdCTICKtKo
+```
+
+## `nifi-nginx`
+In order to be able to properly access the nifi instance securely, you also need to start the nifi-nginx container as it is configured to provide access from any source to nifi, available at https://localhost:8443/nifi .
+
+### Access via user account
+<strong>This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go.</strong>
+<br>
+Default username : 
+<br>
+```
+username: admin     
+password:admincogstacknifi
 ```
 
 - the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
