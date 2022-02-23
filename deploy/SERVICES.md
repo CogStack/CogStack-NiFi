@@ -17,8 +17,8 @@ All the services are defined in `services.yml` file and these are:
 - `nlp-medcat-medmen` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
 - `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
 - `medcat-trainer-nginx` - a [NGINX](https://www.nginx.com/) reverse-proxy for MedCAT Trainer,
-- `elasticsearch-1` - a single-node cluster of Elasticsearch based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution, 
-- `kibana` - Kibana user-interface based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution,
+- `elasticsearch-1/elasticsearch-2` - a two-node cluster of Elasticsearch based on [OpenSearch for Elasticsearch](https://opensearch.org/) distribution, 
+- `kibana` - Kibana user-interface based on [OpenSearch for Elasticsearch](https://opensearch.org/docs/latest/dashboards/index/) distribution,
 - `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data.
 
 ## Optional NLP services
@@ -226,11 +226,11 @@ For more information on the MedCAT Trainer  configuration and use please refer t
 
 
 ## ELK stack
-The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution.
-OpenDistro for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
+The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenSearch for Elasticsearch](https://opensearch.org/) distribution.
+OpenSearch for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
 It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support. 
-Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenDistro remain the same. 
-Hence, OpenDistro can be used as a drop-in replacement for the standard ELK stack.
+Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenSearch remain the same. 
+Hence, OpenSearch can be used as a drop-in replacement for the standard ELK stack.
 
 In the example deployment, the default built-in user credentials are used, such as user: `admin` with pass `admin`.
 
@@ -238,7 +238,7 @@ In the example deployment, the default built-in user credentials are used, such 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
 For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security/README.md) in `security` directory.
-The security aspects are covered expensively in [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+The security aspects are covered expensively in [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
 ### Elasticsearch
@@ -249,7 +249,7 @@ The service endpoint should be available to all the services running inside the 
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `elasticsearch.yml` [configuration file](../services/elasticsearch/config/elasticsearch.yml).
 
-For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
 ### Kibana
@@ -260,7 +260,7 @@ To access Kibana user interface from web browser on the host (e.g. `localhost`) 
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](../services/kibana/config/kibana.yml).
 
-For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/docs/latest/dashboards/index/).
 
 
 ## Jupyter Hub
