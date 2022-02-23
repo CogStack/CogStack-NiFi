@@ -462,8 +462,7 @@ services:
     #        a bit messy this way as you will need to copy the credentials back
     #        to the "login-identity-providers.xml" section.
     # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
-    # command: ["sh", "-c", "chown -R 1000:1000 /opt/nifi/nifi-current/conf/nifi.properties", "&&", "chmod -R 777  /opt/nifi/nifi-current/conf/"] 
-  
+   
     tty: true
     ports:
       - "8082:8443"
