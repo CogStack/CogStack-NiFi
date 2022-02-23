@@ -364,7 +364,7 @@ services:
       # INFO: use HTTPS instead of HTTP when enabled SSL
       OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
       # INFO: uncomment below to enable SSL keys
-      SERVER_SSL_ENABLED: "true"
+      # SERVER_SSL_ENABLED: "true"
 
       ### DEFAULT native kibana-ElasticSearch path ###
       # SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
@@ -430,6 +430,7 @@ services:
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+      - ../security/es_certificates:/opt/nifi/nifi-current/es_certificates:ro
 
       # # Nifi properties file:
       #- ../security/nifi_certificates/localhost/nifi.properties:/opt/nifi/nifi-current/conf/nifi.properties
@@ -488,7 +489,6 @@ services:
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
     ports:
-      - "8080:8080"
       - "8443:8443"
     networks:
       - cognet
