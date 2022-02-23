@@ -180,14 +180,15 @@
                 </entry>
                 <entry>
                     <key>Password</key>
+                    <value>test</value>
                 </entry>
                 <entry>
                     <key>Max Wait Time</key>
-                    <value>500 millis</value>
+                    <value>1000 millis</value>
                 </entry>
                 <entry>
                     <key>Max Total Connections</key>
-                    <value>8</value>
+                    <value>2</value>
                 </entry>
                 <entry>
                     <key>Validation-query</key>
@@ -198,7 +199,7 @@
                 </entry>
                 <entry>
                     <key>dbcp-max-idle-conns</key>
-                    <value>8</value>
+                    <value>1</value>
                 </entry>
                 <entry>
                     <key>dbcp-max-conn-lifetime</key>
@@ -610,6 +611,7 @@
                     </entry>
                     <entry>
                         <key>Password</key>
+                        <value>kibanaserver</value>
                     </entry>
                     <entry>
                         <key>elasticsearch-http-connect-timeout</key>
@@ -813,7 +815,7 @@
                     </entry>
                     <entry>
                         <key>gen-table-fetch-partition-size</key>
-                        <value>10000</value>
+                        <value>1000</value>
                     </entry>
                     <entry>
                         <key>gen-table-column-for-val-partitioning</key>
@@ -953,7 +955,7 @@
                     </entry>
                     <entry>
                         <key>Max Wait Time</key>
-                        <value>0 seconds</value>
+                        <value>1 seconds</value>
                     </entry>
                     <entry>
                         <key>esqlrecord-record-writer</key>
