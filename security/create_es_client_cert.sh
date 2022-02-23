@@ -23,6 +23,7 @@ if [ ! -e $CA_ROOT_CERT ]; then
 fi
 
 SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=CLIENT"
+SUBJ_ALT_NAMES="subjectAltName=DNS:kibana,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
 
 echo "Generating a key for: $CLIENT_CERT_NAME"
 openssl genrsa -out "$CLIENT_CERT_NAME-pkcs12.key" 4096
@@ -36,11 +37,9 @@ openssl req -new -key "$CLIENT_CERT_NAME.key" -out "$CLIENT_CERT_NAME.csr" -subj
 # -config <(cat /etc/ssl/openssl.cnf <(printf "\nsubjectAltName=DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost"))
 
 echo "Signing the certificate ..."
-openssl x509 -req -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$CLIENT_CERT_NAME.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$CLIENT_CERT_NAME.pem"
+openssl x509 -req -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$CLIENT_CERT_NAME.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$CLIENT_CERT_NAME.pem" -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
 
 #-extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") 
 
-mv "$CLIENT_CERT_NAME-pkcs12.key" $ES_CERTIFICATES_FOLDER
-mv "$CLIENT_CERT_NAME.key" $ES_CERTIFICATES_FOLDER
-mv "$CLIENT_CERT_NAME.csr" $ES_CERTIFICATES_FOLDER
-mv "$CLIENT_CERT_NAME.pem" $ES_CERTIFICATES_FOLDER
+mv "$CLIENT_CERT_NAME"* $ES_CERTIFICATES_FOLDER
+

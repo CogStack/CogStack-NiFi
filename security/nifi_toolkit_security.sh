@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -e
 
 TOOLKIT_VERSION="1.15.3"
@@ -28,11 +29,17 @@ HOSTNAME_1="localhost"
 
 OUTPUT_DIRECTORY="./nifi_certificates"
 
+
 # -C,--clientCertDn <arg> Generate client certificate suitable for use in browser with specified DN (Can be specified multiple times)
 # this should respect whatever is used to generate the other certificate with regards CN=nifi, this needs to match the HOSTNAME of the nifi container(s)
 SUBJ_LINE_CERTIFICATE_CN="C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
 
+SUBJ_ALT_NAMES="subjectAltName=DNS:nifi,DNS:cogstack"
+
+# IMPRTANT: this is used in StandardSSLContextService controllers on the NiFi side, trusted keystore password field.
+KEY_PASSWORD="cogstackNifi"
+
 # Overwite existing files use the "-O" flag.
-bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAME_1 -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $SUBJ_LINE_CERTIFICATE_CN 
+bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAME_1 -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $SUBJ_LINE_CERTIFICATE_CN -K $KEY_PASSWORD
 
 mv ./$OUTPUT_DIRECTORY/$HOSTNAME_1/nifi.properties ../nifi/conf/
