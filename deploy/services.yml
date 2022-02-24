@@ -182,7 +182,7 @@ services:
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
     volumes:
-      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled/:ro
+      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
     ports:
