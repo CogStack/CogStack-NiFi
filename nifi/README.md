@@ -80,7 +80,7 @@ password:admincogstacknifi
 
 URL: https://localhost:8443/nifi/login
 
-Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume rm $(docker volume list -q)`
+Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume prune`.
 
 # Drivers
 The drivers are provided in [`drivers`](./drivers) directory.
