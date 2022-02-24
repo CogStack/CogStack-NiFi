@@ -9,7 +9,7 @@ start-nifi:
 	docker-compose -f services.yml $(DC_START_CMD) nifi nifi-nginx
 
 start-elastic:
-	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1 kibana
+	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
 start-tika:
 	docker-compose -f services.yml $(DC_START_CMD) tika-service
@@ -39,7 +39,7 @@ stop-nifi:
 	docker-compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx
 
 stop-elastic:
-	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 kibana
+	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
 
 stop-tika:
 	docker-compose -f services.yml $(DC_STOP_CMD) tika-service
