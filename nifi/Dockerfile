@@ -13,13 +13,14 @@ ENV no_proxy $no_proxy
 USER root
 
 # run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make ca-certificates && \
+    apt-add-repository contrib && \
     apt-add-repository non-free && \
     apt-get update && apt-get upgrade -y && \
-    apt-get install -y python3 python3-pip python3-dev --no-install-recommends && \
+    apt-get install -y postgresql-server-dev-13 postgresql-server-dev-all python3 python3-pip python3-dev python3.9-dev python3-all-dev ssl-cert --no-install-recommends && \
     pip3 install --upgrade pip && \
-    pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j && \
-    pip3 install psycopg2 pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext
+    pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j --ignore-installed PyYAML && \
+    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary psycopg2
 
 # ApacheNifi specific packages
 RUN pip3 install nipyapi
