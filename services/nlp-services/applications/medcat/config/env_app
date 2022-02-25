@@ -1,15 +1,24 @@
 DEBUG=False
 
+# Additional settings
+APP_LOG_LEVEL=INFO
 # can include only one model for NER
+APP_NAME=MedCAT
+APP_MODEL_LANGUAGE=en
 APP_MODEL_NAME=MedMen
 APP_MODEL_CDB_PATH=/cat/models/cdb.dat
 APP_MODEL_VOCAB_PATH=/cat/models/vocab.dat
 
 # optionally, can include multiple models for meta tasks, separated using ':'
-#APP_MODEL_META_PATH_LIST=/cat/models/mc_status
+APP_MODEL_META_PATH_LIST=/cat/models/Status
+
+# MedCAT Model Pack path
+# IMPORTANT: if this parameter has value IT WILL BE LOADED FIRST OVER EVERYTHING ELSE (CDB, Vocab, MetaCATs, etc.) declared above.
+# Respect the same paths as above : /cat/models/model_pack_name.zip
+APP_MEDCAT_MODEL_PACK=
 
 # optionally, an filter the reported concepts by CUIs
-#APP_MODEL_CUI_FILTER_PATH=/cat/filter/cui_list.txt
+# APP_MODEL_CUI_FILTER_PATH=/cat/models/cui_filter.txt
 
 # NLP processing
 APP_BULK_NPROC=8

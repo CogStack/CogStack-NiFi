@@ -57,8 +57,8 @@ MedCAT is deployed as a service exposing RESTful API using the implementation fr
 MedCAT Service resources are stored in [`nlp-services/applications/medcat/`](./nlp-services/applications/medcat) directory. 
 The key configuration properties stored as as environment variables are defined in [`config/`](./nlp-services/applications/medcat/config) sub-directory. 
 The models used by MedCAT are stored in [`nlp-services/applications/cat/models/`](./nlp-services/applications/medcat/models).
-A default model to play with is provided `MedMen` and there is a script `download_medmen.sh` used to download it.
-
+<strong>IMPORTANT</strong>
+A default model to play with is provided `MedMen` and there is a script `download_medmen.sh` used to download it. <strong>MNAKE SURE TO DOWNLOAD THIS BEFORE STARTING THE NLP-MEDCAT-MEDMENCONTAINER</strong>
 For more information on the MedCAT Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
 
 
