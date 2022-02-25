@@ -86,7 +86,7 @@ services:
     volumes:
       - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
       - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
-      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/mc_status:ro
+      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/Status:ro
     expose:
       - 5000
     ports:
