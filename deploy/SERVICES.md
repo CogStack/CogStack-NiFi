@@ -138,7 +138,6 @@ The tables available in the database are:
 
 The tables used in the deployment example are marked with `(*)`.
 
-
 ## Apache NiFi
 `nifi` serves a single-node instance of Apache NiFi that includes the data processing engine with user interface for defining data flows and monitoring.
 Since this is a single-node NiFi instance, it also contains the default, embedded [Apache Zookeper](https://zookeeper.apache.org/) instance for managing state.
@@ -162,7 +161,6 @@ When deployed Tika Service exposes port `8090` at `tika-service` container being
 The Tika service REST API endpoint for processing documents is available at `http://tika-service:8090/api/process`.
 
 For more details on configuration, API definition and example use of Tika Service please refer to [the official documentation](https://github.com/CogStack/tika-service).
-
 
 ## NLP Services
 
