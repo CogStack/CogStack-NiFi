@@ -18,7 +18,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-htt
     apt-get update && apt-get upgrade -y && \
     apt-get install -y python3 python3-pip python3-dev --no-install-recommends && \
     pip3 install --upgrade pip && \
-    pip3 install numpy matplotlib pandas dill jsonpickle jsonext dvc git-python flask elasticsearch opensearch-py
+    pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j && \
+    pip3 install psycopg2 pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext
 
 # ApacheNifi specific packages
 RUN pip3 install nipyapi
