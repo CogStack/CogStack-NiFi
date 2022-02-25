@@ -607,11 +607,11 @@
                     </entry>
                     <entry>
                         <key>Username</key>
-                        <value>kibanaserver</value>
+                        <value>admin</value>
                     </entry>
                     <entry>
                         <key>Password</key>
-                        <value>kibanaserver</value>
+                        <value>admin</value>
                     </entry>
                     <entry>
                         <key>elasticsearch-http-connect-timeout</key>
