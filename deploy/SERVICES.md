@@ -154,7 +154,6 @@ For more information on configuration, user scripts and user templates that are 
 The available example workflows are covered in [WORKFLOWS](./WORKFLOWS.md) file.
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
-
 ## Tika Service
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
 [Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
@@ -249,7 +248,7 @@ The security aspects are covered expensively in [the official OpenSearch for Ela
 Elasticsearch cluster is deployed as a single-node cluster with `elasticsearch-1` service.
 It exposes port `9200` on the container and binds it to the same port on the host machine.
 The service endpoint should be available to all the services running inside the `cognet` Docker network under address `http://elasticsearch-1:9200`.
-
+The default user is : `admin` and password `admin`.
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `elasticsearch.yml` [configuration file](../services/elasticsearch/config/elasticsearch.yml).
 
@@ -259,8 +258,8 @@ For more information on use of Elasticsearch please refer either to [the officia
 ### Kibana
 `kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster. 
 It exposes port `5601` on the container and binds it to the same port on the host machine.
-To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `http://localhost:5601`.
-
+To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `https://localhost:5601`.
+The default user is : `admin` and password `admin`.
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](../services/kibana/config/kibana.yml).
 

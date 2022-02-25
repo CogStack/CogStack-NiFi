@@ -4,12 +4,12 @@ Our custom Apache NiFi image comes with 4 example template workflows bundled tha
 These are:
 1. `Ingest raw text from DB to ES` - performing ingestion of free-text notes from database to Elasticsearch.
 2. `Ingest PDFs from DB to ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch.
-3. `MedCAT annotate from DB to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
+3. `MedCAT annotate from ES to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
 4. `MedCAT annotate from DB to ES` - the same as (3) but reading notes from Elasticsearch.
 
 If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), then you would need to use the equivalent templates:
 1. `INGEST_RAW_FROM_DB_TO_ES_SSL` - same as 1. from above but with SSL configurations
-
+2. `Ingest_raw_text_into_ES_and_annotate_from_ES_to_ES_SSL` - workflows 1 and 3 combined with SSL support.
 
 # Used services
 In the workflow examples, the following services are used:
