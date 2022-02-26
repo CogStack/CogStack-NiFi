@@ -389,9 +389,11 @@
                 </entry>
                 <entry>
                     <key>Keystore Password</key>
+                    <value>cogstackNifi</value>
                 </entry>
                 <entry>
                     <key>key-password</key>
+                    <value>cogstackNifi</value>
                 </entry>
                 <entry>
                     <key>Keystore Type</key>
@@ -403,6 +405,7 @@
                 </entry>
                 <entry>
                     <key>Truststore Password</key>
+                    <value>cogstackNifi</value>
                 </entry>
                 <entry>
                     <key>Truststore Type</key>

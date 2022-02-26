@@ -57,10 +57,10 @@ services:
       # this should be used with care as processing for smaller documents (i.e < 10mb) is faster when limiting threads as
       # the thread IPC and management does not interfere when using a single thread
       # leave it to 1 if documents are small ( < 10mb) otherwise leave it as it is, changing to 0 will invalidate the variable
-      - OMP_THREAD_LIMIT=64
-      - OMP_NUM_THREADS=2
-      - OMP_DYNAMIC=TRUE
-      - OMP_NESTED=TRUE
+      - OMP_THREAD_LIMIT=1
+      #- OMP_NUM_THREADS=1
+      #- OMP_DYNAMIC=TRUE
+      #- OMP_NESTED=TRUE
 
       # This option might be necessary on some systems if there's a java related error thrown
       - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
