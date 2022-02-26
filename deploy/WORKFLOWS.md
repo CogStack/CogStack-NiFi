@@ -43,8 +43,10 @@ Please note that all the available workflow templates that are bundled with our 
 During normal work, the user has possibility to create and store own template workflows.
 These workflows are represented as XML files and so can be easily further shared or modified.
 
-The templates mentioned in the introduction section may REQUIRE some minor configuration such as addting the passwords to the ES connectors (u: `admin`, pw:`admin`) and to the SSLContext Controller,
-the trust/key(store) password is `cogstackNifi`.
+The templates mentioned in the introduction section may REQUIRE some minor configuration such as addting the passwords to the ES connectors (u: `admin`, pw:`admin`) and to the SSLContext Service Controller,
+the trust/key(store) password is `cogstackNifi`. 
+
+Every time you make change to the SSL Service Controller you MUST verify/validate all the properties first, 
 
 # Ingesting free-text documents (DB → ES)
 This workflow implements a common data ingestion pipeline: reading from a database and storing the free-text data alongside selected structured fields into Elasticsearch.
