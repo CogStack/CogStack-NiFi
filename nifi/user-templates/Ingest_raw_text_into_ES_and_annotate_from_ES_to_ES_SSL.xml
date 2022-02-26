@@ -455,7 +455,7 @@
                 </entry>
                 <entry>
                     <key>database-driver-locations</key>
-                    <value>/opt/nifi/drivers/postgresql-42.2.24.jar</value>
+                    <value>/opt/nifi/drivers/postgresql-42.3.3.jar</value>
                 </entry>
                 <entry>
                     <key>kerberos-user-service</key>
@@ -482,7 +482,7 @@
                 </entry>
                 <entry>
                     <key>Max Total Connections</key>
-                    <value>2</value>
+                    <value>8</value>
                 </entry>
                 <entry>
                     <key>Validation-query</key>
@@ -493,7 +493,7 @@
                 </entry>
                 <entry>
                     <key>dbcp-max-idle-conns</key>
-                    <value>1</value>
+                    <value>8</value>
                 </entry>
                 <entry>
                     <key>dbcp-max-conn-lifetime</key>
