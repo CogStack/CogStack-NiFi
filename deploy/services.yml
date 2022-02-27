@@ -426,9 +426,6 @@ services:
     #       no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
-    environment:
-      - "JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
-      - "LOG4J_FORMAT_MSG_NO_LOOKUPS=true"
     env_file:
       - ${NIFI_ENV_FILE}
     shm_size: 1024mb
