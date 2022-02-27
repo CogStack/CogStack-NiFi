@@ -1,0 +1,27 @@
+_meta:
+  type: "roles"
+  config_version: 2
+  
+complex-role:
+  reserved: false
+  hidden: false
+  cluster_permissions:
+  - "read"
+  - "cluster:monitor/nodes/stats"
+  - "cluster:monitor/task/get"
+  index_permissions:
+  - index_patterns:
+    - "opensearch_dashboards_sample_data_*"
+    dls: "{\"match\": {\"FlightDelay\": true}}"
+    fls:
+    - "~FlightNum"
+    masked_fields:
+    - "Carrier"
+    allowed_actions:
+    - "read"
+  tenant_permissions:
+  - tenant_patterns:
+    - "analyst_*"
+    allowed_actions:
+    - "kibana_all_write"
+  static: false

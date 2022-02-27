@@ -1,11 +1,9 @@
 # Security
 In [the example deployment](deploy/services.md), for the ease of deployment and demo purposes, all the services have SSL security disabled and are using the default built-in users with passwords.
 
-However, to use the services with SSL enabled (e.g., Elasticsearch and Kibana), one needs to obtain SSL certificates for these services. 
-One needs also to set up users and roles in the services used in the considered services.
+With NiFi 1.15+ HTTPS is enforced, this requires users to generate their own certificates. Some default publicly availble certificates are available in this repo as part of the demo but users should ALWAYS generate their own in production environment setups.
 
-This directory contains example scripts to generate and use self-signed certificates and to set up users and roles in Elasticsearch.
-It also gives hints for securing access to other relevant services used in the deployment.
+The Elasticsearch instances are now setup also with certificates, mainly cause this would most likely always be a requirement as part of a production deployment.
 
 **IMPORTANT: 
 Please note that the actual security configuration will depend on the requirements of the user/team/organisation planning to use the services stack.
@@ -26,15 +24,15 @@ Using `create_root_ca_cert.sh` the files generated are:
 ### ELK stack
 For information on OpenDistro for Elasticsearch security features and their configuration please refer to [the official documentation](https://opendistro.github.io/for-elasticsearch/features/security.html).
 
-ElasticSearch and Kibana both require certificates in PEM format and these can be generated using `create_client_cert.sh`.
+# Generating ES + KIBANA CERTS
 
 #### Elasticsearch
 ElasticSearch requires:
 - `es-node1.pem`
 - `es-node1.key`
 
-Once generated, these files can be referenced in `services/elasticsearch/config/elasticsearch.yml` and/or linked directly in the Docker compose file with services configuration.
-When setting up a multi-node Elasticsearch cluster, more certificates need to be generated, one per node accordingly.
+## For Elasticsearch
+We have to make sure to execute the following commands `bash ./create_es_nodecert.sh elasticsearch-1 && bash ./create_es_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, for both nodes make sure to generate the ADMIN authorization certificate by doing `bash ./create_es_admin_cert.sh`.
 
 #### Kibana
 Kibana requires:

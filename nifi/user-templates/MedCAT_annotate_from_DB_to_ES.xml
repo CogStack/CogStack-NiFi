@@ -479,11 +479,11 @@
                 </entry>
                 <entry>
                     <key>Max Wait Time</key>
-                    <value>500 millis</value>
+                    <value>1000 millis</value>
                 </entry>
                 <entry>
                     <key>Max Total Connections</key>
-                    <value>8</value>
+                    <value>4</value>
                 </entry>
                 <entry>
                     <key>Validation-query</key>
@@ -494,7 +494,7 @@
                 </entry>
                 <entry>
                     <key>dbcp-max-idle-conns</key>
-                    <value>8</value>
+                    <value>2</value>
                 </entry>
                 <entry>
                     <key>dbcp-max-conn-lifetime</key>

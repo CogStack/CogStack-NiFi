@@ -22,8 +22,21 @@ LR=0.1
 ANNEAL=False
 KEEP_PUNCT=:|.
 
-SPACY_MODEL=en_core_sci_md
+# can be left empty if you want to use the CDB spacy model, otherwise, possible values are : en_core_sci_lg, en_core_sci_md, etc...
+# please note that only SpaCy models that are installed on the docker container are usable (take a look at the .Dockerfile and install any other custom models you may want to use)
+SPACY_MODEL=
 
 MKL_NUM_THREAD=1
 NUMEXPR_NUM_THREADS=1
 OMP_NUM_THREADS=1
+
+# IMPORTANT:
+#   Mode in which annotation entities should be outputted in the JSON response,
+#   by default this is set to "list" of dicts, so the output would be : {"annotations": [{"id": "0", "cui" : "C1X..", ..}, {"id":"1", "cui": "...."}]}
+#   newer versions of MedCAT (1.2+) output entities as a dict, where the id of the entity is a key and the rest of the data is a value, so for "dict",
+#   the output is
+#    {"annotations": {"entities": {"0": {"cui": "C0027361", "id": 0,.....}, "1": {"cui": "C001111", "id": 1......}}
+#   Be mindful of this option as it can affect other services that rely directly on the responses of the service 
+#    (the NiFi groovy scripts and annotation ingester are two such services that process the output, and so they might require further customisation)
+# POSSIBLE VALUES: [list, dict], if left empty then "dict" is the default.
+ANNOTATIONS_ENTITY_OUTPUT_MODE=dict

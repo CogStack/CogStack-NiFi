@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################
 # 
@@ -8,9 +8,18 @@
 
 set -e
 
+KEYSTORE_PASSWORD="cogstackNifi"
+
 if [ -z "$1" ] || [ -z "$2" ]; then
-	echo "Usage: $0 <cert_name> <jks_store>"
+	echo "Usage: $0 <cert_name> <jks_store> <password> | the password is optional"
 	exit 1
+fi
+
+if [ -z "$3" ]; 
+then
+	echo "Password argument not set, setting it to $KEYSTORE_PASSWORD by default."
+else
+	KEYSTORE_PASSWORD=$3
 fi
 
 if [ ! -e "$1.pem" ] || [ ! -e "$1.key" ]; then
@@ -24,14 +33,18 @@ CA_ROOT_KEY="root-ca.key"
 echo "Converting x509 Cert and Key to a pkcs12 file"
 openssl pkcs12 -export -in "$1.pem" -inkey "$1.key" \
                -out "$1.p12" -name "$1" \
-               -CAfile $CA_ROOT_CERT
+               -CAfile $CA_ROOT_CERT -passout pass:$KEYSTORE_PASSWORD
 
 echo "Importing the pkcs12 file to a java keystore"
+
 keytool -importkeystore -destkeystore "$2.jks" \
-        -srckeystore "$1.p12" -srcstoretype PKCS12 -alias "$1"
+        -srckeystore "$1.p12" -srcstoretype PKCS12 -alias "$1" -srcstorepass $KEYSTORE_PASSWORD -deststorepass $KEYSTORE_PASSWORD -storepass $KEYSTORE_PASSWORD
 
 echo "Importing TrustedCertEntry"
-keytool -importcert -file $CA_ROOT_CERT -keystore "$2.jks"
+keytool -importcert -file $CA_ROOT_CERT -keystore "$2.jks" -deststorepass $KEYSTORE_PASSWORD -noprompt -storepass $KEYSTORE_PASSWORD 
 
 echo "Checking which certificates are in a Java keystore"
-keytool -list -v -keystore "$2.jks"​
+keytool -list -v -keystore $2".jks" -noprompt -storepass $KEYSTORE_PASSWORD
+
+echo "Creating truststore key"
+keytool -import -file $1.pem -keystore $1-"truststore.key" -storepass $KEYSTORE_PASSWORD -noprompt

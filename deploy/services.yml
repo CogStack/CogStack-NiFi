@@ -1,4 +1,4 @@
-version: '3.5'
+version: '3.6'
 
 #---------------------------------------------------------------------------#
 # Used services                                                             #
@@ -9,9 +9,14 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    image: postgres:11.4-alpine
+    image: postgres:14.1-alpine
     container_name: cogstack-samples-db
+    shm_size: 128mb
     restart: always
+    environment:
+      # PG env vars
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
     volumes:
       # mapping postgres data dump and initialization
       - ../services/pgsamples/db_dump/db_samples-pdf-text-small.sql.gz:/data/db_samples.sql.gz:ro
@@ -19,23 +24,46 @@ services:
       - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
       - samples-vol:/var/lib/postgresql/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    command: postgres -c "max_connections=1024"
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-      - 5555:5432
-    #expose:
-    #  - 5432
+      - 5554:5432
+    expose:
+      - 5432
     networks:
       - cognet
-
 
 #---------------------------------------------------------------------------#
 # Apache Tika documents processing service                                  #
 #---------------------------------------------------------------------------#
   tika-service:
     image: cogstacksystems/tika-service:latest
-    container_name: cogstack-tika
+    container_name: cogstack-tika-service
+    shm_size: 1024mb
     restart: always
-    # INFO: Tika pipeline-specific configuration is mounted via volume
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      
+      # limit the number of processing threads used by tesseract OCR,
+      # this should be used with care as processing for smaller documents (i.e < 10mb) is faster when limiting threads as
+      # the thread IPC and management does not interfere when using a single thread
+      # leave it to 1 if documents are small ( < 10mb) otherwise leave it as it is, changing to 0 will invalidate the variable
+      - OMP_THREAD_LIMIT=1
+      #- OMP_NUM_THREADS=1
+      #- OMP_DYNAMIC=TRUE
+      #- OMP_NESTED=TRUE
+
+      # This option might be necessary on some systems if there's a java related error thrown
+      - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
     volumes:
       - ../services/tika-service/config:/app/config:ro
     ports:
@@ -44,7 +72,6 @@ services:
       - 8090
     networks:
       - cognet
-
 
 #---------------------------------------------------------------------------#
 # NLP Services containers                                                   #
@@ -60,15 +87,16 @@ services:
       - ../services/nlp-services/applications/medcat/config/env_medcat
     environment:
       - APP_MODEL_NAME=medmen-demo
+      - SERVICE_WORKERS=1
     # INFO: MedCAT models are mounted via volumes
     volumes:
       - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
       - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
-      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/mc_status:ro
-    #expose:
-    #  - 5000
+      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/Status:ro
+    expose:
+      - 5000
     ports:
-      - "5000:5000"
+      - "5555:5000"
     networks:
       - cognet
 
@@ -139,6 +167,10 @@ services:
     # INFO: MedCAT library config provided via env file
     env_file:
       - ../services/medcat-trainer/envs/env
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
     volumes:
       - ../services/medcat-trainer/configs:/home/configs
       - medcat-api-media:/home/api/media
@@ -152,8 +184,12 @@ services:
     image: cogstacksystems/medcat-trainer-nginx:latest
     container_name: cogstack-medcat-trainer-nginx
     restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
     volumes:
-      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled/:ro
+      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
     ports:
@@ -167,24 +203,49 @@ services:
 #---------------------------------------------------------------------------#
   elasticsearch-1:
     # image: docker.elastic.co/elasticsearch/elasticsearch:7.16.1
-    # image: amazon/opendistro-for-elasticsearch:1.2.1
-    image: amazon/opendistro-for-elasticsearch:1.13.3
-    container_name: cogstack-elasticsearch-1
+    # image: amazon/opendistro-for-elasticsearch:1.13.3
+    image: opensearchproject/opensearch:1.2.4
+    container_name: elasticsearch-cogstack-node-1
+    platform: linux
+    shm_size : 1024mb
     restart: always
+    # mem_limit: 2g
     environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      # CLUSTER CONFIGS
       - node.name=es01
-      - cluster.name=docker-cluster
-      - discovery.type=single-node
-      # INFO: enable 'zen' for multi-node cluster
-      # - discovery.type=zen
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1G -Xmx1G"
+      - cluster.name=elasticsearch-cogstack-cluster
+        # INFO: enable 'zen' for multi-node cluster
+      - discovery.type=zen
+      # - discovery.type=single-node
+      - cluster.initial_master_nodes=es01,es02
+    
+      # OTHER SETTINGS
+      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+
       # INFO: set 'true' to enable SSL
-      - opendistro_security.ssl.http.enabled=false
+      #- opendistro_security.ssl.http.enabled=false
       #- opendistro_security.ssl.transport.enabled=false
     env_file:
       - ${ELASTICSEARCH_ENV_FILE}
+      # - plugins.security.disabled=false
+      - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.transport.enabled=true
+
+      # User config:
+      - ELASTICSEARCH_USER=kibanaserver
+      - ELASTICSEARCH_PASSWORD=kibanaserver
+      - ELASTIC_USER=kibanaserver
+      - ELASTIC_PASSWORD=kibanaserver
     volumes:
+      # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
+      - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      #- ../services/elasticsearch/config/elasticsearch_native.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+
       # mapping security config
       # INFO: uncomment below to add SSL keys
       #- ${ELASTICSEARCH_SECURITY_DIR}/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
@@ -194,16 +255,115 @@ services:
       #
       # INFO: ES configuration mapped via volume
       #- ../services/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
+      - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
+      - ../security/es_certificates/elasticsearch-1-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
+      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
+      - ../security/es_certificates/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
+
+      # common setting for now
+      # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
+      - ../security/opendistro/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
+
+      # open distro /opensearch only
+      - ../security/opendistro/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
+      - ../security/opendistro/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+      # VM settings
+      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
+
       # ES data persistence
-      - elasticsearch-vol-1:/usr/share/elasticsearch/data
+      - elasticsearch-vol-1:/usr/share/opensearch/data
     ulimits:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
       - "9200:9200"
+      - "9600:9600" # required for Performance Analyzer
     expose:
       - 9600
+      - 9200
+    networks:
+      - cognet
+
+  elasticsearch-2:
+    # image: docker.elastic.co/elasticsearch/elasticsearch:7.16.1
+    # image: amazon/opendistro-for-elasticsearch:1.13.3
+    image: opensearchproject/opensearch:1.2.4
+    container_name: elasticsearch-cogstack-node-2
+    platform: linux
+    shm_size : 1024mb
+    restart: always
+    # mem_limit: 2g
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      # CLUSTER CONFIGS
+      - node.name=es02
+      - cluster.name=elasticsearch-cogstack-cluster
+      - discovery.type=zen
+      - cluster.initial_master_nodes=es01,es02
+
+      # OTHER SETTINGS
+      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      
+      # INFO: set 'true' to enable SSL
+      #- plugins.security.disabled=false
+      - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.transport.enabled=true
+
+      # User config:
+      - ELASTICSEARCH_USER=kibanaserver
+      - ELASTICSEARCH_PASSWORD=kibanaserver
+      - ELASTIC_USER=kibanaserver
+      - ELASTIC_PASSWORD=kibanaserver
+    volumes:
+      # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
+      - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      #- ../services/elasticsearch/config/elasticsearch_native.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+
+      # mapping security config
+      # INFO: uncomment below to add SSL keys
+      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
+      - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
+      - ../security/es_certificates/elasticsearch-2-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
+      - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
+      - ../security/es_certificates/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
+
+      # INFO: modifiy this according to your ES version
+      # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
+      - ../security/opendistro/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
+
+      # open distro /opensearch only
+      - ../security/opendistro/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
+      - ../security/opendistro/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+      
+      # VM settings
+      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro
+     
+      # ES data persistence
+      - elasticsearch-vol-2:/usr/share/opensearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9201:9200"
+      - "9601:9600" # required for Performance Analyzer
+    expose:
+      - 9600
+      - 9200
     networks:
       - cognet
 
@@ -212,28 +372,41 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
+    # image: amazon/opendistro-for-elasticsearch-kibana:1.13.2
     # image: docker.elastic.co/kibana/kibana:7.16.1
-    # image: opensearchproject/opensearch-dashboards:1.2.0
-    image: amazon/opendistro-for-elasticsearch-kibana:1.13.2
+    image: opensearchproject/opensearch-dashboards:1.2.0
     container_name: cogstack-kibana
     restart: always
     #env_file: ./security/es_kibana_user.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
-      ELASTICSEARCH_URL: http://elasticsearch-1:9200
-      ELASTICSEARCH_HOSTS: http://elasticsearch-1:9200
+      OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
       # INFO: uncomment below to enable SSL keys
-      SERVER_SSL_ENABLED: "false"
-      #SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
-      #SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
+      # SERVER_SSL_ENABLED: "true"
+
+      ### DEFAULT native kibana-ElasticSearch path ###
+      # SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
+      # SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
+
+      ### OPENSEARCH_VERSION ### use only if you use opensearch instead of native Kibana
+      # SERVER_SSL_KEY: /usr/share/opensearch-dashboards/config/kibana.key
+      # SERVER_SSL_CERTIFICATE: /usr/share/opensearch-dashboards/config/kibana.pem
+
     depends_on:
       - elasticsearch-1
-    #volumes:
-      # mapping kibana config
+      - elasticsearch-2
+    volumes:
+      # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
+      - ../services/kibana/config/kibana_opensearch.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
+      #- ../services/kibana/config/kibana_native.yml:/usr/share/kibana/config/kibana.yml:ro    
+      
       # INFO: uncomment below to add SSL keys
-      #- ./security/root-ca.pem:/usr/share/kibana/config/root-ca.pem:ro
-      #- ./security/kibana.pem:/usr/share/kibana/config/kibana.pem:ro
-      #- ./security/kibana.key:/usr/share/kibana/config/kibana.key:ro
+      - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
+      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch-dashboards/config/elasticsearch-1.pem:ro
+      - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch-dashboards/config/elasticsearch-2.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
+      - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
+      - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
     ports:
       - "5601:5601"
     networks:
@@ -245,7 +418,12 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     image: cogstacksystems/cogstack-nifi:latest
-    #build: ../nifi/
+    # build:
+    #   context: ../nifi/
+    #   args:      
+    #       HTTP_PROXY: $HTTP_PROXY
+    #       HTTPS_PROXY: $HTTPS_PROXY
+    #       no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
     environment:
@@ -253,20 +431,42 @@ services:
       - "LOG4J_FORMAT_MSG_NO_LOOKUPS=true"
     env_file:
       - ${NIFI_ENV_FILE}
+    shm_size: 1024mb
+    environment:
+     - http_proxy=$HTTP_PROXY
+     - https_proxy=$HTTPS_PROXY
+     - no_proxy=$no_proxy
+     - USER_ID=1000
+     - GROUP_ID=1000
+     - NIFI_WEB_PROXY_HOST="0.0.0.0:8443,cogstack:8443,nifi:8443"
+     - NIFI_WEB_PROXY_CONTEXT_PATH="/,/nifi,/nifi-api,/nifi-api/,/nifi/"
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
+      
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:ro
-      - ../nifi/user-scripts:/opt/nifi/user-scripts:ro
-      - ../nifi/user-schemas:/opt/nifi/user-schemas:ro
+      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
+      - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
+      - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
+
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
+      
+      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
+      - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
+      - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+      - ../security/es_certificates:/opt/nifi/nifi-current/es_certificates:ro
 
+      # # Nifi properties file:
+      #- ../security/nifi_certificates/localhost/nifi.properties:/opt/nifi/nifi-current/conf/nifi.properties
+      - ../nifi/conf/:/opt/nifi/nifi-current/conf/
+      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+         
       # rest of volumes to persist the state
-      - nifi-vol-conf:/opt/nifi/nifi-current/conf
+      #- nifi-vol-conf:/opt/nifi/nifi-current/conf
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
@@ -277,11 +477,45 @@ services:
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
+    #        a bit messy this way as you will need to copy the credentials back
+    #        to the "login-identity-providers.xml" section.
+    # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
+   
     tty: true
     ports:
-      - "8080:8080"
+      - "8082:8443"
     expose:
-      - "10000"
+      - "10443"
+      - "8443"
+    networks:
+      - cognet
+
+  nifi-nginx:
+    build: ../services/nginx/
+    container_name: cogstack-nifi-nginx
+    restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+    volumes:
+      - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ../security/root-ca.pem:/etc/nginx/root-ca.pem:ro
+      - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
+      - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
+      - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
+    ports:
+      - "8443:8443"
     networks:
       - cognet
 
@@ -290,12 +524,12 @@ services:
 #---------------------------------------------------------------------------#
   jupyter-hub:
     image: cogstacksystems/cogstack-jupyter-hub:latest
-    build:
-      context: ../services/jupyter-hub/
-      args:
-        - http_proxy=$HTTP_PROXY
-        - https_proxy=$HTTPS_PROXY
-        - no_proxy=$no_proxy
+    # build:
+    #   context: ../services/jupyter-hub/
+    #   args:
+    #     - http_proxy=$HTTP_PROXY
+    #     - https_proxy=$HTTPS_PROXY
+    #     - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     environment:
@@ -344,20 +578,28 @@ volumes:
   # ELK-stack related
   elasticsearch-vol-1:
     driver: local
+  elasticsearch-vol-2:
+    driver: local
 
   # NiFi related
   nifi-vol-conf:
     driver: local
+
   nifi-vol-logs:
     driver: local
+
   nifi-vol-provenance:
     driver: local
+
   nifi-vol-database:
     driver: local
+
   nifi-vol-flowfiles:
     driver: local
+
   nifi-vol-content:
     driver: local
+
   nifi-vol-errors:
     driver: local
 

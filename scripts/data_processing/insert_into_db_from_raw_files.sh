@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 # env variables
-
-POSTGRES_USER="admin"
-POSTGRES_PASSWORD="admin"
+POSTGRES_USER=${POSTGRES_USER:-"test"}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"test"}
 POSTGRES_DATABANK_DB="project_data"
 
 # This is the DATA directory inside the postgres database Docker image, or it could be be a folder on the local system

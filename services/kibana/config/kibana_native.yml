@@ -1,0 +1,27 @@
+# Some of these parameters are provided by the Docker environment variables
+server.name: cogstack-kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+telemetry.optIn: false
+telemetry.enabled: false
+# INFO: ES URL provided as docker parameter
+#elasticsearch.url: https://localhost:9200
+elasticsearch.ssl.verificationMode: none
+
+# WARNING: revise all the lines below before you go into production
+elasticsearch.username: kibanaserver
+elasticsearch.password: kibanaserver
+elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+
+# --------
+# X-Pack features
+# disabled by default when using '-oss' images
+# need to be disabled manually when using standard images from elastic
+# --------
+xpack.security.enabled: true
+#xpack.graph.enabled: false
+#xpack.ml.enabled: false
+#xpack.monitoring.enabled: false
+#xpack.reporting.enabled: false
+#xpack.watcher.enabled: false

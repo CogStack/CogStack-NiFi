@@ -4,9 +4,12 @@ Our custom Apache NiFi image comes with 4 example template workflows bundled tha
 These are:
 1. `Ingest raw text from DB to ES` - performing ingestion of free-text notes from database to Elasticsearch.
 2. `Ingest PDFs from DB to ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch.
-3. `MedCAT annotate from DB to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
+3. `MedCAT annotate from ES to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
 4. `MedCAT annotate from DB to ES` - the same as (3) but reading notes from Elasticsearch.
 
+If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), then you would need to use the equivalent templates:
+1. `INGEST_RAW_FROM_DB_TO_ES_SSL` - same as 1. from above but with SSL configurations
+2. `Ingest_raw_text_into_ES_and_annotate_from_ES_to_ES_SSL` - workflows 1 and 3 combined with SSL support.
 
 ## Used services
 In the workflow examples, the following services are used:
@@ -25,8 +28,7 @@ make start-nlp-medcat
 Please note that all the above services will be accessible by services within internal `cognet` Docker network while only some of them will be accessible from host machine.
 Please refer to [SERVICES](./services.md) for a more detailed description of the available services and their deployment.
 
-
-## Apache NiFi web user interface
+# Apache NiFi web user interface
 Before start, please see [the official Apache NiFi guide on using the web user interface](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#User_Interface) that covers extensively the available functionality.
 
 In this doc only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
@@ -42,6 +44,10 @@ Please note that all the available workflow templates that are bundled with our 
 During normal work, the user has possibility to create and store own template workflows.
 These workflows are represented as XML files and so can be easily further shared or modified.
 
+The templates mentioned in the introduction section may REQUIRE some minor configuration such as addting the passwords to the ES connectors (u: `admin`, pw:`admin`) and to the SSLContext Service Controller,
+the trust/key(store) password is `cogstackNifi`. 
+
+Every time you make change to the SSL Service Controller you MUST verify/validate all the properties first, 
 
 ## Ingesting free-text documents (DB → ES)
 This workflow implements a common data ingestion pipeline: reading from a database and storing the free-text data alongside selected structured fields into Elasticsearch.
@@ -63,7 +69,7 @@ Alongside the DB connector, other controllers used by the processors (i.e. recor
 ![db-reader-w1](../_static/img/configure-db-connector-w1.png)
 
 
-### Adding your own data to the DB 
+## Adding your own data to the DB 
 
 The easiest way to do this is to create your own sql schema file (to keep things separated) stored in the pgsamples folder( for example `services/pgsamples/new_schema.sql​` ) put your sql code there and mount it on the pg-samples container, like so:
 ```
@@ -94,7 +100,7 @@ Additional steps may be required : delete current Db-samples container, then the
 
 Restart all nifi-processes and the ingestion should work.
 
-### Indexing records by Elasticsearch
+## Indexing records by Elasticsearch
 The records are finally stored in Elasticsearch data store under index `medical_reports_text` and using url endpoint `http://elasticsearch-1:9200`.
 This operation is implemented by NiFi component `PutElasticsearchHttpRecord` with its configuration presented on the picture below.
 The Elasticsearch user credentials need to be provided which in this example would be the built-in user `admin` with password `admin`.
@@ -130,8 +136,7 @@ with the expected response:
 }
 ```
 
-
-## Ingesting text from PDF documents (DB → ES)
+# Ingesting text from PDF documents (DB → ES)
 This workflow implements an extended version of the initial data ingestion pipeline.
 This time, the documents are stored in the database in binary format and so the text needs to be extracted from them prior to being indexed in Elasticsearch.
 The text extraction is handled by Apache Tika that is running as Tika Service (see: [description of all available services](./services.md)).
@@ -177,8 +182,7 @@ Please note that these 4 components can be merged into a specialised component f
 ### Indexing records by Elasticsearch
 This example uses the same configuration for `PutElasticsearchHttpRecord` component as before, but the records are now stored under `medical_reports_text_tika` index.
 
-
-## Annotating free-text documents (DB → ES)
+# Annotating free-text documents (DB → ES)
 This workflow implements the NLP annotations ingestion pipeline based on the previous examples.
 The documents are stored in the initial database in free-text format, but we are interested in extracting only the NLP annotations.
 The annotations will extracted from free-text notes via NLP Service.
@@ -217,8 +221,7 @@ Figure below shows the configuration of the HTTP client.
 This example uses similar configuration for `PutElasticsearchHttpRecord` component as before.
 The annotations are now stored under `medical_reports_anns_medcat_medmen` index where the document identifier is specified by `document_annotation_id` field of the Flow File (it is being generated by the payload parsing script before).
 
-
-## Annotating free-text documents (ES → ES)
+# Annotating free-text documents (ES → ES)
 This workflow implements a modified NLP annotations ingestion pipeline based on the previous example.
 It is assumed that now free-text documents were already ingested into Elasticsearch.
 Moreover, here we are interested in extracting the NLP annotations only from documents matching a specific query for Elasticsearch.

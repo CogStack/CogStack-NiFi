@@ -9,13 +9,14 @@ Please note that all the services are deployed using [Docker](https://docker.io)
 All the services are defined in `services.yml` file and these are:
 - `samples-db` - a PostgreSQL database with sample data to play with,
 - `nifi` - a single instance of Apache NiFi processor (with Zookeper embedded) with exposing a web user interface,
+- `nifi-nginx` - used for reverse proxy to enable secure access to NiFi and other services.
 - `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
 - `nlp-gate-drugapp` - an example drug names extraction NLP application using [GATE NLP Service runner exposing a REST API](https://github.com/CogStack/gate-nlp-service),
 - `nlp-medcat-medmen` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
 - `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
 - `medcat-trainer-nginx` - a [NGINX](https://www.nginx.com/) reverse-proxy for MedCAT Trainer,
-- `elasticsearch-1` - a single-node cluster of Elasticsearch based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution, 
-- `kibana` - Kibana user-interface based on [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution,
+- `elasticsearch-1/elasticsearch-2` - a two-node cluster of Elasticsearch based on [OpenSearch for Elasticsearch](https://opensearch.org/) distribution, 
+- `kibana` - Kibana user-interface based on [OpenSearch for Elasticsearch](https://opensearch.org/docs/latest/dashboards/index/) distribution,
 - `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data.
 
 ## Optional NLP services
@@ -33,19 +34,16 @@ Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) reso
 MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SNOMED_PATH` directory.
 These paths can be defined in `.env` file in the deployment directory.
 
-
-For more information on available services resources, please see [service resources](../services.md).
-
+For more information on available services resources, please see [README](../services/README.md) in `services` directory.
 
 
-### Security
+## Security
 **Important**
 Please note that for the demonstration purposes, the services are run with default built-in usernames / passwords.
 Moreover, SSL encryption is also disabled or not set up in the configuration files.
 For more information please see the [security](../security.md)
 
-
-## Deployment
+# Deployment
 The example deployment recipes are defined in `Makefile` file.
 The commands that start services are prefixed with `start-` keyword, similarly the ones to stop are prefixed with `stop`.
 
@@ -108,7 +106,6 @@ To tear down all the containers and the data persisted in mounted volumes, type:
 make cleanup
 ```
 
-
 ## Services description
 All the essential details on the services configuration are defined in `services.yml` file.
 
@@ -137,21 +134,22 @@ The tables available in the database are:
 
 The tables used in the deployment example are marked with `(*)`.
 
-
-### Apache NiFi
+## Apache NiFi
 `nifi` serves a single-node instance of Apache NiFi that includes the data processing engine with user interface for defining data flows and monitoring.
 Since this is a single-node NiFi instance, it also contains the default, embedded [Apache Zookeper](https://zookeeper.apache.org/) instance for managing state.
 
-`nifi` container exposes port `8080` which is also bound to the host machine at the same number.
-The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8080`.
+`nifi` container exposes port `8443` which is also bound to the host machine on port 8082.
+<br>
+
+`nifi-nginx` contianer exposes the 8443 port directly, reverser-proxying the connection to nifi.
+The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8443`.
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
 For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [nifi](../nifi.md).
 The available example workflows are covered in [workflows](./workflows.md)
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
-
-### Tika Service
+## Tika Service
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
 [Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
 
@@ -160,8 +158,7 @@ The Tika service REST API endpoint for processing documents is available at `htt
 
 For more details on configuration, API definition and example use of Tika Service please refer to [the official documentation](https://github.com/CogStack/tika-service).
 
-
-### NLP Services
+## NLP Services
 
 #### NLP API
 All the NLP services implement a RESTful API that is defined in [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml).
@@ -225,42 +222,42 @@ To access the MedCAT Trainer user interface and admin panel, one can use the def
 For more information on the MedCAT Trainer  configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATtrainer).
 
 
-### ELK stack
-The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenDistro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) distribution.
-OpenDistro for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
+## ELK stack
+The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenSearch for Elasticsearch](https://opensearch.org/) distribution.
+OpenSearch for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
 It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support. 
-Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenDistro remain the same. 
-Hence, OpenDistro can be used as a drop-in replacement for the standard ELK stack.
+Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenSearch remain the same. 
+Hence, OpenSearch can be used as a drop-in replacement for the standard ELK stack.
 
 In the example deployment, the default built-in user credentials are used, such as user: `admin` with pass `admin`.
 
 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
-For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security.md).
-The security aspects are covered extensively in [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security/README.md) in `security` directory.
+The security aspects are covered expensively in [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
 #### Elasticsearch
 Elasticsearch cluster is deployed as a single-node cluster with `elasticsearch-1` service.
 It exposes port `9200` on the container and binds it to the same port on the host machine.
 The service endpoint should be available to all the services running inside the `cognet` Docker network under address `http://elasticsearch-1:9200`.
-
+The default user is : `admin` and password `admin`.
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in the `elasticsearch.yml` [configuration file](https://github.com/CogStack/CogStack-Nifi/services/elasticsearch/config/elasticsearch.yml).
 
-For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
 #### Kibana
 `kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster. 
 It exposes port `5601` on the container and binds it to the same port on the host machine.
-To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `http://localhost:5601`.
-
+To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `https://localhost:5601`.
+The default user is : `admin` and password `admin`.
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](https://github.com/CogStack/CogStack-Nifi/services/kibana/config/kibana.yml).
 
-For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenDistro for Elasticsearch documentation](https://opendistro.github.io/for-elasticsearch-docs/).
+For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/docs/latest/dashboards/index/).
 
 
 ### Jupyter Hub
