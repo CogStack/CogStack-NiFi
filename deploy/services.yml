@@ -227,20 +227,21 @@ services:
       - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
 
-      # INFO: set 'true' to enable SSL
-      #- opendistro_security.ssl.http.enabled=false
-      #- opendistro_security.ssl.transport.enabled=false
-    env_file:
-      - ${ELASTICSEARCH_ENV_FILE}
-      # - plugins.security.disabled=false
-      - plugins.security.ssl.http.enabled=true
-      - plugins.security.ssl.transport.enabled=true
+      #- plugins.security.disabled=false
+      #- plugins.security.ssl.http.enabled=true
+      #- plugins.security.ssl.transport.enabled=true
 
       # User config:
       - ELASTICSEARCH_USER=kibanaserver
       - ELASTICSEARCH_PASSWORD=kibanaserver
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
+
+      # INFO: set 'true' to enable SSL
+      #- opendistro_security.ssl.http.enabled=false
+      #- opendistro_security.ssl.transport.enabled=false
+    #env_file:
+    #  - ${ELASTICSEARCH_ENV_FILE}
     volumes:
       # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
       - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
@@ -426,8 +427,8 @@ services:
     #       no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
-    env_file:
-      - ${NIFI_ENV_FILE}
+    # env_file:
+    #   - ${NIFI_ENV_FILE}
     shm_size: 1024mb
     environment:
      - http_proxy=$HTTP_PROXY
