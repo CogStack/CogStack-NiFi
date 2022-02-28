@@ -475,6 +475,7 @@
                 </entry>
                 <entry>
                     <key>Password</key>
+                    <value>test</value>
                 </entry>
                 <entry>
                     <key>Max Wait Time</key>
