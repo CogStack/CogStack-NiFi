@@ -236,9 +236,6 @@ services:
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
 
-      # INFO: set 'true' to enable SSL
-      #- opendistro_security.ssl.http.enabled=false
-      #- opendistro_security.ssl.transport.enabled=false
     #env_file:
     #  - ${ELASTICSEARCH_ENV_FILE}
     volumes:
