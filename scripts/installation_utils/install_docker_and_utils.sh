@@ -12,7 +12,7 @@ then
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
 
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
     sudo apt -y update 
     sudo apt -y upgrade 
     sudo apt -y install docker-ce docker-ce-cli containerd.io
