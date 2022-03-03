@@ -509,7 +509,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/cogstack-jupyter-hub:latest
+    image: cogstacksystems/jupyter-hub:latest
     # build:
     #   context: ../services/jupyter-hub/
     #   args:
