@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      working-directory: ./nifi
+      working-directory: ./services/nginx
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -43,38 +43,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: cogstacksystems/cogstack-nifi:latest
-      
-      - name: Build and push Docker NiFi image
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context : ./nifi
-          file : "./nifi/Dockerfile"
-          allow: network.host
-          github-token: ${{ github.token }}
-          tags: cogstacksystems/cogstack-nifi:latest
-          push: true
-
-      - name: Build and push Docker Jupyter image
-        uses: docker/build-push-action@v2
-        with:
-          context : ./services/jupyter-hub
-          file : "./services/jupyter-hub/Dockerfile"
-          allow: network.host
-          github-token: ${{ github.token }}
-          tags: cogstacksystems/jupyter-hub:latest
-          push: true
+          images: cogstacksystems/cogstack-nifi-nginx:latest
 
       - name: Build and push Docker NiFi-Nginx image
         uses: docker/build-push-action@v2
         with:
-          context : ./services/nginx
-          file : "./services/nginx/Dockerfile"
+          context : ./
+          file : "Dockerfile"
           allow: network.host
           github-token: ${{ github.token }}
           tags: cogstacksystems/nifi-nginx:latest
           push: true
-        
+          
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
