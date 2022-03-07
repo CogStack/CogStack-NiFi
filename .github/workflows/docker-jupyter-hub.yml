@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      working-directory: ../services/jupyter-hub
+      working-directory: ./services/jupyter-hub
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -48,8 +48,8 @@ jobs:
       - name: Build and push Docker Jupyter image
         uses: docker/build-push-action@v2
         with:
-          context : ./
-          file : "Dockerfile"
+          context : ./services/jupyter-hub
+          file : "./services/jupyter-hub/Dockerfile"
           allow: network.host
           github-token: ${{ github.token }}
           tags: cogstacksystems/jupyter-hub:latest
