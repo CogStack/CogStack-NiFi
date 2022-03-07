@@ -27,6 +27,10 @@ RUN pip3 install nipyapi
 
 RUN apt-get clean autoclean && apt-get autoremove --purge -y
 
+# clean up
+RUN pip3 cache purge
+RUN apt-get autoremove -y
+
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
 RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROXY -Dhttp.nonProxyHosts=$no_proxy"
 
@@ -69,7 +73,3 @@ COPY ./conf/login-identity-providers.xml ./
 
 # finalize
 WORKDIR /opt/nifi/nifi-current/
-
-# clean up
-RUN pip3 cache purge
-RUN apt-get autoremove -y
