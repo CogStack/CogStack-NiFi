@@ -15,13 +15,13 @@ services:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
       # Security configs
-      - ../security/root-ca.key:/etc/jupyterhub/root-ca.key:ro
-      - ../security/root-ca.pem:/etc/jupyterhub/root-ca.pem:ro
-      - ../services/jupyter-hub/config/jupyterhub_cookie_secret:/etc/jupyterhub/jupyterhub_cookie_secret:ro
+      - ../../security/root-ca.key:/etc/jupyterhub/root-ca.key:ro
+      - ../../security/root-ca.pem:/etc/jupyterhub/root-ca.pem:ro
+      - ./config/jupyterhub_cookie_secret:/etc/jupyterhub/jupyterhub_cookie_secret:ro
       # User list and jupyter config
-      - ../services/jupyter-hub/config/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py:ro
-      - ../services/jupyter-hub/config/userlist:/etc/jupyterhub/userlist:ro
-      - ../services/jupyter-hub/config/teamlist:/etc/jupyterhub/teamlist:ro
+      - ./config/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py:ro
+      - ./config/userlist:/etc/jupyterhub/userlist:ro
+      - ./config/teamlist:/etc/jupyterhub/teamlist:ro
       # Give access to Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
