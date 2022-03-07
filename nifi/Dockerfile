@@ -69,3 +69,7 @@ COPY ./conf/login-identity-providers.xml ./
 
 # finalize
 WORKDIR /opt/nifi/nifi-current/
+
+# clean up
+RUN pip3 cache purge
+RUN apt-get autoremove -y
