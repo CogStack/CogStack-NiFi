@@ -4,9 +4,13 @@ on:
 
   push:
     branches: [ master ]
+    tags:
+      - 'v*.*.*'
   pull_request:
     branches: [ master ]
-    
+    tags:
+      - 'v*.*.*'
+      
   release:
     types: [published]
 
@@ -49,7 +53,7 @@ jobs:
         run: |
           echo $RELEASE_VERSION
           echo ${{ env.RELEASE_VERSION }}
-          
+
       - name: Build and push Docker NiFi-Nginx image
         uses: docker/build-push-action@v2
         with:
