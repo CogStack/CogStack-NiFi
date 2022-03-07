@@ -202,7 +202,7 @@ services:
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   elasticsearch-1:
-    # image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
+    #image: docker.elastic.co/elasticsearch/elasticsearch:8.0.1
     image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-cogstack-node-1
     platform: linux
@@ -216,23 +216,19 @@ services:
       # CLUSTER CONFIGS
       - node.name=es01
       - cluster.name=elasticsearch-cogstack-cluster
-        # INFO: enable 'zen' for multi-node cluster
-      - discovery.type=zen
-      # - discovery.type=single-node
+      # INFO: enable 'zen' for multi-node cluster
+      #- discovery.type=zen
       - cluster.initial_master_nodes=es01,es02
-    
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
       - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
 
       #- plugins.security.disabled=false
-      #- plugins.security.ssl.http.enabled=true
-      #- plugins.security.ssl.transport.enabled=true
+      - plugins.security.ssl.http.enabled=true
+      - plugins.security.ssl.transport.enabled=true
 
       # User config:
-      - ELASTICSEARCH_USER=kibanaserver
-      - ELASTICSEARCH_PASSWORD=kibanaserver
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
 
@@ -261,11 +257,11 @@ services:
 
       # common setting for now
       # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
-      - ../security/opendistro/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
+      - ../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
 
       # open distro /opensearch only
-      - ../security/opendistro/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
-      - ../security/opendistro/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+      - ../security/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
+      - ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
       # VM settings
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
 
@@ -302,7 +298,7 @@ services:
       # CLUSTER CONFIGS
       - node.name=es02
       - cluster.name=elasticsearch-cogstack-cluster
-      - discovery.type=zen
+      #- discovery.type=zen
       - cluster.initial_master_nodes=es01,es02
 
       # OTHER SETTINGS
@@ -316,8 +312,6 @@ services:
       - plugins.security.ssl.transport.enabled=true
 
       # User config:
-      - ELASTICSEARCH_USER=kibanaserver
-      - ELASTICSEARCH_PASSWORD=kibanaserver
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
     volumes:
@@ -515,30 +509,43 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/cogstack-jupyter-hub:latest
-    # build:
-    #   context: ../services/jupyter-hub/
-    #   args:
-    #     - http_proxy=$HTTP_PROXY
-    #     - https_proxy=$HTTPS_PROXY
-    #     - no_proxy=$no_proxy
+    image: cogstacksystems/jupyter-hub:latest
+    #build:
+    #  context: ../services/jupyter-hub/
+    #  args:
+    #    - http_proxy=$HTTP_PROXY
+    #    - https_proxy=$HTTPS_PROXY
+    #    - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
+    platform: linux
     environment:
-      - JUPYTER_ENABLE_LAB=yes
+      - HTTP_PROXY=$HTTP_PROXY
+      - HTTPS_PROXY=$HTTPS_PROXY
+      - NO_PROXY=$NO_PROXY
     volumes:
-      - jupyter-notebooks:/home/jovyan/notebooks
-      # INFO: uncomment below to map security certificates if needed
-      #- "../security/jupyter.pem:/etc/ssl/notebook/jupyter.pem:ro"
-      #- "../security/jupyter.key:/etc/ssl/notebook/jupyter.key:ro"
-      #- "../security/root-ca.pem:/etc/ssl/notebook/root-ca.pem:ro"
-    command: "start-notebook.sh \
-                  --NotebookApp.password=${JUPYTERHUB_PASSWORD}"
-      # INFO: uncomment below to use SSL keys (as a part of start-up cmd)
-      #           --keyfile=/etc/ssl/notebook/jupyter.key \
-      #           --certfile=/etc/ssl/notebook/jupyter.pem \
+      - jupyter-hub-scratch-vol:/srv/scratch
+      - jupyter-hub-vol:/etc/jupyterhub
+      # Security configs
+      - ../security/root-ca.key:/etc/jupyterhub/root-ca.key:ro
+      - ../security/root-ca.pem:/etc/jupyterhub/root-ca.pem:ro
+      - ../services/jupyter-hub/config/jupyterhub_cookie_secret:/etc/jupyterhub/jupyterhub_cookie_secret:ro
+      # User list and jupyter config
+      - ../services/jupyter-hub/config/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py:ro
+      - ../services/jupyter-hub/config/userlist:/etc/jupyterhub/userlist:ro
+      - ../services/jupyter-hub/config/teamlist:/etc/jupyterhub/teamlist:ro
+      # Give access to Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sh -c "jupyterhub -f /etc/jupyterhub/jupyterhub_config.py"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
-      - "8888:8888"
+      - "8888:443"
     networks:
       - cognet
 
@@ -604,9 +611,10 @@ volumes:
     driver: local
 
   # Jupyter Hub
-  jupyter-notebooks:
+  jupyter-hub-vol:
     driver: local
-
+  jupyter-hub-scratch-vol:
+    driver: local
 #---------------------------------------------------------------------------#
 # Docker networks.                                                          #
 #---------------------------------------------------------------------------#
