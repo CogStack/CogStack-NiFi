@@ -10,7 +10,6 @@ services:
       - HTTP_PROXY=$HTTP_PROXY
       - HTTPS_PROXY=$HTTPS_PROXY  
       - NO_PROXY=$NO_PROXY
-      - JUPYTER_ENABLE_LAB=yes
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
