@@ -49,8 +49,6 @@ RUN ACCEPT_EULA=Y apt-get install -y msodbcsql18
 RUN ACCEPT_EULA=Y apt-get install -y mssql-tools18
 RUN echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
 
-USER $NB_UID
-
 # Install miniconda
 ENV CONDA_DIR /opt/conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
@@ -83,28 +81,32 @@ RUN pip3 install dockerspawner jupyterhub-firstuseauthenticator jupyterhub-syste
 
 RUN python3 -m jupyter contrib nbextension install --sys-prefix
 
+RUN pip3 install medcat && \
+    python3 -m spacy download en_core_web_md && \
+    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
+    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
+
+COPY r_kernel_install.sh /etc/jupyterhub/
+
+RUN Rscript /etc/jupyterhub/r_kernel_install.sh
+
 RUN mkdir /home/$NB_USER/notebooks
 
 # copy scripts and config files
-COPY config/jupyterhub_config.py /etc/jupyterhub/jupyterhub_config.py
-COPY r_kernel_install.sh /etc/jupyterhub/
-
-#RUN pip3 install medcat && \
-#    python3 -m spacy download en_core_web_md && \
-#    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
-#    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
+COPY config/jupyterhub_config.py /etc/jupyterhub/
 
 # create jupyterhub shared folder
-RUN mkdir -p /srv/scratch
-RUN chmod -R 777 /srv
-RUN chmod g+s /srv/scratch
-RUN chmod 0777 /srv/scratch
+
+RUN mkdir -p /home/jovyan/scratch
+RUN chmod -R 777 /home/jovyan/scratch
+RUN chmod g+s /home/jovyan/scratch
+RUN chmod 0777 /home/jovyan/scratch
 
 # copy notebooks
-COPY notebooks /scratch/
-
-#RUN Rscript /etc/jupyterhub/r_kernel_install.sh
+COPY notebooks /home/jovyan/work/
 
 # clean up
 RUN pip3 cache purge
 RUN apt-get autoremove -y
+
+USER $NB_UID

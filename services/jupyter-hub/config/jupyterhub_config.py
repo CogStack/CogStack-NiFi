@@ -56,7 +56,7 @@ c.DockerSpawner.extra_host_config = { "network_mode": network_name }
 # We follow the same convention.
 notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR") or "/home/jovyan/work"
 
-shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/srv/scratch")
+shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/home/jovyan/scratch")
 
 c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user"s Docker volume on the host to the notebook user"s
@@ -64,6 +64,7 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.volumes = { "jupyterhub-user-{username}": notebook_dir, "jupyter-hub-shared-scratch": shared_content_dir}
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ "volume_driver": "local" })
+
 # Remove containers once they are stopped
 c.DockerSpawner.remove_containers = True
 # For debugging arguments passed to spawned containers
@@ -124,6 +125,9 @@ class DockerSpawner(dockerspawner.DockerSpawner):
                 "bind": os.path.join(shared_content_dir, team),
                 "mode": "rw",  # or ro for read-only
             }
+
+        subprocess.run(["chmod", "-R", "777", shared_content_dir])
+        subprocess.run(["chown", "-R", "jovyan:users", shared_content_dir])
         return super().start()
 
 #c.JupyterHub.authenticator_class = LocalNativeAuthenticator
