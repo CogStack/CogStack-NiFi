@@ -521,10 +521,10 @@ services:
     platform: linux
     environment:
       - HTTP_PROXY=$HTTP_PROXY
-      - HTTPS_PROXY=$HTTPS_PROXY
+      - HTTPS_PROXY=$HTTPS_PROXY  
       - NO_PROXY=$NO_PROXY
     volumes:
-      - jupyter-hub-scratch-vol:/srv/scratch
+      - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
       # Security configs
       - ../security/root-ca.key:/etc/jupyterhub/root-ca.key:ro
@@ -613,7 +613,7 @@ volumes:
   # Jupyter Hub
   jupyter-hub-vol:
     driver: local
-  jupyter-hub-scratch-vol:
+  jupyter-hub-shared-scratch:
     driver: local
 #---------------------------------------------------------------------------#
 # Docker networks.                                                          #

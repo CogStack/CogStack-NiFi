@@ -55,10 +55,13 @@ c.DockerSpawner.extra_host_config = { "network_mode": network_name }
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
 # We follow the same convention.
 notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR") or "/home/jovyan/work"
+
+shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/srv/scratch")
+
 c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user"s Docker volume on the host to the notebook user"s
 # notebook directory in the container
-c.DockerSpawner.volumes = { "jupyterhub-user-{username}": notebook_dir, "jupyter-shared-scratch": "/srv/scratch"}
+c.DockerSpawner.volumes = { "jupyterhub-user-{username}": notebook_dir, "jupyter-hub-shared-scratch": shared_content_dir}
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ "volume_driver": "local" })
 # Remove containers once they are stopped
@@ -110,6 +113,7 @@ with open(os.path.join(pwd, "teamlist")) as f:
             for member in members:
                 team_map[member].add(team)
 
+
 # Spawn single-user servers as Docker containers
 class DockerSpawner(dockerspawner.DockerSpawner):
     def start(self):
@@ -117,7 +121,7 @@ class DockerSpawner(dockerspawner.DockerSpawner):
         self.volumes = {"jupyterhub-user-{}".format(self.user.name): notebook_dir}
         for team in team_map[self.user.name]:
             self.volumes["jupyterhub-team-{}".format(team)] = {
-                "bind": os.path.join(notebook_dir, team),
+                "bind": os.path.join(shared_content_dir, team),
                 "mode": "rw",  # or ro for read-only
             }
         return super().start()

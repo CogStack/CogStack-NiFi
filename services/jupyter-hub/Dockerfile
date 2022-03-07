@@ -89,20 +89,21 @@ RUN mkdir /home/$NB_USER/notebooks
 COPY config/jupyterhub_config.py /etc/jupyterhub/jupyterhub_config.py
 COPY r_kernel_install.sh /etc/jupyterhub/
 
-RUN pip3 install medcat && \
-    python3 -m spacy download en_core_web_md && \
-    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
-    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
+#RUN pip3 install medcat && \
+#    python3 -m spacy download en_core_web_md && \
+#    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
+#    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
 
 # create jupyterhub shared folder
 RUN mkdir -p /srv/scratch
-RUN chmod 777 /srv/scratch
+RUN chmod -R 777 /srv
 RUN chmod g+s /srv/scratch
+RUN chmod 0777 /srv/scratch
 
 # copy notebooks
-COPY notebooks /srv/scratch
+COPY notebooks /scratch/
 
-RUN Rscript /etc/jupyterhub/r_kernel_install.sh
+#RUN Rscript /etc/jupyterhub/r_kernel_install.sh
 
 # clean up
 RUN pip3 cache purge
