@@ -509,13 +509,13 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:latest
-    #build:
-    #  context: ../services/jupyter-hub/
-    #  args:
-    #    - http_proxy=$HTTP_PROXY
-    #    - https_proxy=$HTTPS_PROXY
-    #    - no_proxy=$no_proxy
+    #image: cogstacksystems/jupyter-hub:latest
+    build:
+      context: ../services/jupyter-hub/
+      args:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
@@ -532,8 +532,8 @@ services:
       - ../services/jupyter-hub/config/jupyterhub_cookie_secret:/etc/jupyterhub/jupyterhub_cookie_secret:ro
       # User list and jupyter config
       - ../services/jupyter-hub/config/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py:ro
-      - ../services/jupyter-hub/config/userlist:/etc/jupyterhub/userlist:ro
-      - ../services/jupyter-hub/config/teamlist:/etc/jupyterhub/teamlist:ro
+      - ../services/jupyter-hub/config/userlist:/etc/jupyterhub/userlist:rw
+      - ../services/jupyter-hub/config/teamlist:/etc/jupyterhub/teamlist:rw
       # Give access to Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
     command: sh -c "jupyterhub -f /etc/jupyterhub/jupyterhub_config.py"

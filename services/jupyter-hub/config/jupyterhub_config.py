@@ -20,16 +20,9 @@ def pre_spawn_hook(spawner):
 
 c = get_config()
 
-# Spawn single-user servers as Docker containers
-c.JupyterHub.spawner_class = "dockerspawner.DockerSpawner"
-
-c.DockerSpawner.extra_create_kwargs = {"user": "root"}
-c.DockerSpawner.environment = {
-  "GRANT_SUDO": "1",
-  "UID": "0", # workaround https://github.com/jupyter/docker-stacks/pull/420
-}
-
 # Spawn containers from this image
+# Either use the CoGstack one from the repo which is huge and contains all the stuff needed or,
+# use the default official one which is clean.
 c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "jupyterhub/singleuser:latest")
 
 # JupyterHub requires a single-user instance of the Notebook server, so we
@@ -89,7 +82,12 @@ c.PAMAuthenticator.admin_groups = {"wheel"}
 c.Authenticator.whitelist = whitelist = set()
 
 pwd = os.path.dirname(__file__)
-with open(os.path.join(pwd, "userlist")) as f:
+
+# Get active users
+userlist_path = os.path.join(pwd, "userlist")
+teamlist_path = os.path.join(pwd, "teamlist")
+
+with open(userlist_path) as f:
     for line in f:
         if not line:
             continue
@@ -103,7 +101,7 @@ with open(os.path.join(pwd, "userlist")) as f:
 
 # Get team memberships
 team_map = {user: set() for user in whitelist}
-with open(os.path.join(pwd, "teamlist")) as f:
+with open(teamlist_path) as f:
     for line in f:
         if not line:
             continue
@@ -114,21 +112,36 @@ with open(os.path.join(pwd, "teamlist")) as f:
             for member in members:
                 team_map[member].add(team)
 
-
 # Spawn single-user servers as Docker containers
 class DockerSpawner(dockerspawner.DockerSpawner):
     def start(self):
         # username is self.user.name
         self.volumes = {"jupyterhub-user-{}".format(self.user.name): notebook_dir}
-        for team in team_map[self.user.name]:
-            self.volumes["jupyterhub-team-{}".format(team)] = {
-                "bind": os.path.join(shared_content_dir, team),
-                "mode": "rw",  # or ro for read-only
-            }
+        
+        if self.user.name not in whitelist:
+            whitelist.add(self.user.name)
+            with open(userlist_path) as f:
+                f.write(self.user.name + "\n")
 
-        subprocess.run(["chmod", "-R", "777", shared_content_dir])
-        subprocess.run(["chown", "-R", "jovyan:users", shared_content_dir])
+        if self.user.name in list(team_map.keys()):
+            for team in team_map[self.user.name]:
+                team_dir_path = os.path.join(shared_content_dir, team)
+                self.volumes["jupyterhub-team-{}".format(team)] = {
+                    "bind": team_dir_path,
+                    "mode": "rw",  # or ro for read-only
+                }
+        
+        self.post_start_cmd = "chmod -R 777 " + shared_content_dir
+
         return super().start()
+
+# Spawn single-user servers as Docker containers
+c.JupyterHub.spawner_class = DockerSpawner
+c.DockerSpawner.extra_create_kwargs = {"user": "root"}
+c.DockerSpawner.environment = {
+  "GRANT_SUDO": "1",
+  "UID": "0", # workaround https://github.com/jupyter/docker-stacks/pull/420
+}
 
 #c.JupyterHub.authenticator_class = LocalNativeAuthenticator
 
@@ -139,6 +152,11 @@ c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator"
 c.JupyterHub.ip = "*"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.JupyterHub.hub_port = 8888
+
+# c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:8887"
+# ideally a private network address
+# c.JupyterHub.proxy_api_ip = "10.0.1.4"
+# c.JupyterHub.proxy_api_port = 8887
 
 # TLS config
 c.JupyterHub.port = 443
@@ -185,9 +203,7 @@ c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secr
 # c.ServerApp.ip = "0.0.0.0"
 
 # c.JupyterHub.ip = "0.0.0.0"
-# c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:8887"
+
 # c.JupyterHub.port = 443
 
-# ideally a private network address
-# c.JupyterHub.proxy_api_ip = "10.0.1.4"
-# c.JupyterHub.proxy_api_port = 8887
+c.JupyterHub.allow_named_servers = True
