@@ -102,7 +102,6 @@ RUN chmod 0777 /home/jovyan/scratch
 COPY notebooks /home/jovyan/work/
 
 # clean up
-RUN pip3 cache purge
 RUN apt-get autoremove -y
 
 USER $NB_UID
