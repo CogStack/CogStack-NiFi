@@ -1,4 +1,4 @@
-name: docker-jupyter-hub
+name: docker-jupyter-singleuser
 
 on:
 
