@@ -509,13 +509,13 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    #image: cogstacksystems/jupyter-hub:latest
-    build:
-      context: ../services/jupyter-hub/
-      args:
-        - http_proxy=$HTTP_PROXY
-        - https_proxy=$HTTPS_PROXY
-        - no_proxy=$no_proxy
+    image: cogstacksystems/jupyter-hub:latest
+    #build:
+    #  context: ../services/jupyter-hub/
+    #  args:
+    #    - http_proxy=$HTTP_PROXY
+    #    - https_proxy=$HTTPS_PROXY
+    #    - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
@@ -523,6 +523,8 @@ services:
       - HTTP_PROXY=$HTTP_PROXY
       - HTTPS_PROXY=$HTTPS_PROXY  
       - NO_PROXY=$NO_PROXY
+      # this is the image used within the service to create containers for users
+      - DOCKER_NOTEBOOK_IMAGE=cogstacksystems/jupyter-singleuser:latest
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
