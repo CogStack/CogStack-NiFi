@@ -20,6 +20,7 @@ def pre_spawn_hook(spawner):
 
 c = get_config()
 
+
 # Spawn containers from this image
 # Either use the CoGstack one from the repo which is huge and contains all the stuff needed or,
 # use the default official one which is clean.
@@ -30,7 +31,7 @@ c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "jupyterhub/singleuse
 # jupyter/docker-stacks *-notebook images as the Docker run command when
 # spawning containers.  Optionally, you can override the Docker run command
 # using the DOCKER_SPAWN_CMD environment variable.
-spawn_cmd = os.environ.get("DOCKER_SPAWN_CMD", "start-singleuser.sh --SingleUserNotebookApp.default_url=/lab")
+spawn_cmd = os.environ.get("DOCKER_SPAWN_CMD", "start-singleuser.sh")
 
 c.DockerSpawner.extra_create_kwargs.update({"command": spawn_cmd})
 
@@ -41,7 +42,7 @@ network_name = os.environ.get("DOCKER_NETWORK_NAME", "cogstack-net")
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
-c.DockerSpawner.extra_host_config = { "network_mode": network_name }
+c.DockerSpawner.extra_host_config = { "network_mode": network_name}
 
 # Explicitly set notebook directory because we"ll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
@@ -51,17 +52,27 @@ notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR") or "/home/jovyan/work"
 
 shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/home/jovyan/scratch")
 
-c.DockerSpawner.notebook_dir = notebook_dir
+#c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user"s Docker volume on the host to the notebook user"s
 # notebook directory in the container
 c.DockerSpawner.volumes = { "jupyterhub-user-{username}": notebook_dir, "jupyter-hub-shared-scratch": shared_content_dir}
 # volume_driver is no longer a keyword argument to create_container()
 # c.DockerSpawner.extra_create_kwargs.update({ "volume_driver": "local" })
 
+#c.DockerSpawner.image_whitelist = {
+#    'cogstacksystems-jupyterhub': 'cogstacksystems/jupyter-singleuser:latest',
+#    'cogstacksystems-jupyterhub-dev': 'cogstacksystems/jupyter-singleuser:dev-latest'
+#}
+
 # Remove containers once they are stopped
-c.DockerSpawner.remove_containers = True
+c.DockerSpawner.remove_containers = False
+c.DockerSpawner.remove = False
 # For debugging arguments passed to spawned containers
-c.DockerSpawner.debug = False
+c.DockerSpawner.debug = True
+c.Spawner.debug = True
+
+# Enable debug-logging of the single-user server
+c.LocalProcessSpawner.debug = True
 
 # AUTHENTICATION
 #c.Spawner.pre_spawn_hook = pre_spawn_hook
@@ -75,6 +86,8 @@ c.Authenticator.admin_users = admin = {"admin"}
 # By default all users that make sign up on Native Authenticator
 # need an admin approval so they can actually log in the system.
 c.Authenticator.open_signup = False
+
+c.NotebookApp.allow_root=False
 
 c.LocalAuthenticator.create_system_users = True
 c.SystemdSpawner.dynamic_users = True
@@ -149,14 +162,16 @@ c.FirstUseAuthenticator.create_users = True
 c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator" #"nativeauthenticator.NativeAuthenticator"
 
 # User containers will access hub by container name on the Docker network
-c.JupyterHub.ip = "*"
+c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
+
+
 c.JupyterHub.hub_port = 8888
 
-# c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:8887"
+c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:8887"
 # ideally a private network address
 # c.JupyterHub.proxy_api_ip = "10.0.1.4"
-# c.JupyterHub.proxy_api_port = 8887
+c.JupyterHub.proxy_api_port = 8887
 
 # TLS config
 c.JupyterHub.port = 443
@@ -175,7 +190,7 @@ c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secr
 
 ## The date format used by logging formatters for %(asctime)s
 #  Default: "%Y-%m-%d %H:%M:%S"
-# c.Application.log_datefmt = "%Y-%m-%d %H:%M:%S"
+# c.Application.log_datefmt = "%Y-%m-%d %H:%M:%S"   
 
 ## The Logging format template
 #  Default: "[%(name)s]%(highlevel)s %(message)s"
@@ -184,7 +199,7 @@ c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secr
 ## Set the log level by value or name.
 #  Choices: any of [0, 10, 20, 30, 40, 50, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
 #  Default: 30
-# c.Application.log_level = 30
+c.Application.log_level = "DEBUG"
 
 ## Instead of starting the Application, dump configuration to stdout
 #  Default: False
@@ -194,16 +209,56 @@ c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secr
 #  Default: False
 # c.Application.show_config_json = False
 
-#------------------------------------------------------------------------------
-# JupyterApp(Application) configuration
-#------------------------------------------------------------------------------
-## Base class for Jupyter applications
-
-# c.ServerApp.port = 8888
-# c.ServerApp.ip = "0.0.0.0"
-
-# c.JupyterHub.ip = "0.0.0.0"
-
-# c.JupyterHub.port = 443
-
 c.JupyterHub.allow_named_servers = True
+
+## Timeout (in seconds) to wait for spawners to initialize
+# 
+#  Checking if spawners are healthy can take a long time if many spawners are
+#  active at hub start time.
+#
+#  If it takes longer than this timeout to check, init_spawner will be left to
+#  complete in the background and the http server is allowed to start.
+#          
+#  A timeout of -1 means wait forever, which can mean a slow startup of the Hub
+#  but ensures that the Hub is fully consistent by the time it starts responding
+#  to requests. This matches the behavior of jupyterhub 1.0.
+#  
+#  .. versionadded: 1.1.0
+#  Default: 10
+c.JupyterHub.init_spawners_timeout = 180
+
+## Timeout (in seconds) before giving up on a spawned HTTP server
+#  
+#  Once a server has successfully been spawned, this is the amount of time we
+#  wait before assuming that the server is unable to accept connections.
+#  Default: 30
+c.Spawner.http_timeout = 180
+
+## Timeout (in seconds) before giving up on starting of single-user server.
+#  
+#  This is the timeout for start to return, not the timeout for the server to
+#  respond. Callers of spawner.start will assume that startup has failed if it
+#  takes longer than this. start should return when the server process is started
+#  and its location is known.
+#  Default: 60
+c.Spawner.start_timeout = 180
+
+
+#------------------------------------------------------------------------------
+# LocalProcessSpawner configuration
+#------------------------------------------------------------------------------
+
+# A Spawner that just uses Popen to start local processes as users.
+# 
+# Requires users to exist on the local system.
+# 
+# This is the default spawner for JupyterHub.
+
+# Seconds to wait for process to halt after SIGINT before proceeding to SIGTERM
+c.LocalProcessSpawner.interrupt_timeout = 60
+
+# Seconds to wait for process to halt after SIGKILL before giving up
+c.LocalProcessSpawner.kill_timeout = 60
+
+# Seconds to wait for process to halt after SIGTERM before proceeding to SIGKILL
+c.LocalProcessSpawner.term_timeout = 60

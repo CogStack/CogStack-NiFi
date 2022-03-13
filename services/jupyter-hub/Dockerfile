@@ -37,7 +37,9 @@ RUN apt-get update && apt-get upgrade -y && \
 RUN apt-get install -y python3 python3-pip python3-dev python3.9-dev python3-all-dev ssl-cert --no-install-recommends
 
 RUN pip3 install --upgrade pip
-RUN pip3 install setuptools wheel virtualenv cython isort
+
+# utils for jupyterhub
+RUN pip3 install setuptools wheel virtualenv cython isort netifaces
 
 # jupyterhub stuff
 RUN pip3 install sqlalchemy detect simplejson ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata jupyterhub-firstuseauthenticator dockerspawner jupyterhub-nativeauthenticator

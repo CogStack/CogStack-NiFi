@@ -436,11 +436,9 @@ services:
       - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
       - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
-
-      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
+      # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
       - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
       - ../security/es_certificates:/opt/nifi/nifi-current/es_certificates:ro
@@ -509,13 +507,13 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:latest
-    #build:
-    #  context: ../services/jupyter-hub/
-    #  args:
-    #    - http_proxy=$HTTP_PROXY
-    #    - https_proxy=$HTTPS_PROXY
-    #    - no_proxy=$no_proxy
+    #image: cogstacksystems/jupyter-hub:latest
+    build:
+      context: ../services/jupyter-hub/
+      args:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
@@ -526,7 +524,7 @@ services:
 
       # this is the image used within the service to create containers for users
       # the image used by us "cogstacksystems/jupyter-singleuser:latest" might take longer to load
-      - DOCKER_NOTEBOOK_IMAGE=jupyterhub/singleuser:latest
+      - DOCKER_NOTEBOOK_IMAGE=jupyter-singleuser
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
