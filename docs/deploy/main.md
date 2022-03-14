@@ -56,6 +56,8 @@ followed by a cleanup or dangling volumes (careful as this will remove all volum
 `docker volume prune -f` <strong> WARNING THIS WILL DELETE ALL UNUSED VOLUMES ON YOUR MACHINE!</strong>
 
 ### Known Issues/errors
+Common issues that can be encountered across services.
+### **NiFi**
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
     <br />   
     - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
@@ -67,3 +69,25 @@ When dealing with contaminated deployments ( containers using volumes from previ
     - `System Error: Invalid host header : this occurs when nifi host has not been properly configured`, please check the `/nifi/conf/nifi.properties` file and set the `nifi.web.proxy.host` property to the IP address of the server along with the port `<host>:<port>`, if this does not work then it is usually a proxy/network configuration problem (also check firewalls), another workaround would be to comment out the following subsections of the `nifi` service in the `services.yml` file : `ports:` and `networks` with all their child settings. After this is done the following property should be added `network_mode: host`, restart the instance using the `docker-compoes -f services.yml up -d nifi` command afterwards. 
     <br />
     -  Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if older DB system is used)
+
+###  **Elasticsearch Errors**
+It is quite a common issue for both opensearchand native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
+
+```
+ERROR: [1] bootstrap checks failed
+[1]: max virtual memory areas vm.max_map_count [65111] is too low, increase to at least [262144]
+```
+To solve this one needs to simply execute :
+    <br>
+    - on Linux/Mac OS X : 
+    ```sysctl -w vm.max_map_count=262144``` in terminal. 
+    To make the same change systemwide plase add ```vm.max_map_count=262144``` to /etc/sysctl.conf and restart the dockerservice/machine.
+    An example of this can be found under /services/elasticsearch/sysctl.conf
+    <br>
+    - on Windows you need to enter the following commands in a powershell instance:
+    <br>
+    ```wsl -d docker-desktop```
+    <br>
+    ```sysctl -w vm.max_map_count=262144```
+
+For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
