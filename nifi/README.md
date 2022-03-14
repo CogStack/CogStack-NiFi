@@ -84,10 +84,10 @@ Troubleshooting Security : if you encounter errors related to sensitive key prop
 
 # Drivers
 The drivers are provided in [`drivers`](./drivers) directory.
-The key used ones are: 
-- `mssql-jdbc-7.2.2.jre11.jar` - MS SQL Server JDBC driver,
-- `postgresql-42.2.5.jar` - PostgreSQL JDBC driver.
 
+The key used ones are: 
+- `mssql-jdbc-9.4.1.jre11.jar` - MS SQL Server JDBC driver,
+- `postgresql-42.3.3.jar` - PostgreSQL JDBC driver.
 
 # User resources
 With our custom image there are bundled resources to get up and running example workflows.

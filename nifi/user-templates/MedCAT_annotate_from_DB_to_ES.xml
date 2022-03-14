@@ -465,7 +465,7 @@
                 </entry>
                 <entry>
                     <key>database-driver-locations</key>
-                    <value>/opt/nifi/drivers/postgresql-42.2.5.jar</value>
+                    <value>/opt/nifi/drivers/postgresql-42.3.3.jar</value>
                 </entry>
                 <entry>
                     <key>kerberos-credentials-service</key>
