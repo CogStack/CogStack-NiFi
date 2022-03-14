@@ -87,7 +87,7 @@ RUN pip3 install medcat && python3 -m spacy download en_core_web_md && \
 
 COPY r_kernel_install.sh /etc/jupyterhub/
 
-# RUN Rscript /etc/jupyterhub/r_kernel_install.sh
+RUN Rscript /etc/jupyterhub/r_kernel_install.sh
 
 
 # create jupyterhub shared folder
