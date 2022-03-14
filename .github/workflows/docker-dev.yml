@@ -80,7 +80,7 @@ jobs:
           file : "./services/jupyter-hub/Dockerfile_singleuser"
           allow: network.host
           github-token: ${{ github.token }}
-          tags: cogstacksystems/jupyter-singleuser:${{ env.RELEASE_VERSION }}
+          tags: cogstacksystems/jupyter-singleuser:dev-latest
           push: true
           
       - name: Image digest
