@@ -11,7 +11,7 @@ Welcome to CogStack-Nifi's documentation!
    :caption: Contents:
 
    main.md
-   nifi.md
+   nifi/main.md
    deploy/main.md
    deploy/services.md
    deploy/workflows.md
