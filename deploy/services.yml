@@ -524,7 +524,7 @@ services:
 
       # this is the image used within the service to create containers for users
       # the image used by us "cogstacksystems/jupyter-singleuser:latest" might take longer to load
-      - DOCKER_NOTEBOOK_IMAGE=jupyter-singleuser
+      - DOCKER_NOTEBOOK_IMAGE=cogstacksystems/jupyter-singleuser:latest
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
