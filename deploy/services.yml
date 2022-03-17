@@ -507,13 +507,13 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    #image: cogstacksystems/jupyter-hub:latest
-    build:
-      context: ../services/jupyter-hub/
-      args:
-        - http_proxy=$HTTP_PROXY
-        - https_proxy=$HTTPS_PROXY
-        - no_proxy=$no_proxy
+    image: cogstacksystems/jupyter-hub:latest
+    #build:
+    #  context: ../services/jupyter-hub/
+    #  args:
+    #    - http_proxy=$HTTP_PROXY
+    #    - https_proxy=$HTTPS_PROXY
+    #    - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
