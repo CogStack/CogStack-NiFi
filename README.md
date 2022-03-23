@@ -15,6 +15,7 @@ The project is organised in the following directories:
 - [`services`](./services) - available services with their corresponding configuration files and resources,
 - [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
 - [`scripts`](./scripts) - helper scripts such as the one ingesting samples into Elasticsearch.
+- [`data`](./data) - any data that you wish to ingest should be placed here.
 
 As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/) walks through an example deployment workflow examples.
 
