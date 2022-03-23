@@ -25,34 +25,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
-      - name: Get and set release version env var
-        id: release_version
-        run: |
-             echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-             echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
-             
-      - name: output test
-        run: |
-             echo ${{ env.RELEASE_VERSION }}
-             echo $RELEASE_VERSION
-             
-      - name: set docker release tag name
-        id: set_release_version
-        if: ${{ env.RELEASE_VERSION != 'master' }}
-        run: echo "RELEASE_VERSION=${RELEASE_VERSION#?}" >> $GITHUB_ENV
-
-      - name: set docker release tag name
-        id: set_release_version_latest
-        if: ${{ env.RELEASE_VERSION == 'master' }}
-        run: echo "RELEASE_VERSION=latest" >> $GITHUB_ENV
-        
-      - name: Output release tag version
-        run: |
-          echo $RELEASE_VERSION
 
       - name: Build docs
         run: |
           cd docs
-          pip3 install -r docs/requirements.txt
+          pip3 install -r requirements.txt
           make clean
           make html
