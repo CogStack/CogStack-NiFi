@@ -5,7 +5,7 @@ CREATE TABLE documents (
 );
 
 CREATE TABLE nlp_models (
-	id INTEGER PRIMARY KEY,
+	id BIGINT PRIMARY KEY,
 	"name" VARCHAR NOT NULL, 
     tag VARCHAR,
     "description" VARCHAR,
@@ -14,7 +14,7 @@ CREATE TABLE nlp_models (
 );
 
 CREATE TABLE annotations (
-	id INTEGER PRIMARY KEY,
+	id BIGINT PRIMARY KEY,
 	label VARCHAR NOT NULL,
     lael_id VARCHAR,
     source_value VARCHAR,
