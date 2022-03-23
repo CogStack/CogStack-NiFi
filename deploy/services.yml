@@ -304,8 +304,8 @@ services:
       - cognet
 
   elasticsearch-2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
-    #image: opensearchproject/opensearch:1.2.4
+    #image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
+    image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-2
     platform: linux
     shm_size : 1024mb
@@ -413,10 +413,10 @@ services:
       #- ../services/kibana/config/kibana_native.yml:/usr/share/kibana/config/kibana.yml:ro    
       
       # INFO: uncomment below to add SSL keys
-      # - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
-      # - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
-      # - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
-      # - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
+      - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
+      - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
 
       # ES NATIVE
       #- ../security/es_certificates/ca/ca.crt:/usr/share/kibana/config/root-ca.crt:ro
