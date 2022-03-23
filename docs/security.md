@@ -22,25 +22,67 @@ Using `create_root_ca_cert.sh` the files generated are:
 - certificate: `root-ca.pem`
 
 ### ELK stack
-For information on OpenDistro for Elasticsearch security features and their configuration please refer to [the official documentation](https://opendistro.github.io/for-elasticsearch/features/security.html).
+For information on OpenSearch for Elasticsearch security features and their configuration please refer to [the official documentation](https://opensearch.org/docs/latest/security-plugin/index/).
+
+We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](ttps://www.elastic.co/). 
+Please note that the deployment of native ES version requires different settings to be changed from the current repository state.
 
 # Generating ES + KIBANA CERTS
 
-#### Elasticsearch
-ElasticSearch requires:
-- `es-node1.pem`
-- `es-node1.key`
+#### Elasticsearch Security Requirements
 
-## For Elasticsearch
+Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES)
+### For OpenSearch
+ElasticSearch OpenSearch requires the following certifiates available in the [security](security/) folder:
+- `es_certificates/elasticsearch-1.pem`
+- `es_certificates/elasticsearch-1.key`
+- `es_certificates/elasticsearch-2.pem`
+- `es_certificates/elasticsearch-2.key`
+- `root-ca.key`
+- `root-ca.pem`
+
 We have to make sure to execute the following commands `bash ./create_es_nodecert.sh elasticsearch-1 && bash ./create_es_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, for both nodes make sure to generate the ADMIN authorization certificate by doing `bash ./create_es_admin_cert.sh`.
 
-#### Kibana
-Kibana requires:
-- `kibana.pem`
-- `kibana.key`
+The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
 
-Once generated, the files can be further referenced in `services/kibana/config/kibana.yml` and/or linked directly in the Docker compose file with services configuration.
+#### Generating users
 
+Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
+
+### For Elasticsearch Native
+
+ElasticSearch Native requires the following certificates, available in the [security](security/) folder:
+- `es_certificates/ca/ca.crt`
+- `es_certificates/ca/ca.key`
+- `es_certificates/elasticsearch/elasticsearch-1/http-elasticsearch-1.crt`
+- `es_certificates/elasticsearch/elasticsearch-1/http-elasticsearch-1.key`
+- `es_certificates/elasticsearch/elasticsearch-2/http-elasticsearch-2.crt`
+- `es_certificates/elasticsearch/elasticsearch-2/http-elasticsearch-2.key`
+
+To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](security/create_es_native_certs.sh).
+
+#### Generating users
+
+You can generate some basic users by executing the [`create_es_native_credentials.sh`](security/create_es_native_credentials.sh) script, if you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
+
+### Kibana (OpenDashboard)
+Kibana OpenDashboard requires:
+- `admin.pem`
+- `admin-key.pem`
+- `es_kibana_client.pem`
+- `es_kibana_client.key`
+
+Once generated, the files can be further referenced in `services/kibana/config/kibana_opensearch.yml` and/or linked directly in the Docker compose file with services configuration.
+
+### Kibana 
+
+- `es_certificates/elasticsearch-1/elasticsearch-1.crt`
+- `es_certificates/elasticsearch-1/elasticsearch-1.key`
+- `es_certificates/elasticsearch-2/elasticsearch-2.crt`
+- `es_certificates/elasticsearch-2/elasticsearch-2.crt`
+- `es_certificates/ca/ca.crt`
+
+These certificates are generates by the steps mentioned in the above Elasticsearch Native section.
 
 ## Users and roles in ElasticSearch
 
@@ -52,7 +94,7 @@ The sample users and passwords are specified in the following `.env` files in `s
 
 
 ### Setting up ElasticSearch
-On the first run, after changing the default passwords, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenDistro documentation](https://opendistro.github.io/for-elasticsearch-docs/docs/install/docker-security/).
+On the first run, after changing the default passwords, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenSearch documentation](https://opensearch.org/docs/latest/security-plugin/access-control/users-roles/).
 
 To do so, one can:
 - run the script `generate_es_internal_passwords.sh` to generate hashes,
