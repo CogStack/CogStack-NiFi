@@ -9,7 +9,7 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    image: postgres:14.1-alpine
+    image: postgres:14.2-alpine
     container_name: cogstack-samples-db
     shm_size: 128mb
     restart: always
@@ -41,12 +41,45 @@ services:
       - cognet
 
 #---------------------------------------------------------------------------#
+# CogStack Databank / Cogstack-DB, production database                      #
+#---------------------------------------------------------------------------#
+  cogstack-databank-db:
+    image: postgres:14.2-alpine
+    container_name: cogstack-production-databank-db
+    shm_size: 1024mb
+    restart: always
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    volumes:
+      # mapping postgres data dump and initialization
+      - ../services/cogstack-db/schemas/annotations_nlp_create_schema.sql:/data/annotations_nlp_create_schema.sql:ro
+      - ../services/cogstack-db/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      # data persistence
+      - databank-vol:/var/lib/postgresql/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    command: postgres -c "max_connections=1024"
+    ports:
+    # <host:container> expose the postgres DB to host for debugging purposes
+      - 5555:5432
+    expose:
+      - 5432
+    networks:
+      - cognet
+
+#---------------------------------------------------------------------------#
 # Apache Tika documents processing service                                  #
 #---------------------------------------------------------------------------#
   tika-service:
     image: cogstacksystems/tika-service:latest
     container_name: cogstack-tika-service
-    shm_size: 1024mb
+    shm_size: 2048mb
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
@@ -603,6 +636,9 @@ services:
 #---------------------------------------------------------------------------#
 volumes:
   samples-vol:
+    driver: local
+
+  databank-vol:
     driver: local
 
   # ELK-stack related
