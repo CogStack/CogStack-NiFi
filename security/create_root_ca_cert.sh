@@ -19,4 +19,4 @@ echo "Generating root CA key"
 openssl genrsa -out $CA_ROOT_KEY $KEY_SIZE
 
 echo "Generating root CA cert"
-openssl req -x509 -new -key $CA_ROOT_KEY -sha256 -out $CA_ROOT_CERT -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -subj $SUBJ_LINE 
+openssl req -x509 -new -key $CA_ROOT_KEY -sha256 -out $CA_ROOT_CERT -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -subj $SUBJ_LINE

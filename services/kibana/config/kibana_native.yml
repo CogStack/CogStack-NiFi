@@ -6,20 +6,26 @@ server.port: 5601
 telemetry.optIn: false
 telemetry.enabled: false
 # INFO: ES URL provided as docker parameter
-#elasticsearch.url: https://localhost:9200
-elasticsearch.ssl.verificationMode: none
+elasticsearch.hosts: ["https://elasticsearch-1:9200"]
+elasticsearch.ssl.verificationMode: certificate
+elasticsearch.ssl.certificateAuthorities: ["config/root-ca.crt"]
 
 # WARNING: revise all the lines below before you go into production
 elasticsearch.username: kibanaserver
 elasticsearch.password: kibanaserver
 elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
 
+server.ssl.enabled: true
+server.ssl.certificate: "config/esnode1.crt"
+server.ssl.key: "config/esnode1.key"
+server.ssl.clientAuthentication: optional
+
 # --------
 # X-Pack features
 # disabled by default when using '-oss' images
 # need to be disabled manually when using standard images from elastic
 # --------
-xpack.security.enabled: true
+#xpack.security.enabled: true
 #xpack.graph.enabled: false
 #xpack.ml.enabled: false
 #xpack.monitoring.enabled: false

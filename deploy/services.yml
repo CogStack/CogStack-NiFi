@@ -201,10 +201,27 @@ services:
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
+  es_native_create_certs:
+    container_name: es_create_certs
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
+    environment:
+      # User config:
+      - ELASTIC_USER=kibanaserver
+      - ELASTIC_PASSWORD=kibanaserver
+    command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
+    stdin_open: true 
+    tty: true
+    user: "0"
+    working_dir: /usr/share/elasticsearch
+    volumes:
+      - ../security/es_native_cert_generator.sh:/usr/share/elasticsearch/es_native_cert_generator.sh:ro
+      - ../security/es_certificates:/usr/share/elasticsearch/config/certificates:rw
+      - elasticsearch-certs-vol:/certs
+
   elasticsearch-1:
-    #image: docker.elastic.co/elasticsearch/elasticsearch:8.0.1
+    #image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
     image: opensearchproject/opensearch:1.2.4
-    container_name: elasticsearch-cogstack-node-1
+    container_name: elasticsearch-1
     platform: linux
     shm_size : 1024mb
     restart: always
@@ -216,21 +233,17 @@ services:
       # CLUSTER CONFIGS
       - node.name=es01
       - cluster.name=elasticsearch-cogstack-cluster
-      # INFO: enable 'zen' for multi-node cluster
-      #- discovery.type=zen
-      - cluster.initial_master_nodes=es01,es02
+      - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
-
-      #- plugins.security.disabled=false
-      - plugins.security.ssl.http.enabled=true
-      - plugins.security.ssl.transport.enabled=true
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
 
       # User config:
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
+      
+      - logger.level=INFO
 
     #env_file:
     #  - ${ELASTICSEARCH_ENV_FILE}
@@ -245,15 +258,19 @@ services:
       #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
       #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
       #- ${ELASTICSEARCH_SECURITY_DIR}/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
-      #
+      
       # INFO: ES configuration mapped via volume
-      #- ../services/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
-      - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
-      - ../security/es_certificates/elasticsearch-1-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
-      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
-      - ../security/es_certificates/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
+      - ../security/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
+      - ../security/es_certificates/admin.pem:/usr/share/elasticsearch/config/admin.pem:ro
+      - ../security/es_certificates/admin-key.pem:/usr/share/elasticsearch/config/admin-key.pem:ro
+      - ../security/es_certificates/elasticsearch-1-pkcs12.key:/usr/share/elasticsearch/config/esnode-pcks12.key:ro
+      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
+      - ../security/es_certificates/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
+
+      #- ../security/es_certificates/ca/ca.crt:/usr/share/elasticsearch/config/root-ca.crt:ro
+      #- ../security/es_certificates/ca/ca.key:/usr/share/elasticsearch/config/root-ca.key:ro
+      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.crt:/usr/share/elasticsearch/config/esnode.crt:ro
+      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
 
       # common setting for now
       # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
@@ -264,9 +281,10 @@ services:
       - ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
       # VM settings
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
-
+     
       # ES data persistence
-      - elasticsearch-vol-1:/usr/share/opensearch/data
+      - elasticsearch-vol-1:/usr/share/elasticsearch/data
+
     ulimits:
       memlock:
         soft: -1
@@ -276,17 +294,19 @@ services:
         hard: 65536
     ports:
       - "9200:9200"
+      - "9300:9300"
       - "9600:9600" # required for Performance Analyzer
     expose:
-      - 9600
       - 9200
+      - 9300
+      - 9600
     networks:
       - cognet
 
   elasticsearch-2:
-    # image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
-    image: opensearchproject/opensearch:1.2.4
-    container_name: elasticsearch-cogstack-node-2
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
+    #image: opensearchproject/opensearch:1.2.4
+    container_name: elasticsearch-2
     platform: linux
     shm_size : 1024mb
     restart: always
@@ -298,35 +318,35 @@ services:
       # CLUSTER CONFIGS
       - node.name=es02
       - cluster.name=elasticsearch-cogstack-cluster
-      #- discovery.type=zen
-      - cluster.initial_master_nodes=es01,es02
-
+      - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=15.00 -XX:MinRAMPercentage=5.00"
+      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
+      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
       
-      # INFO: set 'true' to enable SSL
-      #- plugins.security.disabled=false
-      - plugins.security.ssl.http.enabled=true
-      - plugins.security.ssl.transport.enabled=true
-
       # User config:
       - ELASTIC_USER=kibanaserver
       - ELASTIC_PASSWORD=kibanaserver
+
+      - logger.level=INFO
     volumes:
       # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
       - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
       #- ../services/elasticsearch/config/elasticsearch_native.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
 
       # mapping security config
-      # INFO: uncomment below to add SSL keys
-      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
+      # INFO: uncomment below to add SSL keys 
+      - ../security/es_certificates/ca/ca.key:/usr/share/opensearch/config/root-ca.pem:ro
       - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
       - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
       - ../security/es_certificates/elasticsearch-2-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
       - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
       - ../security/es_certificates/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
+      
+      #- ../security/es_certificates/ca/ca.crt:/usr/share/elasticsearch/config/root-ca.crt:ro
+      #- ../security/es_certificates/ca/ca.key:/usr/share/elasticsearch/config/root-ca.key:ro
+      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.crt:/usr/share/elasticsearch/config/esnode.crt:ro
+      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.key:/usr/share/elasticsearch/config/esnode.key:ro
 
       # INFO: modifiy this according to your ES version
       # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
@@ -340,7 +360,9 @@ services:
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro
      
       # ES data persistence
-      - elasticsearch-vol-2:/usr/share/opensearch/data
+      - elasticsearch-vol-2:/usr/share/elasticsearch/data
+    depends_on:
+      - elasticsearch-1
     ulimits:
       memlock:
         soft: -1
@@ -350,10 +372,12 @@ services:
         hard: 65536
     ports:
       - "9201:9200"
+      - "9301:9300"
       - "9601:9600" # required for Performance Analyzer
     expose:
-      - 9600
       - 9200
+      - 9300
+      - 9600
     networks:
       - cognet
 
@@ -362,7 +386,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    # image: docker.elastic.co/kibana/kibana:7.17.1
+    #image: docker.elastic.co/kibana/kibana:8.1.0
     image: opensearchproject/opensearch-dashboards:1.2.0
     container_name: cogstack-kibana
     restart: always
@@ -371,31 +395,36 @@ services:
       # INFO: use HTTPS instead of HTTP when enabled SSL
       OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
       # INFO: uncomment below to enable SSL keys
-      # SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_ENABLED: "true"
 
       ### DEFAULT native kibana-ElasticSearch path ###
-      # SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
-      # SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.pem
+      #SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
+      #SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.crt
 
       ### OPENSEARCH_VERSION ### use only if you use opensearch instead of native Kibana
-      # SERVER_SSL_KEY: /usr/share/opensearch-dashboards/config/kibana.key
-      # SERVER_SSL_CERTIFICATE: /usr/share/opensearch-dashboards/config/kibana.pem
+      #SERVER_SSL_KEY: /usr/share/opensearch-dashboards/config/kibana.key
+      #SERVER_SSL_CERTIFICATE: /usr/share/opensearch-dashboards/config/kibana.pem
 
     depends_on:
       - elasticsearch-1
-      - elasticsearch-2
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
       - ../services/kibana/config/kibana_opensearch.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
       #- ../services/kibana/config/kibana_native.yml:/usr/share/kibana/config/kibana.yml:ro    
       
       # INFO: uncomment below to add SSL keys
-      - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
-      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch-dashboards/config/elasticsearch-1.pem:ro
-      - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch-dashboards/config/elasticsearch-2.pem:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
-      - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
-      - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      # - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
+      # - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
+      # - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
+      # - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+
+      # ES NATIVE
+      #- ../security/es_certificates/ca/ca.crt:/usr/share/kibana/config/root-ca.crt:ro
+      #- ../security/es_certificates/ca/ca.key:/usr/share/kibana/config/root-ca.key:ro
+      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.crt:/usr/share/kibana/config/esnode1.crt:ro
+      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.key:/usr/share/kibana/config/esnode1.key:ro
+      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.crt:/usr/share/kibana/config/esnode2.crt:ro
+      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.key:/usr/share/kibana/config/esnode2.key:ro
     ports:
       - "5601:5601"
     networks:
@@ -580,6 +609,8 @@ volumes:
   elasticsearch-vol-1:
     driver: local
   elasticsearch-vol-2:
+    driver: local
+  elasticsearch-certs-vol:
     driver: local
 
   # NiFi related

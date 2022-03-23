@@ -36,7 +36,7 @@ KEYSTORE_PASSWORD="cogstackNifi"
 KEY_SIZE=4096
 
 echo "Generating a key for: $1"
-openssl genrsa -out "$1-pkcs12.key" $KEY_SIZE 
+openssl genrsa -out "$1-pkcs12.key" $KEY_SIZE
 
 echo "Converting the key to PKCS 12"
 openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$1-pkcs12.key" -topk8 -out "$1.key" -nocrypt 
