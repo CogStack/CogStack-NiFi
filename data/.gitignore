@@ -1,0 +1,5 @@
+# All data should be put in this folder, therefore it is ignore from commits.
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore

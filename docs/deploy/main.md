@@ -40,7 +40,7 @@ cp security/elasticsearch.env-example security/elasticsearch.env
 ```
 
 ### Multiple deployments on the same machine
-When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all container, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `_1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
+When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all containers, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `_1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
 ```yml
 ELASTICSEARCH_URL: http://${COMPOSE_PROJECT_NAME}_elasticsearch-1_1:9200
 ```
@@ -53,10 +53,12 @@ Always start with fresh containers and volumes, to make sure that there are no v
 
 followed by a cleanup or dangling volumes (careful as this will remove all volumes which are NOT being used by a container, if you want to remove specific volumes you will have to manually specifiy the volume names), otherwise, you can specify :
 
-`docker volume prune -f` <strong> WARNING THIS WILL DELETE ALL UNUSED VOLUMES ON YOUR MACHINE!</strong>
+`docker volume prune -f` <strong> WARNING THIS WILL DELETE ALL UNUSED VOLUMES ON YOUR MACHINE!</strong>. Check the volume names used in services.yml file and delete them as necessary `dockr volume rm volume_name`
 
 ### Known Issues/errors
 Common issues that can be encountered across services.
+<br>
+<br>
 ### **NiFi**
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
     <br />   
