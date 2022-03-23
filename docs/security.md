@@ -76,10 +76,17 @@ Example new users will be created after running `create_es_users.sh`:
 
 ## JupyterHub
 Similarly, as in case of ELK stack, one should obtain certificates for JupyterHub to secure the access to the exposed endpoint.
-The generated certificates (by `create_client_cert.sh`) can be referenced directly in `services.yml` file in the example deployment or directly in the internal JupyterHub configuration file.
+The generated certificates (by `create_root_ca_cert.sh`) can be referenced directly in `services.yml` file in the example deployment or directly in the internal JupyterHub configuration file.
+The COOKIE secret is a key used to encrypt browser cookies, please use the `generate_cookie_secret.sh`(./services/jupyter-hub/generate_cookie_secret.sh) script to generate a new key, make sure it is done before starting the container.
 
-One should also configure and set up users, since the default user with `admin` password is being used in the example deployment. 
+One should also configure and set up users, since the default user is `admin`, and the password is set the first time the account is logged in to (be careful, if there is a mistake delete the jupyter container and its volumes and restart).
 See example deployment [services](deploy/services.md) for more details.
+
+Once the container is started up you can create your users and also assing them to groups. 
+
+You can create users before hand by adding newlines in the `userlist`(services/jupyter-hub/config/userlist) file, users with admin roles will need to have their role specificed on the same line, e.g: `user_name admin`.
+
+If you want to create shared folder for users to use add them to the `teamlist`(services/jupyter-hub/config/teamlist) file, the first column is the shared folder name and the rest are just the usernames assigned to it.
 
 For more information on JupyterHub security features and their configuration please refer to [the official documentation](https://jupyterhub.readthedocs.io/en/stable/getting-started/security-basics.html).
 
