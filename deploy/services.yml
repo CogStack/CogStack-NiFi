@@ -51,6 +51,7 @@ services:
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
+      - POSTGRES_DATABANK_DB=databank
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/schemas:/data/:ro
