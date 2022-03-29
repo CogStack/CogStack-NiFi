@@ -18,8 +18,16 @@ def pre_spawn_hook(spawner):
     except KeyError:
         subprocess.check_call(["useradd", "-ms", "/bin/bash", username])
 
-c = get_config()
+ENV_PROXIES = {
+    "NO_PROXY" : os.environ.get("NO_PROXY", ""),
+    "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
+    "HTTPS_PROXY" : os.environ.get("HTTPS_PROXY", ""),
+    "no_proxy" : os.environ.get("NO_PROXY", ""),
+    "http_proxy" : os.environ.get("HTTP_PROXY", ""),
+    "https_proxy" : os.environ.get("HTTPS_PROXY", ""),
+}
 
+c = get_config()
 
 # Spawn containers from this image
 # Either use the CoGstack one from the repo which is huge and contains all the stuff needed or,
@@ -48,7 +56,7 @@ c.DockerSpawner.extra_host_config = { "network_mode": network_name}
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
 # We follow the same convention.
-notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR") or "/home/jovyan/work"
+notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR", "/home/jovyan/work")
 
 shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/home/jovyan/scratch")
 
@@ -77,8 +85,7 @@ c.LocalProcessSpawner.debug = True
 # AUTHENTICATION
 #c.Spawner.pre_spawn_hook = pre_spawn_hook
 #c.Spawner.ip = "127.0.0.1"
-c.DockerSpawner.environment = {"NO_PROXY" : os.environ["NO_PROXY"], "HTTP_PROXY" : os.environ["HTTP_PROXY"], "HTTPS_PROXY" : os.environ["HTTPS_PROXY"]}
-c.Spawner.environment = {"NO_PROXY" : os.environ["NO_PROXY"], "HTTP_PROXY" : os.environ["HTTP_PROXY"], "HTTPS_PROXY" : os.environ["HTTPS_PROXY"]}
+c.Spawner.environment = ENV_PROXIES
 
 #c.Authenticator.allowed_users = {"admin"}
 c.Authenticator.admin_users = admin = {"admin"}
@@ -152,9 +159,10 @@ class DockerSpawner(dockerspawner.DockerSpawner):
 c.JupyterHub.spawner_class = DockerSpawner
 c.DockerSpawner.extra_create_kwargs = {"user": "root"}
 c.DockerSpawner.environment = {
-  "GRANT_SUDO": "1",
-  "UID": "0", # workaround https://github.com/jupyter/docker-stacks/pull/420
+    "GRANT_SUDO": "1",
+    "UID": "0", # workaround https://github.com/jupyter/docker-stacks/pull/420,
 }
+c.DockerSpawner.environment.update(ENV_PROXIES)
 
 #c.JupyterHub.authenticator_class = LocalNativeAuthenticator
 

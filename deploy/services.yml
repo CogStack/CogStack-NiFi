@@ -582,8 +582,11 @@ services:
     platform: linux
     environment:
       - HTTP_PROXY=$HTTP_PROXY
-      - HTTPS_PROXY=$HTTPS_PROXY  
+      - HTTPS_PROXY=$HTTPS_PROXY
       - NO_PROXY=$NO_PROXY
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$NO_PROXY
 
       # this is the image used within the service to create containers for users
       # the image used by us "cogstacksystems/jupyter-singleuser:latest" might take longer to load
