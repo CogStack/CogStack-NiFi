@@ -18,15 +18,6 @@ def pre_spawn_hook(spawner):
     except KeyError:
         subprocess.check_call(["useradd", "-ms", "/bin/bash", username])
 
-ENV_PROXIES = {
-    "NO_PROXY" : os.environ.get("NO_PROXY", ""),
-    "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
-    "HTTPS_PROXY" : os.environ.get("HTTPS_PROXY", ""),
-    "no_proxy" : os.environ.get("NO_PROXY", ""),
-    "http_proxy" : os.environ.get("HTTP_PROXY", ""),
-    "https_proxy" : os.environ.get("HTTPS_PROXY", ""),
-}
-
 c = get_config()
 
 # Spawn containers from this image
@@ -46,6 +37,9 @@ c.DockerSpawner.extra_create_kwargs.update({"command": spawn_cmd})
 # Connect containers to this Docker network
 # IMPORTANT, THIS MUST MATCH THE NETWORK DECLARED in "services.yml", by default: "cogstack-net"
 network_name = os.environ.get("DOCKER_NETWORK_NAME", "cogstack-net")
+
+# The IP address or hostname of the JupyterHub container in the Docker network
+hub_container_ip_or_name = os.environ.get("DOCKER_JUPYTER_HUB_CONTAINER_NAME", "cogstack-jupyter-hub")
 
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
@@ -81,6 +75,15 @@ c.Spawner.debug = True
 
 # Enable debug-logging of the single-user server
 c.LocalProcessSpawner.debug = True
+
+ENV_PROXIES = {
+    "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
+    "HTTPS_PROXY" : os.environ.get("HTTPS_PROXY", ""),
+    "NO_PROXY" : ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
+    "http_proxy" : os.environ.get("HTTP_PROXY", ""),
+    "https_proxy" : os.environ.get("HTTPS_PROXY", ""),
+    "no_proxy" : ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
+}
 
 # AUTHENTICATION
 #c.Spawner.pre_spawn_hook = pre_spawn_hook
@@ -172,6 +175,7 @@ c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator"
 # User containers will access hub by container name on the Docker network
 c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
+c.JupyterHub.hub_connect_ip = hub_container_ip_or_name
 
 
 c.JupyterHub.hub_port = 8888
