@@ -59,8 +59,6 @@ RUN mkdir -p /home/jovyan/scratch
 RUN chmod -R 777 /home/jovyan/scratch
 RUN chmod g+s /home/jovyan/scratch
 
-RUN mkdir /home/$NB_USER/notebooks
-
 # copy scripts and config files
 COPY config/jupyterhub_config.py /etc/jupyterhub/
 
