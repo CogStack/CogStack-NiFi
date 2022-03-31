@@ -87,7 +87,7 @@ RUN pip3 install dvc flask GitPython elasticsearch opensearch-py neo4j --ignore-
 RUN pip3 install xnat
 
 # medcat & models
-RUN pip3 install medcat && python3 -m spacy download en_core_web_md && \
+RUN pip3 install click medcat && python3 -m spacy download en_core_web_md && \
     pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
     pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
 
