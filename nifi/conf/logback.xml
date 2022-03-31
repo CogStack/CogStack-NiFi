@@ -83,10 +83,10 @@
 
     <!-- valid logging levels: TRACE, DEBUG, INFO, WARN, ERROR -->
 
-    <logger name="org.apache.nifi" level="INFO"/>
+    <logger name="org.apache.nifi" level="WARN"/>
     <logger name="org.apache.nifi.processors" level="WARN"/>
-    <logger name="org.apache.nifi.processors.standard.LogAttribute" level="INFO"/>
-    <logger name="org.apache.nifi.processors.standard.LogMessage" level="INFO"/>
+    <logger name="org.apache.nifi.processors.standard.LogAttribute" level="WARN"/>
+    <logger name="org.apache.nifi.processors.standard.LogMessage" level="WARN"/>
     <logger name="org.apache.nifi.controller.repository.StandardProcessSession" level="WARN" />
 
 
@@ -105,13 +105,13 @@
     <logger name="org.apache.curator.ConnectionState" level="OFF" />
 
     <!-- Logger for managing logging statements for nifi clusters. -->
-    <logger name="org.apache.nifi.cluster" level="INFO"/>
+    <logger name="org.apache.nifi.cluster" level="WARN"/>
 
     <!-- Logger for logging HTTP requests received by the web server. -->
-    <logger name="org.apache.nifi.server.JettyServer" level="INFO"/>
+    <logger name="org.apache.nifi.server.JettyServer" level="WARN"/>
 
     <!-- Logger for managing logging statements for jetty -->
-    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="org.eclipse.jetty" level="WARN"/>
 
     <!-- Suppress non-error messages due to excessive logging by class or library -->
     <logger name="org.springframework" level="ERROR"/>
@@ -145,22 +145,22 @@
         log events to the root logger. These messages are only sent to the
         user-log appender.
     -->
-    <logger name="org.apache.nifi.web.security" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.api.config" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.web.api.config" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.authorization" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.authorization" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.cluster.authorization" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.cluster.authorization" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.filter.RequestLogger" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.web.filter.RequestLogger" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.api.AccessResource" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.web.api.AccessResource" level="WARN" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
     <logger name="org.springframework.security.saml.log" level="WARN" additivity="false">
@@ -174,16 +174,16 @@
     <!--
         Logger for capturing Bootstrap logs and NiFi's standard error and standard out.
     -->
-    <logger name="org.apache.nifi.bootstrap" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
-    <logger name="org.apache.nifi.bootstrap.Command" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.bootstrap.Command" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
     <!-- Everything written to NiFi's Standard Out will be logged with the logger org.apache.nifi.StdOut at INFO level -->
-    <logger name="org.apache.nifi.StdOut" level="INFO" additivity="false">
+    <logger name="org.apache.nifi.StdOut" level="WARN" additivity="false">
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
