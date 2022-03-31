@@ -51,7 +51,7 @@ RUN pip3 install setuptools wheel virtualenv cython isort netifaces
 RUN pip3 install sqlalchemy detect simplejson ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata jupyterhub-firstuseauthenticator dockerspawner jupyterhub-nativeauthenticator
 RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
 RUN pip3 install jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator --ignore-installed PyYAML 
-RUN pip3 install jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner
+RUN pip3 install jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner jupyterhub-idle-culler
 
 RUN python3 -m jupyter contrib nbextension install --sys-prefix
 

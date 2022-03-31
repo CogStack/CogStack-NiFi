@@ -4,6 +4,7 @@
 import os
 import pwd
 import subprocess
+import sys
 import dockerspawner 
 from jupyterhub.auth import LocalAuthenticator
 from nativeauthenticator import NativeAuthenticator
@@ -40,6 +41,9 @@ network_name = os.environ.get("DOCKER_NETWORK_NAME", "cogstack-net")
 
 # The IP address or hostname of the JupyterHub container in the Docker network
 hub_container_ip_or_name = os.environ.get("DOCKER_JUPYTER_HUB_CONTAINER_NAME", "cogstack-jupyter-hub")
+
+# The timeout in seconds after which the idle notebook container will be shutdown
+notebook_idle_timeout = os.environ.get("DOCKER_NOTEBOOK_IDLE_TIMEOUT", "7200")
 
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
@@ -194,6 +198,18 @@ c.JupyterHub.ssl_cert = os.environ.get("SSL_CERT", "/etc/jupyterhub/root-ca.pem"
 data_dir = os.environ.get("DATA_VOLUME_CONTAINER", "./")
 
 c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secret")
+
+c.JupyterHub.services = [
+    {
+        "name": "idle-culler",
+        "admin": True,
+        "command": [
+            sys.executable,
+            "-m", "jupyterhub_idle_culler",
+            f"--timeout={notebook_idle_timeout}",
+        ],
+    }
+]
 
 #------------------------------------------------------------------------------
 # Application(SingletonConfigurable) configuration
