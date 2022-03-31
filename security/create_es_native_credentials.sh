@@ -45,7 +45,7 @@ if [[ -z "${INGEST_SERVICE_USER}" ]]; then
 fi
 
 if [[ -z "${INGEST_SERVICE_PASSWORD}" ]]; then
-    KIBANA_PASSWORD=ingest_service
+    INGEST_SERVICE_PASSWORD=ingest_service
     echo "INGEST_SERVICE_PASSWORD not set, defaulting to INGEST_SERVICE_PASSWORD=ingest_service"
 fi
 
