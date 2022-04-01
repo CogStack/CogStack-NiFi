@@ -237,7 +237,8 @@ c.Application.log_level = "DEBUG"
 #  Default: False
 # c.Application.show_config_json = False
 
-c.JupyterHub.allow_named_servers = True
+# Let's start with the least privilege, especially on a single host having limited resources
+c.JupyterHub.allow_named_servers = False
 
 ## Timeout (in seconds) to wait for spawners to initialize
 # 
