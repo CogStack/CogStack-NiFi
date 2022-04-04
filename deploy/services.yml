@@ -249,7 +249,7 @@ services:
     working_dir: /usr/share/elasticsearch
     volumes:
       - ../security/es_native_cert_generator.sh:/usr/share/elasticsearch/es_native_cert_generator.sh:ro
-      - ../security/es_certificates:/usr/share/elasticsearch/config/certificates:rw
+      - ../security/es_certificates/es_native:/usr/share/elasticsearch/config/certificates:rw
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:

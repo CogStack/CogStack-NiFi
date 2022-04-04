@@ -3,8 +3,8 @@
 #
 # This is a sample configuration snippet for Elasticsearch that enables and configures SSL for the HTTP (Rest) interface
 #
-# This was automatically generated at: 2022-03-22 15:55:13Z
-# This configuration was intended for Elasticsearch version 8.1.0
+# This was automatically generated at: 2022-04-04 10:41:05Z
+# This configuration was intended for Elasticsearch version 8.1.2
 #
 # You should review these settings, and then update the main configuration file at
 #   /usr/share/elasticsearch/config/elasticsearch.yml
@@ -18,6 +18,8 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.certificate: "http-elasticsearch-1.crt"
 
 # This configures the private key for your certificate.
+# Because your private key is encrypted, you will also need to add the passphrase to the Elasticsearch keystore
+#    elasticsearch-keystore add "xpack.security.http.ssl.secure_key_passphrase"
 xpack.security.http.ssl.key: "http-elasticsearch-1.key"
 
 # If your Certificate Authorities provides you with a copy of their certificate you can configure it here.
