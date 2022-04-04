@@ -301,10 +301,12 @@ services:
       - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
       - ../security/es_certificates/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
 
-      #- ../security/es_certificates/ca/ca.crt:/usr/share/elasticsearch/config/root-ca.crt:ro
-      #- ../security/es_certificates/ca/ca.key:/usr/share/elasticsearch/config/root-ca.key:ro
-      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.crt:/usr/share/elasticsearch/config/esnode.crt:ro
-      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
+      # ES_NATIVE
+      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
+      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/elasticsearch/config/root-ca.key:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/elasticsearch/config/esnode.p12:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/elasticsearch/config/esnode.crt:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
 
       # common setting for now
       # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
@@ -377,10 +379,12 @@ services:
       - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
       - ../security/es_certificates/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
       
-      #- ../security/es_certificates/ca/ca.crt:/usr/share/elasticsearch/config/root-ca.crt:ro
-      #- ../security/es_certificates/ca/ca.key:/usr/share/elasticsearch/config/root-ca.key:ro
-      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.crt:/usr/share/elasticsearch/config/esnode.crt:ro
-      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.key:/usr/share/elasticsearch/config/esnode.key:ro
+      # ES NATIVE
+      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
+      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/elasticsearch/config/root-ca.key:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/elasticsearch/config/esnode.p12:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/elasticsearch/config/esnode.crt:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/elasticsearch/config/esnode.key:ro
 
       # INFO: modifiy this according to your ES version
       # - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
@@ -453,12 +457,12 @@ services:
       - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
 
       # ES NATIVE
-      #- ../security/es_certificates/ca/ca.crt:/usr/share/kibana/config/root-ca.crt:ro
-      #- ../security/es_certificates/ca/ca.key:/usr/share/kibana/config/root-ca.key:ro
-      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.crt:/usr/share/kibana/config/esnode1.crt:ro
-      #- ../security/es_certificates/elasticsearch-1/elasticsearch-1.key:/usr/share/kibana/config/esnode1.key:ro
-      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.crt:/usr/share/kibana/config/esnode2.crt:ro
-      #- ../security/es_certificates/elasticsearch-2/elasticsearch-2.key:/usr/share/kibana/config/esnode2.key:ro
+      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/kibana/config/root-ca.crt:ro
+      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/kibana/config/root-ca.key:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/kibana/config/esnode1.crt:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/kibana/config/esnode1.key:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/kibana/config/esnode2.crt:ro
+      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/kibana/config/esnode2.key:ro
     ports:
       - "5601:5601"
     networks:
