@@ -5,7 +5,7 @@ This script parses the TIKA document content from
 
 */
 
-@Grab('org.apache.avro:avro:1.8.1')
+@Grab('org.apache.avro:avro:1.11.0')
 import org.apache.avro.*
 import org.apache.avro.file.*
 import org.apache.avro.generic.*
@@ -18,6 +18,7 @@ import org.apache.nifi.flowfile.FlowFile
 import org.apache.nifi.processor.io.OutputStreamCallback
 import org.apache.nifi.processor.io.StreamCallback
 import java.nio.charset.StandardCharsets
+import org.apache.nifi.logging.ComponentLog
 
 
 // avro schema instance
@@ -56,11 +57,17 @@ def parseJsonToAvro(inJson, avroSchema) {
     //
     assert inJson.containsKey('doc_id')
     def docIdValue = null
+
     try {
         docIdValue = Integer.parseInt(inJson['doc_id'])
     }
     catch (Exception e) {
-        docIdValue = new org.apache.avro.util.Utf8(inJson['doc_id'])
+        try {
+            docIdValue = new org.apache.avro.util.Utf8(inJson['doc_id'])
+        }
+        catch (Exception e1) {
+            docIdValue = inJson["doc_id"]
+        }
     }
     docRecord.put("doc_id", docIdValue)
 
