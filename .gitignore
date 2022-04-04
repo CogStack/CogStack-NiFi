@@ -7,9 +7,9 @@
 *.crt
 *.p12
 
-elasticsearch-ssl-http.zip
-es_native_certs_bundle_pem.zip
-es_native_certs_bundle.zip
+*elasticsearch-ssl-http.zip
+*es_native_certs_bundle_pem.zip
+*es_native_certs_bundle.zip
 
 # env files with passwords or local paths
 *.env
