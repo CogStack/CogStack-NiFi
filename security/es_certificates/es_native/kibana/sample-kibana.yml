@@ -3,8 +3,8 @@
 #
 # This is a sample configuration snippet for Kibana that configures SSL for connections to Elasticsearch
 #
-# This was automatically generated at: 2022-03-22 15:55:13Z
-# This configuration was intended for version 8.1.0
+# This was automatically generated at: 2022-04-04 10:41:05Z
+# This configuration was intended for version 8.1.2
 #
 # You should review these settings, and then update the main kibana.yml configuration file.
 #

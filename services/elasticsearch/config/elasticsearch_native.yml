@@ -10,7 +10,7 @@ discovery.type: zen
 network.host: 0.0.0.0
 discovery.seed_hosts: ["elasticsearch-1"]
 http.port: 9200
-cluster.initial_master_nodes: ["es01", "es02"]
+#cluster.initial_master_nodes: ["es01"]
 
 #----------------------
 # X-Pack features
@@ -22,13 +22,15 @@ xpack.security.enabled: true
 
 xpack.security.transport.ssl.verification_mode: certificate 
 xpack.security.http.ssl.verification_mode: certificate
-xpack.security.transport.ssl.client_authentication: required
+xpack.security.transport.ssl.client_authentication: optional
 
 xpack.security.http.ssl.enabled: true
 xpack.security.transport.ssl.enabled : true
 
-#xpack.security.transport.ssl.keystore.path: root-ca.crt
-#xpack.security.transport.ssl.truststore.path: root-ca.crt
+#xpack.security.transport.ssl.keystore.path: esnode.p12
+#xpack.security.transport.ssl.keystore.type: PKCS12
+#xpack.security.transport.ssl.truststore.path: esnode.p12
+#xpack.security.transport.ssl.truststore.type: PKCS12
 
 xpack.security.http.ssl.key: esnode.key
 xpack.security.http.ssl.certificate: esnode.crt

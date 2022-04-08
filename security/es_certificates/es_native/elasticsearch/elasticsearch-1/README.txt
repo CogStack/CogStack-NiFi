@@ -28,8 +28,16 @@ Once you have a copy of your certificate (from the CA), you will configure your 
 and this private key.
 You will need to copy both of those files to your elasticsearch configuration directory.
 
-Your private key is not password protected.
-It is important that you protect this file - if someone else gains access to your private key they can impersonate your Elasticsearch node.
+Your private key is protected by a passphrase.
+Your password has not been stored anywhere - it is your responsibility to keep it safe.
+
+When you configure elasticsearch to enable SSL (but not before then), you will need to provide the key's password as a secure
+configuration setting in Elasticsearch so that it can decrypt your private key.
+
+The command for this is:
+
+   elasticsearch-keystore add "xpack.security.http.ssl.secure_key_passphrase"
+
 
 ## sample-elasticsearch.yml
 

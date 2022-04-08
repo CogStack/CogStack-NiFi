@@ -220,6 +220,11 @@ c.JupyterHub.services = [
 #------------------------------------------------------------------------------
 ## This is an application.
 
+
+c.JupyterHub.pid_file = "/etc/jupyterhub/jupyter_hub.pid"
+c.ConfigurableHTTPProxy.pid_file = "/etc/jupyterhub/jupyter_hub_proxy.pid"
+
+
 ## The date format used by logging formatters for %(asctime)s
 #  Default: "%Y-%m-%d %H:%M:%S"
 # c.Application.log_datefmt = "%Y-%m-%d %H:%M:%S"   
