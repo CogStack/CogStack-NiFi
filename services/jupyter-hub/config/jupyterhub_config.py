@@ -71,10 +71,12 @@ c.DockerSpawner.remove = False
 
 select_notebook_image_allowed = os.environ.get("DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED", "false")
 if select_notebook_image_allowed == "true":
-    c.DockerSpawner.image_whitelist = {
+    # c.DockerSpawner.image_whitelist has been deprecated for allowed_images
+    c.DockerSpawner.allowed_images = {
         'minimal': 'jupyterhub/singleuser:latest',
         'cogstack': 'cogstacksystems/jupyter-singleuser:latest'
     }
+    # https://github.com/jupyterhub/dockerspawner/issues/423
     c.DockerSpawner.remove = True
 
 # For debugging arguments passed to spawned containers
@@ -203,8 +205,9 @@ data_dir = os.environ.get("DATA_VOLUME_CONTAINER", "./")
 
 c.JupyterHub.cookie_secret_file = os.path.join(data_dir, "jupyterhub_cookie_secret")
 
-c.JupyterHub.services = [
-    {
+c.JupyterHub.services = []
+if int(notebook_idle_timeout) > 0:
+    c.JupyterHub.services.append({
         "name": "idle-culler",
         "admin": True,
         "command": [
@@ -212,8 +215,7 @@ c.JupyterHub.services = [
             "-m", "jupyterhub_idle_culler",
             f"--timeout={notebook_idle_timeout}",
         ],
-    }
-]
+    })
 
 #------------------------------------------------------------------------------
 # Application(SingletonConfigurable) configuration
