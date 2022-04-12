@@ -597,8 +597,11 @@ services:
       - DOCKER_NOTEBOOK_IMAGE=cogstacksystems/jupyter-singleuser:latest
       # This value needs to match jupyter-hub.container_name as set above
       - DOCKER_JUPYTER_HUB_CONTAINER_NAME=cogstack-jupyter-hub
-      # The notebook's maximum idle time in seconds before shutdown
+      # The notebook's maximum idle time in seconds before shutdown (if <= 0, no auto-shutdown)
       - DOCKER_NOTEBOOK_IDLE_TIMEOUT=7200
+      # Allow users to select the image based on which the notebook will be run
+      # If true, the container is removed immediately after the notebook shutdown
+      - DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED=false
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
