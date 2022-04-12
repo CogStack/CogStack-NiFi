@@ -7,20 +7,22 @@ Moreover, NLP services are expected to implement an uniform RESTful API to enabl
 
 ## Important
 
-Please note that the project is under constant improvement, brining new features or services that might impact current deployments, please be aware as this might affect you, the user, when making upgrades, so be sure to check the release notes and the documentation beforehand. Feel free to ask 
+Please note that the project is under constant improvement, brining new features or services that might impact current deployments, please be aware as this might affect you, the user, when making upgrades, so be sure to check the release notes and the documentation beforehand. 
+
+Feel free to ask questions on the github issue tracker or on our [discourse website](https://discourse.cogstack.org) which is frequently used by our development team!
 <br>
 
 # Project organisation
 The project is organised in the following directories:
-- [`nifi`](./nifi) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources,
-- [`security`](./security) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements,
-- [`services`](./services) - available services with their corresponding configuration files and resources,
+- [`nifi`](./nifi) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources.
+- [`security`](./security) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements.
+- [`services`](./services) - available services with their corresponding configuration files and resources.
 - [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
 - [`scripts`](./scripts) - helper scripts such as the one ingesting samples into Elasticsearch.
 - [`data`](./data) - any data that you wish to ingest should be placed here.
 
 
-Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/) 
+Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/).
 
 As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) walks through an example deployment workflow examples.
 
