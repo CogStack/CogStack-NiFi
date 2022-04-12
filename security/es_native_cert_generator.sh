@@ -54,7 +54,7 @@ unzip /certs/es_native_certs_bundle.zip -d /certs/elasticsearch
 
 
 echo "------------------------------------------------"
-# all blank lines are blank inputs in prompts, leave them as they are
+
 bin/elasticsearch-certutil --silent http<<<"y
 y
 elasticsearch-1
@@ -102,6 +102,7 @@ find /certs -type f -exec chmod 640 \{\} \;;
 openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.crt.pem -clcerts -nokeys -password pass:$CERTIFICATE_PASSWORD
 openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.key.pem -nocerts -nodes -password pass:$CERTIFICATE_PASSWORD
 
-zip -r /certs/es_native_certs_bundle_pem.zip /certs/elastic-stack-ca.crt.pem /certs/elastic-stack-ca.key.pem
+zip -ur /certs/es_native_certs_bundle_pem.zip /certs/elastic-stack-ca.crt.pem /certs/elastic-stack-ca.key.pem
 
 cp -rf /certs/* /usr/share/elasticsearch/config/certificates/
+
