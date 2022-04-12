@@ -17,13 +17,12 @@ The project is organised in the following directories:
 - [`scripts`](./scripts) - helper scripts such as the one ingesting samples into Elasticsearch.
 - [`data`](./data) - any data that you wish to ingest should be placed here.
 
-As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/) walks through an example deployment workflow examples.
+As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) walks through an example deployment workflow examples.
 
 Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/) 
 
+All issues are tracked in [README](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html), check that section before opening a bug report ticket.
+
 # IMPORTANT NEWS AND UPDATES
 
-Please check [IMPORTANT_NEWS](./news.md) for any major changes that might affect your deployment and <strong>security problems</strong> that have been discovered.
-As a good starting point, please see deployment [README](./deploy/README.md) for more details on running an example project deployment.
-
-All issues are tracked in [README](./deploy/README.md), check that section before opening a bug report ticket.
+Please check [IMPORTANT_NEWS](https://cogstack-nifi.readthedocs.io/en/latest/news.html) for any major changes that might affect your deployment and <strong>security problems</strong> that have been discovered.

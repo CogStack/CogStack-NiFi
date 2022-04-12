@@ -59,7 +59,7 @@ followed by a cleanup or dangling volumes (careful as this will remove all volum
 Common issues that can be encountered across services.
 <br>
 <br>
-### **NiFi**
+#### **NiFi**
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
     <br />   
     - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
@@ -72,7 +72,7 @@ When dealing with contaminated deployments ( containers using volumes from previ
     <br />
     -  Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if older DB system is used)
 
-###  **Elasticsearch Errors**
+####  **Elasticsearch Errors**
 It is quite a common issue for both opensearchand native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
 
 ```
