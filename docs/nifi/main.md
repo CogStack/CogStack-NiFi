@@ -20,6 +20,7 @@ There are two images being built as part of CI process:
 The main configuration files for NiFi are provided in [`conf`](https://github.com/CogStack/CogStack-Nifi/conf) directory.
 
 For much more detailed information please refer to the official [Apache NiFi System Administrator's Guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html).
+Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 
 ## `bootstrap.conf`
 This file allows users to configure settings for how NiFi should be started. 

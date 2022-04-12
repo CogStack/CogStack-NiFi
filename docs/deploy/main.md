@@ -10,8 +10,9 @@ Individual service configurations are provided in [`./services`](https://github.
 
 Apache NiFi-related files are provided in [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/) directory.
 
-**Important!**
-Please note that in the example service defintions, for ease of deployment and demonstration, SSL encryption is not used and services are used with default built-in usernames / passwords. 
+## <span style="color:red">Important ! </span> 
+
+Please note that in the example service defintions, for ease of deployment and demonstration, SSL encryption is enabled among services (NiFi, ES, etc.), however, the certificates that are used are in this public repository, anyone can see them, so **please** make sure to re-generate them when you go into production. 
 
 ## Services
 Please note that all the services are deployed using [Docker](https://docker.io) engine and requires docker deamon to be running / functioning.
