@@ -44,6 +44,11 @@ tika:
       ocr-dpi: 200
       use-legacy-ocr-parser-for-single-page-doc: false
 
+    post-ocr:
+      output-encoding: "UTF-8"
+      # if this is set to true, the output text will be UTF-8 compliant, all other chars are removed
+      enforce-encoding-output: true
+
     legacy-pdf-parser:
       image-magick:
         timeout: 1200
@@ -62,11 +67,11 @@ processing:
 
 logging:
   level:
-    root: ERROR
-    tika.processor: ERROR
-    org.springframework.web: ERROR
-    service.controller: ERROR
-    org.hibernate: ERROR
+    root: DEBUG
+    tika.processor: DEBUG
+    org.springframework.web: DEBUG
+    service.controller: DEBUG
+    org.hibernate: DEBUG
   file:
     path: "./"
     name: "app.log"
