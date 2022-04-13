@@ -455,6 +455,8 @@ services:
       - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
       - ../security/es_certificates/opensearch/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
       - ../security/es_certificates/opensearch/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      - ../security/es_certificates/opensearch/elasticsearch-1.pem:/usr/share/opensearch-dashboards/config/elasticsearch-1.pem:ro
+      - ../security/es_certificates/opensearch/elasticsearch-2.pem:/usr/share/opensearch-dashboards/config/elasticsearch-2.pem:ro
 
       # ES NATIVE
       #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/kibana/config/root-ca.crt:ro
