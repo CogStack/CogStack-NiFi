@@ -313,7 +313,7 @@
             <properties>
                 <entry>
                     <key>Keystore Filename</key>
-                    <value>/opt/nifi/nifi-current/es_certificates/elasticsearch-1-keystore.jks</value>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch-1-keystore.jks</value>
                 </entry>
                 <entry>
                     <key>Keystore Password</key>
@@ -329,7 +329,7 @@
                 </entry>
                 <entry>
                     <key>Truststore Filename</key>
-                    <value>/opt/nifi/nifi-current/es_certificates/elasticsearch-1-truststore.key</value>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch-1-truststore.key</value>
                 </entry>
                 <entry>
                     <key>Truststore Password</key>

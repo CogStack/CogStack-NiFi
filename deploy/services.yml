@@ -295,11 +295,11 @@ services:
       
       # INFO: ES configuration mapped via volume
       - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
-      - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
-      - ../security/es_certificates/elasticsearch-1-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
-      - ../security/es_certificates/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
-      - ../security/es_certificates/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
+      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch/config/admin.pem:ro
+      - ../security/es_certificates/opensearch/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
+      - ../security/es_certificates/opensearch/elasticsearch-1-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
+      - ../security/es_certificates/opensearch/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
+      - ../security/es_certificates/opensearch/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
 
       # ES_NATIVE
       #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
@@ -372,12 +372,12 @@ services:
 
       # mapping security config
       # INFO: uncomment below to add SSL keys 
-      - ../security/es_certificates/ca/ca.key:/usr/share/opensearch/config/root-ca.pem:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch/config/admin.pem:ro
-      - ../security/es_certificates/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
-      - ../security/es_certificates/elasticsearch-2-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
-      - ../security/es_certificates/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
-      - ../security/es_certificates/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
+      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
+      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch/config/admin.pem:ro
+      - ../security/es_certificates/opensearch/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
+      - ../security/es_certificates/opensearch/elasticsearch-2-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
+      - ../security/es_certificates/opensearch/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
+      - ../security/es_certificates/opensearch/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
       
       # ES NATIVE
       #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
@@ -452,9 +452,9 @@ services:
       
       # INFO: uncomment below to add SSL keys
       - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
-      - ../security/es_certificates/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
-      - ../security/es_certificates/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
-      - ../security/es_certificates/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
+      - ../security/es_certificates/opensearch/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
+      - ../security/es_certificates/opensearch/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
 
       # ES NATIVE
       #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/kibana/config/root-ca.crt:ro
@@ -508,25 +508,25 @@ services:
       # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
       - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
       - ../security/es_certificates:/opt/nifi/nifi-current/es_certificates:ro
 
       # # Nifi properties file:
-      #- ../security/nifi_certificates/localhost/nifi.properties:/opt/nifi/nifi-current/conf/nifi.properties
-      - ../nifi/conf/:/opt/nifi/nifi-current/conf/
-      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
          
       # rest of volumes to persist the state
-      #- nifi-vol-conf:/opt/nifi/nifi-current/conf
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
       - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
-      # logs
-      - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+      
+      # logs
+      - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
+
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
     ulimits:
       memlock:
