@@ -46,10 +46,11 @@ RUN apt-get update && apt-get upgrade -y && \
     libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6 \
     r-base 
 
-# add tesseract key
-RUN apt-add-repository non-free && \
-    apt-add-repository contrib && \
-    apt-get update && apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y 
+
+# add extra repos
+RUN apt-add-repository non-free && apt-add-repository contrib
+RUN apt-get update && apt-get upgrade -y 
 
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 RUN curl https://packages.microsoft.com/config/ubuntu/21.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
