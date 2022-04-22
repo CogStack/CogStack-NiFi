@@ -14,6 +14,8 @@ ENV http_proxy=$HTTP_PROXY
 ENV https_proxy=$HTTPS_PROXY
 ENV no_proxy=$NO_PROXY
 
+ENV NVIDIA_DRIVER_VERSION=510
+
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
@@ -49,9 +51,16 @@ RUN apt-get update && apt-get upgrade -y && \
 RUN apt-get update && apt-get upgrade -y 
 
 # add extra repos
-RUN apt-add-repository non-free && apt-add-repository contrib
-RUN apt-get update && apt-get upgrade -y 
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y 
 
+# GPU requirements
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ocl-icd-dev ocl-icd-opencl-dev ocl-icd-libopencl1 oclgrind opencl-headers libtiff-dev build-essential dkms \
+    nvidia-driver-$NVIDIA_DRIVER_VERSION pocl-opencl-icd intel-opencl-icd mesa-opencl-icd nvidia-opencl-dev libpocl-dev beignet-opencl-icd libnvidia-egl-wayland-dev nvidia-cuda-dev nvidia-cuda-toolkit
+
+# Microsoft repos
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 RUN curl https://packages.microsoft.com/config/ubuntu/21.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
 
@@ -90,9 +99,6 @@ RUN pip3 install virtualenv pytesseract ipyparallel py7zr cython isort html2text
 RUN pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2 psycopg2-binary pyodbc
 RUN pip3 install dvc flask GitPython elasticsearch opensearch-py neo4j --ignore-installed PyYAML 
 RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
-
-# GPU requirements
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ocl-icd-dev ocl-icd-opencl-dev ocl-icd-libopencl1 oclgrind opencl-headers libtiff-dev build-essential dkms nvidia-driver nvidia-egl-icd pocl-opencl-icd intel-opencl-icd mesa-opencl-icd libpocl-dev beignet-opencl-icd nvidia-opencl-icd nvidia-egl-common nvidia-cuda-dev nvidia-cuda-toolkit
 
 # XNAT
 RUN pip3 install xnat
