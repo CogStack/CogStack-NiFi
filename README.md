@@ -24,7 +24,7 @@ The project is organised in the following directories:
 
 Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/).
 
-As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) walks through an example deployment workflow examples.
+As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) walks through an example deployment with some workflow examples.
 
 All issues are tracked in [README](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html), check that section before opening a bug report ticket.
 
