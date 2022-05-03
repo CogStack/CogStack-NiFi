@@ -5,6 +5,7 @@ import os
 import pwd
 import subprocess
 import sys
+import docker
 import dockerspawner 
 from jupyterhub.auth import LocalAuthenticator
 from nativeauthenticator import NativeAuthenticator
@@ -34,6 +35,7 @@ c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "jupyterhub/singleuse
 spawn_cmd = os.environ.get("DOCKER_SPAWN_CMD", "start-singleuser.sh")
 
 c.DockerSpawner.extra_create_kwargs.update({"command": spawn_cmd})
+# c.DockerSpawner.extra_create_kwargs.update({ "volume_driver": "local" })
 
 # Connect containers to this Docker network
 # IMPORTANT, THIS MUST MATCH THE NETWORK DECLARED in "services.yml", by default: "cogstack-net"
@@ -48,7 +50,7 @@ notebook_idle_timeout = os.environ.get("DOCKER_NOTEBOOK_IDLE_TIMEOUT", "7200")
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
-c.DockerSpawner.extra_host_config = { "network_mode": network_name}
+c.DockerSpawner.extra_host_config = { "network_mode": network_name }
 
 # Explicitly set notebook directory because we"ll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
@@ -63,7 +65,7 @@ shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/home/jovyan/scratch")
 # notebook directory in the container
 c.DockerSpawner.volumes = { "jupyterhub-user-{username}": notebook_dir, "jupyter-hub-shared-scratch": shared_content_dir}
 # volume_driver is no longer a keyword argument to create_container()
-# c.DockerSpawner.extra_create_kwargs.update({ "volume_driver": "local" })
+
 
 # Remove containers once they are stopped
 # c.DockerSpawner.remove_containers = False # Deprected for c.DockerSpawner.remove
@@ -79,12 +81,14 @@ if select_notebook_image_allowed == "true":
     # https://github.com/jupyterhub/dockerspawner/issues/423
     c.DockerSpawner.remove = True
 
-# For debugging arguments passed to spawned containers
-c.DockerSpawner.debug = True
-c.Spawner.debug = True
+run_in_debug_mode = os.environ.get("DOCKER_NOTEBOOK_DEBUG_MODE" , "false")
 
-# Enable debug-logging of the single-user server
-c.LocalProcessSpawner.debug = True
+if run_in_debug_mode == "true":
+    # For debugging arguments passed to spawned containers
+    c.DockerSpawner.debug = True
+    c.Spawner.debug = True
+    # Enable debug-logging of the single-user server
+    c.LocalProcessSpawner.debug = True
 
 ENV_PROXIES = {
     "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
@@ -171,6 +175,17 @@ class DockerSpawner(dockerspawner.DockerSpawner):
 # Spawn single-user servers as Docker containers
 c.JupyterHub.spawner_class = DockerSpawner
 c.DockerSpawner.extra_create_kwargs = {"user": "root"}
+# c.DockerSpawner.extra_host_config = {'runtime': 'nvidia'}
+
+c.DockerSpawner.extra_host_config = {
+    "device_requests": [
+        docker.types.DeviceRequest(
+            count=2,
+            capabilities=[["gpu", "utility", "compute", "video"]]
+        ),
+    ],
+}
+
 c.DockerSpawner.environment = {
     "GRANT_SUDO": "1",
     "UID": "0", # workaround https://github.com/jupyter/docker-stacks/pull/420,

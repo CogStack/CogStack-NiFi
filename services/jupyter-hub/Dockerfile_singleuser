@@ -16,6 +16,10 @@ ENV no_proxy=$NO_PROXY
 
 ENV NVIDIA_DRIVER_VERSION=510
 
+# nvidia-container-runtime
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
@@ -57,8 +61,21 @@ RUN apt-add-repository multiverse && \
     apt-get update && apt-get upgrade -y 
 
 # GPU requirements
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ocl-icd-dev ocl-icd-opencl-dev ocl-icd-libopencl1 oclgrind opencl-headers libtiff-dev build-essential dkms \
-    nvidia-driver-$NVIDIA_DRIVER_VERSION pocl-opencl-icd intel-opencl-icd mesa-opencl-icd nvidia-opencl-dev libpocl-dev beignet-opencl-icd libnvidia-egl-wayland-dev nvidia-cuda-dev nvidia-cuda-toolkit
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ocl-icd-dev ocl-icd-opencl-dev ocl-icd-libopencl1 oclgrind opencl-headers libtiff-dev build-essential dkms 
+
+# Not necessary, will corrupt nvidia-doker on install, use with care
+# RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apnvidia-driver-$NVIDIA_DRIVER_VERSION pocl-opencl-icd intel-opencl-icd mesa-opencl-icd nvidia-opencl-dev libpocl-dev beignet-opencl-icd libnvidia-egl-wayland-dev nvidia-cuda-dev nvidia-cuda-toolkit nvidia-headless-$NVIDIA_DRIVER_VERSION
+
+# NVIDIA Docker
+RUN export distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+
+RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+RUN curl -s -L https://nvidia.github.io/nvidia-docker/$(. /etc/os-release;echo $ID$VERSION_ID)/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+RUN curl -s -L https://nvidia.github.io/libnvidia-container/experimental/$(. /etc/os-release;echo $ID$VERSION_ID)/libnvidia-container-experimental.list | sudo tee /etc/apt/sources.list.d/libnvidia-container-experimental.list
+
+RUN apt-get update && apt-get upgrade -y 
+
+RUN apt-get install -y nvidia-docker2 nvidia-container-toolkit
 
 # Microsoft repos
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
@@ -91,7 +108,7 @@ RUN pip3 install setuptools wheel virtualenv
 # jupyterhub stuff
 RUN pip3 install ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
 RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
-RUN pip3 install dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
+RUN pip3 install docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
 RUN pip3 install jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
 
 # extra packages for DB connections & utilities (charts, data formats, and other useful tools such as neo4j)
@@ -109,6 +126,9 @@ RUN pip3 install click medcat && python3 -m spacy download en_core_web_md && \
 
 # pytorch cuda
 RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+
+
+
 
 COPY r_kernel_install.sh /etc/jupyterhub/
 
