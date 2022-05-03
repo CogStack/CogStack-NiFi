@@ -175,8 +175,6 @@ class DockerSpawner(dockerspawner.DockerSpawner):
 # Spawn single-user servers as Docker containers
 c.JupyterHub.spawner_class = DockerSpawner
 c.DockerSpawner.extra_create_kwargs = {"user": "root"}
-# c.DockerSpawner.extra_host_config = {'runtime': 'nvidia'}
-
 c.DockerSpawner.extra_host_config = {
     "device_requests": [
         docker.types.DeviceRequest(
