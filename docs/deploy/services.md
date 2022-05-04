@@ -261,13 +261,29 @@ For more information on use of Kibana please refer either to [the official Kiban
 
 
 ### Jupyter Hub
-`jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks.
+
+`jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks containers to users. In essence, the jupyter-hub container will spawn jupyter-singleuser containers for users, on the fly, as necessary. The settings applied to the jupyter-hub service in `services.yml` won't apply to the singleuser containers, please note that the singleuser containers and jupyter-hub container are entirely independent of one another.
+
 It exposes port `8888` on the container and binds to the same port on the host machine.
 Since `jupyter-hub` is running in the `cognet` Docker network it has access to all services available within it, hence can be used to read data directly from Elasticsearch or query NLP services.
 
+For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
+
+#### Access and account control
 To access Jupyter Hub on the host machine (e.g. localhost), one can type in the browser `http://localhost:8888`.
 
-The default password is `admin`.
-The password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value. 
+Creating accounts for other users is possible, just go to the admin page `https://localhost:8888/hub/admin#/`, click on add users and follow the instructions (make sure usernames are lower-cased).
 
-For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
+The default password is blank, you can set the password for the admin user the first time you LOG IN, remember it.
+
+Or you can set the password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value if the authenticator is set to either LocalAuthenticator or Native read more in [jupyter doc](https://jupyterhub.readthedocs.io/en/stable/api/auth.html?highlight#) about this. 
+
+
+#### User singleuser container image selection
+
+Users can be allowed to select their own image upon starting their container service, this is enabled by default, it can be turned off by setting `DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED=false` in the `services.yml` file.
+
+
+#### GPU support within jupyter
+
+GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file. Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
