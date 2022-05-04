@@ -37,7 +37,7 @@ Once deployed, the Apache-NiFi web interface will be accessible from the host (e
 
 To see all available user workflow templates navigate to **Templates** window by clicking the corresponding list item as presented on the figure below.
 Following, to select an example workflow template to run, drag and drop the **template** button from the components toolbar panel to the main notepad window.
-![template-w1](_static/img/nifi-templates-w1.png)
+![template-w1](../_static/img/nifi-templates-w1.png)
 
 
 Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user templates`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) directory.
@@ -58,7 +58,7 @@ The workflow was presented on the figure above.
 Free-text data alongside available structured fields are read from `samples-db` database from `medical_reports_text` table. 
 This operation is implemented by NiFi components: `GenerateTableFetch` and `ExecuteSQLRecord`,  where the configuration of the former component is described on the picture below.
 The `docid` field is set as the primary key of the `medical_reports_text` table and is used persist the state of the last read record and to partition the records while reading.
-![db-reader](_static/img/configure-db-reader-w1.png)
+![db-reader](../_static/img/configure-db-reader-w1.png)
 
 ### Configuring DB connector
 However, apart from specifying the DB tables, the DB connector controller `DBCPConnectionPool-MTSamples` needs to configured and activated.
@@ -66,7 +66,7 @@ The example data is stored in `db_samples` database.
 User `test` with password `test` was created to connect to it.
 
 Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - all of this is illustrated on the picture below.
-![db-reader-w1](_static/img/configure-db-connector-w1.png)
+![db-reader-w1](../_static/img/configure-db-connector-w1.png)
 
 
 ## Adding your own data to the DB 
@@ -107,7 +107,7 @@ The Elasticsearch user credentials need to be provided which in this example wou
 When indexing the records as documents the record's primary key field `/docid` will be used as the document identifier in Elasticsearch.
 Optionally, the default Date / Time / Timestamp Format can be overridden for corresponding fields being ingested.
 In this example case, the Timestamp Format was overridden as `yyyy-MM-dd'T'HH:mm:ss.SSS`.
-![es-writer-w1](_static/img/configure-es-writer-w1.png)
+![es-writer-w1](../_static/img/configure-es-writer-w1.png)
 
 ### Executing the workflow
 Once the NiFi components are properly configured and required connectors and controllers are activated, one can run the ingestion pipeline.
@@ -115,7 +115,7 @@ To run the pipeline, one needs to select the workflow components and click on th
 Similarly, to stop execution, click on the stop button ( **■** ).
 At any moment, one can stop and resume execution either of the full workflow or individual components to interactively inspect or troubleshoot the data processing.
 The figure below presents how to execute the current workflow.
-![nifi-exec-w1](_static/img/nifi-exec-workflow-w1.png)
+![nifi-exec-w1](../_static/img/nifi-exec-workflow-w1.png)
 
 Assuming that the services are available to be accessed on the host machine `localhost`, one can check whether the records have been indexed by Elassticsearch directly in Kibana interface by navigating to `http://localhost:5601`.
 
@@ -141,7 +141,7 @@ This workflow implements an extended version of the initial data ingestion pipel
 This time, the documents are stored in the database in binary format and so the text needs to be extracted from them prior to being indexed in Elasticsearch.
 The text extraction is handled by Apache Tika that is running as Tika Service (see: [description of all available services](./services.md)).
 Figure below presents the full workflow.
-![nifi-w2](_static/img/nifi-workflow-w2.png)
+![nifi-w2](../_static/img/nifi-workflow-w2.png)
 
 Please note that in contrast to the previous example, this one introduces a conditional flow. 
 In case of a processing failure, the record (Flow File) in question will be routed via a corresponding error path.
@@ -154,7 +154,7 @@ However, this time we limit the database reader to fetch one row at once as conf
 This is in order to have a more granular control over possibly failed documents by Tika that can be directly inspected and to avoid out-of-memory exceptions when a bulk of large scanned documents would be fetched at once.
 
 The figure below presents the configuration of `GenerateTableFetch` NiFi component covering the above description.
-![nifi-reader-w2](_static/img/configure-db-reader-w2.png)
+![nifi-reader-w2](../_static/img/configure-db-reader-w2.png)
 
 
 ### Extracting text from PDFs
@@ -175,7 +175,7 @@ It sends the binary payload using `POST` method to `http://tika-service:8090/api
 Please note that same instance of Tika Service can be used by different HTTP clients in multiple data pipelines.
 See [the official Tika Service documentation](https://github.com/CogStack/tika-service/) for more information about the service and API use.
 Figure below shows the configuration of the HTTP client. 
-![configure-tika-w2](_static/img/configure-tika-w2.png)
+![configure-tika-w2](../_static/img/configure-tika-w2.png)
 
 Please note that these 4 components can be merged into a specialised component for communicating with Tika Service.
 
@@ -190,7 +190,7 @@ Finally, the annotations will be stored in Elasticsearch.
 
 The annotations extraction is provided by MedCAT that is exposing NLP model functionality via MedCAT Service (see: [description of all available services](./services.md)).
 Figure below presents the full workflow.
-![nifi-w3](_static/img/nifi-workflow-w3.png)
+![nifi-w3](../_static/img/nifi-workflow-w3.png)
 
 ### Reading records from database
 The documents are being read from the database by NiFi components `GenerateTableFetch` and `ExecuteSQLRecord` with the same configuration as in the first example.
@@ -215,7 +215,7 @@ MedCAT Service will process the multiple documents simultaneously, i.e. in bulk 
 Please note that same instance of MedCAT Service can be used by different HTTP clients in multiple data pipelines.
 See [the official MedCAT Service documentation](https://github.com/CogStack/MedCATservice/) for more information about the service and API use.
 Figure below shows the configuration of the HTTP client. 
-![configure-medcart-w3](_static/img/configure-medcat-w3.png)
+![configure-medcart-w3](../_static/img/configure-medcat-w3.png)
 
 ### Indexing annotations by Elasticsearch
 This example uses similar configuration for `PutElasticsearchHttpRecord` component as before.
@@ -227,14 +227,14 @@ It is assumed that now free-text documents were already ingested into Elasticsea
 Moreover, here we are interested in extracting the NLP annotations only from documents matching a specific query for Elasticsearch.
 As before, the annotations will be stored in Elasticsearch.
 Figure below presents the full workflow.
-![nifi-w4](_static/img/nifi-workflow-w4.png)
+![nifi-w4](../_static/img/nifi-workflow-w4.png)
 
 ### Reading documents from Elasticsearch
 In this example, documents are read from the same Elasticsearch data store.
 This is, the same one was used previously to store the documents, which were  indexed under `medical_reports_text` index.
 The documents are fetched matching an example query `document:cancer`, i.e. the `document` field that will contain a `cancer` keyword.
 Figure below presents the configuration of the Elasticsearch reader component `ScrollElasticsearchHttp`.
-![nifi-w4](_static/img/configure-es-reader-w4.png)
+![nifi-w4](../_static/img/configure-es-reader-w4.png)
 
 ### Extracting NLP annotations from documents
 Similarly, the annotations extraction is implemented by MedCAT Service that exposes RESful API for processing the documents.
