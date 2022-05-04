@@ -76,7 +76,8 @@ if select_notebook_image_allowed == "true":
     # c.DockerSpawner.image_whitelist has been deprecated for allowed_images
     c.DockerSpawner.allowed_images = {
         'minimal': 'jupyterhub/singleuser:latest',
-        'cogstack': 'cogstacksystems/jupyter-singleuser:latest'
+        'cogstack': 'cogstacksystems/jupyter-singleuser:latest',
+        'cogstack-gpu' : 'cogstacksystems/jupyter-singleuser-gpu:latest'
     }
     # https://github.com/jupyterhub/dockerspawner/issues/423
     c.DockerSpawner.remove = True
@@ -175,14 +176,18 @@ class DockerSpawner(dockerspawner.DockerSpawner):
 # Spawn single-user servers as Docker containers
 c.JupyterHub.spawner_class = DockerSpawner
 c.DockerSpawner.extra_create_kwargs = {"user": "root"}
-c.DockerSpawner.extra_host_config = {
-    "device_requests": [
-        docker.types.DeviceRequest(
-            count=2,
-            capabilities=[["gpu", "utility", "compute", "video"]]
-        ),
-    ],
-}
+
+gpu_support_enabled = os.environ.get("DOCKER_ENABLE_GPU_SUPPORT", "false")
+
+if gpu_support_enabled.lower() == "true":
+    c.DockerSpawner.extra_host_config = {
+        "device_requests": [
+            docker.types.DeviceRequest(
+                count=-1,
+                capabilities=[["gpu", "utility", "compute", "video"]]
+            ),
+        ],
+    }
 
 c.DockerSpawner.environment = {
     "GRANT_SUDO": "1",

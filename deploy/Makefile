@@ -68,6 +68,7 @@ stop-all: stop-data-infra stop-jupyter stop-nlp-medcat stop-nlp-gate
 down-all:
 	docker-compose -f services.yml $(DC_DOWN_CMD)
 
+# deletes volumes associated with containers
 cleanup:
 	docker-compose -f services.yml $(DC_DOWN_CMD) -v
 

@@ -5,6 +5,7 @@ network.host: 0.0.0.0
 # To allow multiple nodes add the node"s IP addresses to the discovery pool. 
 # ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
 discovery.seed_hosts: ["localhost", "elasticsearch-2", "elasticsearch-1"]
+cluster.initial_master_nodes: ["es01", "es02"]
 discovery.type: zen
 
 # WARNING: revise all the lines below before you go into production

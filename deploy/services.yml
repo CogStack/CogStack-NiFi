@@ -586,12 +586,12 @@ services:
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            capabilities: [gpu, utility, compute, video]
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #      - driver: nvidia
+    #        capabilities: [gpu, utility, compute, video]
     environment:
       - HTTP_PROXY=$HTTP_PROXY
       - HTTPS_PROXY=$HTTPS_PROXY
@@ -610,6 +610,9 @@ services:
       # Allow users to select the image based on which the notebook will be run
       # If true, the container is removed immediately after the notebook shutdown
       - DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED=true
+      
+      # Enable gpu support, if enabled, the host computer MUST have a GPU, otherwise jupyter wont work/start containers
+      - DOCKER_ENABLE_GPU_SUPPORT=false
 
       # Output debug messages for all hub contianers:
       - DOCKER_NOTEBOOK_DEBUG_MODE=false
