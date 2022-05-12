@@ -47,7 +47,7 @@ For more information please see the [security](../security.md)
 The example deployment recipes are defined in `Makefile` file.
 The commands that start services are prefixed with `start-` keyword, similarly the ones to stop are prefixed with `stop`.
 
-### Data ingestion and storage infrastructure
+## Data ingestion and storage infrastructure
 To deploy the data ingestion and storage infrastructure, type:
 ```
 make start-data-infra
@@ -60,9 +60,9 @@ To stop the services, type:
 make stop-data-infra
 ```
 
-### NLP services
+## NLP services
 
-#### GATE
+### GATE
 To deploy an example GATE NLP Drug names extraction application as a service, type:
 ```
 make start-nlp-gate
@@ -75,7 +75,7 @@ To stop the service, type:
 make stop-nlp-gate
 ```
 
-#### MedCAT
+### MedCAT
 To deploy MedCAT application stack, type:
 ```
 make start-nlp-medcat
@@ -88,7 +88,7 @@ To stop the services, type:
 make stop-nlp-medcat
 ```
 
-### Jupyter Hub
+## Jupyter Hub
 To deploy Jupyter Hub, type:
 ```
 make start-jupyter
@@ -100,7 +100,7 @@ To stop the services, type:
 make stop-jupyter
 ```
 
-### Cleanup
+## Cleanup
 To tear down all the containers and the data persisted in mounted volumes, type:
 ```
 make cleanup
@@ -113,7 +113,7 @@ Please note that all the services are running within a private `cognet` Docker n
 However, for the ease of use, some of the services have their ports bound from container to the host machine.
 
 
-### Samples DB
+## Samples DB
 `samples-db` provides a [PostgreSQL](https://www.postgresql.org/) database that contains sample data to play with. 
 During start-up the data is loaded from a previously generated DB dump.
 
@@ -160,7 +160,7 @@ For more details on configuration, API definition and example use of Tika Servic
 
 ## NLP Services
 
-#### NLP API
+### NLP API
 All the NLP services implement a RESTful API that is defined in [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml).
 
 The available endpoints are:
@@ -173,7 +173,7 @@ Please see example Apache NiFi [workflows](./workflows.md) and [user scripts](ht
 
 For further details on the used API please refer to the [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
 
-#### GATE NLP
+### GATE NLP
 `nlp-gate-drugapp` serves a simple drug names extraction NLP application using [GATE NLP Service](https://github.com/CogStack/gate-nlp-service).
 This simple application implements annotation of common drugs and medications. 
 It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. 
@@ -190,11 +190,11 @@ Although the service won't be accessible from the host machine, but all the serv
 For more information on the GATE NLP Service configuration and use please refer to [the official documentation](https://github.com/CogStack/gate-nlp-service).
 
 
-#### MedCAT NLP
+### MedCAT NLP
 [MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.
 MedCAT deployment consists of [MedCAT NLP Service](https://github.com/CogStack/MedCATservice) serving NLP models via RESTful API and [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) for collecting annotations and refinement of the NLP models.
 
-#### MedCAT Service
+### MedCAT Service
 `nlp-medcat-medmen` serves a basic UMLS model trained on MedMentions dataset via RESTful API.
 The served model data is available in [`./services/nlp-services/applications/medcat/models/medmen/`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/medcat/models/medmen`) directory.
 
@@ -207,7 +207,7 @@ Although the service won't be accessible from the host machine, but all the serv
 For more information on the MedCAT NLP Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
 
 
-#### MedCAT Trainer
+### MedCAT Trainer
 `medcat-trainer-ui` serves the MedCAT Trainer web application used for training and refining MedCAT NLP models.
 Such trained models can be later saved as files and loaded into MedCAT Service.
 Alternatively, the models can be loaded into custom application.
@@ -238,7 +238,7 @@ For enabling it and generating self-signed certificates please refer directly to
 The security aspects are covered expensively in [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
-#### Elasticsearch
+### Elasticsearch
 Elasticsearch cluster is deployed as a single-node cluster with `elasticsearch-1` service.
 It exposes port `9200` on the container and binds it to the same port on the host machine.
 The service endpoint should be available to all the services running inside the `cognet` Docker network under address `http://elasticsearch-1:9200`.
@@ -249,7 +249,7 @@ However, for manual tailoring the available configuration parameters are availab
 For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
-#### Kibana
+### Kibana
 `kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster. 
 It exposes port `5601` on the container and binds it to the same port on the host machine.
 To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `https://localhost:5601`.
@@ -260,7 +260,7 @@ However, for manual tailoring the available configuration parameters are availab
 For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/docs/latest/dashboards/index/).
 
 
-### Jupyter Hub
+## Jupyter Hub
 
 `jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks containers to users. In essence, the jupyter-hub container will spawn jupyter-singleuser containers for users, on the fly, as necessary. The settings applied to the jupyter-hub service in `services.yml` won't apply to the singleuser containers, please note that the singleuser containers and jupyter-hub container are entirely independent of one another.
 
@@ -269,7 +269,7 @@ Since `jupyter-hub` is running in the `cognet` Docker network it has access to a
 
 For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
 
-#### Access and account control
+### Access and account control
 To access Jupyter Hub on the host machine (e.g. localhost), one can type in the browser `http://localhost:8888`.
 
 Creating accounts for other users is possible, just go to the admin page `https://localhost:8888/hub/admin#/`, click on add users and follow the instructions (make sure usernames are lower-cased).
@@ -279,12 +279,12 @@ The default password is blank, you can set the password for the admin user the f
 Or you can set the password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value if the authenticator is set to either LocalAuthenticator or Native read more in [jupyter doc](https://jupyterhub.readthedocs.io/en/stable/api/auth.html?highlight#) about this. 
 
 
-#### User singleuser container image selection
+### User singleuser container image selection
 
 Users can be allowed to select their own image upon starting their container service, this is enabled by default, it can be turned off by setting `DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED=false` in the `services.yml` file.
 
 
-#### GPU support within jupyter
+### GPU support within jupyter
 
 Pre-requisites (for Linux and Windows): 
     - for Linux, you need to install the nvidia-docker2 package / nvidia toolkit package that adds gpu spport for docker, official documentation [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
