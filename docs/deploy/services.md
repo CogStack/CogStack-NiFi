@@ -286,4 +286,11 @@ Users can be allowed to select their own image upon starting their container ser
 
 #### GPU support within jupyter
 
+Pre-requisites (for Linux and Windows): 
+    - for Linux, you need to install the nvidia-docker2 package / nvidia toolkit package that adds gpu spport for docker, official documentation [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+    - this also needs to be done for Windows machines, please read the the documentation for WSL2 [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)
+
 GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file. Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
+
+Do not attempt to use the gpu image on a non-gpu machine, it wont work and it will crash the container service.
+
