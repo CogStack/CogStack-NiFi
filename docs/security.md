@@ -27,12 +27,12 @@ For information on OpenSearch for Elasticsearch security features and their conf
 We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](ttps://www.elastic.co/). 
 Please note that the deployment of native ES version requires different settings to be changed from the current repository state.
 
-# Generating ES + KIBANA CERTS
+## Generating ES + KIBANA CERTS
 
-## Elasticsearch Security Requirements
+### Elasticsearch Security Requirements
 
 Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES)
-### For OpenSearch
+#### For OpenSearch
 ElasticSearch OpenSearch requires the following certifiates available in the [security](security/) folder:
 - `es_certificates/elasticsearch-1.pem`
 - `es_certificates/elasticsearch-1.key`
@@ -44,10 +44,6 @@ ElasticSearch OpenSearch requires the following certifiates available in the [se
 We have to make sure to execute the following commands `bash ./create_es_nodecert.sh elasticsearch-1 && bash ./create_es_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, for both nodes make sure to generate the ADMIN authorization certificate by doing `bash ./create_es_admin_cert.sh`.
 
 The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
-
-## Generating users
-
-Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
 
 
 You can generate some basic users by executing the [`create_es_native_credentials.sh`](security/create_es_native_credentials.sh) script, if you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
@@ -84,6 +80,11 @@ Once generated, the files can be further referenced in `services/kibana/config/k
 These certificates are generates by the steps mentioned in the above Elasticsearch Native section.
 
 ## Users and roles in ElasticSearch
+
+
+### Generating users
+
+Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
 
 ### Users and passwords
 The sample users and passwords are specified in the following `.env` files in `security/` directory:
