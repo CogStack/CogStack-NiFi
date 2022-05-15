@@ -28,7 +28,7 @@ make start-nlp-medcat
 Please note that all the above services will be accessible by services within internal `cognet` Docker network while only some of them will be accessible from host machine.
 Please refer to [SERVICES](./services.md) for a more detailed description of the available services and their deployment.
 
-# Apache NiFi web user interface
+## Apache NiFi web user interface
 Before start, please see [the official Apache NiFi guide on using the web user interface](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#User_Interface) that covers extensively the available functionality.
 
 In this doc only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
