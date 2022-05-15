@@ -6,7 +6,7 @@
 # 13-12-2021 LOG4J Vulnerabity
 
 
-Since the discovery of the Log4J package vulenerability (https://www.ncsc.gov.uk/news/apache-log4j-vulnerability) it is necessary and recommended to update all existing deployments of CogStack.
+Since the discovery of the Log4J package vulnerability (https://www.ncsc.gov.uk/news/apache-log4j-vulnerability) it is necessary and recommended to update all existing deployments of CogStack.
 
 A summary of the steps needed to easily upgrade any CogStack components on an existing deployment:
 

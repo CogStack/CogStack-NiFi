@@ -43,7 +43,7 @@ Please note that for the demonstration purposes, the services are run with defau
 Moreover, SSL encryption is also disabled or not set up in the configuration files.
 For more information please see the [security](../security.md)
 
-# Deployment
+## Deployment
 The example deployment recipes are defined in `Makefile` file.
 The commands that start services are prefixed with `start-` keyword, similarly the ones to stop are prefixed with `stop`.
 

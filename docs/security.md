@@ -29,7 +29,7 @@ Please note that the deployment of native ES version requires different settings
 
 # Generating ES + KIBANA CERTS
 
-#### Elasticsearch Security Requirements
+## Elasticsearch Security Requirements
 
 Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES)
 ### For OpenSearch
@@ -45,9 +45,12 @@ We have to make sure to execute the following commands `bash ./create_es_nodecer
 
 The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
 
-#### Generating users
+## Generating users
 
 Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
+
+
+You can generate some basic users by executing the [`create_es_native_credentials.sh`](security/create_es_native_credentials.sh) script, if you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
 
 ### For Elasticsearch Native
 
@@ -61,10 +64,6 @@ ElasticSearch Native requires the following certificates, available in the [secu
 
 To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](security/create_es_native_certs.sh).
 
-#### Generating users
-
-You can generate some basic users by executing the [`create_es_native_credentials.sh`](security/create_es_native_credentials.sh) script, if you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
-
 ### Kibana (OpenDashboard)
 Kibana OpenDashboard requires:
 - `admin.pem`
@@ -74,7 +73,7 @@ Kibana OpenDashboard requires:
 
 Once generated, the files can be further referenced in `services/kibana/config/kibana_opensearch.yml` and/or linked directly in the Docker compose file with services configuration.
 
-### Kibana 
+### Kibana
 
 - `es_certificates/elasticsearch-1/elasticsearch-1.crt`
 - `es_certificates/elasticsearch-1/elasticsearch-1.key`
