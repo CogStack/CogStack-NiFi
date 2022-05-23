@@ -14,7 +14,7 @@ class LocalNativeAuthenticator(NativeAuthenticator, LocalAuthenticator):
   pass
 
 def pre_spawn_hook(spawner):
-    username = spawner.user.name
+    username = str(spawner.user.name).lower()
     try:
         pwd.getpwnam(username)
     except KeyError:
@@ -132,7 +132,7 @@ with open(userlist_path) as f:
         parts = line.split()
         # in case of newline at the end of userlist file
         if len(parts) >= 1:
-            name = parts[0]
+            name = str(parts[0]).lower()
             whitelist.add(name)
             if len(parts) > 1 and parts[1] == "admin":
                 admin.add(name)
