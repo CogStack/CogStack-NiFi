@@ -1,4 +1,4 @@
-FROM apache/nifi:1.15.3
+FROM apache/nifi:1.16.1
 ARG UID=1000
 ARG GID=1000
 
