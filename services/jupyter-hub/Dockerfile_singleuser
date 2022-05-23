@@ -17,6 +17,24 @@ ENV no_proxy=$NO_PROXY
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
+     apt-get install -y software-properties-common
+# add extra repos
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y 
+
+# Add latest ubuntu repos to sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
+
+RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y \
     gnupg \
     libssl-dev \
@@ -47,15 +65,6 @@ RUN apt-get update && apt-get upgrade -y && \
     r-base 
 
 RUN apt-get update && apt-get upgrade -y 
-
-# add extra repos
-RUN apt-add-repository multiverse && \
-    apt-add-repository universe && \
-    add-apt-repository ppa:graphics-drivers/ppa && \
-    apt-get update && apt-get upgrade -y 
-
-RUN apt-get update && apt-get upgrade -y 
-
 
 # Microsoft repos
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
