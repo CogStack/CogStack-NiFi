@@ -21,6 +21,23 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 
 USER root
+RUN apt-get update && apt-get upgrade -y && \
+     apt-get install -y software-properties-common
+# add extra repos
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y 
+
+# Add latest ubuntu repos to sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb https://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src https://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y \
@@ -33,7 +50,6 @@ RUN apt-get update && apt-get upgrade -y && \
     dirmngr \
     ca-certificates \
     apt-transport-https \
-    software-properties-common \
     apt-utils \
     fonts-dejavu \
     build-essential \
@@ -53,12 +69,6 @@ RUN apt-get update && apt-get upgrade -y && \
     r-base 
 
 RUN apt-get update && apt-get upgrade -y 
-
-# add extra repos
-RUN apt-add-repository multiverse && \
-    apt-add-repository universe && \
-    add-apt-repository ppa:graphics-drivers/ppa && \
-    apt-get update && apt-get upgrade -y 
 
 # GPU requirements
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ocl-icd-dev ocl-icd-opencl-dev ocl-icd-libopencl1 oclgrind opencl-headers libtiff-dev build-essential dkms 

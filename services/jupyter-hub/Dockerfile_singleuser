@@ -45,7 +45,6 @@ RUN apt-get update && apt-get upgrade -y && \
     dirmngr \
     ca-certificates \
     apt-transport-https \
-    software-properties-common \
     apt-utils \
     fonts-dejavu \
     build-essential \
