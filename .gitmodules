@@ -1,3 +1,5 @@
 [submodule "working_with_cogstack"]
 	path = services/jupyter-hub/notebooks/working_with_cogstack
 	url = https://github.com/CogStack/working_with_cogstack.git
+	branch = master
+
