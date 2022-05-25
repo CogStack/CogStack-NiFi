@@ -28,7 +28,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        github-token: ${{ github.token }}
+        token: ${{ github.token }}
         submodules: true
 
     # Update references
