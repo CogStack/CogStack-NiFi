@@ -1,11 +1,11 @@
-name: 'Submodules Sync'
+name: submodules-sync
 
 on:
 
   push:
-    branches: [ devel ]
+    branches: [master, devel]
   pull_request:
-    branches: [ devel ]
+    branches: [master, devel]
   
   release:
     types: [published]
