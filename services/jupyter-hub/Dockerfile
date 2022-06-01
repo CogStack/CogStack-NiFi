@@ -14,9 +14,32 @@ ENV http_proxy=$HTTP_PROXY
 ENV https_proxy=$HTTPS_PROXY
 ENV no_proxy=$NO_PROXY
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_PRIORITY=critical
+
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
+     apt-get install -y software-properties-common
+
+# add extra repos
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y 
+
+# Add latest ubuntu repos to sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
+
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get  --force-yes -o Dpkg::Options::="--force-confold" --force-yes -o Dpkg::Options::="--force-confdef" -fuy  dist-upgrade  && \
     apt-get install -y \
     gnupg \
     libssl-dev \
@@ -27,7 +50,6 @@ RUN apt-get update && apt-get upgrade -y && \
     dirmngr \
     ca-certificates \
     apt-transport-https \
-    software-properties-common \
     fonts-dejavu \
     build-essential \
     unixodbc \
