@@ -14,10 +14,14 @@ ENV http_proxy=$HTTP_PROXY
 ENV https_proxy=$HTTPS_PROXY
 ENV no_proxy=$NO_PROXY
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_PRIORITY=critical
+
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
      apt-get install -y software-properties-common
+
 # add extra repos
 RUN apt-add-repository multiverse && \
     apt-add-repository universe && \
@@ -35,7 +39,7 @@ RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a 
 RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | sudo tee -a /etc/apt/sources.list
 
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get dist-upgrade -y && \
+    apt-get  --force-yes -o Dpkg::Options::="--force-confold" --force-yes -o Dpkg::Options::="--force-confdef" -fuy  dist-upgrade  && \
     apt-get install -y \
     gnupg \
     libssl-dev \
@@ -112,7 +116,7 @@ RUN pip3 install xnat
 
 # medcat & models
 RUN pip3 install click medcat
-#RUN python3 -m spacy download en_core_web_md && \
+# RUN python3 -m spacy download en_core_web_md
 RUN pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
     pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
 
@@ -121,7 +125,6 @@ COPY r_kernel_install.sh /etc/jupyterhub/
 RUN Rscript /etc/jupyterhub/r_kernel_install.sh
 
 # create jupyterhub shared folder
-
 RUN mkdir -p /home/jovyan/scratch
 RUN chmod -R 777 /home/jovyan/scratch
 RUN chmod g+s /home/jovyan/scratch
