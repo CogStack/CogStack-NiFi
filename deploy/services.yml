@@ -195,7 +195,7 @@ services:
 # MedCAT Trainer                                                            #
 #---------------------------------------------------------------------------#
   medcat-trainer-ui:
-    image: cogstacksystems/medcat-trainer:v2.2.7
+    image: cogstacksystems/medcat-trainer:v2.3.1
     container_name: cogstack-medcat-trainer-ui
     restart: always
     # INFO: MedCAT library config provided via env file
@@ -205,7 +205,7 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
-      - MCT_VERSION=v2.2.7
+      - MCT_VERSION=v2.3.1
     volumes:
       - ../services/medcat-trainer/configs:/home/configs
       - medcat-api-media:/home/api/media
@@ -216,7 +216,7 @@ services:
     command: /home/run.sh
 
   medcat-trainer-nginx:
-    image: cogstacksystems/medcat-trainer-nginx:v2.2.7
+    image: cogstacksystems/medcat-trainer-nginx:v2.3.1
     container_name: cogstack-medcat-trainer-nginx
     restart: always
     environment:
@@ -232,6 +232,21 @@ services:
     depends_on:
       - medcat-trainer-ui
 
+  solr:
+    container_name: mct_solr
+    image: solr:8
+    restart: always
+    environment:
+      - CONCEPT_SEARCH_SERVICE_HOST=localhost
+      - CONCEPT_SEARCH_SERVICE_PORT=8983
+    expose:
+      - "8983"
+    ports:
+      - 8983:8983
+    volumes:
+      - solr-data:/var/solr
+    command:
+      - -cloud
 
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
@@ -707,6 +722,8 @@ volumes:
   medcat-api-static:
     driver: local
   medcat-api-db:
+    driver: local
+  solr-data:
     driver: local
 
   # Jupyter Hub
