@@ -206,6 +206,8 @@ services:
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
       - MCT_VERSION=v2.3.1
+      - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
+      - CONCEPT_SEARCH_SERVICE_PORT=8983
     volumes:
       - ../services/medcat-trainer/configs:/home/configs
       - medcat-api-media:/home/api/media
