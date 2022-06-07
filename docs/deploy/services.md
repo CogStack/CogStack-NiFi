@@ -272,7 +272,7 @@ For more information on the use and configuration of Jupyter Hub please refer to
 ### Access and account control
 To access Jupyter Hub on the host machine (e.g. localhost), one can type in the browser `http://localhost:8888`.
 
-Creating accounts for other users is possible, just go to the admin page `https://localhost:8888/hub/admin#/`, click on add users and follow the instructions (make sure usernames are lower-cased).
+Creating accounts for other users is possible, just go to the admin page `https://localhost:8888/hub/admin#/`, click on add users and follow the instructions (make sure usernames are lower-cased and DO NOT contain symbols, if usernames contain uppercase they will be converted to lower case in the creation process).
 
 The default password is blank, you can set the password for the admin user the first time you LOG IN, remember it.
 

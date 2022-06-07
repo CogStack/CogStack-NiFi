@@ -251,3 +251,8 @@ The configuration of HTTP client (2) remains the same as before.
 ## Indexing annotations by Elasticsearch
 This example uses similar configuration for `PutElasticsearchHttpRecord` component as before.
 The annotations are now stored under `medical_reports_anns_medcat_medmen_cancer` index.
+
+## Sending automated emails
+You can automate email sending by using the PutEmail processor. You will need an Outlook or Gmail account to do this, of course, you can also use your own SMTP server if one is present.
+For Gmail you would need to generate an app password : for a [personal account](https://myaccount.google.com/apppasswords), for [workspace accounts](https://support.google.com/a/answer/2956491?hl=en).
+For Outlook, please see : for [organisations](https://docs.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission) , for [personal account](https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040)
