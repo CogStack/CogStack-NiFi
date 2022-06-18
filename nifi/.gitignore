@@ -1,0 +1,4 @@
+./conf/archive/*
+./nifi-app.log
+./flow*
+./login*
