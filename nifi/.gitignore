@@ -1,4 +1,5 @@
-./conf/archive/*
-./nifi-app.log
-./flow*
-./login*
+conf/archive/*
+conf/templates
+nifi-app.log
+flow*
+login*
