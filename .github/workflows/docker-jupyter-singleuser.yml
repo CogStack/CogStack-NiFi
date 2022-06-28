@@ -56,6 +56,12 @@ jobs:
         run: |
              echo ${{ env.RELEASE_VERSION }}
              echo $RELEASE_VERSION
+      
+      # Update references for any submodules
+      - name: Git Sumbodule Update
+        run: |
+             git pull --recurse-submodules
+             git submodule update --remote --recursive
              
       - name: set docker release tag name
         id: set_release_version
