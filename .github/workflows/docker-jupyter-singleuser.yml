@@ -60,7 +60,7 @@ jobs:
       # Update references for any submodules
       - name: Git Sumbodule Update
         run: |
-             git pull --recurse-submodules
+             git pull --recurse-submodules origin master
              git submodule update --remote --recursive
              
       - name: set docker release tag name
