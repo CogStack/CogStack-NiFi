@@ -255,7 +255,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
     environment:
       # User config:
       - ELASTIC_USER=kibanaserver
@@ -271,7 +271,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    #image: docker.elastic.co/elasticsearch/elasticsearch:8.1.2
+    #image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
     image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-1
     platform: linux
@@ -358,7 +358,7 @@ services:
       - cognet
 
   elasticsearch-2:
-    #image: docker.elastic.co/elasticsearch/elasticsearch:8.1.2
+    #image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
     image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-2
     platform: linux
