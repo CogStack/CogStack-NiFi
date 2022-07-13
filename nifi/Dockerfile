@@ -34,7 +34,7 @@ RUN apt-get autoremove -y
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
 RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROXY -Dhttp.nonProxyHosts=$no_proxy"
 
-USER nifi
+# USER nifi
 
 # copy drivers
 WORKDIR /opt/nifi/
