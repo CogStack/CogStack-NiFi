@@ -29,9 +29,12 @@
               To ZIP rolled files, replace '.log' with '.log.zip'.
             -->
             <fileNamePattern>${org.apache.nifi.bootstrap.config.log.dir}/nifi-app_%d{yyyy-MM-dd_HH}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
+            <maxFileSize>128MB</maxFileSize>
             <!-- keep 30 log files worth of history -->
             <maxHistory>30</maxHistory>
+            <!-- archive removal will be executed on appender start up -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <totalSizeCap>128GB</totalSizeCap>
         </rollingPolicy>
         <immediateFlush>true</immediateFlush>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -49,8 +52,12 @@
               To ZIP rolled files, replace '.log' with '.log.zip'.
             -->
             <fileNamePattern>${org.apache.nifi.bootstrap.config.log.dir}/nifi-user_%d.log</fileNamePattern>
+            <maxFileSize>128MB</maxFileSize>
             <!-- keep 30 log files worth of history -->
             <maxHistory>30</maxHistory>
+            <!-- archive removal will be executed on appender start up -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <totalSizeCap>128GB</totalSizeCap>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%date %level [%thread] %logger{40} %msg%n</pattern>
@@ -67,8 +74,10 @@
               To ZIP rolled files, replace '.log' with '.log.zip'.
             -->
             <fileNamePattern>${org.apache.nifi.bootstrap.config.log.dir}/nifi-bootstrap_%d.log</fileNamePattern>
+            <maxFileSize>128MB</maxFileSize>
             <!-- keep 5 log files worth of history -->
             <maxHistory>5</maxHistory>
+            <totalSizeCap>128GB</totalSizeCap>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%date %level [%thread] %logger{40} %msg%n</pattern>
@@ -192,7 +201,7 @@
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="APP_FILE" />
     </root>
 
