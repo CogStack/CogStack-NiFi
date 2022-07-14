@@ -95,9 +95,9 @@ ENV_PROXIES = {
     "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
     "HTTPS_PROXY" : os.environ.get("HTTPS_PROXY", ""),
     "NO_PROXY" : ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
-    "http_proxy" : os.environ.get("HTTP_PROXY", ""),
-    "https_proxy" : os.environ.get("HTTPS_PROXY", ""),
-    "no_proxy" : ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
+    "http_proxy" : os.environ.get("HTTP_PROXY", os.environ.get("http_proxy", "")),
+    "https_proxy" : os.environ.get("HTTPS_PROXY", os.environ.get("https_proxy", "")),
+    "no_proxy" : ",".join(list(filter(len, os.environ.get("no_proxy", "").split(",") + [hub_container_ip_or_name]))),
 }
 
 # AUTHENTICATION
