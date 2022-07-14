@@ -77,6 +77,8 @@
             <maxFileSize>128MB</maxFileSize>
             <!-- keep 5 log files worth of history -->
             <maxHistory>5</maxHistory>
+            <!-- archive removal will be executed on appender start up -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
             <totalSizeCap>128GB</totalSizeCap>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
