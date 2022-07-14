@@ -278,6 +278,7 @@ The default password is blank, you can set the password for the admin user the f
 
 Or you can set the password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value if the authenticator is set to either LocalAuthenticator or Native read more in [jupyter doc](https://jupyterhub.readthedocs.io/en/stable/api/auth.html?highlight#) about this. 
 
+<strong><u>Users must use the "/work/"directory for their work, otherwise files might not get saved!</u></strong>
 
 ### User singleuser container image selection
 
@@ -293,4 +294,3 @@ Pre-requisites (for Linux and Windows):
 GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file. Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
 
 Do not attempt to use the gpu image on a non-gpu machine, it wont work and it will crash the container service.
-
