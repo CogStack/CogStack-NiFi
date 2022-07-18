@@ -3,14 +3,15 @@ FROM docker.elastic.co/kibana/kibana:8.3.2
 ARG KIBANA_HOME
 ENV KIBANA_HOME=/usr/share/kibana
 
-ENV NODE_VERSION 16.14.2
+# Node version must match the realease's version: https://github.com/elastic/kibana/blob/main/.node-version
+ENV NODE_VERSION 16.16.0
 ENV NODEJS_HOME /usr/local/lib/node/nodejs
 ENV NVM_DIR /usr/local/nvm
 
 ENV PATH /usr/share/kibana/bin:$PATH
 ENV PATH $NODEJS_HOME/bin:$PATH
 
-# Built from: https://github.com/elastic/dockerfiles/blob/v7.3.2/kibana/Dockerfile
+# Built from: https://github.com/elastic/dockerfiles/blob/v8.3.2/kibana/Dockerfile
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
