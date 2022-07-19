@@ -1,0 +1,71 @@
+FROM docker.elastic.co/kibana/kibana:8.3.2
+
+ARG KIBANA_HOME
+ENV KIBANA_HOME=/usr/share/kibana
+
+# Node version must match the realease's version: https://github.com/elastic/kibana/blob/main/.node-version
+ENV NODE_VERSION 16.16.0
+ENV NODEJS_HOME /usr/local/lib/node/nodejs
+ENV NVM_DIR /usr/local/nvm
+
+ENV PATH /usr/share/kibana/bin:$PATH
+ENV PATH $NODEJS_HOME/bin:$PATH
+
+# Built from: https://github.com/elastic/dockerfiles/blob/v8.3.2/kibana/Dockerfile
+USER root
+
+RUN apt-get update && apt-get upgrade -y && \
+     apt-get install -y software-properties-common
+
+# add extra repos
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y 
+
+# Add latest ubuntu repos to sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list
+RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list
+RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list
+
+# Add latest ubuntu repos to sources.list
+
+RUN apt-get update -y && apt-get update --fix-missing && apt-get dist-upgrade -y && apt-get upgrade -y &&  apt --fix-broken install
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget unzip
+
+### Node.js v16 ###
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get update && apt-get upgrade -y
+
+RUN mkdir /usr/local/lib/node
+RUN wget https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz
+RUN tar -xJvf node-v${NODE_VERSION}-linux-x64.tar.xz
+RUN mv ./node-v${NODE_VERSION}-linux-x64 /usr/local/lib/node/nodejs
+
+RUN . ~/.profile
+
+# confirm installation
+RUN node -v
+RUN npm -v
+
+
+RUN npm install --global yarn node-gyp require-in-the-middle
+# This fixes the error "spawn E2BIG", issue discussed at https://github.com/yarnpkg/yarn/issues/5420
+RUN yarn licenses generate-disclaimer > NOTICE.md
+
+USER kibana 
+
+#################################### PLUGINS SECTION ####################################
+# https://github.com/fbaligand/kibana-enhanced-table
+RUN ./bin/kibana-plugin install https://github.com/fbaligand/kibana-enhanced-table/releases/download/v1.13.2/enhanced-table-1.13.2_8.3.2.zip
+
+RUN cd ${KIBANA_HOME}
+
+
+#ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+#CMD ["/usr/local/bin/kibana-docker"]

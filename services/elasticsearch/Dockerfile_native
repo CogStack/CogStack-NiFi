@@ -1,0 +1,7 @@
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.3.2
+
+# RUN elasticsearch-plugin install --batch https://github.com/alexklibisz/elastiknn/releases/download/7.17.5.0/elastiknn-7.17.5.0.zip
+
+RUN bin/elasticsearch-plugin install --batch analysis-icu
+
+COPY ./sysctl.conf /etc/
