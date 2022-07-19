@@ -34,6 +34,7 @@ jobs:
     # Update references
     - name: Git Sumbodule Update
       run: |
+        git config pull.rebase false
         git pull --recurse-submodules origin master
         git submodule update --remote --recursive
 
