@@ -2,7 +2,7 @@
 
 set -e
 
-TOOLKIT_VERSION="1.15.3"
+TOOLKIT_VERSION="1.16.3"
 
 if [ ! -d "./nifi_toolkit" ] 
 then
