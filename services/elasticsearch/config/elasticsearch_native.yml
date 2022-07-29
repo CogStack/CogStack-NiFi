@@ -8,9 +8,9 @@ discovery.type: zen
 # multi node cluster conf
 #----------------------
 network.host: 0.0.0.0
-discovery.seed_hosts: ["elasticsearch-1"]
+discovery.seed_hosts: ["elasticsearch-1", "elasticsearch-2"]
 http.port: 9200
-#cluster.initial_master_nodes: ["es01"]
+cluster.initial_master_nodes: ["es01", "es02"]
 
 #----------------------
 # X-Pack features

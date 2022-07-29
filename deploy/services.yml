@@ -288,7 +288,7 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
 
       # User config:
@@ -326,13 +326,14 @@ services:
       - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/elasticsearch/config/esnode.crt:ro
       - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
 
-      # common setting for now
-      - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
-      #- ../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
-
       # open distro /opensearch only
+      #../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
       #- ../security/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
       #- ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+
+      # ES native roles
+      - ../security/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+      
       # VM settings
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
@@ -375,7 +376,7 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
       
       # User config:
@@ -404,14 +405,14 @@ services:
       - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/elasticsearch/config/esnode.crt:ro
       - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/elasticsearch/config/esnode.key:ro
 
-      # INFO: modifiy this according to your ES version
-      - ../security/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
-      #- ../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
-
       # open distro /opensearch only
       #- ../security/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
       #- ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+      #- ../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
       
+      # ES native roles
+      - ../security/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+
       # VM settings
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro
      
