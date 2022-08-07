@@ -438,6 +438,54 @@ services:
     networks:
       - cognet
 
+  metricbeat-1:
+    container_name: cogstack-metricbeat-1
+    image: docker.elastic.co/beats/metricbeat:8.3.2
+    environment:
+      - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
+      - ELASTIC_USER=kibanaserver
+      - ELASTIC_PASSWORD=kibanaserver
+      - KIBANA_HOST="https://kibana:5601"
+    volumes:
+      - metricbeat-data-1:/usr/share/metricbeat/data
+
+      - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/metricbeat/esnode.key:ro
+
+    networks:
+      - cognet
+    depends_on:
+      - elasticsearch-1
+
+  metricbeat-2:
+    container_name: cogstack-metricbeat-2
+    image: docker.elastic.co/beats/metricbeat:8.3.2
+    environment:
+      - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
+      - ELASTIC_USER=kibanaserver
+      - ELASTIC_PASSWORD=kibanaserver
+      - KIBANA_HOST="https://kibana:5601"
+    volumes:
+      - metricbeat-data-2:/usr/share/metricbeat/data
+
+      - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates:/usr/share/metricbeat/certs:ro
+
+      - ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/metricbeat/esnode.key:ro
+    networks:
+      - cognet
+    depends_on:
+      - elasticsearch-2
 
 #---------------------------------------------------------------------------#
 # Kibana webapp                                                             #
@@ -692,6 +740,11 @@ volumes:
   elasticsearch-vol-2:
     driver: local
   elasticsearch-certs-vol:
+    driver: local
+  
+  metricbeat-data-1:
+    driver: local
+  metricbeat-data-2:
     driver: local
 
   # NiFi related
