@@ -5,6 +5,14 @@ set -e
 CERTIFICATE_PASSWORD="cogstackNifi"
 CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
 
+# Set this variable in order to add more hostnames to the dns approved instances
+# the syntax must be : "
+# - example1.com
+# - example2.com
+# - example3.com
+# "
+HOSTNAMES=""
+
 echo -ne "
 instances:
   - name: elasticsearch-1
@@ -12,6 +20,7 @@ instances:
       - es01
       - elasticsearch-1
       - localhost
+      $HOSTNAMES
     ip:
       - 127.0.0.1
   - name: elasticsearch-2
@@ -19,6 +28,7 @@ instances:
       - es02
       - elasticsearch-2
       - localhost   
+      $HOSTNAMES
     ip:
       - 127.0.0.1" > config/certificates/instances.yml
  
