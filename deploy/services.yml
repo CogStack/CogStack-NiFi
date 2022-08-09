@@ -441,6 +441,7 @@ services:
   metricbeat-1:
     container_name: cogstack-metricbeat-1
     image: docker.elastic.co/beats/metricbeat:8.3.2
+    command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
       - ELASTIC_USER=kibanaserver
@@ -465,6 +466,7 @@ services:
   metricbeat-2:
     container_name: cogstack-metricbeat-2
     image: docker.elastic.co/beats/metricbeat:8.3.2
+    command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
       - ELASTIC_USER=kibanaserver
