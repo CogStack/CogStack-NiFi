@@ -1,4 +1,4 @@
-FROM docker.elastic.co/kibana/kibana:8.3.2
+FROM docker.elastic.co/kibana/kibana:8.3.3
 
 ARG KIBANA_HOME
 ENV KIBANA_HOME=/usr/share/kibana
@@ -11,7 +11,7 @@ ENV NVM_DIR /usr/local/nvm
 ENV PATH /usr/share/kibana/bin:$PATH
 ENV PATH $NODEJS_HOME/bin:$PATH
 
-# Built from: https://github.com/elastic/dockerfiles/blob/v8.3.2/kibana/Dockerfile
+# Built from: https://github.com/elastic/dockerfiles/blob/v8.3.3/kibana/Dockerfile
 USER root
 
 RUN apt-get update && apt-get upgrade -y && \
@@ -62,7 +62,7 @@ USER kibana
 
 #################################### PLUGINS SECTION ####################################
 # https://github.com/fbaligand/kibana-enhanced-table
-RUN ./bin/kibana-plugin install https://github.com/fbaligand/kibana-enhanced-table/releases/download/v1.13.2/enhanced-table-1.13.2_8.3.2.zip
+RUN ./bin/kibana-plugin install https://github.com/fbaligand/kibana-enhanced-table/releases/download/v1.13.2/enhanced-table-1.13.2_8.3.3.zip
 
 RUN cd ${KIBANA_HOME}
 
