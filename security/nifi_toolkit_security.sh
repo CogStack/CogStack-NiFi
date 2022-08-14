@@ -2,7 +2,7 @@
 
 set -e
 
-TOOLKIT_VERSION="1.16.3"
+TOOLKIT_VERSION="1.17.0"
 
 if [ ! -d "./nifi_toolkit" ] 
 then
@@ -42,4 +42,8 @@ KEY_PASSWORD="cogstackNifi"
 # Overwite existing files use the "-O" flag.
 bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAME_1 -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $SUBJ_LINE_CERTIFICATE_CN -K $KEY_PASSWORD
 
+# create p12 version manually
+openssl pkcs12 -export -out root-ca.p12 -inkey root-ca.key -in root-ca.pem -passin pass:$KEY_PASSWORD -passout pass:$KEY_PASSWORD
+
+# move the new nifi properties files with the updated security configs to the nifi directory
 mv ./$OUTPUT_DIRECTORY/$HOSTNAME_1/nifi.properties ../nifi/conf/
