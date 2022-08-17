@@ -255,7 +255,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
     environment:
       # User config:
       - ELASTIC_USER=kibanaserver
@@ -271,7 +271,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
     #image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-1
     platform: linux
@@ -359,7 +359,7 @@ services:
       - cognet
 
   elasticsearch-2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.2.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
     #image: opensearchproject/opensearch:1.2.4
     container_name: elasticsearch-2
     platform: linux
@@ -440,7 +440,7 @@ services:
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
-    image: docker.elastic.co/beats/metricbeat:8.3.2
+    image: docker.elastic.co/beats/metricbeat:8.3.3
     command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
@@ -465,7 +465,7 @@ services:
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
-    image: docker.elastic.co/beats/metricbeat:8.3.2
+    image: docker.elastic.co/beats/metricbeat:8.3.3
     command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
@@ -493,7 +493,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.3.2
+    image: docker.elastic.co/kibana/kibana:8.3.3
     #image: opensearchproject/opensearch-dashboards:1.2.0
     container_name: cogstack-kibana
     restart: always
