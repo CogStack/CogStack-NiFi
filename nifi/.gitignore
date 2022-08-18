@@ -1,5 +1,7 @@
-conf/archive/*
+conf/archive
 conf/templates
 nifi-app.log
-flow*
-login*
+**flow
+**login
+flow.xml.gz
+*.jks
