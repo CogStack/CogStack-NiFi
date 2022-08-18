@@ -10,6 +10,11 @@ ENV HTTP_PROXY $HTTP_PROXY
 ENV HTTPS_PROXY $HTTPS_PROXY
 ENV no_proxy $no_proxy
 
+# default env vars to prevent NiFi from running on HTTP
+ENV NIFI_WEB_HTTP_PORT ""
+ENV NIFI_WEB_HTTP_HOST ""
+
+
 USER root
 
 # run updates and install some base utility packages along with python support
