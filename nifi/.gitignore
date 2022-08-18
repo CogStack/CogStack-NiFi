@@ -3,5 +3,5 @@ conf/templates
 nifi-app.log
 **flow
 **login
-flow.xml.gz
+**conf
 *.jks
