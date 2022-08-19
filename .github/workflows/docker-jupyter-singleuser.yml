@@ -60,6 +60,7 @@ jobs:
       # Update references for any submodules
       - name: Git Sumbodule Update
         run: |
+             git submodule update --init --recursive
              git pull --recurse-submodules origin master
              git submodule update --remote --recursive
              
