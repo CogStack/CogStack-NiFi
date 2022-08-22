@@ -283,14 +283,14 @@ c.JupyterHub.allow_named_servers = False
 #  
 #  .. versionadded: 1.1.0
 #  Default: 10
-c.JupyterHub.init_spawners_timeout = 180
+c.JupyterHub.init_spawners_timeout = 360
 
 ## Timeout (in seconds) before giving up on a spawned HTTP server
 #  
 #  Once a server has successfully been spawned, this is the amount of time we
 #  wait before assuming that the server is unable to accept connections.
 #  Default: 30
-c.Spawner.http_timeout = 180
+c.Spawner.http_timeout = 360
 
 ## Timeout (in seconds) before giving up on starting of single-user server.
 #  
@@ -299,7 +299,7 @@ c.Spawner.http_timeout = 180
 #  takes longer than this. start should return when the server process is started
 #  and its location is known.
 #  Default: 60
-c.Spawner.start_timeout = 180
+c.Spawner.start_timeout = 360
 
 
 #------------------------------------------------------------------------------

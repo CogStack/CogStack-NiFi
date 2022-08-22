@@ -26,9 +26,13 @@ install.packages(
       'usethis',
       'shiny',
       'RJSONIO',
-      'devtools'
+      'devtools',
+      'nloptr',
+      'lme4'
        )
        )
+
+install_github("jyypma/nloptr")
 
 install.packages('IRkernel')
 
