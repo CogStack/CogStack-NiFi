@@ -7,14 +7,35 @@
 
 set -e
 
-CA_ROOT_CERT="root-ca.pem"
-CA_ROOT_KEY="root-ca.key"
+if [[ -z "${CERTIFICATE_NAME}" ]]; then
+    CERTIFICATE_NAME="root-ca"
+    echo "CERTIFICATE_NAME not set, defaulting to CERTIFICATE_NAME=root-ca"
+fi
 
-CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
-SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+if [[ -z "${KEY_PASSWORD}" ]]; then
+    KEY_PASSWORD="cogstackNifi"
+    echo "KEY_PASSWORD not set, defaulting to KEY_PASSWORD=cogstackNifi"
+fi
+
+if [[ -z "${SUBJ_LINE}" ]]; then
+    SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+    echo "SUBJ_LINE not set, defaulting to SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+fi
+
+if [[ -z "${CERTIFICATE_ALIAS_NAME}" ]]; then
+    CERTIFICATE_ALIAS_NAME=$CERTIFICATE_NAME
+    echo "CERTIFICATE_ALIAS_NAME not set, defaulting to CERTIFICATE_ALIAS_NAME=$CERTIFICATE_NAME"
+fi
+
+if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
+    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+fi
+
+CA_ROOT_CERT=$CERTIFICATE_NAME".pem"
+CA_ROOT_KEY=$CERTIFICATE_NAME".key"
 
 KEY_SIZE=4096
-KEY_PASSWORD="cogstackNifi"
 
 echo "Generating root CA key"
 openssl genrsa -out $CA_ROOT_KEY $KEY_SIZE
@@ -23,4 +44,5 @@ echo "Generating root CA cert"
 openssl req -x509 -new -key $CA_ROOT_KEY -sha256 -out $CA_ROOT_CERT -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -subj $SUBJ_LINE
 
 # create p12 version manually
-openssl pkcs12 -export -out root-ca.p12 -inkey root-ca.key -in root-ca.pem -passin pass:$KEY_PASSWORD -passout pass:$KEY_PASSWORD
+echo "Generation pkcs12 keystore"
+openssl pkcs12 -export -out root-ca.p12 -inkey root-ca.key -in root-ca.pem -passin pass:$KEY_PASSWORD -passout pass:$KEY_PASSWORD -name $CERTIFICATE_ALIAS_NAME

@@ -8,9 +8,12 @@
 
 set -e
 
-ES_CERTIFICATES_FOLDER="./es_certificates/"
+ES_CERTIFICATES_FOLDER="./es_certificates/opensearch/"
 
-CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
+    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+fi
 
 CLIENT_CERT_NAME="es_kibana_client"
 
@@ -22,11 +25,20 @@ if [ ! -e $CA_ROOT_CERT ]; then
 	exit 1
 fi
 
-SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=CLIENT"
-SUBJ_ALT_NAMES="subjectAltName=DNS:kibana,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
+if [[ -z "${ES_CLIENT_SUBJ_LINE}" ]]; then
+    ES_CLIENT_SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=CLIENT"
+    echo "ES_CLIENT_SUBJ_LINE not set, defaulting to ES_CLIENT_SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=CLIENT"
+fi
+
+if [[ -z "${ES_CLIENT_SUBJ_ALT_NAMES}" ]]; then
+    ES_CLIENT_SUBJ_ALT_NAMES="subjectAltName=DNS:kibana,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
+    echo "ES_CLIENT_SUBJ_ALT_NAMES not set, defaulting to ES_CLIENT_SUBJ_ALT_NAMES=subjectAltName=DNS:kibana,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
+fi
+
+KEY_SIZE=4096
 
 echo "Generating a key for: $CLIENT_CERT_NAME"
-openssl genrsa -out "$CLIENT_CERT_NAME-pkcs12.key" 4096
+openssl genrsa -out "$CLIENT_CERT_NAME-pkcs12.key" $KEY_SIZE
 
 echo "Converting the key to PKCS 12"
 openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$CLIENT_CERT_NAME-pkcs12.key" -topk8 -out "$CLIENT_CERT_NAME.key" -nocrypt
