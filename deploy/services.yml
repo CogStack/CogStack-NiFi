@@ -9,7 +9,7 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    image: postgres:14.2-alpine
+    image: postgres:14.5-alpine
     container_name: cogstack-samples-db
     shm_size: 128mb
     restart: always
@@ -44,7 +44,7 @@ services:
 # CogStack Databank / Cogstack-DB, production database                      #
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
-    image: postgres:14.2-alpine
+    image: postgres:14.5-alpine
     container_name: cogstack-production-databank-db
     shm_size: 1024mb
     restart: always
