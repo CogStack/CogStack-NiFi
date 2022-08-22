@@ -32,8 +32,6 @@ install.packages(
        )
        )
 
-install_github("jyypma/nloptr")
-
 install.packages('IRkernel')
 
 IRkernel::installspec(user = FALSE)
