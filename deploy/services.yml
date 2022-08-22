@@ -64,7 +64,7 @@ services:
         hard: -1
       nofile:
         soft: 65536
-        hard: 65536
+        hard: 262144
     command: postgres -c "max_connections=1024"
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
@@ -80,7 +80,7 @@ services:
   tika-service:
     image: cogstacksystems/tika-service:latest
     container_name: cogstack-tika-service
-    shm_size: 2048mb
+    shm_size: 1024mb
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
@@ -99,7 +99,15 @@ services:
       # This option might be necessary on some systems if there's a java related error thrown
       - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
     volumes:
-      - ../services/tika-service/config:/app/config:ro
+      - ../services/tika-service/config/application.yaml:/app/config/application.yaml:ro
+      - ../security/root-ca.p12:/app/config/root-ca.p12:ro
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
     ports:
       - 8090:8090
     expose:
@@ -346,7 +354,7 @@ services:
         hard: -1
       nofile:
         soft: 65536
-        hard: 65536
+        hard: 262144
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -426,7 +434,7 @@ services:
         hard: -1
       nofile:
         soft: 65536
-        hard: 65536
+        hard: 262144
     ports:
       - "9201:9200"
       - "9301:9300"
@@ -605,7 +613,7 @@ services:
         hard: -1
       nofile:
         soft: 65536
-        hard: 65536
+        hard: 262144
 
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
