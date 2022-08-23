@@ -76,6 +76,10 @@ jobs:
 
       - name: Build and push Docker Jupyter singleuser image
         uses: docker/build-push-action@v2
+        run: |
+             git submodule update --init --recursive
+             git pull --recurse-submodules origin master
+             git submodule update --remote --recursive
         with:
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile_singleuser"
@@ -86,6 +90,10 @@ jobs:
 
       - name: Build and push Docker Jupyter singleuser image with GPU support
         uses: docker/build-push-action@v2
+        run: |
+             git submodule update --init --recursive
+             git pull --recurse-submodules origin master
+             git submodule update --remote --recursive
         with:
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile_singleuser_gpu"
