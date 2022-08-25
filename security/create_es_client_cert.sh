@@ -15,10 +15,20 @@ if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
     echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
 fi
 
-CLIENT_CERT_NAME="es_kibana_client"
+if [[ -z "${CLIENT_CERT_NAME}" ]]; then
+    CLIENT_CERT_NAME="es_kibana_client"
+    echo "CLIENT_CERT_NAME not set, defaulting to CLIENT_CERT_NAME=es_kibana_client"
+fi
 
-CA_ROOT_CERT="root-ca.pem"
-CA_ROOT_KEY="root-ca.key"
+if [[ -z "${CA_ROOT_CERT}" ]]; then
+    CA_ROOT_CERT="root-ca.pem"
+    echo "CA_ROOT_CERT not set, defaulting to CA_ROOT_CERT=root-ca.pem"
+fi
+
+if [[ -z "${CA_ROOT_KEY}" ]]; then
+    CA_ROOT_KEY="root-ca.key"
+    echo "CA_ROOT_KEY not set, defaulting to CA_ROOT_KEY=root-ca.key"
+fi
 
 if [ ! -e $CA_ROOT_CERT ]; then
 	echo "Root CA certificate and key does not exist: $CA_ROOT_CERT , $CA_ROOT_KEY"

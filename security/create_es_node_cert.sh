@@ -10,7 +10,10 @@ set -e
 
 ES_CERTIFICATES_FOLDER="./es_certificates/"
 
-CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
+    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+fi
 
 if [ -z "$1" ]; then
 	echo "Usage: $0 <cert_name>"
@@ -26,12 +29,23 @@ if [ ! -e $CA_ROOT_CERT ]; then
 fi
 
 # The SUBJECT LINE is important, the CN (Company Name) should be the docker service container name, this is used for host VERIFICATION afterwards (see kibana/config/kibana_*.yml)
+if [[ -z "${ES_NODE_SUBJ_LINE}" ]]; then
+    ES_NODE_SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
+    echo "ES_NODE_SUBJ_LINE not set, defaulting to ES_NODE_SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
+	echo "The CN at the end must always contain CN=$1"
+fi
 
-SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
-SUBJ_ALT_NAMES="subjectAltName=DNS:$1,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
+if [[ -z "${ES_NODE_SUBJ_ALT_NAMES}" ]]; then
+    ES_NODE_SUBJ_ALT_NAMES="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
+    echo "ES_NODE_SUBJ_ALT_NAMES not set, defaulting to ES_NODE_SUBJ_ALT_NAMES=subjectAltName=DNS:$1,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
+	echo "The DNS end must always contain DNS:$1"
+fi
 
 # IMPRTANT: this is used in StandardSSLContextService controllers on the NiFi side, trusted keystore password field.
-KEYSTORE_PASSWORD="cogstackNifi"
+if [[ -z "${KEY_PASSWORD}" ]]; then
+    KEY_PASSWORD="cogstackNifi"
+    echo "KEY_PASSWORD not set, defaulting to KEY_PASSWORD=cogstackNifi"
+fi
 
 KEY_SIZE=4096
 

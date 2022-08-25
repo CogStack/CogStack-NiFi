@@ -2,8 +2,15 @@
 
 set -e
 
-CERTIFICATE_PASSWORD="cogstackNifi"
-CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+if [[ -z "${CERTIFICATE_PASSWORD}" ]]; then
+    CERTIFICATE_PASSWORD="cogstackNifi"
+    echo "CERTIFICATE_PASSWORD not set, defaulting to CERTIFICATE_PASSWORD=cogstackNifi"
+fi
+
+if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
+    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+fi
 
 # Set this variable in order to add more hostnames to the dns approved instances
 # the syntax must be : "
@@ -11,7 +18,11 @@ CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
 # - example2.com
 # - example3.com
 # "
-HOSTNAMES=""
+
+if [[ -z "${HOSTNAMES}" ]]; then
+	echo "HOSTNAMES env var not set, defaulting to ''"
+  HOSTNAMES=""
+fi
 
 echo -ne "
 instances:
