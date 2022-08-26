@@ -14,6 +14,8 @@ set -e
 if [ ! -d "es_certificates/ca" ]; then
     echo "Certificates for es_native not present, creating them now ..."
     docker-compose -f ../deploy/services.yml run es_native_create_certs
+    docker container rm es_create_certs -f 
+    docker volume rm elasticsearch-certs-vol -f
 else
     echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/(ca|elasticsearch-1|elasticsearch-2) folders."
 fi
