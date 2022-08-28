@@ -11,11 +11,13 @@ set -e
 
 # spin up the container that creates the certs 
 
-if [ ! -d "es_certificates/ca" ]; then
+if [ ! -d "es_certificates/es_native/elasticsearch" ]; then
     echo "Certificates for es_native not present, creating them now ..."
     docker-compose -f ../deploy/services.yml run es_native_create_certs
-    docker container rm es_create_certs -f 
+
+    echo "Removing cert container and volume...."
+    docker container rm -f $(docker ps -a -q --filter name="deploy_es_native_create_certs_run_*")
     docker volume rm elasticsearch-certs-vol -f
 else
-    echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/(ca|elasticsearch-1|elasticsearch-2) folders."
+    echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/es_native folder"
 fi
