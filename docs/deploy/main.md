@@ -37,14 +37,12 @@ For custom deployments, copy `.env-examples` files to `.env` (which are not trac
 ```bash
 cp deploy/.env-example deploy/.env
 cp security/nifi.env-example security/nifi.env
-cp security/elasticsearch.env-example security/elasticsearch.env
 ```
 
 ### Multiple deployments on the same machine
-When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all containers, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. You will also need add this project name as prefix and `_1` as suffix to URLs when connecting containers. For example, the Kibana service should contain:
-```yml
-ELASTICSEARCH_URL: http://${COMPOSE_PROJECT_NAME}_elasticsearch-1_1:9200
-```
+When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all containers, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. Docker will automatically create a Docker network and makes sure that containers can find each other by container name.
+
+For example, when setting `COMPOSE_PROJECT_NAME=cogstack-prod`, Docker Compose will create a container named `cogstack-prod_elasticsearch-1_1` for the `elasticsearch-1` service. Within the NiFi container, which is running in the same Docker network, you can refer to that container using just the service name `elasticsearch-1`.
 
 ## Troubleshooting
 
