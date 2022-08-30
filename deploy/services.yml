@@ -20,7 +20,7 @@ services:
     volumes:
       # mapping postgres data dump and initialization
       - ../services/pgsamples/db_dump/db_samples-pdf-text-small.sql.gz:/data/db_samples.sql.gz:ro
-      - ../services/cogstack-db/schemas/annotations_nlp_create_schema.sql:/data/annotations_nlp_create_schema.sql:ro
+      - ../services/cogstack-db/pgsql/schemas/annotations_nlp_create_schema.sql:/data/annotations_nlp_create_schema.sql:ro
       - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
       - samples-vol:/var/lib/postgresql/data
@@ -54,8 +54,8 @@ services:
       - POSTGRES_DATABANK_DB=databank
     volumes:
       # mapping postgres data dump and initialization
-      - ../services/cogstack-db/schemas:/data/:ro
-      - ../services/cogstack-db/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      - ../services/cogstack-db/pgsql/schemas:/data/:ro
+      - ../services/cogstack-db/pgsql/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
       - databank-vol:/var/lib/postgresql/data
     ulimits:
@@ -73,6 +73,37 @@ services:
       - 5432
     networks:
       - cognet
+  
+  cogstack-databank-db-mssql:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: cogstack-production-databank-db
+    shm_size: 1024mb
+    restart: always
+    environment:
+      - ACCEP_EULA=y
+      - SA_PASSWORD="admin!COGSTACK2022"
+    volumes:
+      # mapping postgres data dump and initialization
+      - ../services/cogstack-db/mssql/schemas:/data/:ro
+      - ../services/cogstack-db/mssql/init_db.sh:/usr/src/app/init_db.sh:ro
+      # data persistence
+      - databank-vol:/var/opt/mssql
+    command: "/usr/src/app/do-my-sql-commands.sh & /opt/mssql/bin/sqlservr"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    ports:
+    # <host:container> expose the postgres DB to host for debugging purposes
+      - 1433:1433
+    expose:
+      - 5432
+    networks:
+      - cognet
+
 
 #---------------------------------------------------------------------------#
 # Apache Tika documents processing service                                  #
@@ -91,10 +122,10 @@ services:
       # this should be used with care as processing for smaller documents (i.e < 10mb) is faster when limiting threads as
       # the thread IPC and management does not interfere when using a single thread
       # leave it to 1 if documents are small ( < 10mb) otherwise leave it as it is, changing to 0 will invalidate the variable
-      - OMP_THREAD_LIMIT=1
+      #- OMP_THREAD_LIMIT=1
       #- OMP_NUM_THREADS=1
-      #- OMP_DYNAMIC=TRUE
-      #- OMP_NESTED=TRUE
+      - OMP_DYNAMIC=TRUE
+      - OMP_NESTED=TRUE
 
       # This option might be necessary on some systems if there's a java related error thrown
       - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
@@ -266,8 +297,11 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
     environment:
       # User config:
-      - ELASTIC_USER=kibanaserver
-      - ELASTIC_PASSWORD=kibanaserver
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - CERTIFICATE_PASSWORD=${CERTIFICATE_PASSWORD}
+      - CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
+      - HOSTNAMES=${HOSTNAMES}
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
     stdin_open: true 
     tty: true
@@ -653,13 +687,13 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:latest
-    #build:
-    #  context: ../services/jupyter-hub/
-    #  args:
-    #    - http_proxy=$HTTP_PROXY
-    #    - https_proxy=$HTTPS_PROXY
-    #    - no_proxy=$no_proxy
+    #image: cogstacksystems/jupyter-hub:latest
+    build:
+      context: ../services/jupyter-hub/
+      args:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
@@ -689,7 +723,7 @@ services:
       - DOCKER_ENABLE_GPU_SUPPORT=false
 
       # Output debug messages for all hub contianers:
-      - DOCKER_NOTEBOOK_DEBUG_MODE=false
+      - DOCKER_NOTEBOOK_DEBUG_MODE=True
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
