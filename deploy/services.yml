@@ -340,8 +340,6 @@ services:
       
       - logger.level=INFO
 
-    #env_file:
-    #  - ${ELASTICSEARCH_ENV_FILE}
     volumes:
       # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
       #- ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
