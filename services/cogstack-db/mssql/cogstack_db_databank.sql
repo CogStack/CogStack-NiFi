@@ -1,4 +1,0 @@
-CREATE SCHEMA [CogStack]
-GO
-
-    
