@@ -6,8 +6,9 @@ This script prepares an AVRO record to
 */
 
 
-@Grab('org.apache.avro:avro:1.8.1')
+@Grab('org.apache.avro:avro:1.11.0')
 import org.apache.avro.*
+import org.apache.avro.util.*
 import org.apache.avro.file.*
 import org.apache.avro.generic.*
 
@@ -16,6 +17,7 @@ import org.apache.nifi.processor.io.StreamCallback
 import java.nio.charset.StandardCharsets
 import java.nio.*
 import java.nio.channels.*
+import org.apache.nifi.logging.ComponentLog
 
 
 // NiFi flow: get the input flow file
@@ -28,7 +30,6 @@ if (flowFile == null) {
 // the attribute name for storing the document id
 String DOC_ID_ATTR = 'doc_id'
 String documentIdValue = null
-
 
 // NiFi flow: run the processing of the flow file
 //.   parse the input avro file and extract the selected field content storing as the content
@@ -49,18 +50,24 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
   documentIdValue = currRecord.get(document_id_field as String)
   assert documentIdValue
 
+  Boolean isBinary = !rawContent.getClass().toString().toLowerCase().contains("org.apache.avro.util.utf") 
+
   // TODO: handle the case when the binary content is not of ByteBuffer
-  ByteBuffer rawBytes = (ByteBuffer) rawContent
+  ByteBuffer rawBytes = null
+  if (!isBinary) {
+    rawBytes = ByteBuffer.wrap(rawContent.toString().getBytes())
+  }
+  else { 
+    rawBytes = (ByteBuffer) rawContent
+  }
 
   WritableByteChannel channel = Channels.newChannel(outputStream)
   channel.write(rawBytes)
 
 } as StreamCallback)
 
-
 // set document id as an attribute of the flow file
 flowFile = session.putAttribute(flowFile, DOC_ID_ATTR, documentIdValue)
-
 
 // NiFi: transfer the seesions Flow file
 // TODO: in case of lack of raw content -- shall we move to failure ???
