@@ -10,26 +10,36 @@ set -e
 if [[ -z "${CERTIFICATE_NAME}" ]]; then
     CERTIFICATE_NAME="root-ca"
     echo "CERTIFICATE_NAME not set, defaulting to CERTIFICATE_NAME=root-ca"
+else
+    CERTIFICATE_NAME=${CERTIFICATE_NAME}
 fi
 
 if [[ -z "${KEY_PASSWORD}" ]]; then
     KEY_PASSWORD="cogstackNifi"
     echo "KEY_PASSWORD not set, defaulting to KEY_PASSWORD=cogstackNifi"
+else
+    KEY_PASSWORD=${KEY_PASSWORD}
 fi
 
 if [[ -z "${SUBJ_LINE}" ]]; then
     SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
     echo "SUBJ_LINE not set, defaulting to SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+else
+    SUBJ_LINE=${SUBJ_LINE}
 fi
 
 if [[ -z "${CERTIFICATE_ALIAS_NAME}" ]]; then
     CERTIFICATE_ALIAS_NAME=$CERTIFICATE_NAME
     echo "CERTIFICATE_ALIAS_NAME not set, defaulting to CERTIFICATE_ALIAS_NAME=$CERTIFICATE_NAME"
+else
+    CERTIFICATE_ALIAS_NAME=${CERTIFICATE_ALIAS_NAME}
 fi
 
 if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
     CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
     echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+else
+    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
 fi
 
 CA_ROOT_CERT=$CERTIFICATE_NAME".pem"

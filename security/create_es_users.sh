@@ -54,13 +54,13 @@ echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
 # create tenants
 #
 echo "Creating tenants ..."
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "description": "A tenant for the NiFi"
 }'
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "description": "A tenant for the CogStack"
 }'
@@ -70,7 +70,7 @@ echo ""
 # create roles
 #
 echo "Creating roles ..."
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "cluster_permissions": [
     "cluster_composite_ops",
@@ -99,7 +99,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }'
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "cluster_permissions": [
     "cluster_composite_ops"
@@ -133,7 +133,7 @@ echo ""
 # create users
 #
 echo "Creating users ..."
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"cogstack_access\",
@@ -144,7 +144,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }"
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"cogstack_ingest\"
@@ -154,7 +154,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }"
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"cogstack_ingest\"
@@ -168,7 +168,7 @@ echo ""
 # create mapping roles
 #
 echo "Creating roles mapping ..."
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "backend_roles": [
     "cogstack_access"
@@ -180,7 +180,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT
 }'
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
 {
   "backend_roles": [
     "cogstack_ingest"
@@ -197,7 +197,7 @@ echo ""
 # mnodify passwords for internal build-in users
 #
 echo "Modifying passwords for internal build-in users ..."
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"logstash\"
@@ -207,7 +207,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }"
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"kibanauser\",
@@ -218,7 +218,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }"
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"readall\"
@@ -228,7 +228,7 @@ curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/
 }"
 echo ""
 
-curl -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' $SSL_FLAGS -d"
 {
   \"backend_roles\": [
     \"snapshotrestore\"

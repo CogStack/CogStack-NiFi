@@ -13,11 +13,15 @@ ES_CERTIFICATES_FOLDER="./es_certificates/opensearch/"
 if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
     CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
     echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+else
+    ES_SUBJ_LINE=$CERTIFICATE_TIME_VAILIDITY_IN_DAYS
 fi
 
 if [[ -z "${ES_SUBJ_LINE}" ]]; then
     ES_SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=ADMIN"
     echo "ES_SUBJ_LINE not set, defaulting to ES_SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=ADMIN"
+else
+    ES_SUBJ_LINE=$ES_SUBJ_LINE
 fi
 
 KEY_SIZE=4096
