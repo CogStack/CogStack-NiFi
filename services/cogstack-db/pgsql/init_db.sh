@@ -5,7 +5,7 @@ set -e
 
 # global variables
 #
-POSTGRES_DATABANK_DB="databank"
+POSTGRES_DATABANK_DB="CogStack"
 DATA_DIR="/data"
 ANNOTATIONS_NLP_DB_SCHEMA_FILE="annotations_nlp_create_schema.sql"
 
