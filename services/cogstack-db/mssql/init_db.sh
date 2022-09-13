@@ -18,7 +18,7 @@ fi
 
 # global variables
 #
-DATABANK_DB="databank"
+DATABANK_DB="CogStack"
 DATA_DIR="/data"
 ANNOTATIONS_NLP_DB_SCHEMA_FILE="annotations_nlp_create_schema.sql"
 
@@ -38,13 +38,20 @@ GO
 "
 
 # custom db schema
-echo "Creating custom databank DB schemas"
-
+echo "Creating custom databank DB schemas..."
 file_paths=$(find $DATA_DIR/ -name "$DB_SCHEMA_PREFIX*")
 
 for file_path in $file_paths; do
+    echo "importing : "$file_path;
     /opt/mssql-tools/bin/sqlcmd -S localhost -U $MSSQL_SA_USER -P $MSSQL_SA_PASSWORD -d $DATABANK_DB -i $file_path;
 done
+echo "Done."
+
+# create schemas
+#
+echo "Defining ANNOTATION DB schemas..."
+/opt/mssql-tools/bin/sqlcmd -S localhost -U $MSSQL_SA_USER -P $MSSQL_SA_PASSWORD -d $DATABANK_DB -i $DATA_DIR/$ANNOTATIONS_NLP_DB_SCHEMA_FILE
+echo "Done."
 
 while :; do
     sleep 10
