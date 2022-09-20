@@ -134,6 +134,17 @@ The tables available in the database are:
 
 The tables used in the deployment example are marked with `(*)`.
 
+## Cogstack-db
+This is a general database provided for production, it does not have any data in it beyond the defined cogstack_schema (this is not yet present) and annotation_schema.
+Provided for both PGSQL and MSSQL.
+
+In the future the `${DB_PROVIDER}` will be an environment variable that will take into account the db-provider you can select, possible values [`mssql`,`pgsql`]
+
+By default all the `.sql` files beginning with `annotations*` and `cogstack*` prefix in the `services/cogstack-db/${DB_PROVIDER}/schemas/` will be loaded. This is defined in the `services/cogstack-db/${DB_PROVIDER}/init_db.sh`. There should not be a need to change them as users can simply name their schemas accordingly. Place the desired `sql` files in the `schemas` folder and it will be picked up. To debug any issues with the container or with the SQL scripts please run the startup commands separately `docker-compose -f services.yml up cogstack-databank-db` or `docker-compose -f services.yml cogstack-databank-db-mssql` while in the `deploy/` folder.
+
+### MSSQL note
+The MSSQL container will require license activation for production as per [Microsoft's guideline](https://hub.docker.com/_/microsoft-mssql-server), setting the `MSSQL_PID` env variable to the correct license PID key should activate the product.
+
 ## Apache NiFi
 `nifi` serves a single-node instance of Apache NiFi that includes the data processing engine with user interface for defining data flows and monitoring.
 Since this is a single-node NiFi instance, it also contains the default, embedded [Apache Zookeper](https://zookeeper.apache.org/) instance for managing state.
