@@ -1,7 +1,7 @@
 # application configuration
 #
 application:
-  version: 0.3.1
+  version: 0.5.0
 
 # general spring boot and server configuration
 #
@@ -12,11 +12,22 @@ server:
       max: 16
 
 spring:
+  task:
+    execution:
+      pool:
+        queue-capacity: 128
+        max-size: 128
+    scheduling:
+      thread-name-prefix: "tika~"
+      pool:
+        size: 16
+
   servlet:
-    multipart.max-file-size: 32768MB
-    multipart.max-request-size: 32768MB
-    multipart.file-size-threshold: 16384MB
-    multipart.enabled: true
+    multipart:
+      max-file-size: 32768MB
+      max-request-size: 32768MB
+      file-size-threshold: 16384MB
+      enabled: true
 
 # tika configuration
 #
@@ -38,16 +49,22 @@ tika:
       ocr-only-strategy: false
       min-doc-text-length: 1
       min-doc-byte-size: 100
+      image-quality: 1.0f
+      drop-threshold: 1.0f
       apply-rotation: false
       ocr-detect-angles: false
       # dpi valid range: 0->inf, default from Tika is 300
       ocr-dpi: 200
       use-legacy-ocr-parser-for-single-page-doc: false
+      # values: "ALL", "NO_TEXT", "TEXT_ONLY", "VECTOR_GRAPHICS_ONLY"
+      ocr-rendering-strategy: "ALL"
+      # values: "NONE", "RAW_IMAGES", "RENDER_PAGES_BEFORE_PARSE", "RENDER_PAGES_AT_PAGE_END"
+      image-render-strategy: "RAW_IMAGES"
 
     post-ocr:
       output-encoding: "UTF-8"
       # if this is set to true, the output text will be UTF-8 compliant, all other chars are removed
-      enforce-encoding-output: true
+      enforce-encoding-output: false
 
     legacy-pdf-parser:
       image-magick:
@@ -67,11 +84,12 @@ processing:
 
 logging:
   level:
-    root: DEBUG
-    tika.processor: DEBUG
-    org.springframework.web: DEBUG
-    service.controller: DEBUG
-    org.hibernate: DEBUG
+    root: INFO
+    tika.processor: INFO
+    org.springframework.web: INFO
+    service.controller: INFO
+    org.hibernate: INFO
   file:
     path: "./"
     name: "app.log"
+
