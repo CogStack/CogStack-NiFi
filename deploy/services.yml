@@ -110,7 +110,7 @@ services:
 # Apache Tika documents processing service                                  #
 #---------------------------------------------------------------------------#
   tika-service:
-    image: cogstacksystems/tika-service:latest
+    image: cogstacksystems/tika-service:5.1.0
     container_name: cogstack-tika-service
     shm_size: 1024mb
     restart: always
