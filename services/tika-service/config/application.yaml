@@ -1,7 +1,7 @@
 # application configuration
 #
 application:
-  version: 0.5.1
+  version: 0.5.2
 
 # general spring boot and server configuration
 #
@@ -61,17 +61,19 @@ tika:
       # values: "NONE", "RAW_IMAGES", "RENDER_PAGES_BEFORE_PARSE", "RENDER_PAGES_AT_PAGE_END"
       image-render-strategy: "RAW_IMAGES"
 
-    post-ocr:
-      output-encoding: "UTF-8"
-      # if this is set to true, the output text will be UTF-8 compliant, all other chars are removed
-      enforce-encoding-output: false
-
     legacy-pdf-parser:
       image-magick:
         timeout: 1200
       tesseract-ocr:
         timeout: 1200
       min-doc-text-length: 10
+
+  
+  post-ocr:
+      output-encoding: "UTF-8"
+      # if this is set to true, the output text will be UTF-8 compliant, all other chars are removed
+      enforce-encoding-output: false
+
   bulk:
     num-consumers: 8
 
