@@ -18,7 +18,7 @@ ENV NIFI_WEB_HTTP_HOST ""
 USER root
 
 # run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip && \
     apt-add-repository contrib && \
     apt-add-repository non-free && \
     apt-get update && apt-get upgrade -y && \
@@ -49,6 +49,10 @@ COPY ./drivers ./drivers
 # copy user scripts, schemas and templates
 COPY ./user-scripts ./user-scripts
 COPY ./user-schemas ./user-schemas
+
+# INSTALL NAR extensions 
+WORKDIR /opt/nifi/nifi-current/lib/
+
 
 #####
 WORKDIR /opt/nifi/nifi-current/conf/templates/
