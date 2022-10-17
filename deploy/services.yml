@@ -335,7 +335,7 @@ services:
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
 
       # User config:
-      - ELASTIC_USER=kibanaserver
+      - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
       
       - logger.level=INFO
@@ -421,7 +421,7 @@ services:
       - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
       
       # User config:
-      - ELASTIC_USER=kibanaserver
+      - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
 
       - logger.level=INFO
@@ -485,7 +485,7 @@ services:
     command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
-      - ELASTIC_USER=kibanaserver
+      - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
       - KIBANA_HOST="https://kibana:5601"
     volumes:
@@ -510,7 +510,7 @@ services:
     command: -e --strict.perms=false
     environment:
       - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
-      - ELASTIC_USER=kibanaserver
+      - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
       - KIBANA_HOST="https://kibana:5601"
     volumes:
@@ -586,7 +586,7 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     image: cogstacksystems/cogstack-nifi:latest
-    # build:
+    #build:
     #   context: ../nifi/
     #   args:      
     #       HTTP_PROXY: $HTTP_PROXY
