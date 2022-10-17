@@ -159,8 +159,10 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     def avro_record_file_path = flowFile.getAttribute('AVRO_RECORD_DATA_FILE_PATH').toString()
     def avro_record_old_schema = Schema.parse(flowFile.getAttribute("AVRO_RECORD_SCHEMA").toString())
 
+    def avro_record_File = new File(avro_record_file_path)
+
     DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(avro_record_old_schema)
-    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<GenericRecord>(new File(avro_record_file_path), datumReader)
+    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<GenericRecord>(avro_record_File, datumReader)
     GenericRecord originalAvroDoc = dataFileReader.next()
 
     // Defining avro writer
@@ -169,6 +171,9 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
     def docRecord = parseJsonToAvro(inJson, SchemaInstance.avroSchema, originalAvroDoc, outputTextFieldName, documentIdFieldName, binaryFieldName)
     writer.append(docRecord)
+
+    // delete the file after we are done with it (this is not perfect, some files may remain if the workflow is stopped and restarted from scratch)
+    avro_record_File.delete()
       
     // do not forget to close the writer
     writer.close()
