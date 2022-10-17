@@ -177,7 +177,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
       
     // do not forget to close the writer
     writer.close()
-} as StreamCallback)
+} as StreamCallback)    
 
 // transfer the seesions file
 session.transfer(flowFile, REL_SUCCESS)

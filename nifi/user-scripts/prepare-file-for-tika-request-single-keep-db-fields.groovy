@@ -95,7 +95,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
   // recordDataOutputStream.flush()
   // recordDataOutputStream.close()
 
-  String filePath = "./file_" + flowFile.getAttribute("uuid").toString()
+  String filePath = "./var/tmp/nifi_file_" + flowFile.getAttribute("uuid").toString()
   DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<GenericRecord>(datumWriter)
   dataFileWriter.create(currRecord.getSchema(), new File(filePath))
   dataFileWriter.append(currRecord)
