@@ -87,35 +87,12 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
   def dataFields = currRecord.getSchema().getFields()
 
   DatumWriter<Object> datumWriter = new GenericDatumWriter<>(currRecord.getSchema())
-  // ByteArrayOutputStream recordDataOutputStream = new ByteArrayOutputStream()
-  // BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(recordDataOutputStream, null);
-
-  // datumWriter.write(currRecord, encoder)
-  // encoder.flush()
-  // recordDataOutputStream.flush()
-  // recordDataOutputStream.close()
 
   String filePath = "./var/tmp/nifi_file_" + flowFile.getAttribute("uuid").toString()
   DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<GenericRecord>(datumWriter)
   dataFileWriter.create(currRecord.getSchema(), new File(filePath))
   dataFileWriter.append(currRecord)
   dataFileWriter.close()
-
-  dataFields.forEach(recordField -> {
-    def fieldName = recordField.name().toString()
-    if (fieldName != binary_field.toString()) {
-      def fieldData = ""
-      try{
-        fieldData = String.valueOf(currRecord.get(fieldName))
-        if (fieldData == null)
-          fieldData = ""
-      }
-      catch (Exception e ){
-        fieldData = ""
-      }
-      previousAttributes["db_field_" + fieldName] = fieldData
-    }
-  })
 
   // set document id as an attribute of the flow file 
   // this is used and returned by tika
