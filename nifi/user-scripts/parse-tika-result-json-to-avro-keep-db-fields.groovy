@@ -34,7 +34,10 @@ class SchemaInstance {
     static Schema avroSchema = null
 
     static loadSchema(text) {
-        avroSchema = new Schema.Parser().parse(text)
+        def Schema.Parser schemaParser
+        schemaParser = new Schema.Parser()
+        schemaParser.setValidate(false)
+        avroSchema = schemaParser.parse(text)
     }
 }
 
@@ -143,7 +146,6 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     def content = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
     def inJson = new JsonSlurper().parseText(content)
 
-
     String outputTextFieldName
     String documentIdFieldName
     String binaryFieldName
@@ -157,7 +159,12 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     }
 
     def avro_record_file_path = flowFile.getAttribute('AVRO_RECORD_DATA_FILE_PATH').toString()
-    def avro_record_old_schema = Schema.parse(flowFile.getAttribute("AVRO_RECORD_SCHEMA").toString())
+
+    def schemaParser = new Schema.Parser()
+    // disable variable name validation 
+    schemaParser.setValidate(false)
+
+    def avro_record_old_schema = schemaParser.parse(flowFile.getAttribute("AVRO_RECORD_SCHEMA").toString())
 
     def avro_record_File = new File(avro_record_file_path)
 
