@@ -5,8 +5,9 @@ server.port: 5601
 
 telemetry.optIn: false
 telemetry.enabled: false
+
 # INFO: ES URL provided as docker parameter
-elasticsearch.hosts: ["https://elasticsearch-1:9200"]
+elasticsearch.hosts: ["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
 elasticsearch.ssl.verificationMode: certificate
 elasticsearch.ssl.certificateAuthorities: ["config/root-ca.crt"]
 
@@ -20,14 +21,22 @@ server.ssl.certificate: "config/esnode1.crt"
 server.ssl.key: "config/esnode1.key"
 server.ssl.clientAuthentication: optional
 
-# --------
+# --------------------------------------------------------------------------------------------------------------------------------
 # X-Pack features
-# disabled by default when using '-oss' images
-# need to be disabled manually when using standard images from elastic
-# --------
-#xpack.security.enabled: true
-#xpack.graph.enabled: false
-#xpack.ml.enabled: false
-#xpack.monitoring.enabled: false
-#xpack.reporting.enabled: false
-#xpack.watcher.enabled: false
+# --------------------------------------------------------------------------------------------------------------------------------
+# Note as of ES/Kibana 8 the xpack.security.enabled and other settings are enabled by default, and are removed from the yml file.
+# Some components are still configurable, add them under this section if you wish to manage them.
+xpack.reporting.enabled: true
+
+#xpack.encryptedSavedObjects.encryptionKey: VALUE
+#xpack.reporting.encryptionKey: VALUE
+#xpack.security.encryptionKey: VALUE
+
+# xpack.security.encryptionKey: "something_at_least_32_characters"
+
+# enable PDF exporting via kibana
+xpack.reporting.capture.browser.chromium.disableSandbox: true
+
+xpack.security.session.idleTimeout: "30m"
+xpack.security.session.lifespan: "7d"
+xpack.security.session.cleanupInterval: "1d"
