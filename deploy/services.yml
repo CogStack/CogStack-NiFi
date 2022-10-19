@@ -152,7 +152,7 @@ services:
 #   * using example free models / resources                                 #
 #---------------------------------------------------------------------------#
   nlp-medcat-medmen:
-    image: cogstacksystems/medcat-service:latest
+    image: cogstacksystems/medcat-service:0.3.2
     container_name: cogstack-medcat-medmen
     restart: always
     # INFO: MedCAT configuration is specified via 'env' files
@@ -196,7 +196,7 @@ services:
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
   nlp-medcat-snomed:
-    image: cogstacksystems/medcat-service:latest
+    image: cogstacksystems/medcat-service:0.3.2
     container_name: cogstack-medcat-snomed
     restart: always
     env_file:
