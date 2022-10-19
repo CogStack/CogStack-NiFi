@@ -28,7 +28,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-htt
     pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary psycopg2 python-certifi-win32 certifi
 
 # ApacheNifi specific packages
-RUN pip3 install nipyapi
+RUN pip3 install nipyapi nifi.flowfile avro-python3
 
 RUN apt-get clean autoclean && apt-get autoremove --purge -y
 
@@ -52,7 +52,6 @@ COPY ./user-schemas ./user-schemas
 
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
-
 
 #####
 WORKDIR /opt/nifi/nifi-current/conf/templates/
