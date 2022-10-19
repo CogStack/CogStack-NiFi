@@ -1,6 +1,9 @@
 TYPE=NOT_UMLS
-DEBUG=False
-UPDATE_COO=False
+
+# IMPORTANT : log level set 
+# CRITICAL - 50, ERROR - 40, WARNING - 30, INFO - 20, DEBUG - 10, NOTSET - 0
+LOG_LEVEL=40
+
 NESTED_ENTITIES=False
 
 CNTX_SPAN=9
@@ -9,26 +12,14 @@ MIN_CUI_COUNT=30000
 MIN_CUI_COUNT_STRICT=-1
 MIN_ACC=0.2
 MIN_ACC_TH=0.2
-MIN_CONCEPT_LENGTH=1
-NEG_PROB=0.5
-LBL_STYLE=LONG
-WEIGHTED_AVG=True
-PREFER_ICD10=False
-PREFER_FREQUENT=False
-SKIP_STOPWORDS=False
-MAX_SKIP_TKN=2
 
-LR=0.1
+LEARNING_RATE=0.1
 ANNEAL=False
 KEEP_PUNCT=:|.
 
 # can be left empty if you want to use the CDB spacy model, otherwise, possible values are : en_core_sci_lg, en_core_sci_md, etc...
 # please note that only SpaCy models that are installed on the docker container are usable (take a look at the .Dockerfile and install any other custom models you may want to use)
 SPACY_MODEL=
-
-MKL_NUM_THREAD=1
-NUMEXPR_NUM_THREADS=1
-OMP_NUM_THREADS=1
 
 # IMPORTANT:
 #   Mode in which annotation entities should be outputted in the JSON response,

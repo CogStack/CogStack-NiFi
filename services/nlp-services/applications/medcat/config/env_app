@@ -1,7 +1,9 @@
-DEBUG=False
-
 # Additional settings
-APP_LOG_LEVEL=INFO
+
+# IMPORTANT : log level set 
+# CRITICAL - 50, ERROR - 40, WARNING - 30, INFO - 20, DEBUG - 10, NOTSET - 0
+APP_LOG_LEVEL=ERROR
+
 # can include only one model for NER
 APP_NAME=MedCAT
 APP_MODEL_LANGUAGE=en
@@ -21,7 +23,7 @@ APP_MEDCAT_MODEL_PACK=
 # APP_MODEL_CUI_FILTER_PATH=/cat/models/cui_filter.txt
 
 # NLP processing
-APP_BULK_NPROC=8
+APP_BULK_NPROC=16
 APP_TRAINING_MODE=False
 
 # Flask server config
@@ -29,3 +31,4 @@ SERVER_HOST=0.0.0.0
 SERVER_PORT=5000
 SERVER_WORKERS=1
 SERVER_WORKER_TIMEOUT=300
+SERVER_THREADS=16
