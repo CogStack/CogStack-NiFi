@@ -179,10 +179,11 @@ $CERTIFICATE_PASSWORD
 unzip /certs/elasticsearch-ssl-http.zip -d /certs;
 
 echo "Setting file permissions"
-chown -R root:root /certs;
-find /certs -type d -exec chmod 750 \{\} \;;
-find /certs -type f -exec chmod 640 \{\} \;;
 
+chown -R root:root /certs;
+
+find /certs -type d -exec chmod 755 \{\} \;;
+find /certs -type f -exec chmod 755 \{\} \;;
 
 # Convert p12 certificates to PEM
 openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.crt.pem -clcerts -nokeys -password pass:$CERTIFICATE_PASSWORD

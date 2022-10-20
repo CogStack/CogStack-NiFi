@@ -21,3 +21,5 @@ if [ ! -d "es_certificates/es_native/elasticsearch" ]; then
 else
     echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/es_native folder"
 fi
+
+chown -R $USER:$USER ./es_certificates/es_native
