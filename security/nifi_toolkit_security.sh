@@ -7,7 +7,7 @@ TOOLKIT_VERSION="1.17.0"
 if [ ! -d "./nifi_toolkit" ] 
 then
     if [ ! -f ./nifi-toolkit-$TOOLKIT_VERSION-bin.zip ]; then
-        wget https://dlcdn.apache.org/nifi/$TOOLKIT_VERSION/nifi-toolkit-$TOOLKIT_VERSION-bin.zip
+        wget https://archive.apache.org/dist/nifi/$TOOLKIT_VERSION/nifi-toolkit-$TOOLKIT_VERSION-bin.zip
     fi
     unzip nifi-toolkit-$TOOLKIT_VERSION-bin.zip
     mv nifi-toolkit-$TOOLKIT_VERSION nifi_toolkit
