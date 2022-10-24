@@ -1,4 +1,4 @@
-FROM jupyterhub/jupyterhub:latest
+FROM jupyterhub/jupyterhub:3
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -62,7 +62,7 @@ RUN apt-get update && apt-get upgrade -y && \
     libkrb5-dev \
     libsasl2-modules-gssapi-mit
 
-RUN apt-get install -y python3 python3-pip python3-dev python3.9-dev python3-all-dev ssl-cert --no-install-recommends
+RUN apt-get install -y python3 python3-pip python3-dev python3-all-dev ssl-cert --no-install-recommends
 
 RUN pip3 install --upgrade pip
 

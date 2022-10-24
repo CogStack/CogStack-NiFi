@@ -32,6 +32,8 @@ install.packages(
        )
        )
 
+install.packages("lme4")
+install.packages("nloptr")
 install.packages('IRkernel')
 
 IRkernel::installspec(user = FALSE)
