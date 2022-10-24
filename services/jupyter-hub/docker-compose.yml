@@ -1,7 +1,7 @@
 version: '3.6'
 
 services:
-  jupyter-hub:
+  cogstack-jupyter-hub:
     build: .
     container_name: cogstack-jupyter-hub
     restart: always
