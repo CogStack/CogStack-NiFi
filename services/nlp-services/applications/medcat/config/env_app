@@ -8,11 +8,11 @@ APP_LOG_LEVEL=ERROR
 APP_NAME=MedCAT
 APP_MODEL_LANGUAGE=en
 APP_MODEL_NAME=MedMen
-APP_MODEL_CDB_PATH=/cat/models/cdb.dat
-APP_MODEL_VOCAB_PATH=/cat/models/vocab.dat
+APP_MODEL_CDB_PATH=/cat/models/medmen/cdb.dat
+APP_MODEL_VOCAB_PATH=/cat/models/medmen/vocab.dat
 
 # optionally, can include multiple models for meta tasks, separated using ':'
-APP_MODEL_META_PATH_LIST=/cat/models/Status
+APP_MODEL_META_PATH_LIST=/cat/models/medmen/Status
 
 # MedCAT Model Pack path
 # IMPORTANT: if this parameter has value IT WILL BE LOADED FIRST OVER EVERYTHING ELSE (CDB, Vocab, MetaCATs, etc.) declared above.

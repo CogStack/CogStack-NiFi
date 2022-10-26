@@ -164,9 +164,7 @@ services:
       - SERVICE_WORKERS=1
     # INFO: MedCAT models are mounted via volumes
     volumes:
-      - ../services/nlp-services/applications/medcat/models/medmen/cdb.dat:/cat/models/cdb.dat:ro
-      - ../services/nlp-services/applications/medcat/models/medmen/vocab.dat:/cat/models/vocab.dat:ro
-      - ../services/nlp-services/applications/medcat/models/medmen/Status:/cat/models/Status:ro
+      - ../services/nlp-services/applications/medcat/models/:/cat/models/:rw
     expose:
       - 5000
     ports:
