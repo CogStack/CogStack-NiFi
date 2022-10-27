@@ -20,11 +20,17 @@ start-samples:
 start-jupyter:
 	docker-compose -f services.yml $(DC_START_CMD) jupyter-hub
 
+start-medcat-service:
+	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-medmen
+
 start-nlp-medcat:
 	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-medmen medcat-trainer-ui medcat-trainer-nginx
 
 start-nlp-gate:
 	docker-compose -f services.yml $(DC_START_CMD) nlp-gate-drugapp
+
+start-production-db:
+	docker-compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
 start-data-infra: start-nifi start-elastic start-tika start-samples
 
@@ -53,10 +59,16 @@ stop-jupyter:
 stop-nlp-medcat:
 	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-medmen medcat-trainer-ui medcat-trainer-nginx
 
+stop-medcat-service:
+	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-medmen
+
 stop-nlp-gate:
 	docker-compose -f services.yml $(DC_STOP_CMD) nlp-gate-drugapp
 
 stop-data-infra: stop-nifi stop-elastic stop-tika stop-samples
+
+stop-production-db:
+	docker-compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
 
 stop-all: stop-data-infra stop-jupyter stop-nlp-medcat stop-nlp-gate
 
