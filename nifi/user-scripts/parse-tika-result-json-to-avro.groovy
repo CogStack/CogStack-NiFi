@@ -55,20 +55,22 @@ def parseJsonToAvro(inJson, avroSchema) {
 
     // obligatory fields
     //
+
     assert inJson.containsKey('doc_id')
     def docIdValue = null
 
-    try {
-        docIdValue = Integer.parseInt(inJson['doc_id'])
+    try {   
+        docIdValue = String.valueOf(inJson.doc_id)
     }
     catch (Exception e) {
         try {
-            docIdValue = new org.apache.avro.util.Utf8(inJson['doc_id'])
+            docIdValue = new org.apache.avro.util.Utf8(inJson.doc_id)
         }
         catch (Exception e1) {
-            docIdValue = inJson["doc_id"]
+            docIdValue = inJson.doc_id as String
         }
     }
+
     docRecord.put("doc_id", docIdValue)
 
     assert inJson.containsKey('timestamp')

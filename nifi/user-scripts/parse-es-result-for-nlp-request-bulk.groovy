@@ -31,9 +31,9 @@ import java.nio.charset.StandardCharsets
 
 // NiFi flow: get the input flow file
 //
-def flowFile = session.get();
+def flowFile = session.get()
 if (flowFile == null) {
-    return;
+    return
 }
 
 // NiFi flow: run the processing of the flow file (implemented as StreamCallback)
@@ -45,19 +45,32 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     def flowFileContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
     def inJson = new JsonSlurper().parseText(flowFileContent)
 
+    def documentTextField = document_text_field as String
+    def documentIdField = document_id_field as String
+
     // process each record (returned in hits.* field)
     def outContent = []
-	inJson.hits.each { rec ->
+
+	inJson.each { record  ->
+
+        def rec = record["_source"]
+
 		footer = [:]
 
         // store each available field into footer (excluding the document content
-        //.  'document_text_field' is provided by the user
+        // 'document_text_field' is provided by the user
 		rec.each {k, v ->
-			if (!k.equals(document_text_field as String))
+			if (!k.equals(document_text_field)) {
         		footer.put(k, v)
+            }
     	}
+
     	outRec = [:]
-    	outRec.text = rec[document_text_field as String]
+    	outRec.text = rec[documentTextField]
+        outRec["id"] = record["_id"]
+
+        footer.put("id", outRec["id"])
+        
     	outRec.footer = footer
 	
 		outContent.add(outRec)
@@ -69,7 +82,6 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     outputStream.write(JsonOutput.toJson(outJson).toString().getBytes(StandardCharsets.UTF_8))
 
 } as StreamCallback)
-
 
 // NiFi: transfer the seesions Flow file
 session.transfer(flowFile, REL_SUCCESS)

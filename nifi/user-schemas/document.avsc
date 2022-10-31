@@ -3,7 +3,7 @@
   "name": "document",
   "fields":
   [
-    { "name": "doc_id", "type": "int" },
+    { "name": "doc_id", "type": "string" },
     { "name": "doc_text", "type": "string", "default": "" },
     { "name": "processing_timestamp", "type": { "type" : "string", "logicalType" : "timestamp-millis" } },
     { "name": "metadata_x_ocr_applied", "type": "boolean" },

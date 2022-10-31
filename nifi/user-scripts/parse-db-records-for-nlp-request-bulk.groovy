@@ -43,6 +43,8 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
   def flowFileContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
   def inJson = new JsonSlurper().parseText(flowFileContent)
 
+  def documentIdField = document_id_field as String
+
   // process each record 
   def outContent = []
   inJson.each { rec ->
@@ -52,13 +54,17 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     //.  'document_text_field' is provided by the user
     rec.each {k, v ->
       if (!k.equals(document_text_field as String))
-            footer.put(k, v)
+        footer.put(k, v)
       }
+
+      footer.put("id", rec[documentIdField])
+
       outRec = [:]
+      outRec.id = rec[documentIdField]
       outRec.text = rec[document_text_field as String]
       outRec.footer = footer
   
-    outContent.add(outRec)
+      outContent.add(outRec)
   }
 
   // prepare and store the output JSON in the Flow file
