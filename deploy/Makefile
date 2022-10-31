@@ -11,6 +11,18 @@ start-nifi:
 start-elastic:
 	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
+start-elastic-cluster:
+	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2
+
+start-elastic-1:
+	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-1
+
+start-elastic-2:
+	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-2
+
+start-kibana:
+	docker-compose -f services.yml $(DC_START_CMD) kibana
+
 start-tika:
 	docker-compose -f services.yml $(DC_START_CMD) tika-service
 
@@ -46,6 +58,18 @@ stop-nifi:
 
 stop-elastic:
 	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
+
+stop-elastic-cluster:
+	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2
+
+stop-elastic-1:
+	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-1
+	
+stop-elastic-2:
+	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-2
+
+stop-kibana:
+	docker-compose -f services.yml $(DC_STOP_CMD) kibana
 
 stop-tika:
 	docker-compose -f services.yml $(DC_STOP_CMD) tika-service
