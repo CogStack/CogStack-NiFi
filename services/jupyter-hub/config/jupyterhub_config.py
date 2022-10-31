@@ -57,8 +57,8 @@ c.DockerSpawner.extra_host_config = { "network_mode": network_name }
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
 # We follow the same convention.
 notebook_dir = os.environ.get("DOCKER_NOTEBOOK_DIR", "/home/jovyan/work")
-
 shared_content_dir = os.environ.get("DOCKER_SHARED_DIR", "/home/jovyan/scratch")
+
 
 #c.DockerSpawner.notebook_dir = notebook_dir
 # Mount the real user"s Docker volume on the host to the notebook user"s
@@ -100,11 +100,13 @@ ENV_PROXIES = {
     "no_proxy" : ",".join(list(filter(len, os.environ.get("no_proxy", "").split(",") + [hub_container_ip_or_name]))),
 }
 
-# AUTHENTICATION
 #c.Spawner.pre_spawn_hook = pre_spawn_hook
 #c.Spawner.ip = "127.0.0.1"
 c.Spawner.environment = ENV_PROXIES
 
+
+
+# AUTHENTICATION
 #c.Authenticator.allowed_users = {"admin"}
 c.Authenticator.admin_users = admin = {"admin"}
 
@@ -125,6 +127,13 @@ pwd = os.path.dirname(__file__)
 userlist_path = os.path.join(pwd, "userlist")
 teamlist_path = os.path.join(pwd, "teamlist")
 
+# Resource allocation env vars
+# RAM - GB of ram, CPU - num of cores
+resource_allocation_user_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_USER_CPU_LIMIT", "2")
+resource_allocation_user_ram_limit = os.environ.get("RESOURCE_ALLOCATION_USER_RAM_LIMIT", "2G")
+resource_allocation_admin_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_CPU_LIMIT", "2")
+resource_allocation_admin_ram_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT", "4G")
+
 with open(userlist_path) as f:
     for line in f:
         if not line:
@@ -136,6 +145,13 @@ with open(userlist_path) as f:
             whitelist.add(name)
             if len(parts) > 1 and parts[1] == "admin":
                 admin.add(name)
+                    
+                c.DockerSpawner.spawner.mem_limit = resource_allocation_admin_ram_limit
+                c.DockerSpawner.spawner.cpu_limit = resource_allocation_admin_cpu_limit
+            else:
+                c.DockerSpawner.spawner.mem_limit = resource_allocation_user_ram_limit
+                c.DockerSpawner.spawner.cpu_limit = resource_allocation_user_cpu_limit
+
 
 # Get team memberships
 team_map = {user: set() for user in whitelist}
@@ -170,7 +186,7 @@ class DockerSpawner(dockerspawner.DockerSpawner):
                 }
         
         self.post_start_cmd = "chmod -R 777 " + shared_content_dir
-
+        
         return super().start()
 
 # Spawn single-user servers as Docker containers
@@ -204,7 +220,6 @@ c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator"
 c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.JupyterHub.hub_connect_ip = hub_container_ip_or_name
-
 
 c.JupyterHub.hub_port = 8888
 
@@ -240,10 +255,8 @@ if int(notebook_idle_timeout) > 0:
 #------------------------------------------------------------------------------
 ## This is an application.
 
-
 c.JupyterHub.pid_file = "/etc/jupyterhub/jupyter_hub.pid"
 c.ConfigurableHTTPProxy.pid_file = "/etc/jupyterhub/jupyter_hub_proxy.pid"
-
 
 ## The date format used by logging formatters for %(asctime)s
 #  Default: "%Y-%m-%d %H:%M:%S"
@@ -253,10 +266,12 @@ c.ConfigurableHTTPProxy.pid_file = "/etc/jupyterhub/jupyter_hub_proxy.pid"
 #  Default: "[%(name)s]%(highlevel)s %(message)s"
 # c.Application.log_format = "[%(name)s]%(highlevel)s %(message)s"
 
+jupyter_log_level = os.environ.get("JUPYTERHUB_LOG_LEVEL", "INFO")
+
 ## Set the log level by value or name.
 #  Choices: any of [0, 10, 20, 30, 40, 50, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
-#  Default: 30
-c.Application.log_level = "DEBUG"
+#  Default: INFO
+c.Application.log_level = jupyter_log_level
 
 ## Instead of starting the Application, dump configuration to stdout
 #  Default: False
