@@ -2,20 +2,18 @@
 
 Our custom Apache NiFi image comes with 4 example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
 These are:
-1. `Ingest raw text from DB to ES` - performing ingestion of free-text notes from database to Elasticsearch.
-2. `Ingest PDFs from DB to ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch.
-3. `MedCAT annotate from ES to ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
-4. `MedCAT annotate from DB to ES` - the same as (3) but reading notes from Elasticsearch.
+1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
+2. `OpenSearch_ingest_DB_to_ES_OCR` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using Tika-service.
+3. `OpenSearch_ingest_annotate_DB_MedCATService_to_ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
+4. `OpenSearch_ingest_annotate_ES_MedCATService_to_ES` - the same as (3) but reading notes from Elasticsearch.
 
-If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), then you would need to use the equivalent templates:
-1. `INGEST_RAW_FROM_DB_TO_ES_SSL` - same as 1. from above but with SSL configurations
-2. `Ingest_raw_text_into_ES_and_annotate_from_ES_to_ES_SSL` - workflows 1 and 3 combined with SSL support.
-
+If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), please note that all of these templates have SSL configured (SSLContext service controller being present), please make sure that you set the password(s) to the key/trust(store) for the templates to work.
 ## Used services
 In the workflow examples, the following services are used:
 - `samples-db` - storing the example input data,
 - `nifi` - the actual Apache NiFi data pipeline engine with user interface,
-- `elasticsearch-1` - for storing the resulting documents and annotations data,
+- `elasticsearch-1` - for storing the resulting documents and annotations data, cluster of two instances.
+- `elasticsearch-2` - second node 
 - `tika-service` - extraction of text from binary documents,
 - `nlp-medcat-medmen` - an example NLP application for extracting annotations from free-text.
 
