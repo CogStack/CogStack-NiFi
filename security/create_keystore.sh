@@ -27,8 +27,15 @@ if [ ! -e "$1.pem" ] || [ ! -e "$1.key" ]; then
 	exit 1
 fi
 
-CA_ROOT_CERT="root-ca.pem"
-CA_ROOT_KEY="root-ca.key"
+if [[ -z "${ROOT_CERTIFICATE_NAME}" ]]; then
+    ROOT_CERTIFICATE_NAME="root-ca"
+    echo "ROOT_CERTIFICATE_NAME not set, defaulting to ROOT_CERTIFICATE_NAME=root-ca"
+else
+    ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
+fi
+
+CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
+CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
 
 echo "Converting x509 Cert and Key to a pkcs12 file"
 openssl pkcs12 -export -in "$1.pem" -inkey "$1.key" \
