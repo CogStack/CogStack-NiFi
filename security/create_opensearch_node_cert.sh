@@ -8,7 +8,8 @@
 
 set -e
 
-ES_CERTIFICATES_FOLDER="./es_certificates/opensearch/elasticsearch"
+OPENSEARCH_FOLDER="./es_certificates/opensearch/"
+ES_CERTIFICATES_FOLDER=$OPENSEARCH_FOLDER"elasticsearch"
 
 if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
     CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
@@ -29,6 +30,7 @@ fi
 
 CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
 CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
+CA_ROOT_KEYSTORE=$ROOT_CERTIFICATE_NAME".p12"
 
 if [ ! -e $CA_ROOT_CERT ]; then
 	echo "Root CA certificate and key does not exist: $CA_ROOT_CERT , $CA_ROOT_KEY"
@@ -66,7 +68,7 @@ echo "Generating a key for: $1"
 openssl genrsa -out "$1.p12" $KEY_SIZE
 
 echo "Converting the key to PKCS 12"
-openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$1-.p12" -topk8 -out "$1.key" -nocrypt 
+openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$1.p12" -topk8 -out "$1.key" -nocrypt 
 
 echo "Generating the certificate ..."
 openssl req -new -key "$1.key" -out "$1.csr" -subj $ES_NODE_SUBJ_LINE -addext $ES_NODE_SUBJ_ALT_NAMES  #-new -newkey rsa:$KEY_SIZE -key "$1.key" -out "$1.csr" -subj $ES_NODE_SUBJ_LINE -addext $ES_NODE_SUBJ_ALT_NAMES 
@@ -74,7 +76,7 @@ openssl req -new -key "$1.key" -out "$1.csr" -subj $ES_NODE_SUBJ_LINE -addext $E
 #openssl req -new -key "$1.key" -out "$1.csr" -subj $SUBJ_LINE -addext $SUBJ_ALT_NAMES
 
 echo "Signing the certificate ..."
-openssl x509 -req -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$1.csr" -out "$1.pem" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial  -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
+openssl x509 -req -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$1.csr" -out "$1.crt" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial  -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
 
 #-extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") 
 
@@ -84,5 +86,20 @@ bash create_keystore.sh $1 $1"-keystore"
 mkdir -p $ES_CERTIFICATES_FOLDER/$1
 
 mv $1* $ES_CERTIFICATES_FOLDER/$1
+
+# copy the original root-ca certificates and rename them to match the ES native naming convention
+output_file_name="elastic-stack-ca"
+
+if [ -f "$CA_ROOT_KEY" ] || [ -f "$CA_ROOT_CERT"] | [ -f "$CA_ROOT_KEYSTORE"]; then
+    echo "$ROOT_CERTIFICATE_NAME files found."
+    echo "Copying and renaming root-ca.* certs to elastic-stack-ca"
+    ELASTICSEARCH_ROOT_CERTIFICATE_NAME="elastic-stack-ca"
+    cp ./$CA_ROOT_KEY $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_KEY" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.key.pem"
+    cp ./$CA_ROOT_CERT $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_CERT" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.crt.pem"
+    cp ./$CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_KEYSTORE" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.p12"
+else 
+    echo "One of the following files: $CA_ROOT_KEY,$CA_ROOT_CERT,$CA_ROOT_KEYSTORE don't exist. Please create them by executing the 'create_root_ca_cert.sh' file from this folder."
+fi
+
 
 chmod -R 755 "./$ES_CERTIFICATES_FOLDER"
