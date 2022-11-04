@@ -56,10 +56,10 @@ fi
 KEY_SIZE=4096
 
 echo "Generating a key for: $ES_CLIENT_CERT_NAME"
-openssl genrsa -out "$ES_CLIENT_CERT_NAME-pkcs12.key" $KEY_SIZE
+openssl genrsa -out "$ES_CLIENT_CERT_NAME.p12" $KEY_SIZE
 
 echo "Converting the key to PKCS 12"
-openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$ES_CLIENT_CERT_NAME-pkcs12.key" -topk8 -out "$ES_CLIENT_CERT_NAME.key" -nocrypt
+openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$ES_CLIENT_CERT_NAME.p12" -topk8 -out "$ES_CLIENT_CERT_NAME.key" -nocrypt
 
 echo "Generating the certificate ..."
 openssl req -new -key "$ES_CLIENT_CERT_NAME.key" -out "$ES_CLIENT_CERT_NAME.csr" -subj $ES_CLIENT_SUBJ_LINE
