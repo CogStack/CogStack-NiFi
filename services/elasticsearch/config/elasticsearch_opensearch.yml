@@ -5,22 +5,22 @@ network.host: 0.0.0.0
 # To allow multiple nodes add the node"s IP addresses to the discovery pool. 
 # ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
 discovery.seed_hosts: ["localhost", "elasticsearch-2", "elasticsearch-1"]
-cluster.initial_master_nodes: ["es01", "es02"]
+cluster.initial_cluster_manager_nodes: ["es01", "es02"]
 discovery.type: zen
 
 # WARNING: revise all the lines below before you go into production
-plugins.security.ssl.transport.pemcert_filepath: esnode.pem
+plugins.security.ssl.transport.pemcert_filepath: esnode.crt
 plugins.security.ssl.transport.pemkey_filepath: esnode.key
-plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.crt
 plugins.security.ssl.transport.enforce_hostname_verification: false
 #plugins.security.ssl.transport.keystore_filepath: esnode-pcks12.key
 #plugins.security.ssl.transport.truststore_filepath: esnode-pcks12.key
 plugins.security.ssl.http.enabled: true
 plugins.security.ssl.transport.enabled: true
 #plugins.security.ssl.http.keystore_type: PKCS12
-plugins.security.ssl.http.pemcert_filepath: esnode.pem
+plugins.security.ssl.http.pemcert_filepath: esnode.crt
 plugins.security.ssl.http.pemkey_filepath: esnode.key
-plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.crt
 plugins.security.allow_unsafe_democertificates: false
 plugins.security.allow_default_init_securityindex: true
 plugins.security.authcz.admin_dn:

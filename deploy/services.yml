@@ -312,13 +312,14 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    #image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
-    image: opensearchproject/opensearch:1.2.4
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.3.0}
     container_name: elasticsearch-1
     platform: linux
     shm_size : 1024mb
     restart: always
     # mem_limit: 2g
+    env_file:
+         - ../security/elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -330,49 +331,40 @@ services:
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
       - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
+      - "OPENSEARCH_JAVA_OPTS=-Xms2048m -Xmx2048m"
 
       # User config:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
-      
       - logger.level=INFO
 
+      # global env vars from elasticsearch.env
+      - ${ELASTICSEARCH_VERSION:-opensearch}
+
     volumes:
-      # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
-      - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
-      #- ../services/elasticsearch/config/elasticsearch_native.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      # INFO: ES configuration mapped via volume, adaptie with env var
+      - ../services/elasticsearch/config/elasticsearch_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
 
-      # mapping security config
-      # INFO: uncomment below to add SSL keys
-      #- ${ELASTICSEARCH_SECURITY_DIR}/root-ca.pem:/usr/share/elasticsearch/config/root-ca.pem:ro
-      #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.pem:/usr/share/elasticsearch/config/esnode.pem:ro
-      #- ${ELASTICSEARCH_SECURITY_DIR}/es-node1.key:/usr/share/elasticsearch/config/esnode.key:ro
-      #- ${ELASTICSEARCH_SECURITY_DIR}/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml:ro
-      
-      # OPENSEARCH certificates
-      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
-      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch/config/admin.pem:ro
-      - ../security/es_certificates/opensearch/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.pem:/usr/share/opensearch/config/esnode.pem:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/opensearch/config/esnode.key:ro
+      # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
 
-      # ES_NATIVE certificates
-      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
-      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/elasticsearch/config/root-ca.key:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/elasticsearch/config/esnode.p12:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/elasticsearch/config/esnode.crt:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/elasticsearch/config/esnode.key:ro
-
-      # open distro /opensearch only
-      #../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
-      #- ../security/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
-      #- ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+      # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
+      - ../security/es_certificates/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
 
       # ES native roles
-      - ../security/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-      
+      - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+      - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
+
+      # opensearch only
+      - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
+      - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
+      - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
+
       # VM settings
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
@@ -398,13 +390,14 @@ services:
       - cognet
 
   elasticsearch-2:
-    #image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
-    image: opensearchproject/opensearch:1.2.4
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.3.0}
     container_name: elasticsearch-2
     platform: linux
     shm_size : 1024mb
     restart: always
     # mem_limit: 2g
+    env_file:
+         - ../security/elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -416,43 +409,42 @@ services:
       # OTHER SETTINGS
       - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
       - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
-      - "OPENSEARCH_JAVA_OPTS=-XX:InitialRAMPercentage=25.00 -XX:MinRAMPercentage=10.00"
-      
+      - "OPENSEARCH_JAVA_OPTS=-Xms2048m -Xmx2048m"
+    
       # User config:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=kibanaserver
-
       - logger.level=INFO
+
+      # global env vars from elasticsearch.env
+      - ${ELASTICSEARCH_VERSION:-opensearch}
+      
     volumes:
-      # INFO: ES configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE elasticsearch deployment)
-      - ../services/elasticsearch/config/elasticsearch_opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
-      #- ../services/elasticsearch/config/elasticsearch_native.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      # INFO: ES configuration mapped via volume, adaptie with env var
+      - ../services/elasticsearch/config/elasticsearch_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
 
-      # OPENSEARCH certificates
-      - ../security/root-ca.pem:/usr/share/opensearch/config/root-ca.pem:ro
-      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch/config/admin.pem:ro
-      - ../security/es_certificates/opensearch/admin-key.pem:/usr/share/opensearch/config/admin-key.pem:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2-pkcs12.key:/usr/share/opensearch/config/esnode-pcks12.key:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.pem:/usr/share/opensearch/config/esnode.pem:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/opensearch/config/esnode.key:ro
-      
-      # ES NATIVE
-      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/elasticsearch/config/root-ca.crt:ro
-      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/elasticsearch/config/root-ca.key:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/elasticsearch/config/esnode.p12:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/elasticsearch/config/esnode.crt:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/elasticsearch/config/esnode.key:ro
+      # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
 
-      # open distro /opensearch only
-      #- ../security/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
-      #- ../security/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
-      #- ../security/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
-      
+      # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
+      - ../security/es_certificates/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+
       # ES native roles
-      - ../security/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+      - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+      - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
+
+      # opensearch only
+      - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml:ro
+      - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles_mapping.yml:ro
+      - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/roles.yml:ro
 
       # VM settings
-      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro
+      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
       # ES data persistence
       - elasticsearch-vol-2:/usr/share/elasticsearch/data
@@ -490,11 +482,11 @@ services:
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/metricbeat/esnode.key:ro
 
     networks:
       - cognet
@@ -517,11 +509,11 @@ services:
       # ES NATIVE NODE CERTS
       - ../security/es_certificates:/usr/share/metricbeat/certs:ro
 
-      - ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/metricbeat/esnode.key:ro
     networks:
       - cognet
     depends_on:
@@ -531,47 +523,38 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    #image: docker.elastic.co/kibana/kibana:8.3.3
-    image: opensearchproject/opensearch-dashboards:1.2.0
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.3.0}
     container_name: cogstack-kibana
     restart: always
-    #env_file: ./security/es_kibana_user.env
+    env_file:
+         - ../security/es_kibana_user.env
+         - ../security/elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
       OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: "true"
 
-      ### DEFAULT native kibana-ElasticSearch path ###
-      #SERVER_SSL_KEY: /usr/share/kibana/config/kibana.key
-      #SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/kibana.crt
-
-      ### OPENSEARCH_VERSION ### use only if you use opensearch instead of native Kibana
-      #SERVER_SSL_KEY: /usr/share/opensearch-dashboards/config/kibana.key
-      #SERVER_SSL_CERTIFICATE: /usr/share/opensearch-dashboards/config/kibana.pem
-
     depends_on:
       - elasticsearch-1
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
-      - ../services/kibana/config/kibana_opensearch.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
-      #- ../services/kibana/config/kibana_native.yml:/usr/share/kibana/config/kibana.yml:ro    
-      
-      # OPENSEARCH : uncomment below to add SSL keys
-      - ../security/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem:ro
-      - ../security/es_certificates/opensearch/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem:ro
+      - ../services/kibana/config/kibana_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
+
+      # Security certificates, general      
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.crt:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.key:ro
+
+      # OpenSearch only certs
+      - ../security/es_certificates/opensearch/admin.crt:/usr/share/opensearch-dashboards/config/admin.crt:ro
+      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/opensearch-dashboards/config/admin.key.pem:ro
       - ../security/es_certificates/opensearch/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
       - ../security/es_certificates/opensearch/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.pem:/usr/share/opensearch-dashboards/config/elasticsearch-1.pem:ro
-      - ../security/es_certificates/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.pem:/usr/share/opensearch-dashboards/config/elasticsearch-2.pem:ro
 
-      # ES_NATIVE certificates
-      #- ../security/es_certificates/es_native/elastic-stack-ca.crt.pem:/usr/share/kibana/config/root-ca.crt:ro
-      #- ../security/es_certificates/es_native/elastic-stack-ca.key.pem:/usr/share/kibana/config/root-ca.key:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/kibana/config/esnode1.crt:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/kibana/config/esnode1.key:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.crt:/usr/share/kibana/config/esnode2.crt:ro
-      #- ../security/es_certificates/es_native/elasticsearch/elasticsearch-2/elasticsearch-2.key:/usr/share/kibana/config/esnode2.key:ro
     ports:
       - "5601:5601"
     networks:
@@ -660,7 +643,7 @@ services:
       - cognet
 
   nifi-nginx:
-    build: ../services/nginx/
+    build:  ../services/nginx/
     container_name: cogstack-nifi-nginx
     restart: always
     environment:
