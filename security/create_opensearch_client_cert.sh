@@ -10,11 +10,11 @@ set -e
 
 OPENSEARCH_ES_CERTIFICATES_FOLDER="./es_certificates/opensearch/"
 
-if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
-    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
-    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+if [[ -z "${ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS}" ]]; then
+    ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS=730
+    echo "ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS not set, defaulting to ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS=730"
 else
-    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
+    ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS=${ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS}
 fi
 
 if [[ -z "${ES_CLIENT_CERT_NAME}" ]]; then
@@ -53,10 +53,16 @@ else
     ES_CLIENT_SUBJ_ALT_NAMES=${ES_CLIENT_SUBJ_ALT_NAMES}
 fi
 
-KEY_SIZE=4096
+if [[ -z "${ES_KEY_SIZE}" ]]; then
+    ES_KEY_SIZE=4096
+    echo "ES_KEY_SIZE not set, defaulting to ES_KEY_SIZE=4096"
+else
+    ES_KEY_SIZE=${ES_KEY_SIZE}
+fi
+
 
 echo "Generating a key for: $ES_CLIENT_CERT_NAME"
-openssl genrsa -out "$ES_CLIENT_CERT_NAME.p12" $KEY_SIZE
+openssl genrsa -out "$ES_CLIENT_CERT_NAME.p12" $ES_KEY_SIZE
 
 echo "Converting the key to PKCS 12"
 openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$ES_CLIENT_CERT_NAME.p12" -topk8 -out "$ES_CLIENT_CERT_NAME.key" -nocrypt
@@ -67,7 +73,7 @@ openssl req -new -key "$ES_CLIENT_CERT_NAME.key" -out "$ES_CLIENT_CERT_NAME.csr"
 # -config <(cat /etc/ssl/openssl.cnf <(printf "\nsubjectAltName=DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost"))
 
 echo "Signing the certificate ..."
-openssl x509 -req -days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$ES_CLIENT_CERT_NAME.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$ES_CLIENT_CERT_NAME.pem" -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
+openssl x509 -req -days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS -in "$ES_CLIENT_CERT_NAME.csr" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial -out "$ES_CLIENT_CERT_NAME.pem" -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
 
 #-extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") 
 

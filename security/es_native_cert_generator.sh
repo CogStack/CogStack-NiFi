@@ -9,23 +9,23 @@ else
     ES_CERTIFICATE_PASSWORD=${ES_CERTIFICATE_PASSWORD}
 fi
 
-if [[ -z "${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
-    CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
-    echo "CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+if [[ -z "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
+    ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
+    echo "ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
 fi
 
-# Set this variable in order to add more hostnames to the dns approved instances
-# the syntax must be : export HOSTNAMES="- example1.com
+# Set this variable in order to add more ES_HOSTNAMES to the dns approved instances
+# the syntax must be : export ES_HOSTNAMES="- example1.com
 #- example2.com
 #- example3.com
 #"
 # EXACTLY IN THIS FORMAT(no extra chars at the start of the line), otherwise you will get parse errors.
 
-if [[ -z "${HOSTNAMES}" ]]; then
-	echo "HOSTNAMES env var not set, defaulting to ''"
-  HOSTNAMES=""
+if [[ -z "${ES_HOSTNAMES}" ]]; then
+	echo "ES_HOSTNAMES env var not set, defaulting to ''"
+  ES_HOSTNAMES=""
 else
-  HOSTNAMES=$(printf '%s %s \\n      ' ${HOSTNAMES})
+  ES_HOSTNAMES=$(printf '%s %s \\n      ' ${ES_HOSTNAMES})
 fi
 
 # es instances names, domain names of the servers (if ES servers are separate) or docker containers names (if run locally on the same machine)
@@ -65,7 +65,7 @@ instances:
       - $ES_INSTANCE_NAME_1
       - es01
       - localhost
-      $HOSTNAMES
+      $ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_NAME_2
@@ -73,7 +73,7 @@ instances:
       - $ES_INSTANCE_NAME_2
       - es02
       - localhost
-      $HOSTNAMES
+      $ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_NAME_3
@@ -81,7 +81,7 @@ instances:
       - $ES_INSTANCE_NAME_3
       - es02
       - localhost
-      $HOSTNAMES
+      $ES_HOSTNAMES
     ip:
       - 127.0.0.1
 " > config/certificates/instances.yml

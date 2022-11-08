@@ -37,6 +37,11 @@ if [[ -z "${INGEST_SERVICE_PASSWORD}" ]]; then
     echo "INGEST_SERVICE_PASSWORD not set, defaulting to INGEST_SERVICE_PASSWORD=ingest_service"
 fi
 
+if [[ -z "${ES_ADMIN_EMAIL}" ]]; then
+    ES_ADMIN_EMAIL="cogstack@admin.net"
+    echo "ES_ADMIN_EMAIL not set, defaulting to ES_ADMIN_EMAIL=cogstack@admin.net"
+fi
+
 echo "Waiting for Elasticsearch availability"
 curl -k --cacert ./es_certificates/es_native/elastic-stack-ca.crt.pem -key ./es_certificates/es_native/elastic-stack-ca.key.pem -u elastic:$ELASTIC_PASSWORD https://$ELASTIC_HOST:9200
 echo "Setting kibana_system password"
@@ -49,7 +54,7 @@ curl -k -X POST -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/es_nativ
   "password" :"'$KIBANA_PASSWORD'",
   "roles" : ["kibana_system", "kibana_admin", "ingest_admin"],
   "full_name" : "kibanaserver",
-  "email" : "cogstack@admin.net"
+  "email" : "'${ES_ADMIN_EMAIL}'"
 }
 '
 
@@ -59,7 +64,7 @@ curl -k -X POST -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/es_nativ
   "password" :"'$INGEST_SERVICE_PASSWORD'",
   "roles" : ["ingest_admin"],
   "full_name" : "ingestion service",
-  "email" : "cogstack@admin.net"
+  "email" : "'${ES_ADMIN_EMAIL}'"
 }
 '
 
