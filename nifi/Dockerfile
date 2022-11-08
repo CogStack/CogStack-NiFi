@@ -30,6 +30,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-htt
 # ApacheNifi specific packages
 RUN pip3 install nipyapi nifi.flowfile avro-python3
 
+# uther useful packages
+RUN pip3 install jupyter geocoder
+
 RUN apt-get clean autoclean && apt-get autoremove --purge -y
 
 # clean up
