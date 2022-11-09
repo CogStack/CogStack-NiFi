@@ -59,7 +59,7 @@ if [[ -z "${NIFI_KEY_PASSWORD}" ]]; then
 fi
 
 # Overwite existing files use the "-O" flag.
-bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $SUBJ_LINE_CERTIFICATE_CN -K $KEY_PASSWORD
+bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
 
 # move the new nifi properties files with the updated security configs to the nifi directory
 mv ./$OUTPUT_DIRECTORY/$HOSTNAMES/nifi.properties ../nifi/conf/
