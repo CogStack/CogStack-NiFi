@@ -221,15 +221,20 @@ c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.JupyterHub.hub_connect_ip = hub_container_ip_or_name
 
-c.JupyterHub.hub_port = 8888
 
-c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:8887"
+jupyter_hub_port = int(os.environ.get("JUPYTERHUB_INTERNAL_PORT", 8888))
+jupyter_hub_proxy_api_port = int(os.environ.get("JUPYTERHUB_INTERNAL_PROXY_API_PORT", 8887))
+jupyter_hub_ssl_port = int(os.environ.get("JUPYTERHUB_SSL_PORT", 443))
+
+c.JupyterHub.hub_port = jupyter_hub_port
+
+c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:" + str(jupyter_hub_proxy_api_port)
 # ideally a private network address
 # c.JupyterHub.proxy_api_ip = "10.0.1.4"
-c.JupyterHub.proxy_api_port = 8887
+c.JupyterHub.proxy_api_port = jupyter_hub_proxy_api_port
 
 # TLS config
-c.JupyterHub.port = 443
+c.JupyterHub.port = jupyter_hub_ssl_port
 c.JupyterHub.ssl_key = os.environ.get("SSL_KEY", "/etc/jupyterhub/root-ca.key")
 c.JupyterHub.ssl_cert = os.environ.get("SSL_CERT", "/etc/jupyterhub/root-ca.pem")
 

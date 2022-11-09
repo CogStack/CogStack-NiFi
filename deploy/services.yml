@@ -319,7 +319,7 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
-         - ../security/elasticsearch.env
+         - ./elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -397,7 +397,7 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
-         - ../security/elasticsearch.env
+         - ./elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -527,8 +527,8 @@ services:
     container_name: cogstack-kibana
     restart: always
     env_file:
-         - ../security/es_kibana_user.env
-         - ../security/elasticsearch.env
+         #- ../security/es_kibana_user.env
+         - ./elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
       OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
@@ -574,17 +574,20 @@ services:
     #       no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
-    # env_file:
-    #   - ${NIFI_ENV_FILE}
+    env_file:
+      - ./nifi.env
     shm_size: 1024mb
     environment:
-     - http_proxy=$HTTP_PROXY
-     - https_proxy=$HTTPS_PROXY
-     - no_proxy=$no_proxy
-     - USER_ID=1000
-     - GROUP_ID=1000
-     - NIFI_WEB_PROXY_HOST="0.0.0.0:8443,cogstack:8443,nifi:8443"
-     - NIFI_WEB_PROXY_CONTEXT_PATH="/,/nifi,/nifi-api,/nifi-api/,/nifi/"
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      - USER_ID=1000
+      - GROUP_ID=1000
+      - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"0.0.0.0:8443,cogstack:8443,nifi:8443"}
+      - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/,/nifi,/nifi-api,/nifi-api/,/nifi/"}
+      - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
+      - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
+      - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -597,12 +600,10 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      # - ${NIFI_SECURITY_DIR}:/opt/nifi/security:ro
-      - ../security/nifi_certificates/nifi-cert.pem:/opt/nifi/nifi-current/security/nifi-cert.pem:ro
-      - ../security/nifi_certificates/nifi-key.key:/opt/nifi/nifi-current/security/nifi-key.key:ro
+      - ${NIFI_SECURITY_DIR:-../security/nifi_certificates}:/opt/nifi/security:ro
       - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
-      - ../security/es_certificates:/opt/nifi/nifi-current/es_certificates:ro
+      - ${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates}:/opt/nifi/nifi-current/es_certificates:ro
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
@@ -635,10 +636,10 @@ services:
    
     tty: true
     ports:
-      - "8082:8443"
+      - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
     expose:
-      - "10443"
-      - "8443"
+      - "${NIFI_INTERNAL_PORT:-8443}"
+      - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     networks:
       - cognet
 
@@ -666,43 +667,25 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    #image: cogstacksystems/jupyter-hub:latest
-    build:
-      context: ../services/jupyter-hub/
-      args:
-        - http_proxy=$HTTP_PROXY
-        - https_proxy=$HTTPS_PROXY
-        - no_proxy=$no_proxy
+    image: cogstacksystems/jupyter-hub:latest
+    #build:
+    #  context: ../services/jupyter-hub/
+    #  args:
+    #    - http_proxy=$HTTP_PROXY
+    #    - https_proxy=$HTTPS_PROXY
+    #    - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
     platform: linux
-    #deploy:
-    #  resources:
-    #    reservations:
-    #      devices:
-    #      - driver: nvidia
-    #        capabilities: [gpu, utility, compute, video]
+    env_file:
+      - ./jupyter.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$NO_PROXY
-
-      # this is the image used within the service to create containers for users
-      # the image used by us "cogstacksystems/jupyter-singleuser:latest" might take longer to load
-      - DOCKER_NOTEBOOK_IMAGE=cogstacksystems/jupyter-singleuser:latest
-      # This value needs to match jupyter-hub.container_name as set above
-      - DOCKER_JUPYTER_HUB_CONTAINER_NAME=cogstack-jupyter-hub
-      # The notebook's maximum idle time in seconds before shutdown (if <= 0, no auto-shutdown)
-      - DOCKER_NOTEBOOK_IDLE_TIMEOUT=7200
-      # Allow users to select the image based on which the notebook will be run
-      # If true, the container is removed immediately after the notebook shutdown
-      - DOCKER_SELECT_NOTEBOOK_IMAGE_ALLOWED=true
-      
-      # Enable gpu support, if enabled, the host computer MUST have a GPU, otherwise jupyter wont work/start containers
-      - DOCKER_ENABLE_GPU_SUPPORT=false
-
-      # Output debug messages for all hub contianers:
-      - DOCKER_NOTEBOOK_DEBUG_MODE=True
+      - JUPYTERHUB_INTERNAL_PORT=${JUPYTERHUB_INTERNAL_PORT:-8888}
+      - JUPYTERHUB_INTERNAL_PROXY_API_PORT=${JUPYTERHUB_INTERNAL_PROXY_API_PORT:-8887}
+      - JUPYTERHUB_SSL_PORT=${JUPYTERHUB_SSL_PORT:-443}
     volumes:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/etc/jupyterhub
@@ -725,7 +708,7 @@ services:
         soft: 65536
         hard: 65536
     ports:
-      - "8888:443"
+      - "${JUPYTERHUB_INTERNAL_PORT:-8888}:${JUPYTERHUB_SSL_PORT:-443}"
     networks:
       - cognet
 
