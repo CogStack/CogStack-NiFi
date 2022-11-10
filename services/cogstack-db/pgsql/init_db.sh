@@ -5,12 +5,14 @@ set -e
 
 # global variables
 #
-POSTGRES_DATABANK_DB="CogStack"
+POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-"cogstack"}
+POSTGRES_USER=${POSTGRES_USER:-"admin"}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"admin"}
 DATA_DIR="/data"
 ANNOTATIONS_NLP_DB_SCHEMA_FILE="annotations_nlp_create_schema.sql"
 
 # database schemas that you wish to be created
-DB_SCHEMA_PREFIX="cogstack_db"
+DB_SCHEMA_PREFIX=${DB_SCHEMA_PREFIX:-"cogstack_db"}
 
 # create the user, the database and set up the access
 #

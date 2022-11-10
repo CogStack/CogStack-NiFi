@@ -9,14 +9,17 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    image: postgres:14.5-alpine
+    image: postgres:15.0-alpine
     container_name: cogstack-samples-db
     shm_size: 128mb
     restart: always
+    env_file:
+      - ./database.env
+      - ../security/database_users.env
     environment:
       # PG env vars
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_SAMPLES:-test}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/pgsamples/db_dump/db_samples-pdf-text-small.sql.gz:/data/db_samples.sql.gz:ro
@@ -31,7 +34,7 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    command: postgres -c "max_connections=1024"
+    command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
       - 5554:5432
@@ -44,14 +47,17 @@ services:
 # CogStack Databank / Cogstack-DB, production database                      #
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
-    image: postgres:14.5-alpine
+    image: postgres:15.0-alpine
     container_name: cogstack-production-databank-db
     shm_size: 1024mb
     restart: always
+    env_file:
+      - ./database.env
+      - ../security/database_users.env
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DATABANK_DB=databank
+      - POSTGRES_USER=${POSTGRES_USER:-test}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-test}
+      - POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-cogstack}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/pgsql/schemas:/data/:ro
@@ -65,7 +71,7 @@ services:
       nofile:
         soft: 65536
         hard: 262144
-    command: postgres -c "max_connections=1024"
+    command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
       - 5555:5432
@@ -79,10 +85,13 @@ services:
     container_name: cogstack-production-databank-db
     shm_size: 1024mb
     restart: always
+    env_file:
+      - ./database.env
+      - ../security/database_users.env
     environment:
       - ACCEPT_EULA=y
-      - MSSQL_SA_USER=sa
-      - MSSQL_SA_PASSWORD=admin!COGSTACK2022
+      - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_USER:-admin!COGSTACK2022}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/mssql/schemas:/data/:ro
