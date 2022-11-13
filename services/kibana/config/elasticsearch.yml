@@ -7,7 +7,7 @@ telemetry.optIn: false
 telemetry.enabled: false
 
 # INFO: ES URL provided as docker parameter
-elasticsearch.hosts: ["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
+elasticsearch.hosts: ${ELASTICSEARCH_HOSTS}
 elasticsearch.ssl.verificationMode: certificate
 elasticsearch.ssl.certificateAuthorities: ["config/root-ca.crt"]
 

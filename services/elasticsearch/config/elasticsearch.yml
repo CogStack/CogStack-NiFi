@@ -8,9 +8,9 @@ discovery.type: zen
 # multi node cluster conf
 #----------------------
 network.host: 0.0.0.0
-discovery.seed_hosts: ["elasticsearch-1", "elasticsearch-2"]
+discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
 http.port: 9200
-cluster.initial_master_nodes: ["es01", "es02"]
+cluster.initial_master_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
 
 #----------------------
 # X-Pack features
@@ -38,3 +38,8 @@ xpack.security.http.ssl.certificate_authorities: ["root-ca.crt"]
 xpack.security.transport.ssl.key: esnode.key
 xpack.security.transport.ssl.certificate: esnode.crt
 xpack.security.transport.ssl.certificate_authorities: ["root-ca.crt"]
+
+
+# Extra ES settings to allow for bigger search results by query on in Kibana
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/async-search.html
+# search.max_async_search_response_size: 25mb

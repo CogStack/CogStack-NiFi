@@ -328,31 +328,33 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
-         - ./elasticsearch.env
+      - ./elasticsearch.env
+      - ../security/elasticsearch_users.env
+      - ../security/es_internal_users.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
       # CLUSTER CONFIGS
-      - node.name=es01
-      - cluster.name=elasticsearch-cogstack-cluster
+      - node.name=${ELASTICSEARCH_NODE_1_NAME:-es01}
+      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
       - discovery.type=zen
       # OTHER SETTINGS
-      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
-      - "OPENSEARCH_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
+      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
 
       # User config:
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=kibanaserver
-      - logger.level=INFO
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
       - ${ELASTICSEARCH_VERSION:-opensearch}
 
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
-      - ../services/elasticsearch/config/elasticsearch_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
+      - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
@@ -378,7 +380,7 @@ services:
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
       # ES data persistence
-      - elasticsearch-vol-1:/usr/share/elasticsearch/data
+      - elasticsearch-vol-1:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
     ulimits:
       memlock:
@@ -406,31 +408,33 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
-         - ./elasticsearch.env
+      - ./elasticsearch.env
+      - ../security/elasticsearch_users.env
+      - ../security/es_internal_users.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
       # CLUSTER CONFIGS
-      - node.name=es02
-      - cluster.name=elasticsearch-cogstack-cluster
+      - node.name=${ELASTICSEARCH_NODE_2_NAME:-"es02"}
+      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
       - discovery.type=zen
       # OTHER SETTINGS
-      - bootstrap.memory_lock=true # disables swapping, imporving r/w performance (at the expense of RAM)
-      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
-      - "OPENSEARCH_JAVA_OPTS=-Xms2048m -Xmx2048m"
-    
+      - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
+      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+
       # User config:
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=kibanaserver
-      - logger.level=INFO
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
       - ${ELASTICSEARCH_VERSION:-opensearch}
       
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
-      - ../services/elasticsearch/config/elasticsearch_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
+      - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
@@ -481,18 +485,21 @@ services:
     container_name: cogstack-metricbeat-1
     image: docker.elastic.co/beats/metricbeat:8.3.3
     command: -e --strict.perms=false
+    env_file:
+         - ./elasticsearch.env
+         - ../security/es_internal_users.env
     environment:
-      - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=kibanaserver
-      - KIBANA_HOST="https://kibana:5601"
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
     volumes:
       - metricbeat-data-1:/usr/share/metricbeat/data
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
       - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro 
       - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.p12:/usr/share/metricbeat/esnode.p12:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.crt:/usr/share/metricbeat/esnode.crt:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-1/elasticsearch-1.key:/usr/share/metricbeat/esnode.key:ro
@@ -506,18 +513,19 @@ services:
     container_name: cogstack-metricbeat-2
     image: docker.elastic.co/beats/metricbeat:8.3.3
     command: -e --strict.perms=false
+    env_file:
+      - ./elasticsearch.env
+      - ../security/es_internal_users.env
     environment:
-      - ELASTICSEARCH_HOSTS=["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=kibanaserver
-      - KIBANA_HOST="https://kibana:5601"
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
     volumes:
       - metricbeat-data-2:/usr/share/metricbeat/data
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates:/usr/share/metricbeat/certs:ro
-
       - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
       - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/elasticsearch-2/elasticsearch-2.p12:/usr/share/metricbeat/esnode.p12:ro
@@ -540,15 +548,16 @@ services:
          - ./elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
-      OPENSEARCH_HOSTS: '["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'
+      OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
+      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
       # INFO: uncomment below to enable SSL keys
-      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
 
     depends_on:
       - elasticsearch-1
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
-      - ../services/kibana/config/kibana_${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
+      - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
 
       # Security certificates, general      
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro

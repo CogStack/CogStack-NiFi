@@ -20,10 +20,10 @@ server.host: "0.0.0.0"
 #server.maxPayloadBytes: 1048576
 
 # The OpenSearch Dashboards server's name.  This is used for display purposes.
-server.name: "cogstack-kibana"
+server.name: ${KIBANA_SERVER_NAME}
 
 # The URLs of the OpenSearch instances to use for all your queries.
-opensearch.hosts: ["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]
+opensearch.hosts: ${ELASTICSEARCH_HOSTS}
 
 opensearch_security.multitenancy.enabled: true
 opensearch_security.multitenancy.tenants.enable_global: true

@@ -4,8 +4,8 @@ network.host: 0.0.0.0
 
 # To allow multiple nodes add the node"s IP addresses to the discovery pool. 
 # ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
-discovery.seed_hosts: ["localhost", "elasticsearch-2", "elasticsearch-1"]
-cluster.initial_cluster_manager_nodes: ["es01", "es02"]
+discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
+cluster.initial_cluster_manager_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
 discovery.type: zen
 
 # WARNING: revise all the lines below before you go into production
@@ -67,7 +67,7 @@ plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access
 
 # Destination of the auditlog events
 plugins.security.audit.type: internal_opensearch
-plugins.security.audit.config.http_endpoints: ['https://elasticsearch-1:9200','https://elasticsearch-2:9200'] 
+plugins.security.audit.config.http_endpoints: ${ELASTICSEARCH_HOSTS}
 plugins.security.audit.config.enable_ssl_client_auth: true
 
 #plugins.security.audit.enable_rest: false
