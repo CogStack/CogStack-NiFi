@@ -160,32 +160,13 @@ services:
 # NLP Services containers                                                   #
 #   * using example free models / resources                                 #
 #---------------------------------------------------------------------------#
-  nlp-medcat-medmen:
-    image: cogstacksystems/medcat-service:0.3.2
-    container_name: cogstack-medcat-medmen
-    restart: always
-    # INFO: MedCAT configuration is specified via 'env' files
-    env_file:
-      - ../services/nlp-services/applications/medcat/config/env_app
-      - ../services/nlp-services/applications/medcat/config/env_medcat
-    environment:
-      - APP_MODEL_NAME=medmen-demo
-      - SERVICE_WORKERS=1
-    # INFO: MedCAT models are mounted via volumes
-    volumes:
-      - ../services/nlp-services/applications/medcat/models/:/cat/models/:rw
-    expose:
-      - 5000
-    ports:
-      - "5555:5000"
-    networks:
-      - cognet
-
   nlp-gate-drugapp:
     image: cogstacksystems/nlp-rest-service-gate:dev-latest
     #build: ../services/nlp-services/applications/drug-app/
     container_name: cogstack-gate-drugapp
     restart: always
+    env_file:
+      - ./nlp_service.env
     volumes:
       # INFO: CogStack GATE runner configuration files
       - ../services/nlp-services/applications/drug-app/config:/app/nlp-service/config:ro
@@ -202,21 +183,23 @@ services:
 # NLP Services containers                                                   #
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
-  nlp-medcat-snomed:
+  nlp-medcat-service-production:
     image: cogstacksystems/medcat-service:0.3.2
-    container_name: cogstack-medcat-snomed
+    container_name: cogstack-medcat-production
     restart: always
     env_file:
+      - ./nlp_service.env
       - ../services/nlp-services/applications/medcat/config/env_app
       - ../services/nlp-services/applications/medcat/config/env_medcat
     environment:
-      - APP_MODEL_NAME=snomed-mimic
-      - RES_MEDCAT_SNOMED_PATH="./"
+      - APP_MODEL_NAME=production-medmen
+      - RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH=${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}
     volumes:
-      - ${RES_MEDCAT_SNOMED_PATH}/cdb.dat:/cat/models/cdb.dat:ro
-      - ${RES_MEDCAT_SNOMED_PATH}/vocab.dat:/cat/models/vocab.dat:ro
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/cat/models/:rw
     expose:
       - 5000
+    ports:
+      - "5555:5000"
     networks:
       - cognet
 
@@ -224,13 +207,14 @@ services:
     image: cogstacksystems/nlp-rest-service-gate:latest
     container_name: cogstack-gate-bioyodie
     restart: always
+    env_file:
+      - ./nlp_service.env
     environment:
-      - RES_BIOYODIE_UMLS_PATH="./"
+      - RES_BIOYODIE_UMLS_PATH="../services/nlp-services/applications/bio-yodie/resources/"
     volumes:
       # INFO: CogStack GATE runner configuration files
       - ../services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
-      # TODO: properly set BioYODIE UMLS resources
-      - ${RES_BIOYODIE_UMLS_PATH}/:/gate/app/bioyodie/bio-yodie-resources:ro
+      - ./${RES_BIOYODIE_UMLS_PATH:-../services/nlp-services/applications/bio-yodie/resources/}:/gate/app/bioyodie/bio-yodie-resources:ro
     #command: "bash /app/nlp-service/run.sh"
     expose:
       - 8095
@@ -309,7 +293,7 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - CERTIFICATE_PASSWORD=${CERTIFICATE_PASSWORD}
       - CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
-      - HOSTNAMES=${HOSTNAMES}
+      - ES_HOSTNAMES=${ES_HOSTNAMES}
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
     stdin_open: true 
     tty: true
@@ -317,7 +301,7 @@ services:
     working_dir: /usr/share/elasticsearch
     volumes:
       - ../security/es_native_cert_generator.sh:/usr/share/elasticsearch/es_native_cert_generator.sh:ro
-      - ../security/es_certificates/es_native:/usr/share/elasticsearch/config/certificates:rw
+      - ../security/es_certificates/elasticsearch:/usr/share/elasticsearch/config/certificates:rw
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
@@ -350,7 +334,7 @@ services:
       - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
-      - ${ELASTICSEARCH_VERSION:-opensearch}
+      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
 
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
@@ -594,6 +578,8 @@ services:
     restart: always
     env_file:
       - ./nifi.env
+      - ./elasticsearch.env
+      - ./project.env
     shm_size: 1024mb
     environment:
       - http_proxy=$HTTP_PROXY
@@ -606,6 +592,8 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
+      - NIFI_SECURITY_DIR=${NIFI_SECURITY_DIR:-../security/nifi_certificates/}
+      - ELASTICSEARCH_SECURITY_DIR=${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -618,10 +606,10 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ${NIFI_SECURITY_DIR:-../security/nifi_certificates}:/opt/nifi/security:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
+      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
-      - ${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates}:/opt/nifi/nifi-current/es_certificates:ro
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
@@ -671,7 +659,7 @@ services:
       - no_proxy=$no_proxy
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../security/root-ca.pem:/etc/nginx/root-ca.pem:ro
       - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
