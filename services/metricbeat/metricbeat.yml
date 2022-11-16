@@ -33,7 +33,7 @@ setup.kibana:
   protocol: "https"
   ssl.enabled: true
   ssl.verification_mode: certificate
-  ssl.certificate_authorities: "/usr/share/metricbeat/elasticsearch/root-ca.crt"
+  ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
   ssl.certificate: "/usr/share/metricbeat/esnode.crt"
   ssl.key: "/usr/share/metricbeat/esnode.key"
 
