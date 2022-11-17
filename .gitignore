@@ -13,14 +13,19 @@
 
 # env files with passwords or local paths
 *.env
-security/internal_users.yml
+security/es_roles/*
+security/es_certificates/*
+security/nifi_certificates/*
 security/nifi_toolkit
 
 # other
 nifi/nifi-app.log
 scripts/data_processing/anonymistion_hw_clean/anonymised
-.DS_Store
-.idea
 
 # docs
 docs/build/*
+
+# IDE envs and system folders
+.DS_Store
+.idea
+.vscode
