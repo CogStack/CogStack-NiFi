@@ -712,7 +712,7 @@ services:
         hard: -1
       nofile:
         soft: 65536
-        hard: 65536
+        hard: 262144
     ports:
       - "${JUPYTERHUB_INTERNAL_PORT:-8888}:${JUPYTERHUB_SSL_PORT:-443}"
     networks:
