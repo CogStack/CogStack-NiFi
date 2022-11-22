@@ -12,13 +12,16 @@
 #
 import os
 import sys
+import datetime
+
+current_time = datetime.datetime.now()
 sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'CogStack-Nifi'
-copyright = '2022, CogStack Org'
+copyright = str(current_time.year) + ', CogStack Org'
 author = 'CogStack Org'
 
 # The full version, including alpha/beta/rc tags

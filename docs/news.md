@@ -3,8 +3,7 @@
 </br>
 </br>
 
-# 13-12-2021 LOG4J Vulnerabity
-
+## 13-12-2021 LOG4J Vulnerabity
 
 Since the discovery of the Log4J package vulnerability (https://www.ncsc.gov.uk/news/apache-log4j-vulnerability) it is necessary and recommended to update all existing deployments of CogStack.
 
