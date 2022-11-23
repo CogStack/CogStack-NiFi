@@ -6,6 +6,9 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG no_proxy
 
+ENV UID ${NIFI_UID:-$UID}
+ENV GID ${NIFI_GID:-$GID}
+
 ENV HTTP_PROXY $HTTP_PROXY
 ENV HTTPS_PROXY $HTTPS_PROXY
 ENV no_proxy $no_proxy
@@ -13,6 +16,8 @@ ENV no_proxy $no_proxy
 # default env vars to prevent NiFi from running on HTTP
 ENV NIFI_WEB_HTTP_PORT ""
 ENV NIFI_WEB_HTTP_HOST ""
+
+RUN echo "GID=${GID}" 
 
 
 USER root
