@@ -135,8 +135,9 @@ RUN pip3 install xnat
 # medcat & models
 RUN pip3 install -U spacy click torch thinc
 
-RUN python3 -m spacy download en_core_web_md
-RUN python3 -m spacy download en_core_web_lg
+# Get the spacy model
+ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
+RUN for spacy_model in ${SPACY_MODELS}; do /usr/bin/python3 -m spacy download $spacy_model; done
 
 RUN pip3 install medcat
 

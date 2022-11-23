@@ -155,11 +155,12 @@ RUN pip3 install xnat
 
 # medcat & models
 RUN pip3 install -U spacy click torch thinc
-# RUN python3 -m spacy download en_core_web_md
-RUN pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_md-0.4.0.tar.gz && \
-    pip3 install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_core_sci_lg-0.4.0.tar.gz
 
-# RUN pip3 install medcat
+# Get the spacy model
+ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
+RUN for spacy_model in ${SPACY_MODELS}; do /usr/bin/python3 -m spacy download $spacy_model; done
+
+RUN pip3 install medcat
 
 # install R and other dependencies
 COPY r_kernel_install.sh /etc/jupyterhub/
