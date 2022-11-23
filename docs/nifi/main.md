@@ -57,8 +57,6 @@ This file allows users to configure operational settings for NiFi on more granul
 This NiFi custom image will use less resources and storage size for data provenance, flow files storage and indexing operations (mostly to avoid exceeding Java Max Heap Size errors). 
 The corresponding properties have been commented out in the file.
 
- <span style="color: red">IMPORTANT NOTE, for Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work. </span>
-
 <strong>Important properties to look for:</strong>
 ```
 nifi.flow.configuration.archive.enabled=true
@@ -89,6 +87,41 @@ By default, the flowfiles thar are out of the processing queues will be archived
 Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 <br><br>
 
+#### <span style="color: red"><strong>IMPORTANT NOTE about `nifi.properties`</strong></span>
+<span style="color: red"><strong>For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.</strong>
+ <br></span>
+ 
+<span style="color:orange"><strong>Recommendation:</strong></span> If the account/group creation is not possible, you will need to build your own docker image on NiFi, but before you do this, you need to get hold of your group id and user id  of the account you are logged in with.
+To find out your GID and UID, you must do the following commands in terminal:
+```
+echo "user id (UID):"$(id -u $USER)
+echo "group id (GID):"$(id -g $USER)
+```
+You'd need to export your ENV vars:
+```
+export NIFI_UID=$(id -u $USER)
+export NIFI_GID=$(id -g $USER)
+
+```
+A better way is to also manually edit the `./deploy/nifi.env` file and change the default NIFI_UID and NIFI_GID variables there, after which you must execute the `export_env_vars.sh` script.
+```
+cd ./deploy/
+source export_env_vars.sh
+cd ../
+```
+
+Delete the older docker image from the nifi repo:
+```
+docker image rm cogstacksystems/cogstack-nifi:latest -f
+```
+Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` folder.
+```
+cd ./nifi
+bash recreate_nifi_docker_image.sh
+```
+
+Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute the `./deploy/export_env_vars.sh` so that the variables will be visible by docker at runtime, because it uses the GID/UID in the `services.yml` file , specifying in the service definition `user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"`.
+
 ### <strong>`{bootstrap.conf}`</strong>
 <br>
 This file allows users to configure settings for how NiFi should be started, it deals with location of configuration folder, files, JVM heap and Java System Properties.
@@ -109,7 +142,7 @@ Possible log level settings: `OFF`(inside `logback.xml`) or `NONE` (inside the N
 
 <span style="color:red"><strong>IMPORTANT: if there are start-up issues with NiFi you can set the `org.apache.nifi` setting below to `INFO` or `DEBUG` level to see the problem. For PRODUCTION it is recommended that all settings be left on `WARN` or `ERROR` levels as the logs are massive in size. </strong> </span>
 
-<span style="color:orange"><strong>Recommandetion:</strong></span> rather than modifiying `logback.xml` to see the logs of processors within NiFi you can always just enable or change per processor log-level as shown in the image below:
+<span style="color:orange"><strong>Recommendation:</strong></span> rather than modifiying `logback.xml` to see the logs of processors within NiFi you can always just enable or change per processor log-level as shown in the image below:
 
 ![nifi-process-log-level](../_static/img/process_log_level.png)
 
@@ -221,7 +254,7 @@ Once there we should see a new screen, the preselected tab being `General`, we s
 
 If you have proceessors that are based on events then feel free to change the value of that paremeter. It should be mentioned that most of the processors used in the sample workflows are timer driven.
 
-<span style="color:orange"><strong>Recommandetion:</strong></span> set the value of this parameter to be anywhere from from 2-4 times the CPU count you have on the machine.
+<span style="color:orange"><strong>Recommendation:</strong></span> set the value of this parameter to be anywhere from from 2-4 times the CPU count you have on the machine.
 
 
 ![nifi-process-time-driven-thread-count](../_static/img/process_threads.png)
