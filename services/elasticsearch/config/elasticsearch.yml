@@ -12,6 +12,9 @@ discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
 http.port: 9200
 cluster.initial_master_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
 
+# ES backup repository
+path.repo: ["/mnt/es_data_backups", "/mnt/es_config_backups"]
+
 #----------------------
 # X-Pack features
 # disabled by default when using '-oss' images

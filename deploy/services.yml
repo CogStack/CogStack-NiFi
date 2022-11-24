@@ -366,6 +366,10 @@ services:
       # ES data persistence
       - elasticsearch-vol-1:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
+      # ES snapshot backups
+      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
+      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
+
     ulimits:
       memlock:
         soft: -1
@@ -445,6 +449,11 @@ services:
      
       # ES data persistence
       - elasticsearch-vol-2:/usr/share/elasticsearch/data
+
+      # ES snapshot backups
+      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
+      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
+
     depends_on:
       - elasticsearch-1
     ulimits:
