@@ -7,20 +7,41 @@ discovery.type: zen
 #----------------------
 # multi node cluster conf
 #----------------------
-network.host: 0.0.0.0
+network.host: ${ELASTICSEARCH_NETWORK_HOST}
+network.publish_host: ${ELASTICSEARCH_NETWORK_PUBLISH_HOST}
+
 discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
-http.port: 9200
+
+node.processors: ${ELASTICSEARCH_NODE_PROCESSORS}
+
+http.port: ${ELASTICSEARCH_HTTP_PORT}
+
 cluster.initial_master_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
 
 # ES backup repository
-path.repo: ["/mnt/es_data_backups", "/mnt/es_config_backups"]
+path.repo: ${ELASTICSEARCH_BACKUPS_PATH_REPO}
+
+indices.query.bool.max_clause_count: 4096
+#
+# Enable Cross-Origin Resource Sharing (CORS)
+#
+http.cors.enabled : ${ELASTICSEARCH_CORS_ENABLED}
+http.cors.allow-origin: "/.*/"
+http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
+http.cors.allow-headers : "X-Requested-With,X-Auth-Token,Content-Type, Content-Length, Authorization"
+
+#
+# By default all script types are allowed to be executed.
+# Restrict to inline and stored:
+#
+script.allowed_types: inline,stored
 
 #----------------------
 # X-Pack features
 # disabled by default when using '-oss' images
 # need to be disabled manually when using standard images from elastic
 #----------------------
-xpack.license.self_generated.type: trial
+xpack.license.self_generated.type: ${ELASTICSEARCH_LICENSE_TYPE}
 xpack.security.enabled: true
 
 xpack.security.transport.ssl.verification_mode: certificate 
@@ -42,7 +63,41 @@ xpack.security.transport.ssl.key: esnode.key
 xpack.security.transport.ssl.certificate: esnode.crt
 xpack.security.transport.ssl.certificate_authorities: ["root-ca.crt"]
 
+#
+# Logging settings: log security audit to local logfile and ES index
+#
+xpack.security.audit.enabled: true
+xpack.security.audit.logfile.events.emit_request_body: true
 
 # Extra ES settings to allow for bigger search results by query on in Kibana
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/async-search.html
 # search.max_async_search_response_size: 25mb
+
+
+#
+# Authentication model: Native realm for system accounts and AD for user accs
+#
+xpack.security.authc.realms:
+  native.native1:
+    order: 0
+  active_directory.active_directory:
+    order: 1
+    domain_name: ${ELASTICSEARCH_AD_DOMAIN_NAME}
+    url: ${ELASTICSEARCH_AD_URL}
+    unmapped_groups_as_roles: ${ELASTICSEARCH_AD_UNMAPPED_GROUPS_AS_ROLES}
+    cache.ttl: 1m
+    follow_referrals: ${ELASTICSEARCH_AD_FOLLOW_REFERRALS}
+    timeout.tcp_connect: ${ELASTICSEARCH_AD_TIMEOUT}
+#
+# Email notification: each node needs to be approved to send via the SMTP relay
+#
+xpack.notification.email.account:
+ standard_account:
+    profile: ${ELASTICSEARCH_EMAIL_ACCOUNT_PROFILE}
+    email_defaults:
+      from: ${ELASTICSEARCH_EMAIL_ACCOUNT_EMAIL_DEFAULTS}
+    smtp:
+      auth: false
+      starttls.enable: false
+      host: ${ELASTICSEARCH_EMAIL_SMTP_HOST}
+      port: ${ELASTICSEARCH_EMAIL_SMTP_PORT}
