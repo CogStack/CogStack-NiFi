@@ -16,6 +16,7 @@ env_files=("nifi.env"
            $security_dir"certificates_elasticsearch.env"
            $security_dir"es_cogstack_users.env"
            $security_dir"es_internal_users.env"
+           $security_dir"elasticsearch_users.env"
            )
 
 unamestr=$(uname)
