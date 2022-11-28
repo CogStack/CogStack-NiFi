@@ -594,8 +594,8 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
-      - USER_ID=1000
-      - GROUP_ID=1000
+      - USER_ID=${NIFI_UID:-1000}
+      - GROUP_ID=${NIFI_GID:-1000}
       - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"0.0.0.0:8443,cogstack:8443,nifi:8443"}
       - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/,/nifi,/nifi-api,/nifi-api/,/nifi/"}
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
@@ -635,7 +635,7 @@ services:
       # logs
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
 
-    user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"
+    user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
     ulimits:
       memlock:
         soft: -1
