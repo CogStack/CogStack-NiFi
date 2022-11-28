@@ -21,22 +21,36 @@ env_files=("nifi.env"
 
 unamestr=$(uname)
 
-for env_file in $env_files; do
+
+for env_file in ${env_files[@]}; do
   file_text=""
   if [ "$unamestr" = 'Linux' ]; then
-    file_text=$(grep -v '^#' $env_file | xargs -d '\n')
+    file_text=$(grep -v '^#' $env_file | xargs -d '\n' -0)
+    IFS_="$IFS"
+    unset IFS
+    IFS=$'\n'
+
+    for line in ${file_test};
+    do
+      if [ ! -z "$line" ]; then
+        env_var_name=${line%%\=*}
+        unset $env_var_name
+        export "${line[@]}"
+      fi
+    IFS=$IFS_
+    done
+
   elif [ "$unamestr" = 'FreeBSD' ] || [ "$unamestr" = 'Darwin' ]; then
     file_text="$(grep -v '^#' "$env_file" | xargs -0)"
+    echo $file_text | while read line 
+    do 
+      if [ ! -z "$line" ]; then
+        env_var_name=${line%%\=*}
+        unset $env_var_name
+        export $line
+      fi
+    done
   fi
-
-  echo $file_text | while read line 
-  do 
-    if [ ! -z "$line" ]; then
-      env_var_name=${line%%\=*}
-      unset $env_var_name
-      export $line
-    fi
-  done
 
 done
 
