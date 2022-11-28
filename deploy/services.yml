@@ -769,9 +769,6 @@ volumes:
     driver: local
 
   # NiFi related
-  nifi-vol-conf:
-    driver: local
-
   nifi-vol-logs:
     driver: local
 
