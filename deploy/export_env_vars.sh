@@ -30,7 +30,7 @@ for env_file in ${env_files[@]}; do
     unset IFS
     IFS=$'\n'
 
-    for line in ${file_test};
+    for line in ${file_text};
     do
       if [ ! -z "$line" ]; then
         env_var_name=${line%%\=*}
