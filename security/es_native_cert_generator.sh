@@ -38,24 +38,24 @@ fi
 #     ES_INSTANCE_NAME_2=elasticsearch-2
 
 if [[ -z "${ES_INSTANCE_NAME_1}" ]]; then
-	echo "ES_INSTANCE_NAME_1 env var not set, defaulting to 'elasticsearch-1'"
-  ES_INSTANCE_NAME_1="elasticsearch-1"
+	echo "ES_INSTANCE_NAME_1 env var not set, defaulting to elasticsearch-1"
+  ES_INSTANCE_NAME_1=elasticsearch-1
 else
-  ES_INSTANCE_NAME_1="${ES_INSTANCE_NAME_1}"
+  ES_INSTANCE_NAME_1=${ES_INSTANCE_NAME_1}
 fi
 
 if [[ -z "${ES_INSTANCE_NAME_2}" ]]; then
-	echo "ES_INSTANCE_NAME_2 env var not set, defaulting to 'elasticsearch-2'"
-  ES_INSTANCE_NAME_2="elasticsearch-2"
+	echo "ES_INSTANCE_NAME_2 env var not set, defaulting to elasticsearch-2"
+  ES_INSTANCE_NAME_2=elasticsearch-2
 else
-  ES_INSTANCE_NAME_2="${ES_INSTANCE_NAME_2}"
+  ES_INSTANCE_NAME_2=${ES_INSTANCE_NAME_2}
 fi
 
 if [[ -z "${ES_INSTANCE_NAME_3}" ]]; then
-	echo "ES_INSTANCE_NAME_3 env var not set, defaulting to 'elasticsearch-3'"
-  ES_INSTANCE_NAME_3="elasticsearch-3"
+	echo "ES_INSTANCE_NAME_3 env var not set, defaulting to elasticsearch-3"
+  ES_INSTANCE_NAME_3=elasticsearch-3
 else
-  ES_INSTANCE_NAME_3="${ES_INSTANCE_NAME_3}"
+  ES_INSTANCE_NAME_3=${ES_INSTANCE_NAME_3}
 fi
 
 echo -ne "

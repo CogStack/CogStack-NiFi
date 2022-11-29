@@ -41,7 +41,7 @@ for env_file in ${env_files[@]}; do
     done
 
   elif [ "$unamestr" = 'FreeBSD' ] || [ "$unamestr" = 'Darwin' ]; then
-    file_text="$(grep -v '^#' "$env_file" | xargs -0)"
+    file_text=$(grep -v '^#' $env_file | xargs -0)
     echo $file_text | while read line 
     do 
       if [ ! -z "$line" ]; then
