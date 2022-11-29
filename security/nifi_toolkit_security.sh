@@ -58,8 +58,24 @@ if [[ -z "${NIFI_KEY_PASSWORD}" ]]; then
     echo "NIFI_KEY_PASSWORD not set, defaulting to NIFI_KEY_PASSWORD=cogstackNifi"
 fi
 
+os_name=$(echo "$(uname)" | tr '[:upper:]' '[:lower:]')
+
+windows_unames=(msys mingw)
+
+is_os_windows=0
+
 # Overwite existing files use the "-O" flag.
-bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
+
+for win_os in ${windows_unames[@]}; do
+    if [[ $win_os == *"$os_name"* ]]; then
+        ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
+        is_os_windows=1
+    fi
+done
+
+if [[ $is_os_windows == 0 ]]; then
+    bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
+fi
 
 # move the new nifi properties files with the updated security configs to the nifi directory
 mv ./$OUTPUT_DIRECTORY/$HOSTNAMES/nifi.properties ../nifi/conf/
