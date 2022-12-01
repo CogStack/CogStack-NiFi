@@ -637,7 +637,7 @@ services:
       # logs
       - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
 
-    user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
+    # user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
     ulimits:
       memlock:
         soft: -1
@@ -655,7 +655,6 @@ services:
     ports:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
     expose:
-      - "${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     networks:
       - cognet
@@ -676,7 +675,7 @@ services:
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
     ports:
-      - "${NIFI_INTERNAL_PORT:-8443}:${NIFI_INTERNAL_PORT:-8443}"
+      - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_EXTERNAL_PORT_NGINX:-8443}"
     networks:
       - cognet
 
