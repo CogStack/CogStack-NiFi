@@ -676,7 +676,7 @@ services:
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
     ports:
-      - "8443:8443"
+      - "${NIFI_INTERNAL_PORT:-8443}:${NIFI_INTERNAL_PORT:-8443}"
     networks:
       - cognet
 
