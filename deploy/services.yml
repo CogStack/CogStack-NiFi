@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.7"
 
 #---------------------------------------------------------------------------#
 # Used services                                                             #
@@ -652,9 +652,8 @@ services:
     # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
    
     tty: true
-    ports:
-      - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
     expose:
+      - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     networks:
       - cognet
@@ -663,6 +662,10 @@ services:
     build:  ../services/nginx/
     container_name: cogstack-nifi-nginx
     restart: always
+    env_file:
+      - ./nifi.env
+      - ./elasticsearch.env
+      - ./project.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -675,7 +678,7 @@ services:
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
     ports:
-      - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_EXTERNAL_PORT_NGINX:-8443}"
+      - "${NIFI_EXTERNAL_PORT_NGINX:-8743}:${NIFI_INTERNAL_PORT_NGINX:-8743}"
     networks:
       - cognet
 
