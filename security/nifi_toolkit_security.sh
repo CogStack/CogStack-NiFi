@@ -66,6 +66,10 @@ is_os_windows=0
 
 # Overwite existing files use the "-O" flag.
 
+# someties the toolkit may throw an error saying no heap available, this occurs on Windows only 
+OLD_JAVA_OPTS=${JAVA_OPTS}
+export JAVA_OPTS="-Xmx2048m -Xms2048m"
+
 for win_os in ${windows_unames[@]}; do
     if [[ $win_os == *"$os_name"* ]]; then
         ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
@@ -79,3 +83,5 @@ fi
 
 # move the new nifi properties files with the updated security configs to the nifi directory
 mv ./$OUTPUT_DIRECTORY/$HOSTNAMES/nifi.properties ../nifi/conf/
+
+export JAVA_OPTS=$OLD_JAVA_OPTS
