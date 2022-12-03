@@ -617,8 +617,8 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      #- ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
-      #- ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
+      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
 
