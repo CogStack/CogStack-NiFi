@@ -367,8 +367,8 @@ services:
       - elasticsearch-vol-1:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
       # ES snapshot backups
-      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
-      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
+      - ./${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
+      - ./${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
 
     ulimits:
       memlock:
@@ -451,8 +451,8 @@ services:
       - elasticsearch-vol-2:/usr/share/elasticsearch/data
 
       # ES snapshot backups
-      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
-      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
+      - ./${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
+      - ./${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
 
     depends_on:
       - elasticsearch-1
@@ -617,8 +617,8 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
-      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
+      #- ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
+      #- ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
 
@@ -628,7 +628,7 @@ services:
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
-      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+      - nifi-vol-database:/opt/nifi/nifi-current/ 
       - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
       # errors generated during data processing
@@ -678,7 +678,7 @@ services:
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
     ports:
-      - "${NIFI_EXTERNAL_PORT_NGINX:-8743}:${NIFI_INTERNAL_PORT_NGINX:-8743}"
+      - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:
       - cognet
 
