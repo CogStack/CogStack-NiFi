@@ -109,6 +109,25 @@ cd ./deploy/
 source export_env_vars.sh
 cd ../
 ```
+You should check if the env vars have been set after running the script:
+```
+echo $NIFI_UID
+echo $NIFI_GID
+```
+If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
+```
+    set -o allexport
+    source nifi.env
+    set +o allexport
+```
+or, on Windows, via `git bash` terminal:
+```
+    set -a
+    source nifi.env
+    set +a
+```
+Make sure to execute the above commands in the order they are mentioned.
+
 
 Delete the older docker image from the nifi repo:
 ```
@@ -272,3 +291,8 @@ To access the scheduling menu, right click on any processor > click configure > 
 
 `Concurrent tasks` are a good way to keep things running in parallel if you feel that data is not being processed fast enough, just be aware that as stated above, one task represents one thread, and as mentioned in the `maximum thread count` section, it should not exceed the max number.
 It should also be noted that a `processor` cannot have more `tasks` in current execution than the declared number `concurrent tasks`, if a task finishes its work you will notice that another will immidiately take it's place, of course, a new task may not be started if the current task has finished work and the timer is set on `run schedule` to be different than 0.
+
+
+### Accessing NiFi via nifi-api 
+
+[article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html)
