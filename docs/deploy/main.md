@@ -4,7 +4,8 @@
 The key files are:
 - `services.yml` - defines all the available services in docker-compose format. K8s (i.e. multi container service deployments is coming soon...)
 - `Makefile` - scripts for running docker-compose commands,
-- `.env` - local environment variables definitions,
+- `.env` - local environment variables definitions, deployment `.env` files are located in the `/deploy` folder, security `.env` files are located in the `/security` folder, containing users and certificate generation settings.
+The above mentioned files should be the files that you will most likely need to change during a deployment.
 
 Individual service configurations are provided in [`./services`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/).
 

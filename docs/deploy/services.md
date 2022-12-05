@@ -8,6 +8,8 @@ Please note that all the services are deployed using [Docker](https://docker.io)
 ## Primary services
 All the services are defined in `services.yml` file and these are:
 - `samples-db` - a PostgreSQL database with sample data to play with,
+- `cogstack-databank-db` - production PostgreSQL database, has it's own scripts in `/services/cogstack-db/pgsql`
+- `cogstack-databank-db-mssql` - production MSSQL database, has it's own scripts in `/services/cogstack-db/mssql`, this is just an alternative, needs a license.
 - `nifi` - a single instance of Apache NiFi processor (with Zookeper embedded) with exposing a web user interface,
 - `nifi-nginx` - used for reverse proxy to enable secure access to NiFi and other services.
 - `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
