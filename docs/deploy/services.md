@@ -179,7 +179,7 @@ All the NLP services implement a RESTful API that is defined in [OpenAPI specifi
 The available endpoints are:
 - **GET** `/api/info` - for displaying general information about the used NLP application,
 - **POST** `/api/process` - for processing text documents (single document mode),
-- **POST**  `/api/process_bulk` - for processing multiple text documents (bulk mode).
+- **POST** `/api/process_bulk` - for processing multiple text documents (bulk mode).
 
 When plugging-in the NLP services into Apache NiFi workflows, the endpoint for processing single or multiple documents will be used to extract the annotations from documents.
 Please see example Apache NiFi [workflows](./workflows.md) and [user scripts](https://github.com/CogStack/Cogstack-Nifi/nifi/user-scripts) on using and parsing the payloads with NiFi.
@@ -307,3 +307,35 @@ Pre-requisites (for Linux and Windows):
 GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file. Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
 
 Do not attempt to use the gpu image on a non-gpu machine, it wont work and it will crash the container service.
+
+### Resource limit control in Jupyter-Hub
+
+It is possible to set CPU and RAM limits for admins and normal users, check the following properties in  `/deploy/jupyter.env`.
+
+```
+# general user resource cap per container
+RESOURCE_ALLOCATION_USER_CPU_LIMIT="2"
+RESOURCE_ALLOCATION_USER_RAM_LIMIT="2G"
+
+# admin resource cap per container
+RESOURCE_ALLOCATION_ADMIN_CPU_LIMIT="2"
+RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT="4G"
+```
+
+Go to the `/deploy` folder.
+You will need to execute the `export_env_vars.sh` script in order to set these limits, BEFORE running the jupyter-hub container.
+
+Check if the variables have been set by running: 
+```
+    echo $RESOURCE_ALLOCATION_USER_CPU_LIMIT
+```
+If no value is diplsayed then you will manually have to set it, run the following:
+```
+set -a
+source jupyter.env
+set +a
+```
+
+Re-run the above if you change the values. Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user. DO NOT delete their volumes, you don't want to delete their data!
+
+
