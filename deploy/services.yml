@@ -734,7 +734,7 @@ services:
     # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
    
     tty: true
-    expose:
+    ports:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     networks:
@@ -845,6 +845,8 @@ volumes:
   elasticsearch-vol-1:
     driver: local
   elasticsearch-vol-2:
+    driver: local
+  elasticsearch-vol-3:
     driver: local
   elasticsearch-certs-vol:
     driver: local
