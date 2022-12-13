@@ -364,7 +364,7 @@ services:
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
       # ES data persistence
-      - elasticsearch-vol-1:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
+      - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
       # ES snapshot backups
       - ./${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
@@ -378,7 +378,7 @@ services:
         soft: 65536
         hard: 262144
     ports:
-      - "9200:9200"
+      - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "9300:9300"
       - "9600:9600" # required for Performance Analyzer
     expose:
@@ -448,7 +448,7 @@ services:
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
       # ES data persistence
-      - elasticsearch-vol-2:/usr/share/elasticsearch/data
+      - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
       # ES snapshot backups
       - ./${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
@@ -462,7 +462,7 @@ services:
         soft: 65536
         hard: 262144
     ports:
-      - "9201:9200"
+      - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "9301:9300"
       - "9601:9600" # required for Performance Analyzer
     expose:
@@ -532,7 +532,7 @@ services:
       - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
      
       # ES data persistence
-      - elasticsearch-vol-3:/usr/share/elasticsearch/data
+      - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
       # ES snapshot backups
       - ./${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
@@ -546,7 +546,7 @@ services:
         soft: 65536
         hard: 262144
     ports:
-      - "9202:9200"
+      - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "9302:9300"
       - "9603:9600" # required for Performance Analyzer
     expose:
