@@ -1,6 +1,7 @@
 {
   "type": "record",
-  "name": "document",
+  "name": "nifiRecord",
+  "namespace":"org.apache.nifi",
   "fields":
   [
     { "name": "docid", "type": "int"},
