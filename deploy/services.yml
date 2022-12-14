@@ -379,8 +379,8 @@ services:
         hard: 262144
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
-      - "9300:9300"
-      - "9600:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
+      - "${ELASTICSEARCH_NODE_1_ANALYZER_OUTPUT_PORT:-9600}:9600" # required for Performance Analyzer
     expose:
       - 9200
       - 9300
@@ -463,8 +463,8 @@ services:
         hard: 262144
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
-      - "9301:9300"
-      - "9601:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
+      - "${ELASTICSEARCH_NODE_2_ANALYZER_OUTPUT_PORT:-9601}:9600" # required for Performance Analyzer
     expose:
       - 9200
       - 9300
@@ -547,8 +547,8 @@ services:
         hard: 262144
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
-      - "9302:9300"
-      - "9603:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
+      - "${ELASTICSEARCH_NODE_3_ANALYZER_OUTPUT_PORT:-9602}:9600" # required for Performance Analyzer
     expose:
       - 9200
       - 9300
