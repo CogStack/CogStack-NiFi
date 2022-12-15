@@ -581,8 +581,6 @@ services:
 
     networks:
       - cognet
-    depends_on:
-      - elasticsearch-1
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
@@ -608,8 +606,6 @@ services:
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/metricbeat/esnode.key:ro
     networks:
       - cognet
-    depends_on:
-      - elasticsearch-2
 
 #---------------------------------------------------------------------------#
 # Kibana webapp                                                             #
