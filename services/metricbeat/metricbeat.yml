@@ -13,8 +13,8 @@ processors:
 # ---------------------------- Elasticsearch Output ----------------------------
 output.elasticsearch:
   hosts: ${ELASTICSEARCH_HOSTS}
-  username: "${ELASTIC_USER}"
-  password: "${ELASTIC_PASSWORD}"
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
   ssl.verification_mode: certificate
   ssl.enabled: true
   ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
@@ -28,8 +28,8 @@ output.elasticsearch:
 # This requires a Kibana endpoint configuration.
 setup.kibana:
   host: "${KIBANA_HOST}"
-  username: "${ELASTIC_USER}"
-  password: "${ELASTIC_PASSWORD}"
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
   protocol: "https"
   ssl.enabled: true
   ssl.verification_mode: certificate
@@ -52,8 +52,8 @@ metricbeat.modules:
     - ml_job
   period: 10s
   hosts: ${ELASTICSEARCH_HOSTS}
-  username: "${ELASTIC_USER}"
-  password: "${ELASTIC_PASSWORD}"
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
   ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
 
 #-------------------------------- Kibana Module --------------------------------
@@ -63,8 +63,8 @@ metricbeat.modules:
   hosts: "${KIBANA_HOST}"
   basepath: ""
   enabled: true
-  username: "${ELASTIC_USER}"
-  password: "${ELASTIC_PASSWORD}"
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
   ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
   ssl.certificate: "/usr/share/metricbeat/esnode.crt"
   ssl.key: "/usr/share/metricbeat/esnode.key"

@@ -562,11 +562,11 @@ services:
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
-         - ../security/es_internal_users.env
+         - ../security/elasticsearch_users.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
-      - ELASTIC_USER=${ELASTIC_USER:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
+      - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
       - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
     volumes:
       - metricbeat-data-1:/usr/share/metricbeat/data
@@ -587,12 +587,12 @@ services:
     image: docker.elastic.co/beats/metricbeat:8.3.3
     command: -e --strict.perms=false
     env_file:
-      - ./elasticsearch.env
-      - ../security/es_internal_users.env
+         - ./elasticsearch.env
+         - ../security/elasticsearch_users.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
-      - ELASTIC_USER=${ELASTIC_USER:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
+      - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
       - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
     volumes:
       - metricbeat-data-2:/usr/share/metricbeat/data
