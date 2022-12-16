@@ -12,6 +12,8 @@ fi
 if [[ -z "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
     ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
     echo "ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+else
+    ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
 fi
 
 # Set this variable in order to add more ES_HOSTNAMES to the dns approved instances
@@ -88,7 +90,7 @@ instances:
  
 if [[ ! -f /certs/es_native_ca_bundle.zip ]]; then
   echo "Generating root-ca certificates for native ES"
-  bin/elasticsearch-certutil ca --silent --days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS --out /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<$ES_CERTIFICATE_PASSWORD
+  bin/elasticsearch-certutil ca --silent --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --out /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<$ES_CERTIFICATE_PASSWORD
   bin/elasticsearch-certutil cert --silent --ca /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<""$ES_CERTIFICATE_PASSWORD"
   
   "
@@ -97,7 +99,7 @@ fi;
 
 if [[ ! -f /certs/es_native_certs_bundle.zip ]]; then
   echo "Generating CSR certficates for ES clusters"
-  bin/elasticsearch-certutil cert --silent --out /certs/es_native_certs_bundle.zip --in config/certificates/instances.yml  --days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
+  bin/elasticsearch-certutil cert --silent --out /certs/es_native_certs_bundle.zip --in config/certificates/instances.yml --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
@@ -107,7 +109,7 @@ fi;
 
 if [[ ! -f /certs/es_native_certs_bundle_pem.zip ]]; then
   echo "Generating PEM certficates for ES clusters"
-  bin/elasticsearch-certutil cert --pem --silent --out /certs/es_native_certs_bundle_pem.zip --in config/certificates/instances.yml  --days $CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
+  bin/elasticsearch-certutil cert --pem --silent --out /certs/es_native_certs_bundle_pem.zip --in config/certificates/instances.yml  --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
