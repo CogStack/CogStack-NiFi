@@ -14,6 +14,8 @@ Before going deeper into the NiFi setup and workflows, a few key concepts need t
 
 Please read the following [article](https://nifi.apache.org/docs/nifi-docs/html/nifi-in-depth.html) for further clarification.
 
+Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
+
 ## `NiFi directory layout : /nifi`   
 
 ```
@@ -292,7 +294,17 @@ To access the scheduling menu, right click on any processor > click configure > 
 `Concurrent tasks` are a good way to keep things running in parallel if you feel that data is not being processed fast enough, just be aware that as stated above, one task represents one thread, and as mentioned in the `maximum thread count` section, it should not exceed the max number.
 It should also be noted that a `processor` cannot have more `tasks` in current execution than the declared number `concurrent tasks`, if a task finishes its work you will notice that another will immidiately take it's place, of course, a new task may not be started if the current task has finished work and the timer is set on `run schedule` to be different than 0.
 
+### Benchmarking
 
-### Accessing NiFi via nifi-api 
+As you create workflows and put them into production, you may wish to monitor the performance of certain proceses, this is especially useful when you notice a slowdown in your flow because of a specific component (i.e, a DB query or a HTTP request that is taking too long to complete). You can view a process's operational history by right clicking it and selecting `View status history`, as shown in the image below.
 
-[article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html)
+![nifi-process-menu-benchmarking-tasks](../_static/img/nifi_process_option_menu_status_history.png)
+
+You can then select the type of history you wish to check by clicking the drop-down menu on the top right, in our case we select the `Total Task Duration (5 mins)` option. Two graphs that resemble the image below should appear.
+![nifi-process-task-duraction](../_static/img/nifi_task_duration.png)
+ The smaller graph can be used to select a specific time frame to view by clicking and dragging the small grey window over, this window can also be moved after the select action is released.
+![nifi-process-task-duraction-select-window](../_static/img/nifi_task_duration_select_window.png)
+
+## Accessing NiFi via nifi-api 
+
+Certain methods can be executed via scripts, either python or shell. Python has the `nifi-api` package for this. Check this [article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html)for more details on the methods available.

@@ -5,6 +5,12 @@ Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
 
+## Overview
+
+The below image sums up how CogStack services work with eachother in an environment where all available components are used.
+
+![nifi-servies](../_static/img/nifi_services.png)
+
 ## Primary services
 All the services are defined in `services.yml` file and these are:
 - `samples-db` - a PostgreSQL database with sample data to play with,
