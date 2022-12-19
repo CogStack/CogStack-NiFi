@@ -31,6 +31,26 @@
 *.woff2 filter=lfs diff=lfs merge=lfs -text
 # Other
 *.exe filter=lfs diff=lfs merge=lfs -text
-
 # Doc images
 docs/_static/img/*.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-es-writer-w1.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi_services.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi-workflow-w3.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi_process_option_menu_status_history.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi_task_duration_select_window.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/process_scheduling.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-tika-w2.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi-templates-w1.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi-workflow-w2.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-medcat-w3.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi-exec-workflow-w1.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi_burger_menu.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/process_log_level.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/process_threads.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-db-reader-w1.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-db-reader-w2.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-es-reader-w4.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/process_option_menu.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/configure-db-connector-w1.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi-workflow-w4.png filter=lfs diff=lfs merge=lfs -text
+docs/_static/img/nifi_task_duration.png filter=lfs diff=lfs merge=lfs -text
