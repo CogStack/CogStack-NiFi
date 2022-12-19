@@ -31,3 +31,6 @@
 *.woff2 filter=lfs diff=lfs merge=lfs -text
 # Other
 *.exe filter=lfs diff=lfs merge=lfs -text
+
+# Doc images
+docs/_static/img/*.png filter=lfs diff=lfs merge=lfs -text
