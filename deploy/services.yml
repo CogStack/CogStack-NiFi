@@ -314,7 +314,6 @@ services:
     env_file:
       - ./elasticsearch.env
       - ../security/elasticsearch_users.env
-      - ../security/es_internal_users.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -398,7 +397,6 @@ services:
     env_file:
       - ./elasticsearch.env
       - ../security/elasticsearch_users.env
-      - ../security/es_internal_users.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -482,7 +480,6 @@ services:
     env_file:
       - ./elasticsearch.env
       - ../security/elasticsearch_users.env
-      - ../security/es_internal_users.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
