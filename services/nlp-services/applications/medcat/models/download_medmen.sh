@@ -20,11 +20,11 @@ else
   echo "MedMentions model already present -- skipping download"
 fi
 
-if [[ ! -d "$MODEL_META" ]]; then
-  echo "Downloading meta model: status"
-  curl https://medcat.rosalind.kcl.ac.uk/media/mc_status.zip > $MEDMEN_DIR/mc_status.zip && \
-    (cd $MEDMEN_DIR && unzip mc_status.zip) && \
-    rm $MEDMEN_DIR/mc_status.zip
-else
-  echo "Meta model already present -- skipping download"
-fi
+# if [[ ! -d "$MODEL_META" ]]; then
+#   echo "Downloading meta model: status"
+#   curl https://medcat.rosalind.kcl.ac.uk/media/mc_status.zip > $MEDMEN_DIR/mc_status.zip && \
+#     (cd $MEDMEN_DIR && unzip mc_status.zip) && \
+#     rm $MEDMEN_DIR/mc_status.zip
+# else
+#   echo "Meta model already present -- skipping download"
+# fi

@@ -3,7 +3,7 @@
 ################################################################
 # 
 # This script generates the hashes of passwords for the internal
-#  users in OpenDistro for ElasticSearch that need to be afterwards
+#  users in OpenDistro\Opensearch that need to be afterwards
 #  manually imported
 #
 

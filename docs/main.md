@@ -5,7 +5,7 @@ CogStack-NiFi contains example recipes using [Apache NiFi](https://nifi.apache.o
 Each component implementing key functionality, such as Text Extraction or Natural Language Processing, runs as a service where the data routing between the components and data source/sink is handled by Apache NiFi.
 Moreover, NLP services are expected to implement an uniform RESTful API to enable easy plugging-in into existing document processing pipelines, making it possible to use any NLP application in the stack.
 
-### Development
+## Development
 
 Please note that the project is under constant improvement, brining new features or services that might impact current deployments, please be aware as this might affect you, the user, when making upgrades, so be sure to check the release notes and the documentation beforehand. 
 
