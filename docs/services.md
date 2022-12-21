@@ -16,13 +16,21 @@ The directory [`./services/pgsamples/scripts`](https://github.com/CogStack/CogSt
 
 
 ## ELK stack
-The [ELK stack](https://www.elastic.co/what-is/elk-stack) used in this project is based on [OpenDistro for ElasticSearch and Kibana](https://opendistro.github.io/for-elasticsearch/) distribution.
-OpenDistro for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
+There are two types of Elasticsearch versions available, apart from the native one there is a also OpenSearch, which is a fork of the original but developed & maintained by Amazon.
+
+The [ELK stack](https://www.elastic.co/what-is/elk-stack) used in this project is based on [OpenSearch for ElasticSearch and Kibana](https://opensearch.org/) distribution.
+OpenSearch for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
 It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support. 
 Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenDistro remain the same. 
-Hence, OpenDistro can be used as a drop-in replacement for the standard ELK stack.
+Hence, OpenSearch can be used as a drop-in replacement for the standard ELK stack.
 
 The used configuration files for ElasticSearch and Kibana are provided in [`./services/elasticsearch/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/config) and [`./services/kibana/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/kibana/config) directories respectively.
+
+The names of the services within the NiFi project are the same even though they have different names, we will refer to original Elasticsearch as ES native in the documentation.
+
+Services names Elasticsearch | OpenSearch:
+    - Elasticsearch <-> OpenSearch
+    - Kibana <-> OpenSearch Dashboards
 
 Please note that both ElasticSearch and Kibana use security module from the OpenDistro to manage user access permissions and roles. 
 However, for production use, proper users and roles need to be set up otherwise the default built-in ones will be used and with default passwords. 
