@@ -307,4 +307,4 @@ You can then select the type of history you wish to check by clicking the drop-d
 
 ## Accessing NiFi via nifi-api 
 
-Certain methods can be executed via scripts, either python or shell. Python has the `nifi-api` package for this. Check this [article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html)for more details on the methods available.
+Certain methods can be executed via scripts, either python or shell. Python has the `nifi-api` package for this. Check this [article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html) for more details on the methods available.
