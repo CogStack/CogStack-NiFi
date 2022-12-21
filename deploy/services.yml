@@ -621,8 +621,6 @@ services:
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
 
-    depends_on:
-      - elasticsearch-1
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
       - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
