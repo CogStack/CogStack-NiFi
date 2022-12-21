@@ -1,7 +1,7 @@
 # Some of these parameters are provided by the Docker environment variables
 server.name: ${KIBANA_SERVER_NAME}
 server.host: ${KIBANA_SERVER_HOST}
-server.port: ${KIBANA_SERVER_PORT}
+server.port: 5601
 
 telemetry.optIn: false
 telemetry.enabled: false
