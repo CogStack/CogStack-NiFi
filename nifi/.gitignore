@@ -1,5 +1,7 @@
 conf/archive
 conf/templates
+**devel
+devel
 nifi-app.log
 **flow
 **login
