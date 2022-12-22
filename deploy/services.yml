@@ -664,6 +664,7 @@ services:
       - ./nifi.env
       - ./elasticsearch.env
       - ./project.env
+      - ./general.env
     shm_size: 1024mb
     environment:
       - http_proxy=$HTTP_PROXY
