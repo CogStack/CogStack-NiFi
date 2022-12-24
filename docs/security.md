@@ -75,9 +75,21 @@ Please note that the deployment of native ES version requires different settings
 
 ## Generating Elasticsearch native/OpenSearch + KIBANA/OpenSearch Dashboard CERTS
 
-### Elasticsearch Security Requirements
+### Elasticsearch/OpenSearch Security Requirements
 
-Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES)
+Each version has it's own scripts for generating the necessary certificates.
+All security variables used within the `.sh` scripts for `CERTIFICATE GENERATION` are set in the following files:
+
+- `./certificates_elasticsearch.env`
+- `./certificates_general.env`
+- `./certificates_nifi.env`
+
+For configuring default users, please see the following env files:
+- `./elasticsearch_users.env` which is used in the `create_es_native_credentials.sh` script post ES container startup.
+
+
+Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES).
+
 #### For OpenSearch
 ElasticSearch OpenSearch requires the following certifiates available in the [security](security/) folder:
 - `es_certificates/opensearch/elasticsearch/elasticsearch-1.pem`
@@ -129,7 +141,6 @@ Once generated, the files can be further referenced in `services/kibana/config/k
 These certificates are generates by the steps mentioned in the above Elasticsearch Native section.
 
 ## Users and roles in ElasticSearch
-
 
 ### Generating users
 
