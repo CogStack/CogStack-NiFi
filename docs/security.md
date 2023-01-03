@@ -84,49 +84,42 @@ All security variables used within the `.sh` scripts for `CERTIFICATE GENERATION
 - `./certificates_general.env`
 - `./certificates_nifi.env`
 
-For configuring default users, please see the following env files:
-- `./elasticsearch_users.env` which is used in the `create_es_native_credentials.sh` script post ES container startup.
+Please pay attention to the following sections, they describe what is needed to secure each version of ES deployments(Opensearch/Native ES).
 
+#### <strong> Common certificates used for all ES types</strong>
 
-Please pay attention to the following sections, the describe what is needed to secure each version of ES deployments(Opensearch/Native ES).
-
-#### For OpenSearch
-ElasticSearch OpenSearch requires the following certifiates available in the [security](security/) folder:
-- `es_certificates/opensearch/elasticsearch/elasticsearch-1.pem`
-- `es_certificates/opensearch/elasticsearch/elasticsearch-1.key`
-- `es_certificates/opensearch/elasticsearch/elasticsearch-2.pem`
-- `es_certificates/opensearch/elasticsearch/elasticsearch-2.key`
-- `root-ca.key`
-- `root-ca.pem`
-
-We have to make sure to execute the following commands `bash ./create_opensearch_nodecert.sh elasticsearch-1 && bash ./create_opensearch_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, for both nodes make sure to generate the ADMIN authorization certificate by doing `bash ./create_opensearch_admin_cert.sh`.
-
-The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
-
-You can generate some basic users by executing the [`create_es_native_credentials.sh`](security/create_es_native_credentials.sh) script, if you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
-
-### For Elasticsearch Native
-
-ElasticSearch Native requires the following certificates, available in the [security](security/) folder:
-- `es_certificates/ca/ca.crt`
-- `es_certificates/ca/ca.key`
+Certificate namings are now common across ES versions, the deployment requires the following certificates, available in the [security](security/) folder:
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elastic-stack-ca.crt.pem`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elastic-stack-ca.key.pem`
 - `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-1/http-elasticsearch-1.crt`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-1/http-elasticsearch-1.p12`
 - `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-1/http-elasticsearch-1.key`
 - `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-2/http-elasticsearch-2.crt`
 - `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-2/http-elasticsearch-2.key`
-- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-2/http-elasticsearch-3.crt`
-- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-2/http-elasticsearch-3.key`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-2/http-elasticsearch-2.p12`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-3/http-elasticsearch-3.crt`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-3/http-elasticsearch-3.p12`
+- `es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/elasticsearch-3/http-elasticsearch-3.key`
 
+The `${ELASTICSEARCH_VERSION}` MUST be set in the `deploy/elastiscsearch.env` before starting any container! it will also mount all the certificates seaminglessly according to the ES version, for native ES the certificate files are in `security/es_certicates/elasticsearch`, OpenSearch variant in `security/es_certificates/opensearch/`.
+
+#### <span style="color: red"><strong>IMPORTANT NOTE: the `es_certifcates` folder is mounted inside NiFi so that you can load certificates seamlessly without the need to restart the NiFi service.</strong></span>
+
+<br>
+
+### For OpenSearch
+
+We have to make sure to execute the following commands `bash ./create_opensearch_nodecert.sh elasticsearch-1 && bash ./create_opensearch_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, make sure to generate the ADMIN authorization certificate by doing `bash ./create_opensearch_admin_cert.sh`.
+
+The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
+
+<br>
+
+### For Elasticsearch Native
 To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](security/create_es_native_certs.sh).
 
-### Kibana (OpenDashboard)
-Kibana OpenDashboard requires:
-- `admin.pem`
-- `admin-key.pem`
-- `es_kibana_client.pem`
-- `es_kibana_client.key`
+<br>
 
-Once generated, the files can be further referenced in `services/kibana/config/kibana_opensearch.yml` and/or linked directly in the Docker compose file with services configuration.
 
 ### Kibana
 
@@ -140,20 +133,36 @@ Once generated, the files can be further referenced in `services/kibana/config/k
 
 These certificates are generates by the steps mentioned in the above Elasticsearch Native section.
 
-## Users and roles in ElasticSearch
+<br>
+
+### OpenDashboard (OpenSearch version of Kibana)
+ OpenDashboard requires:
+- `admin.pem`
+- `admin-key.pem`
+- `es_kibana_client.pem`
+- `es_kibana_client.key`
+- <span style="color: red"><strong>like the Kibana section above, all the certificates are used under the same names, of course, they will come from `es_certificates/opensearch/` folder.</strong></span>
+
+
+Once generated, the files can be further referenced in `services/kibana/config/kibana_opensearch.yml` and/or linked directly in the Docker compose file with services configuration.
+
+<br>
+
+
+## Users and roles in ElasticSearch/OpenSearch
 
 ### Generating users
-
-Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
-
-### Users and passwords
+### Users and passwords enironment variables
 The sample users and passwords are specified in the following `.env` files in `security/` directory:
 - `elasticsearch_users.env` - contains passwords for ElasticSearch internal users.
 - `database_users.env` - containes account details for both production and samples DB instances
 - `es_cogstack_users.env` - contains passwords for custom ElasticSearch users.
 - `nginx_users.env` - nginx account
 
-### Setting up ElasticSearch
+#### Setting up OpenSearch
+
+Please see the `security/opensearch` folder for the roles mappings and internal users for user data. You can also use the `create_es_users.sh` script for this.
+
 On the first run, after changing the default passwords, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenSearch documentation](https://opensearch.org/docs/latest/security-plugin/access-control/users-roles/).
 
 To do so, one can:
@@ -163,6 +172,12 @@ To do so, one can:
 
 Following, one should modify the default passwords for the other build-in users (`logstash`, `kibanaro`, `readall`, `snapshotrestore`) and to create custom users (`cogstack_pipeline`, `cogstack_user`, `nifi`), as specified below. 
 The script `create_es_users.sh` creates and sets up example users and roles in ElasticSearch cluster.
+
+#### Setting up Elasticsearch
+
+For configuring default users, please see the following env files:
+- `./elasticsearch_users.env` which is used in the `create_es_native_credentials.sh` script post ES container startup, it creates all the default users. If you wish to add more users make sure to take a look at the official documentation on how to create roles and accounts. 
+- This script also creates a `SERVICE ACCOUNT TOKEN` which can be used for Kibana configuration. Please copy the token manually into the `elasticsearch.env` `ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN` variable.
 
 ### New roles
 Example new roles that will be created after running `create_es_users.sh`:
