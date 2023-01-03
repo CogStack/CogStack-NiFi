@@ -69,4 +69,4 @@ curl -k -X POST -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/es_nativ
 '
 
 # create service account token
-# curl -k -X POST  -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/es_native/elastic-stack-ca.crt.pem "https://localhost:9200/_security/service/elastic/fleet-server/credential/token?pretty"
+curl -k -X POST  -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/es_native/elastic-stack-ca.crt.pem "https://localhost:9200/_security/service/elastic/fleet-server/credential/token?pretty"
