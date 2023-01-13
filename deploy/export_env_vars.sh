@@ -21,9 +21,15 @@ env_files=("nifi.env"
 
 unamestr=$(uname)
 
+for env_file in ${env_files[@]}; do
+  set -a
+  source $env_file
+  set +a
+done
 
 for env_file in ${env_files[@]}; do
   file_text=""
+
 
   if [ "$unamestr" = 'Linux' ]; then
     file_text=$(grep -v '^#' $env_file | xargs -d '\n' -0)
