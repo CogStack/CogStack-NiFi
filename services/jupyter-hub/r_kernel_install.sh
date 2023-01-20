@@ -2,6 +2,8 @@
 
 install.packages(
    c(
+      `httr`,
+      `httr2`,
       'rlang',
       'uuid', 
       'digest', 
@@ -33,6 +35,7 @@ install.packages(
        )
 
 install.packages("lme4")
+install.packages("survminer")
 install.packages("nloptr")
 install.packages('IRkernel')
 
