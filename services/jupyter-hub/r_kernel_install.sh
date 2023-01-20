@@ -2,7 +2,6 @@
 
 install.packages(
    c(
-      `httr2`,
       'rlang',
       'uuid', 
       'digest', 
