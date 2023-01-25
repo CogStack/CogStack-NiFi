@@ -5,7 +5,7 @@
   "fields":
   [
     { "name": "doc_id", "type": "int" },
-    { "name": "processing_timestamp", "type": { "type" : "string", "logicalType" : "timestamp-millis" } },
+    { "name": "processing_timestamp", "type": { "type" : "long", "logicalType" : "timestamp-millis" } },
 
     { "name": "ent_id", "type": "int" },
     { "name": "cui", "type": ["null", "string"], "default": null },
