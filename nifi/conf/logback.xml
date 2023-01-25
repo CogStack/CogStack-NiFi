@@ -92,13 +92,13 @@
         </encoder>
     </appender>
 
-    <!-- valid logging levels: TRACE, DEBUG, INFO, WARN, ERROR -->
+    <!-- valid logging levels: TRACE, DEBUG, INFO, ERROR, ERROR -->
 
-    <logger name="org.apache.nifi" level="WARN"/>
-    <logger name="org.apache.nifi.processors" level="WARN"/>
-    <logger name="org.apache.nifi.processors.standard.LogAttribute" level="WARN"/>
-    <logger name="org.apache.nifi.processors.standard.LogMessage" level="WARN"/>
-    <logger name="org.apache.nifi.controller.repository.StandardProcessSession" level="WARN" />
+    <logger name="org.apache.nifi" level="ERROR"/>
+    <logger name="org.apache.nifi.processors" level="ERROR"/>
+    <logger name="org.apache.nifi.processors.standard.LogAttribute" level="ERROR"/>
+    <logger name="org.apache.nifi.processors.standard.LogMessage" level="ERROR"/>
+    <logger name="org.apache.nifi.controller.repository.StandardProcessSession" level="ERROR" />
 
 
     <logger name="org.apache.zookeeper.ClientCnxn" level="ERROR" />
@@ -116,35 +116,35 @@
     <logger name="org.apache.curator.ConnectionState" level="OFF" />
 
     <!-- Logger for managing logging statements for nifi clusters. -->
-    <logger name="org.apache.nifi.cluster" level="WARN"/>
+    <logger name="org.apache.nifi.cluster" level="ERROR"/>
 
     <!-- Logger for logging HTTP requests received by the web server. -->
-    <logger name="org.apache.nifi.server.JettyServer" level="WARN"/>
+    <logger name="org.apache.nifi.server.JettyServer" level="ERROR"/>
 
     <!-- Logger for managing logging statements for jetty -->
-    <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="org.eclipse.jetty" level="ERROR"/>
 
     <!-- Suppress non-error messages due to excessive logging by class or library -->
     <logger name="org.springframework" level="ERROR"/>
 
-    <!-- Suppress non-error messages due to known warning about redundant path annotation (NIFI-574) -->
+    <!-- Suppress non-error messages due to known ERRORing about redundant path annotation (NIFI-574) -->
     <logger name="org.glassfish.jersey.internal.Errors" level="ERROR"/>
 
-    <!-- Suppress non-error messages due to Jetty AnnotationParser emitting a large amount of WARNS. Issue described in NIFI-5479. -->
+    <!-- Suppress non-error messages due to Jetty AnnotationParser emitting a large amount of ERRORS. Issue described in NIFI-5479. -->
     <logger name="org.eclipse.jetty.annotations.AnnotationParser" level="ERROR"/>
 
     <!-- Suppress non-error messages from SSHJ which was emitting large amounts of INFO logs by default -->
-    <logger name="net.schmizz.sshj" level="WARN" />
-    <logger name="com.hierynomus.sshj" level="WARN" />
+    <logger name="net.schmizz.sshj" level="ERROR" />
+    <logger name="com.hierynomus.sshj" level="ERROR" />
 
     <!-- Suppress non-error messages from SMBJ which was emitting large amounts of INFO logs by default -->
-    <logger name="com.hierynomus.smbj" level="WARN" />
+    <logger name="com.hierynomus.smbj" level="ERROR" />
 
     <!-- Suppress non-error messages from AWS KCL which was emitting large amounts of INFO logs by default -->
-    <logger name="com.amazonaws.services.kinesis" level="WARN" />
+    <logger name="com.amazonaws.services.kinesis" level="ERROR" />
 
     <!-- Suppress non-error messages from Apache Atlas which was emitting large amounts of INFO logs by default -->
-    <logger name="org.apache.atlas" level="WARN"/>
+    <logger name="org.apache.atlas" level="ERROR"/>
 
     <!-- These log messages would normally go to the USER_FILE log, but they belong in the APP_FILE -->
     <logger name="org.apache.nifi.web.security.requests" level="INFO" additivity="false">
@@ -156,28 +156,28 @@
         log events to the root logger. These messages are only sent to the
         user-log appender.
     -->
-    <logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.web.security" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.api.config" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.web.api.config" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.authorization" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.authorization" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.cluster.authorization" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.cluster.authorization" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.filter.RequestLogger" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.web.filter.RequestLogger" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.apache.nifi.web.api.AccessResource" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.web.api.AccessResource" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.springframework.security.saml.log" level="WARN" additivity="false">
+    <logger name="org.springframework.security.saml.log" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
-    <logger name="org.opensaml" level="WARN" additivity="false">
+    <logger name="org.opensaml" level="ERROR" additivity="false">
         <appender-ref ref="USER_FILE"/>
     </logger>
 
@@ -185,16 +185,16 @@
     <!--
         Logger for capturing Bootstrap logs and NiFi's standard error and standard out.
     -->
-    <logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.bootstrap" level="ERROR" additivity="false">
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
-    <logger name="org.apache.nifi.bootstrap.Command" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.bootstrap.Command" level="ERROR" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
     <!-- Everything written to NiFi's Standard Out will be logged with the logger org.apache.nifi.StdOut at INFO level -->
-    <logger name="org.apache.nifi.StdOut" level="WARN" additivity="false">
+    <logger name="org.apache.nifi.StdOut" level="ERROR" additivity="false">
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
@@ -203,7 +203,7 @@
         <appender-ref ref="BOOTSTRAP_FILE" />
     </logger>
 
-    <root level="WARN">
+    <root level="ERROR">
         <appender-ref ref="APP_FILE" />
     </root>
 
