@@ -84,6 +84,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
   // Empty out before sending the whole record data over, we don't want extra load
   currRecord.put(binary_field.toString(), null)
+
   def dataFields = currRecord.getSchema().getFields()
 
   DatumWriter<Object> datumWriter = new GenericDatumWriter<>(currRecord.getSchema())
@@ -106,6 +107,10 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
   previousAttributes["AVRO_RECORD_DATA_FILE_PATH"] = filePath
   previousAttributes["AVRO_RECORD_SCHEMA"] = currRecord.getSchema().toString()
+
+  dataFields.each{dataField -> 
+    previousAttributes[dataField.name() as String] = currRecord.get(dataField.name()) != null ? currRecord.get(dataField.name()) as String : ""
+  }
 
   WritableByteChannel channel = Channels.newChannel(outputStream)
   channel.write(rawBytes)
