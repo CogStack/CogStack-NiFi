@@ -8,7 +8,12 @@ Please see [example deployment](deploy/main.md) for more details on the used ser
 **IMPORTANT**
 Please note that some of the necessary configuration parameters, variables and paths are also defined in the [`services.yml`](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/services.yml) file.
 
-## Samples DB
+## Database Stack
+
+The samples DB uses PgSQL, but we also provide an MSSQL instance (no data on it however), that can be used in prod environments. Please see [the workflows section](./deploy/workflows.md#configuring-db-connector) about how to configure the difference controllers and DB drivers.
+
+### Samples DB
+
 For an example deployment, a PostgreSQL database that contains some example data to play with was generated [synthetic records](https://github.com/synthetichealth/synthea) enrinched with free-text from [MTSamples](https://www.mtsamples.com/).
 All the necessary resources, data and scripts are stored in `pgsamples/` directory.
 During the service initialization, the script `init_db.sh` will populate the database with sample data read from a database dump stored in `db_dump` directory.

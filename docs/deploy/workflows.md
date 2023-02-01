@@ -66,6 +66,24 @@ User `test` with password `test` was created to connect to it.
 Alongside the DB connector, other controllers used by the processors (i.e. record readers and writers) need to be activated too - all of this is illustrated on the picture below.
 ![db-reader-w1](../_static/img/configure-db-connector-w1.png)
 
+#### Parameters to lookout for
+
+The `DBCConnectionPool` controller service can be configured to operate with multiple DB types, you will need to configure them manually with the appropiate drivers and driver classes, the following configs can be used:
+```
+  PgSQL:
+    - Database Connection URL: jdbc:postgresql://samples-db:5432/db_samples
+    - Database Driver Class Name: org.postgresql.Driver
+    - Database Driver Location(s): /opt/nifi/drivers/postgresql-42.2.5.jar
+``` 
+```
+  MSSQL:
+    - Database Connection URL: jdbc:sqlserver://cogstack-databank-db-mssql:1433;DatabaseName=MTSamples;encrypt=true;trustServerCertificate=true; 
+    - Database Driver Class Name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    - Database Driver Location(s): /opt/nifi/drivers/mssql-jdbc-11.2.0.jre8.jar
+```
+
+<b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](../../nifi/drivers/) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
+
 
 ## Adding your own data to the DB 
 
