@@ -682,6 +682,9 @@ services:
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
+
+      # INFO: drivers folder
+      - ../nifi/drivers:/opt/nifi/drivers
       
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)

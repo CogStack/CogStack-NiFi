@@ -55,7 +55,7 @@ RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROX
 
 # copy drivers
 WORKDIR /opt/nifi/
-COPY ./drivers ./drivers
+#COPY ./drivers ./drivers
 #COPY ../security ./security
 
 # copy user scripts, schemas and templates
