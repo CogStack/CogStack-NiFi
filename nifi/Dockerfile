@@ -33,7 +33,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-htt
     apt-get update && apt-get upgrade -y && \
     apt-get install -y postgresql-server-dev-13 postgresql-server-dev-all python3 python3-pip python3-dev python3.9-dev python3-all-dev ssl-cert --no-install-recommends && \
     pip3 install --upgrade pip && \
-    pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j --ignore-installed PyYAML && \ 
+    pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py eland neo4j --ignore-installed PyYAML && \ 
     pip3 install pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
     pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary psycopg2 python-certifi-win32 certifi pyodbc
 
