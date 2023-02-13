@@ -6,7 +6,7 @@
   [
     { "name": "doc_id", "type": "string" },
     { "name": "doc_text", "type": "string", "default": "" },
-    { "name": "processing_timestamp", "type": { "type" : "long", "logicalType" : "timestamp-millis" } },
+    { "name": "processing_timestamp", "type": { "type" : "string", "logicalType" : "timestamp-millis" } },
     { "name": "metadata_x_ocr_applied", "type": "boolean" },
     { "name": "metadata_x_parsed_by", "type": "string" },
     { "name": "metadata_content_type", "type": ["null", "string"], "default": null },
@@ -15,3 +15,4 @@
     { "name": "metadata_last_modified", "type": ["null", { "type" : "long", "logicalType" : "timestamp-millis" }], "default": null }
   ]
 }
+
