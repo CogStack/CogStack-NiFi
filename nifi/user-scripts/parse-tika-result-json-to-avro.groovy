@@ -126,5 +126,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     writer.close()
 } as StreamCallback)
 
+flowFile = session.putAttribute(flowFile, "mime.type", "application/avro-binary")
+
 // transfer the seesions file
 session.transfer(flowFile, REL_SUCCESS)
