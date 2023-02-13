@@ -1,10 +1,10 @@
-FROM apache/nifi:${NIFI_VERSION:-1.18.0}
+FROM apache/nifi:${NIFI_VERSION:-1.20.0}
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG no_proxy
 
-ENV NIFI_VERSION=${NIFI_VERSION:-1.18.0}
+ENV NIFI_VERSION=${NIFI_VERSION:-1.20.0}
 
 ENV NIFI_UID ${NIFI_UID:-1000}
 ENV NIFI_GID ${NIFI_GID:-1000}
@@ -27,15 +27,19 @@ RUN echo "UID=${UID}"
 USER root
 
 # run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip && \
-    apt-add-repository contrib && \
-    apt-add-repository non-free && \
-    apt-get update && apt-get upgrade -y && \
-    apt-get install -y postgresql-server-dev-13 postgresql-server-dev-all python3 python3-pip python3-dev python3.9-dev python3-all-dev ssl-cert --no-install-recommends && \
-    pip3 install --upgrade pip && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip
+RUN apt-add-repository restricted && \
+    apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    apt-get update && apt-get upgrade -y
+
+RUN apt-get install -y postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 --no-install-recommends
+
+RUN pip3 install --upgrade pip && \
     pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
     pip3 install pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
-    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary psycopg2 python-certifi-win32 certifi pyodbc
+    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc
 
 # XNAT
 RUN pip3 install xnat
@@ -45,7 +49,7 @@ RUN pip3 install -U spacy click torch thinc
 RUN pip3 install medcat
 
 # ApacheNifi specific packages
-RUN pip3 install nipyapi nifi.flowfile avro-python3
+RUN pip3 install nipyapi nifi.flowfile avro
 
 # uther useful packages
 RUN pip3 install jupyter geocoder
