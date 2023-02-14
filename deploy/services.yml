@@ -617,8 +617,8 @@ services:
          - ./elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
-      OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
+      OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
+      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
 
@@ -652,13 +652,13 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:latest
-    #build:
-    #   context: ../nifi/
-    #   args:      
-    #       HTTP_PROXY: $HTTP_PROXY
-    #       HTTPS_PROXY: $HTTPS_PROXY
-    #       no_proxy: $no_proxy
+    #image: cogstacksystems/cogstack-nifi:latest
+    build:
+       context: ../nifi/
+       args:      
+           HTTP_PROXY: $HTTP_PROXY
+           HTTPS_PROXY: $HTTPS_PROXY
+           no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
     env_file:
