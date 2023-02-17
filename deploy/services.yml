@@ -157,6 +157,81 @@ services:
       - cognet
 
 #---------------------------------------------------------------------------#
+# OCR service(s)                                                            #
+#---------------------------------------------------------------------------#
+  ocr-service-1:
+    container_name: ocr-service-1
+    platform: linux
+    image: cogstacksystems/cogstack-ocr-service:latest
+    restart: always
+    mem_swappiness: 0
+    # cpuset: "0-15"
+    shm_size : 1024mb
+    privileged: true
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+
+      # tesseract threading is disabled as the processing will take care of distribution
+      - OMP_THREAD_LIMIT=1
+
+      # ocr service variables
+      - OCR_SERVICE_THREADS=1
+      - OCR_SERVICE_LOG_LEVEL=20
+      - OCR_SERVICE_CPU_THREADS=1
+      - OCR_SERVICE_CONVERTER_THREADS=1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    ports:
+      - "8090:8090"
+    expose: 
+      - "8090"
+
+  ocr-service-2:
+    container_name: ocr-service-2
+    platform: linux
+    image: cogstacksystems/cogstack-ocr-service:latest
+    restart: always
+    mem_swappiness: 0
+    # cpuset: "0-15"
+    shm_size : 1024mb
+    privileged: true
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+
+      # tesseract threading is disabled as the processing will take care of distribution
+      - OMP_THREAD_LIMIT=1
+
+      # ocr service variables
+      - OCR_SERVICE_THREADS=1
+      - OCR_SERVICE_LOG_LEVEL=20
+      - OCR_SERVICE_CPU_THREADS=1
+      - OCR_SERVICE_CONVERTER_THREADS=1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    ports:
+      - "8091:8090"
+    expose: 
+      - "8090"
+
+#---------------------------------------------------------------------------#
 # NLP Services containers                                                   #
 #   * using example free models / resources                                 #
 #---------------------------------------------------------------------------#
