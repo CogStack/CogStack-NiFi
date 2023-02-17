@@ -170,6 +170,8 @@ services:
     privileged: true
     security_opt:
       - seccomp:unconfined
+    env_file:
+      - ./ocr_service.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -177,12 +179,6 @@ services:
 
       # tesseract threading is disabled as the processing will take care of distribution
       - OMP_THREAD_LIMIT=1
-
-      # ocr service variables
-      - OCR_SERVICE_THREADS=1
-      - OCR_SERVICE_LOG_LEVEL=20
-      - OCR_SERVICE_CPU_THREADS=1
-      - OCR_SERVICE_CONVERTER_THREADS=1
     ulimits:
       memlock:
         soft: -1
@@ -208,6 +204,8 @@ services:
     privileged: true
     security_opt:
       - seccomp:unconfined
+    env_file:
+      - ./ocr_service.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -215,12 +213,6 @@ services:
 
       # tesseract threading is disabled as the processing will take care of distribution
       - OMP_THREAD_LIMIT=1
-
-      # ocr service variables
-      - OCR_SERVICE_THREADS=1
-      - OCR_SERVICE_LOG_LEVEL=20
-      - OCR_SERVICE_CPU_THREADS=1
-      - OCR_SERVICE_CONVERTER_THREADS=1
     ulimits:
       memlock:
         soft: -1
