@@ -652,13 +652,13 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    #image: cogstacksystems/cogstack-nifi:latest
-    build:
-       context: ../nifi/
-       args:      
-           HTTP_PROXY: $HTTP_PROXY
-           HTTPS_PROXY: $HTTPS_PROXY
-           no_proxy: $no_proxy
+    image: cogstacksystems/cogstack-nifi:latest
+    #build:
+    #   context: ../nifi/
+    #   args:      
+    #       HTTP_PROXY: $HTTP_PROXY
+    #       HTTPS_PROXY: $HTTPS_PROXY
+    #       no_proxy: $no_proxy
     container_name: cogstack-nifi
     restart: always
     env_file:
