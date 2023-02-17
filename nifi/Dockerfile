@@ -27,7 +27,7 @@ RUN echo "UID=${UID}"
 USER root
 
 # run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get upgrade -y && apt-get install -y apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip
+RUN apt-get update && apt-get upgrade -y && apt-get install -y libssl-dev openssl apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip
 RUN apt-add-repository restricted && \
     apt-add-repository multiverse && \
     apt-add-repository universe && \
@@ -84,13 +84,20 @@ COPY ./user-templates ./
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
 
-RUN curl https://archive.apache.org/dist/groovy/4.0.0/distribution/apache-groovy-binary-4.0.0.zip --output apache-groovy-binary-4.0.0.zip --max-time 3600 && \
-    unzip apache-groovy-binary-4.0.0.zip && \
-    rm apache-groovy-binary-4.0.0.zip
-
-ENV GROOVY_BIN=/opt/nifi/groovy/groovy-4.0.0/bin
-
+RUN curl https://archive.apache.org/dist/groovy/4.0.9/distribution/apache-groovy-binary-4.0.9.zip --output apache-groovy-binary-4.0.9.zip --max-time 3600 && \
+    unzip apache-groovy-binary-4.0.9.zip && \
+    rm apache-groovy-binary-4.0.9.zip
+ENV GROOVY_BIN=/opt/nifi/groovy/groovy-4.0.9/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.11.0
+
+RUN mkdir -p /opt/nifi/jython
+RUN curl https://repo1.maven.org/maven2/org/python/jython-installer/2.7.3/jython-installer-2.7.3.jar --output jython-installer-2.7.3.jar --max-time 3600
+RUN java -jar jython-installer-2.7.3.jar -s -v -d /opt/nifi/jython
+ENV JYTHON_HOME=/opt/nifi/jython/
+
+RUN $JYTHON_HOME/bin/jython -m ensurepip
+RUN $JYTHON_HOME/bin/jython -m pip install --upgrade pip
+RUN $JYTHON_HOME/bin/jython -m pip install avro
 
 WORKDIR  /opt/nifi/nifi-toolkit-current/
 
