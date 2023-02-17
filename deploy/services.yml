@@ -194,6 +194,8 @@ services:
       - "8090:8090"
     expose: 
       - "8090"
+    networks:
+      - cognet
 
   ocr-service-2:
     container_name: ocr-service-2
@@ -230,6 +232,8 @@ services:
       - "8091:8090"
     expose: 
       - "8090"
+    networks:
+      - cognet
 
 #---------------------------------------------------------------------------#
 # NLP Services containers                                                   #
