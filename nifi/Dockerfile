@@ -95,6 +95,8 @@ RUN curl https://repo1.maven.org/maven2/org/python/jython-installer/2.7.3/jython
 RUN java -jar jython-installer-2.7.3.jar -s -v -d /opt/nifi/jython
 ENV JYTHON_HOME=/opt/nifi/jython/
 
+RUN rm jython-installer-2.7.3.jar
+
 RUN $JYTHON_HOME/bin/jython -m ensurepip
 RUN $JYTHON_HOME/bin/jython -m pip install --upgrade pip
 RUN $JYTHON_HOME/bin/jython -m pip install avro
