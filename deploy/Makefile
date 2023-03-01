@@ -33,10 +33,10 @@ start-jupyter:
 	docker-compose -f services.yml $(DC_START_CMD) jupyter-hub
 
 start-medcat-service:
-	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-medmen
+	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-service-production
 
 start-nlp-medcat:
-	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-medmen medcat-trainer-ui medcat-trainer-nginx
+	docker-compose -f services.yml $(DC_START_CMD) nlp-medcat-service-production medcat-trainer-ui medcat-trainer-nginx
 
 start-nlp-gate:
 	docker-compose -f services.yml $(DC_START_CMD) nlp-gate-drugapp
@@ -81,10 +81,10 @@ stop-jupyter:
 	docker-compose -f services.yml $(DC_STOP_CMD) jupyter-hub
 
 stop-nlp-medcat:
-	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-medmen medcat-trainer-ui medcat-trainer-nginx
+	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production medcat-trainer-ui medcat-trainer-nginx
 
 stop-medcat-service:
-	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-medmen
+	docker-compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production
 
 stop-nlp-gate:
 	docker-compose -f services.yml $(DC_STOP_CMD) nlp-gate-drugapp
