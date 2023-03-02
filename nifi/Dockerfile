@@ -114,3 +114,5 @@ COPY ./conf/login-identity-providers.xml ./
 
 # finalize
 WORKDIR /opt/nifi/nifi-current/
+
+RUN touch logs/nifi-app.log
