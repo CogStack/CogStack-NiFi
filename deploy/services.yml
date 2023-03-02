@@ -782,9 +782,6 @@ services:
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-      
-      # logs
-      - ../nifi/nifi-app.log:/opt/nifi/nifi-current/logs/nifi-app.log:rw
 
     # user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
     ulimits:
