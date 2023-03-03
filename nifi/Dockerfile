@@ -39,7 +39,7 @@ RUN apt-get install -y postgresql-server-dev-14 postgresql-server-dev-all python
 RUN pip3 install --upgrade pip && \
     pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
     pip3 install pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
-    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc
+    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc openpyxl
 
 # XNAT
 RUN pip3 install xnat
