@@ -1,0 +1,10 @@
+{
+    "type": "record",
+    "name": "cogstackSchemaRecord",
+    "namespace":"org.apache.nifi",
+    "fields": 
+    [
+        { "name": "document_Fields_text", "type": ["string", "null"], "columnName": "document_Fields_text"},
+        { "name": "document_Id", "type": ["long", "string", "null"], "columnName": "document_Id" }
+    ]
+}
