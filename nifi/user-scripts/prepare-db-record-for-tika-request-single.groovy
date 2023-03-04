@@ -38,6 +38,8 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
   DataFileStream<GenericRecord> reader = new DataFileStream<>(inputStream, new GenericDatumReader<GenericRecord>())
 
+  try{
+
   // get the next record -- the there should be only one
   assert reader.hasNext()
   GenericRecord currRecord = reader.next()
@@ -63,6 +65,11 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
 
   WritableByteChannel channel = Channels.newChannel(outputStream)
   channel.write(rawBytes)
+
+  }
+  catch(AssertionError error){
+    session.transfer(flowFile, REL_FAILURE)
+  }
 
 } as StreamCallback)
 

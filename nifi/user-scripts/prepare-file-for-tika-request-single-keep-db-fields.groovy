@@ -109,7 +109,19 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
   previousAttributes["AVRO_RECORD_SCHEMA"] = currRecord.getSchema().toString()
 
   dataFields.each{dataField -> 
-    previousAttributes[dataField.name() as String] = currRecord.get(dataField.name()) != null ? currRecord.get(dataField.name()) as String : ""
+    if (currRecord.get(dataField.name()) != null)
+    {
+      def fieldContent = currRecord.get(dataField.name())
+      def isContentBinary = !fieldContent.getClass().toString().toLowerCase().contains("org.apache.avro.util.utf") 
+
+      if (isContentBinary){
+        previousAttributes[dataField.name() as String] =  new String((ByteBuffer) fieldContent, StandardCharsets.UTF_8)
+      }
+    }
+    else 
+    {
+      previousAttributes[dataField.name() as String] = ""
+    }
   }
 
   WritableByteChannel channel = Channels.newChannel(outputStream)

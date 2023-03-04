@@ -27,7 +27,6 @@ String documentIdValue = flowFile.getAttribute('uuid')
 // set document id as an attribute of the flow file
 flowFile = session.putAttribute(flowFile, DOC_ID_ATTR, documentIdValue)
 
-
 // NiFi: transfer the seesions Flow file
 // TODO: in case of lack of raw content -- shall we move to failure ???
 session.transfer(flowFile, REL_SUCCESS)
