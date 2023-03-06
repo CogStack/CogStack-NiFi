@@ -32,10 +32,14 @@ class PyStreamCallback(StreamCallback):
             if DOCUMENT_ID_FIELD_NAME == "_id":
                 out_record["id"] = record["_id"]
             else:
-                out_record["id"] = record["_source"][DOCUMENT_ID_FIELD_NAME]
+                if DOCUMENT_ID_FIELD_NAME in record["_source"].keys():
+                    out_record["id"] = record["_source"][DOCUMENT_ID_FIELD_NAME]
                 
-            out_record["text"] = record["_source"][DOCUMENT_TEXT_FIELD_NAME]
-            out_records.append(out_record)
+            if DOCUMENT_TEXT_FIELD_NAME in record["_source"].keys():
+                out_record["text"] = record["_source"][DOCUMENT_TEXT_FIELD_NAME]
+                out_records.append(out_record)
+            else:
+                log.debug("Document id :" + str(out_record["_id"]) + " , has no ID, document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 
