@@ -128,8 +128,6 @@ if flowFile != None:
     try:
         flowFile = session.write(flowFile, PyStreamCallback())
 
-        # flowFile = session.putAllAttributes(flowFile, avro_record_converted)
-
         session.transfer(flowFile, REL_SUCCESS)
     except Exception as exception:
         log.error(traceback.format_exc())
