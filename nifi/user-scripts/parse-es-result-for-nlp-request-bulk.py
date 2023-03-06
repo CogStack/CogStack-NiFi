@@ -39,7 +39,7 @@ class PyStreamCallback(StreamCallback):
                 out_record["text"] = record["_source"][DOCUMENT_TEXT_FIELD_NAME]
                 out_records.append(out_record)
             else:
-                log.debug("Document id :" + str(out_record["_id"]) + " , has no ID, document will not be added to the queue.")
+                log.debug("Document id :" + str(record["_id"]) + " , has no ID, document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 
