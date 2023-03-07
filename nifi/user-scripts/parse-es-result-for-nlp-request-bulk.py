@@ -4,7 +4,7 @@ import json
 
 # jython packages
 from org.apache.commons.io import IOUtils
-from org.apache.nifi.processor.io import StreamCallback,InputStreamCallback
+from org.apache.nifi.processor.io import StreamCallback
 import org.apache.nifi.logging.ComponentLog
 
 global flowFile
@@ -25,18 +25,23 @@ class PyStreamCallback(StreamCallback):
         out_records = []
         for record in json_data_records:
             out_record = {"footer" : {}}
-            for k, v in record["_source"].iteritems():
+
+            FIELD_TO_CHECK = "_source"
+            if "fields" in record.keys():
+                FIELD_TO_CHECK = "fields"
+
+            for k, v in record[FIELD_TO_CHECK].iteritems():
                 if k!= DOCUMENT_TEXT_FIELD_NAME:
                     out_record["footer"][k] = v
             
             if DOCUMENT_ID_FIELD_NAME == "_id":
                 out_record["id"] = record["_id"]
             else:
-                if DOCUMENT_ID_FIELD_NAME in record["_source"].keys():
-                    out_record["id"] = record["_source"][DOCUMENT_ID_FIELD_NAME]
+                if DOCUMENT_ID_FIELD_NAME in record[FIELD_TO_CHECK].keys():
+                    out_record["id"] = record[FIELD_TO_CHECK][DOCUMENT_ID_FIELD_NAME]
                 
-            if DOCUMENT_TEXT_FIELD_NAME in record["_source"].keys():
-                out_record["text"] = record["_source"][DOCUMENT_TEXT_FIELD_NAME]
+            if DOCUMENT_TEXT_FIELD_NAME in record[FIELD_TO_CHECK].keys():
+                out_record["text"] = record[FIELD_TO_CHECK][DOCUMENT_TEXT_FIELD_NAME]
                 out_records.append(out_record)
             else:
                 log.debug("Document id :" + str(record["_id"]) + " , has no ID, document will not be added to the queue.")
