@@ -115,7 +115,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
       def isContentBinary = !fieldContent.getClass().toString().toLowerCase().contains("org.apache.avro.util.utf") 
 
       if (isContentBinary){
-        previousAttributes[dataField.name() as String] =  new String((ByteBuffer) fieldContent, StandardCharsets.UTF_8)
+        previousAttributes[dataField.name() as String] = fieldContent.toString()
       }
     }
     else 
