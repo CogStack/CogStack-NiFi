@@ -112,9 +112,8 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     if (currRecord.get(dataField.name()) != null)
     {
       def fieldContent = currRecord.get(dataField.name())
-      def isContentBinary = !fieldContent.getClass().toString().toLowerCase().contains("org.apache.avro.util.utf") 
 
-      if (isContentBinary){
+      if (dataField.name() != binary_field){
         previousAttributes[dataField.name() as String] = fieldContent.toString()
       }
     }
