@@ -113,7 +113,7 @@ flowFile = session.write(flowFile, { inputStream, outputStream ->
     {
       def fieldContent = currRecord.get(dataField.name())
 
-      if (dataField.name() != binary_field){
+      if (dataField.name() != binary_field) {
         previousAttributes[dataField.name() as String] = fieldContent.toString()
       }
     }
