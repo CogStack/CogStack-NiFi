@@ -16,7 +16,7 @@ CREATE TABLE nlp_models (
 CREATE TABLE annotations (
 	id BIGINT PRIMARY KEY,
 	label VARCHAR NOT NULL,
-    lael_id VARCHAR,
+    label_id VARCHAR,
     source_value VARCHAR,
     accuracy DECIMAL,
     star_char INTEGER,
