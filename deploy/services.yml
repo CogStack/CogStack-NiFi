@@ -377,7 +377,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.5.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
     container_name: elasticsearch-1
     platform: linux
     shm_size : 1024mb
@@ -460,7 +460,7 @@ services:
       - cognet
 
   elasticsearch-2:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.5.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
     container_name: elasticsearch-2
     platform: linux
     shm_size : 1024mb
@@ -543,7 +543,7 @@ services:
       - cognet
 
   elasticsearch-3:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.5.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
     container_name: elasticsearch-3
     platform: linux
     shm_size : 1024mb
@@ -680,7 +680,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.5.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.6.0}
     container_name: cogstack-kibana
     restart: always
     env_file:
