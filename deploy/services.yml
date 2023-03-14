@@ -55,8 +55,8 @@ services:
       - ./database.env
       - ../security/database_users.env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-test}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-test}
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
       - POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-cogstack}
     volumes:
       # mapping postgres data dump and initialization
@@ -773,6 +773,9 @@ services:
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
+
+      # this is where you should place data to be ingested, under the form of symbolic
+      - ./${NIFI_DATA_PATH:-../data/}:/opt/data:rw
          
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
