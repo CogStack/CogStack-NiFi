@@ -20,7 +20,7 @@ file_ext_to_match=".txt"
 
 encoding="UTF-8"
 
-processed_folder_dump_path = os.path.join("./", processed_folder_dump)
+processed_folder_dump_path = os.path.join("/opt/nifi/user-scripts/", processed_folder_dump)
 
 # create the folder
 
@@ -102,6 +102,9 @@ def get_files_and_metadata():
                     
                     for i in range(0, len(txt_file_df)):
                         output_data.append(txt_file_df.iloc[i].to_dict())
+                    
+                    # break so we only pull data from only one folder at a time ...
+                    break
                
             except Exception as e:
                 print("failure")
