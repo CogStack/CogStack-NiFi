@@ -11,7 +11,7 @@ import sys
 
 # This is the DATA directory inside the postgres database Docker image, or it could be be a folder on the local system
 root_project_data_dir="/opt/data/ingestion/"
-folder_to_ingest="test_folder"
+folder_to_ingest="2022"
 
 processed_folder_dump="processed_" + folder_to_ingest
 file_name_pattern="*"
@@ -20,11 +20,12 @@ file_ext_to_match=".txt"
 
 encoding="UTF-8"
 
-processed_folder_dump_path = os.path.join(root_project_data_dir, processed_folder_dump)
-ingested_folders_file = processed_folder_dump_path + ".txt"
+processed_folder_dump_path = os.path.join("./", processed_folder_dump)
 
 # create the folder
-# pathlib.Path(processed_folder_dump_path).mkdir(parents=True, exist_ok=True)
+
+ingested_folders_file = processed_folder_dump_path + ".txt"
+
 
 folder_pattern = ".*\d{4}\/\d{2}\/\d{2}"
 pattern_c = re.compile(folder_pattern)
@@ -49,7 +50,7 @@ def get_files_and_metadata():
 
         # folder & file structure
         └── root_folder
-            └── 202x
+            └── 2022
                 └── 08
                     └── 01
                         ├── aaaabbbbccccdddd.pdf <- file is the ID
