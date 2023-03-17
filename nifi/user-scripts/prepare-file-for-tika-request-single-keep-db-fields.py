@@ -2,7 +2,6 @@ import traceback
 import io
 import sys
 import os
-import base64
 
 # jython packages
 import java.io
@@ -18,19 +17,6 @@ import org.apache.nifi.logging.ComponentLog
 """
 JYTHON_HOME = os.environ.get("JYTHON_HOME", "")
 sys.path.append(JYTHON_HOME + "/Lib/site-packages")
-
-# other packages, normally available to python 2.7
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
-
-"""
-    Below are the object descriptions, these are used throughout NiFi jython/groovy scripts
-    - flowfile: https://www.javadoc.io/doc/org.apache.nifi/nifi-api/latest/org/apache/nifi/flowfile/FlowFile.html
-    - context: https://www.javadoc.io/doc/org.apache.nifi/nifi-api/latest/org/apache/nifi/processor/ProcessContext.html 
-    - session: https://www.javadoc.io/doc/org.apache.nifi/nifi-api/latest/org/apache/nifi/processor/ProcessSession.html
-    - log: https://www.javadoc.io/doc/org.apache.nifi/nifi-api/latest/org/apache/nifi/logging/ComponentLog.html
-    - propertyValue: https://www.javadoc.io/doc/org.apache.nifi/nifi-api/latest/org/apache/nifi/components/PropertyValue.html
-"""
 
 global flowFile
 
@@ -53,7 +39,6 @@ class PyStreamCallback(StreamCallback):
             if binary_data_property == record_attr_name:
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
-                binary_data = base64.b64decode(binary_data)
                 del avro_record[binary_data_property]
                 break
         
@@ -72,14 +57,8 @@ if flowFile != None:
     try:
         flowFile = session.write(flowFile, PyStreamCallback())
 
-        out_data = {k : str(v) for k,v in avro_record.iteritems()}
-        out_data["avro_keys"] = str(out_data.keys())
-        out_data["output_text_property"] = output_text_property
-        out_data[DOC_ID_ATTRIBUTE_NAME] = doc_id_property
-        out_data[BINARY_FIELD_NAME] = binary_data_property
-        out_data[OUTPUT_TEXT_FIELD_NAME] = output_text_property
-
-        flowFile = session.putAllAttributes(flowFile, out_data)
+        avro_record_converted = {str(k) : str(v) for k,v in avro_record.iteritems()}
+        flowFile = session.putAllAttributes(flowFile, avro_record_converted)
 
         session.transfer(flowFile, REL_SUCCESS)
     except Exception as exception:
