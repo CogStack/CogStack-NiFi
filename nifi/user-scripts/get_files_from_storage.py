@@ -20,15 +20,15 @@ file_ext_to_match=".txt"
 
 encoding="UTF-8"
 
-processed_folder_dump_path = os.path.join("/opt/nifi/user-scripts/", processed_folder_dump)
+processed_folder_dump_path = os.path.join("/opt/nifi/user-scripts/logs/", processed_folder_dump)
 
-# create the folder
-
+# log file name
 ingested_folders_file = processed_folder_dump_path + ".txt"
-
 
 folder_pattern = ".*\d{4}\/\d{2}\/\d{2}"
 pattern_c = re.compile(folder_pattern)
+
+file_id_csv_column_name_match="file_name_id_no_ext"
 
 folders_ingested = {}
 
@@ -48,7 +48,7 @@ def get_files_and_metadata():
         It will only ingest one folder of that matches the yyyy/mm/dd pattern, then stop declared in the 'folder_pattern' variable.
         The ingested folder is added to the list of ingested folders along with its files.
 
-        # folder & file structure
+        # EXAMPLE folder & file structure
         └── root_folder
             └── 2022
                 └── 08
@@ -89,7 +89,7 @@ def get_files_and_metadata():
                     folders_ingested[root] = []
 
                     for i in range(0, len(txt_file_df)):
-                        file_id = txt_file_df.iloc[i]["source_object_id"]
+                        file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
                         if file_id in list(doc_files.keys()):
                             txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
                             txt_file_df.at[i, "text"] = ""

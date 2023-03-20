@@ -1832,7 +1832,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
             <defaultFlowFileExpiration>0 sec</defaultFlowFileExpiration>
             <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
             <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
-            <name>UHB_STUFF</name>
+            <name>Raw_file_from_disk_ocr_custom_script</name>
             <variables/>
         </processGroups>
     </snippet>
