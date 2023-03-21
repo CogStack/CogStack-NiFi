@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>This is an example that will ingest files from the filesystem directly into ES.
-
-Files records are located in a folder along with one metadata.csv file.</description>
+    <description>Read file from disk -&gt; ocr them -&gt; get fully structured records in JSON format, ready for ingestion/loading</description>
     <groupId>bd8486f5-0180-1000-b659-2e42d5f0bebf</groupId>
     <name>RAW_FILE_OCR_FROM_DISK_RECORDS</name>
     <snippet>
@@ -591,16 +589,16 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
-                    <id>7e1e468f-ba69-3bcc-0000-000000000000</id>
+                    <id>6369a8df-d965-355e-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
-                    <versionedComponentId>7e1e468f-ba69-3bcc-a96c-3ee9c9400f17</versionedComponentId>
+                    <versionedComponentId>6369a8df-d965-355e-894e-081f4a879be8</versionedComponentId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
                     <backPressureObjectThreshold>10000</backPressureObjectThreshold>
                     <destination>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>68c3127c-115f-3163-0000-000000000000</id>
-                        <type>PROCESSOR</type>
-                        <versionedComponentId>68c3127c-115f-3163-a922-cafaa53403e1</versionedComponentId>
+                        <id>84e2612d-f76c-3a18-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>84e2612d-f76c-3a18-8333-9ba3d00bb031</versionedComponentId>
                     </destination>
                     <flowFileExpiration>0 sec</flowFileExpiration>
                     <labelIndex>1</labelIndex>
@@ -609,30 +607,30 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
                     <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
                     <name></name>
-                    <selectedRelationships>success</selectedRelationships>
+                    <selectedRelationships>failure</selectedRelationships>
                     <source>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>1a6bd4ec-19c1-336f-0000-000000000000</id>
+                        <id>64c25b60-8e55-33ec-0000-000000000000</id>
                         <type>PROCESSOR</type>
-                        <versionedComponentId>1a6bd4ec-19c1-336f-994c-c9f9e55e531d</versionedComponentId>
+                        <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
                     </source>
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
-                    <id>8aba485b-c9ef-35da-0000-000000000000</id>
+                    <id>9520236a-d20f-30b7-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
-                    <versionedComponentId>8aba485b-c9ef-35da-9249-72f464b55616</versionedComponentId>
+                    <versionedComponentId>9520236a-d20f-30b7-ae6e-03ba9db4c7a8</versionedComponentId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
                     <backPressureObjectThreshold>10000</backPressureObjectThreshold>
                     <bends>
-                        <x>-1744.0</x>
-                        <y>1312.0</y>
+                        <x>-1104.0</x>
+                        <y>496.0</y>
                     </bends>
                     <destination>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>6a81c964-2abe-3eae-0000-000000000000</id>
+                        <id>64c25b60-8e55-33ec-0000-000000000000</id>
                         <type>PROCESSOR</type>
-                        <versionedComponentId>6a81c964-2abe-3eae-a222-47a795c7bcdc</versionedComponentId>
+                        <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
                     </destination>
                     <flowFileExpiration>0 sec</flowFileExpiration>
                     <labelIndex>1</labelIndex>
@@ -643,9 +641,9 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <name></name>
                     <source>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>bf5984b2-f2b1-3bf8-0000-000000000000</id>
+                        <id>84e2612d-f76c-3a18-0000-000000000000</id>
                         <type>FUNNEL</type>
-                        <versionedComponentId>bf5984b2-f2b1-3bf8-ac56-bebf06185a50</versionedComponentId>
+                        <versionedComponentId>84e2612d-f76c-3a18-8333-9ba3d00bb031</versionedComponentId>
                     </source>
                     <zIndex>0</zIndex>
                 </connections>
@@ -678,6 +676,34 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
+                    <id>b1ad308f-5293-334d-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <versionedComponentId>b1ad308f-5293-334d-b1ff-b4d7c257d43c</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>1a6bd4ec-19c1-336f-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>1a6bd4ec-19c1-336f-994c-c9f9e55e531d</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>split</selectedRelationships>
+                    <source>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>64c25b60-8e55-33ec-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
                     <id>b6738d7c-1139-3429-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <versionedComponentId>b6738d7c-1139-3429-9dde-e0164afeafbb</versionedComponentId>
@@ -706,16 +732,16 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
-                    <id>be19eef2-9f01-31f8-0000-000000000000</id>
+                    <id>cbfe210e-83ea-325c-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
-                    <versionedComponentId>be19eef2-9f01-31f8-8e0d-289127dd8fc8</versionedComponentId>
+                    <versionedComponentId>cbfe210e-83ea-325c-837f-fe4e795fed37</versionedComponentId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
                     <backPressureObjectThreshold>10000</backPressureObjectThreshold>
                     <destination>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>1a6bd4ec-19c1-336f-0000-000000000000</id>
+                        <id>68c3127c-115f-3163-0000-000000000000</id>
                         <type>PROCESSOR</type>
-                        <versionedComponentId>1a6bd4ec-19c1-336f-994c-c9f9e55e531d</versionedComponentId>
+                        <versionedComponentId>68c3127c-115f-3163-a922-cafaa53403e1</versionedComponentId>
                     </destination>
                     <flowFileExpiration>0 sec</flowFileExpiration>
                     <labelIndex>1</labelIndex>
@@ -727,9 +753,9 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <selectedRelationships>success</selectedRelationships>
                     <source>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
-                        <id>092cd920-aa8f-3253-0000-000000000000</id>
+                        <id>1a6bd4ec-19c1-336f-0000-000000000000</id>
                         <type>PROCESSOR</type>
-                        <versionedComponentId>092cd920-aa8f-3253-8013-d84ded8b6abe</versionedComponentId>
+                        <versionedComponentId>1a6bd4ec-19c1-336f-994c-c9f9e55e531d</versionedComponentId>
                     </source>
                     <zIndex>0</zIndex>
                 </connections>
@@ -790,14 +816,42 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <zIndex>0</zIndex>
                 </connections>
                 <connections>
+                    <id>f5ef66cf-6e9e-35a4-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <versionedComponentId>f5ef66cf-6e9e-35a4-b84e-e3b4181b8b83</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>64c25b60-8e55-33ec-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>092cd920-aa8f-3253-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>092cd920-aa8f-3253-8013-d84ded8b6abe</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
                     <id>fbd47ff9-e1ae-3561-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <versionedComponentId>fbd47ff9-e1ae-3561-b200-cd67b58a2c3b</versionedComponentId>
                     <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
                     <backPressureObjectThreshold>10000</backPressureObjectThreshold>
                     <bends>
-                        <x>-1120.0</x>
-                        <y>1144.0</y>
+                        <x>-1118.6060791015625</x>
+                        <y>1347.5020141601562</y>
                     </bends>
                     <destination>
                         <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
@@ -825,7 +879,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-944.0</x>
-                        <y>1000.0</y>
+                        <y>1192.0</y>
                     </position>
                     <versionedComponentId>165241cf-04fe-3b5e-a2a3-a3877ea53b64</versionedComponentId>
                 </funnels>
@@ -834,16 +888,25 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-944.0</x>
-                        <y>736.0</y>
+                        <y>944.0</y>
                     </position>
                     <versionedComponentId>3c0fcbf8-4d7a-387f-8b32-716c35fd2e34</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>84e2612d-f76c-3a18-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>-944.0</x>
+                        <y>512.0</y>
+                    </position>
+                    <versionedComponentId>84e2612d-f76c-3a18-8333-9ba3d00bb031</versionedComponentId>
                 </funnels>
                 <funnels>
                     <id>9e83f131-67b6-3bd0-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-944.0</x>
-                        <y>512.0</y>
+                        <y>712.0</y>
                     </position>
                     <versionedComponentId>9e83f131-67b6-3bd0-9987-6a7ca34a5592</versionedComponentId>
                 </funnels>
@@ -851,8 +914,8 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <id>bf5984b2-f2b1-3bf8-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-1427.0160866085987</x>
-                        <y>1382.4731009200136</y>
+                        <x>-1456.0</x>
+                        <y>1592.0</y>
                     </position>
                     <versionedComponentId>bf5984b2-f2b1-3bf8-ac56-bebf06185a50</versionedComponentId>
                 </funnels>
@@ -861,10 +924,58 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-944.0</x>
-                        <y>1192.0</y>
+                        <y>1392.0</y>
                     </position>
                     <versionedComponentId>e6746187-3ec7-328f-bb15-a34825417fc7</versionedComponentId>
                 </funnels>
+                <labels>
+                    <id>365c324f-c456-344d-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>-1608.0</x>
+                        <y>80.0</y>
+                    </position>
+                    <versionedComponentId>365c324f-c456-344d-969b-f4646e423e93</versionedComponentId>
+                    <height>160.0</height>
+                    <label>Journey of this workflow: 
+1. execute python file that gets the record files from a folder which respects the yyyy/mm/dd pattern, each folder has a meta.csv file containing record data columns,
+ the free text is however stored in raw format however and needs to be OCR-ed, with the file name being the record ID from the meta.csv file. 
+We perform a lookup up and add the raw file content as a column to its corresponding record. 
+The result of the script is a JSON with all the records within a folder passted to STDOUT.
+2. we add the content-type as "application/json" to each flowfile, for completness.
+3. we split the list of dictionaries so that we from one flowfile containing X records we will have a flowfile per record (required as for OCR-ing, we can only do one file per request).
+4. we convert the JSON output to AVRO for easier manipulation within the NiFi Jython script, which transfers the record's fields as attributes of a flowfile for future use
+, and the designated binary data column is set as the content of the new flowfile, so that we send binary data to the ocr service.
+5. perform the OCR
+6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!</label>
+                    <style>
+                        <entry>
+                            <key>font-size</key>
+                            <value>12px</value>
+                        </entry>
+                    </style>
+                    <width>976.0</width>
+                    <zIndex>0</zIndex>
+                </labels>
+                <labels>
+                    <id>d5aaba69-08e1-34fd-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>-1864.0</x>
+                        <y>504.0</y>
+                    </position>
+                    <versionedComponentId>d5aaba69-08e1-34fd-bce7-79d4dac62169</versionedComponentId>
+                    <height>40.0</height>
+                    <label>SplitJson gets rid of empty records</label>
+                    <style>
+                        <entry>
+                            <key>font-size</key>
+                            <value>12px</value>
+                        </entry>
+                    </style>
+                    <width>216.0</width>
+                    <zIndex>0</zIndex>
+                </labels>
                 <processors>
                     <id>092cd920-aa8f-3253-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
@@ -961,7 +1072,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-1608.0</x>
-                        <y>480.0</y>
+                        <y>680.0</y>
                     </position>
                     <versionedComponentId>1a6bd4ec-19c1-336f-994c-c9f9e55e531d</versionedComponentId>
                     <bundle>
@@ -1037,11 +1148,84 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <type>org.apache.nifi.processors.standard.ConvertRecord</type>
                 </processors>
                 <processors>
+                    <id>64c25b60-8e55-33ec-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>-1608.0</x>
+                        <y>472.0</y>
+                    </position>
+                    <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.20.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>JsonPath Expression</key>
+<value>
+    <name>JsonPath Expression</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Null Value Representation</key>
+<value>
+    <name>Null Value Representation</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>JsonPath Expression</key>
+<value>*</value>
+                            </entry>
+                            <entry>
+<key>Null Value Representation</key>
+<value>empty string</value>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>SplitJson</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>original</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>split</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>STOPPED</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.SplitJson</type>
+                </processors>
+                <processors>
                     <id>68c3127c-115f-3163-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-1608.0</x>
-                        <y>704.0</y>
+                        <y>904.0</y>
                     </position>
                     <versionedComponentId>68c3127c-115f-3163-a922-cafaa53403e1</versionedComponentId>
                     <bundle>
@@ -1157,7 +1341,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-1608.0</x>
-                        <y>1152.0</y>
+                        <y>1352.0</y>
                     </position>
                     <versionedComponentId>6a81c964-2abe-3eae-a222-47a795c7bcdc</versionedComponentId>
                     <bundle>
@@ -1244,7 +1428,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
                         <x>-1608.0</x>
-                        <y>952.0</y>
+                        <y>1152.0</y>
                     </position>
                     <versionedComponentId>b63b260a-a532-3a10-aea9-b08229904eb7</versionedComponentId>
                     <bundle>
@@ -1816,7 +2000,7 @@ Files records are located in a folder along with one metadata.csv file.</descrip
                         <yieldDuration>1 sec</yieldDuration>
                     </config>
                     <executionNodeRestricted>false</executionNodeRestricted>
-                    <name>ExecuteProcess</name>
+                    <name>ExecuteProcess-getFilesFromDisk</name>
                     <relationships>
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
@@ -1836,5 +2020,5 @@ Files records are located in a folder along with one metadata.csv file.</descrip
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>03/17/2023 10:26:13 UTC</timestamp>
+    <timestamp>03/21/2023 09:51:13 UTC</timestamp>
 </template>
