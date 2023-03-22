@@ -10,11 +10,12 @@ import base64
 import sys
 
 # get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
-# example args: ['/opt/nifi/user-scripts/get_files_from_storage.py', 'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 'file_id_csv_column_name_match=file_name_id_no_ext']
+# example args: ['/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/', 'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 'file_id_csv_column_name_match=file_name_id_no_ext']
 
 folder_to_ingest = "2022"
 folder_pattern = ".*\d{4}\/\d{2}\/\d{2}"
 file_id_csv_column_name_match="file_name_id_no_ext"
+root_project_data_dir="/opt/data/"
 
 encoding="UTF-8"
 
@@ -26,9 +27,10 @@ for arg in sys.argv:
         folder_to_ingest = _arg[1]
     elif _arg[0] == "file_id_csv_column_name_match":
         file_id_csv_column_name_match = _arg[1]
+    elif _arg[0] == "root_project_data_dir":
+        root_project_data_dir = _arg[1]
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
-root_project_data_dir="/opt/data/ingestion/"
 processed_folder_dump="processed_" + folder_to_ingest
 processed_folder_dump_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
 
@@ -36,7 +38,6 @@ processed_folder_dump_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_D
 ingested_folders_file = processed_folder_dump_path + ".log"
 
 pattern_c = re.compile(folder_pattern)
-
 
 folders_ingested = {}
 
@@ -65,7 +66,12 @@ def get_files_and_metadata():
                         └── metadata.csv <- contains file ID for matching
 
     '''
-    for root, sub_directories, files in os.walk(os.path.join(root_project_data_dir, folder_to_ingest)):
+    full_ingest_path = os.path.join(root_project_data_dir, folder_to_ingest)
+
+    if not os.path.exists(full_ingest_path):
+        print("Could not open or find ingestion folder:" + str(full_ingest_path))
+
+    for root, sub_directories, files in os.walk(full_ingest_path):
         
         # it will only ingest
         if root not in list(folders_ingested.keys()) and pattern_c.match(root):
