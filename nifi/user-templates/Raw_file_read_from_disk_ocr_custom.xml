@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Read file from disk -&gt; ocr them -&gt; get fully structured records in JSON format, ready for ingestion/loading</description>
+    <description>Journey of this workflow: 
+1. execute python file that gets the record files from a folder which respects the yyyy/mm/dd pattern, each folder has a meta.csv file containing record data columns,
+ the free text is however stored in raw format however and needs to be OCR-ed, with the file name being the record ID from the meta.csv file. 
+We perform a lookup up and add the raw file content as a column to its corresponding record. 
+The result of the script is a JSON with all the records within a folder passted to STDOUT.
+2. we add the content-type as "application/json" to each flowfile, for completness.
+3. we split the list of dictionaries so that we from one flowfile containing X records we will have a flowfile per record (required as for OCR-ing, we can only do one file per request).
+4. we convert the JSON output to AVRO for easier manipulation within the NiFi Jython script, which transfers the record's fields as attributes of a flowfile for future use
+, and the designated binary data column is set as the content of the new flowfile, so that we send binary data to the ocr service.
+5. perform the OCR
+6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!</description>
     <groupId>bd8486f5-0180-1000-b659-2e42d5f0bebf</groupId>
-    <name>RAW_FILE_OCR_FROM_DISK_RECORDS</name>
+    <name>Raw_file_read_from_disk_ocr_custom</name>
     <snippet>
         <controllerServices>
             <id>2ea99620-2835-3fa9-0000-000000000000</id>
@@ -358,112 +368,6 @@
             <state>ENABLED</state>
             <type>org.apache.nifi.avro.AvroRecordSetWriter</type>
         </controllerServices>
-        <controllerServices>
-            <id>b7ed8f82-243f-313a-0000-000000000000</id>
-            <parentGroupId>7c6994d4-acaa-3288-0000-000000000000</parentGroupId>
-            <versionedComponentId>b7ed8f82-243f-313a-9907-75e39d6d58c1</versionedComponentId>
-            <bulletinLevel>WARN</bulletinLevel>
-            <bundle>
-                <artifact>nifi-confluent-platform-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.20.0</version>
-            </bundle>
-            <comments></comments>
-            <descriptors>
-                <entry>
-                    <key>url</key>
-                    <value>
-                        <name>url</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>ssl-context</key>
-                    <value>
-                        <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-                        <name>ssl-context</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>timeout</key>
-                    <value>
-                        <name>timeout</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>cache-size</key>
-                    <value>
-                        <name>cache-size</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>cache-expiration</key>
-                    <value>
-                        <name>cache-expiration</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>authentication-type</key>
-                    <value>
-                        <name>authentication-type</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>username</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>BASIC</dependentValues>
-                            <propertyName>authentication-type</propertyName>
-                        </dependencies>
-                        <name>username</name>
-                    </value>
-                </entry>
-                <entry>
-                    <key>password</key>
-                    <value>
-                        <dependencies>
-                            <dependentValues>BASIC</dependentValues>
-                            <propertyName>authentication-type</propertyName>
-                        </dependencies>
-                        <name>password</name>
-                    </value>
-                </entry>
-            </descriptors>
-            <name>ConfluentSchemaRegistry</name>
-            <persistsState>false</persistsState>
-            <properties>
-                <entry>
-                    <key>url</key>
-                    <value>file:///opt/nifi/user-schemas/cogstack_common_schema.avsc</value>
-                </entry>
-                <entry>
-                    <key>ssl-context</key>
-                </entry>
-                <entry>
-                    <key>timeout</key>
-                    <value>30 secs</value>
-                </entry>
-                <entry>
-                    <key>cache-size</key>
-                    <value>1000</value>
-                </entry>
-                <entry>
-                    <key>cache-expiration</key>
-                    <value>1 hour</value>
-                </entry>
-                <entry>
-                    <key>authentication-type</key>
-                    <value>NONE</value>
-                </entry>
-                <entry>
-                    <key>username</key>
-                </entry>
-                <entry>
-                    <key>password</key>
-                </entry>
-            </properties>
-            <state>DISABLED</state>
-            <type>org.apache.nifi.confluent.schemaregistry.ConfluentSchemaRegistry</type>
-        </controllerServices>
         <processGroups>
             <id>d3ebed9d-85ab-3268-0000-000000000000</id>
             <parentGroupId>7c6994d4-acaa-3288-0000-000000000000</parentGroupId>
@@ -613,6 +517,33 @@
                         <id>64c25b60-8e55-33ec-0000-000000000000</id>
                         <type>PROCESSOR</type>
                         <versionedComponentId>64c25b60-8e55-33ec-aec0-0c830aec9dbf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>92972a6e-c8e6-39e5-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <versionedComponentId>92972a6e-c8e6-39e5-a785-4c25a6da3d56</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>d6dc240b-fbc9-3329-0000-000000000000</id>
+                        <type>OUTPUT_PORT</type>
+                        <versionedComponentId>d6dc240b-fbc9-3329-a5da-0ad13e2c9749</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <source>
+                        <groupId>d3ebed9d-85ab-3268-0000-000000000000</groupId>
+                        <id>bf5984b2-f2b1-3bf8-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>bf5984b2-f2b1-3bf8-ac56-bebf06185a50</versionedComponentId>
                     </source>
                     <zIndex>0</zIndex>
                 </connections>
@@ -976,6 +907,19 @@ The result of the script is a JSON with all the records within a folder passted 
                     <width>216.0</width>
                     <zIndex>0</zIndex>
                 </labels>
+                <outputPorts>
+                    <id>d6dc240b-fbc9-3329-0000-000000000000</id>
+                    <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>-1552.0</x>
+                        <y>1712.0</y>
+                    </position>
+                    <versionedComponentId>d6dc240b-fbc9-3329-a5da-0ad13e2c9749</versionedComponentId>
+                    <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                    <name>JsonRecordData</name>
+                    <state>STOPPED</state>
+                    <type>OUTPUT_PORT</type>
+                </outputPorts>
                 <processors>
                     <id>092cd920-aa8f-3253-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
@@ -1057,7 +1001,7 @@ The result of the script is a JSON with all the records within a folder passted 
                         <yieldDuration>1 sec</yieldDuration>
                     </config>
                     <executionNodeRestricted>false</executionNodeRestricted>
-                    <name>UpdateAttribute</name>
+                    <name>UpdateAttribute-addContentTypeJSON</name>
                     <relationships>
                         <autoTerminate>false</autoTerminate>
                         <name>success</name>
@@ -1132,7 +1076,7 @@ The result of the script is a JSON with all the records within a folder passted 
                         <yieldDuration>1 sec</yieldDuration>
                     </config>
                     <executionNodeRestricted>false</executionNodeRestricted>
-                    <name>ConvertRecord</name>
+                    <name>ConvertRecord-JsonToAvro</name>
                     <relationships>
                         <autoTerminate>false</autoTerminate>
                         <name>failure</name>
@@ -1200,7 +1144,7 @@ The result of the script is a JSON with all the records within a folder passted 
                         <yieldDuration>1 sec</yieldDuration>
                     </config>
                     <executionNodeRestricted>false</executionNodeRestricted>
-                    <name>SplitJson</name>
+                    <name>SplitJson-splitFlowFileIntoMany</name>
                     <relationships>
                         <autoTerminate>false</autoTerminate>
                         <name>failure</name>
@@ -1913,7 +1857,7 @@ The result of the script is a JSON with all the records within a folder passted 
                     <id>d9088e8a-f357-3af4-0000-000000000000</id>
                     <parentGroupId>d3ebed9d-85ab-3268-0000-000000000000</parentGroupId>
                     <position>
-                        <x>-968.0</x>
+                        <x>-904.0</x>
                         <y>272.0</y>
                     </position>
                     <versionedComponentId>d9088e8a-f357-3af4-9290-3c664d53f571</versionedComponentId>
@@ -1976,7 +1920,7 @@ The result of the script is a JSON with all the records within a folder passted 
                             </entry>
                             <entry>
 <key>Command Arguments</key>
-<value>/opt/nifi/user-scripts/get_files_from_storage.py</value>
+<value>/opt/nifi/user-scripts/get_files_from_storage.py;folder_pattern=.*\d{4}\/\d{2}\/\d{2};folder_to_ingest=2022;file_id_csv_column_name_match=source_object_id</value>
                             </entry>
                             <entry>
 <key>Batch Duration</key>
@@ -1990,7 +1934,7 @@ The result of the script is a JSON with all the records within a folder passted 
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
-<value> </value>
+<value>;</value>
                             </entry>
                         </properties>
                         <retryCount>10</retryCount>
@@ -2020,5 +1964,5 @@ The result of the script is a JSON with all the records within a folder passted 
             <variables/>
         </processGroups>
     </snippet>
-    <timestamp>03/21/2023 09:51:13 UTC</timestamp>
+    <timestamp>03/22/2023 11:11:52 UTC</timestamp>
 </template>
