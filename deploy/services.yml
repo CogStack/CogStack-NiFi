@@ -775,7 +775,7 @@ services:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
       # this is where you should place data to be ingested, under the form of symbolic
-      - ${NIFI_DATA_PATH:-../data/}:/opt/data:rw
+      - ${NIFI_DATA_PATH:-../data/}:/opt/data/ingestion/:rw
          
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
