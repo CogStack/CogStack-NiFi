@@ -3,11 +3,14 @@ FROM apache/nifi:${NIFI_VERSION:-1.20.0}
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG no_proxy
+ARG DEBIAN_FRONTEND=noninteractive
 
 ENV NIFI_VERSION=${NIFI_VERSION:-1.20.0}
 
 ENV NIFI_UID ${NIFI_UID:-1000}
 ENV NIFI_GID ${NIFI_GID:-1000}
+
+ENV TZ=Europe/London
 
 ENV HTTP_PROXY $HTTP_PROXY
 ENV HTTPS_PROXY $HTTPS_PROXY
@@ -23,7 +26,6 @@ ARG GID=${NIFI_UID}
 RUN echo "GID=${GID}" 
 RUN echo "UID=${UID}"
 
-
 USER root
 
 # run updates and install some base utility packages along with python support
@@ -35,6 +37,9 @@ RUN apt-add-repository restricted && \
     apt-get update && apt-get upgrade -y
 
 RUN apt-get install -y postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 --no-install-recommends
+
+# timezone setting
+RUN apt-get install -y tzdata
 
 RUN pip3 install --upgrade pip && \
     pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
