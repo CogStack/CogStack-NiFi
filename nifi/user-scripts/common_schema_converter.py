@@ -34,8 +34,6 @@ class PyStreamCallback(StreamCallback):
         bytes_io = io.BytesIO(bytes_arr)
 
         json_data_records = json.loads(bytes_io.read())
-
-     
         available_mapping_keys = {}
         for k,v in json_mapper_schema.iteritems():
             if v is not "":
