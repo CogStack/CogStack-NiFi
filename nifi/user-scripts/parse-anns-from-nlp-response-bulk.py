@@ -68,6 +68,7 @@ class PyStreamCallback(StreamCallback):
                 ignore_annotation = False
                 for type_to_ignore in ANNOTATION_TYPES_TO_IGNORE:
                     if type_to_ignore in annotation_data["types"]:
+                        log.info("====================")
                         ignore_annotation = True
                         break
                 
@@ -75,22 +76,22 @@ class PyStreamCallback(StreamCallback):
                     for k,v in annotation_data.iteritems():
                         new_ann_record[FIELD_NLP_PREFIX + str(k)] = v
 
-                    # create the new _id for the annotation record in ElasticSearch
-                    
-                    new_ann_record["timestamp"] = annotated_text_record["timestamp"]
-                    new_ann_record["service_model"] = medcat_info["service_model"]
-                    new_ann_record["service_version"] = medcat_info["service_version"]
+                        # create the new _id for the annotation record in ElasticSearch
+                        
+                        new_ann_record["timestamp"] = annotated_text_record["timestamp"]
+                        new_ann_record["service_model"] = medcat_info["service_model"]
+                        new_ann_record["service_version"] = medcat_info["service_version"]
 
-                    new_ann_record[FIELD_META_PREFIX + DOCUMENT_ID_FIELD_NAME] = doc_id
-                    new_ann_record.update(new_footer)
-                    
-                    document_annotation_id = str(doc_id) + "_" + str(annotation_data[ANNOTATION_ID_FIELD_NAME])
+                        new_ann_record[FIELD_META_PREFIX + DOCUMENT_ID_FIELD_NAME] = doc_id
+                        new_ann_record.update(new_footer)
+                        
+                        document_annotation_id = str(doc_id) + "_" + str(annotation_data[ANNOTATION_ID_FIELD_NAME])
 
-                    new_flow_file = session.create(flowFile)
-                    new_flow_file = session.putAttribute(new_flow_file, "document_annotation_id", document_annotation_id)
-                    
-                    new_flow_file = session.write(new_flow_file, WriteContentCallback(json.dumps(new_ann_record).encode("UTF-8")))
-                    flowFiles.append(new_flow_file)
+                        new_flow_file = session.create(flowFile)
+                        new_flow_file = session.putAttribute(new_flow_file, "document_annotation_id", document_annotation_id)
+                        
+                        new_flow_file = session.write(new_flow_file, WriteContentCallback(json.dumps(new_ann_record).encode("UTF-8")))
+                        flowFiles.append(new_flow_file)
 
 
 if flowFile != None:

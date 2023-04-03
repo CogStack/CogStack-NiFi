@@ -26,34 +26,46 @@ class PyStreamCallback(StreamCallback):
         bytes_io = io.BytesIO(bytes_arr)
         json_data_records = json.loads(str(bytes_io.read()).encode("UTF-8"))
 
+        if type(json_data_records) == dict:
+            json_data_records = [json_data_records]
+
         out_records = []
         for record in json_data_records:
             out_record = {"footer" : {}}
 
-            FIELD_TO_CHECK = "_source"
+            # if we are pulling from DB we won't have the json fields/_source keys.
+            FIELD_TO_CHECK = None
+
             if "fields" in record.keys():
                 FIELD_TO_CHECK = "fields"
+            elif "_source" in record.keys():
+                FIELD_TO_CHECK = "_source"
 
-            for k, v in record[FIELD_TO_CHECK].iteritems():
+            if FIELD_TO_CHECK is not None:
+                _record = record[FIELD_TO_CHECK]
+            else:
+                _record = record
+
+            for k, v in _record.iteritems():
                 if k!= DOCUMENT_TEXT_FIELD_NAME:
                     out_record["footer"][k] = v
-            
-            if DOCUMENT_ID_FIELD_NAME == "_id":
+        
+            if DOCUMENT_ID_FIELD_NAME == "_id" and FIELD_TO_CHECK is not None:
                 out_record["id"] = record["_id"]
             else:
-                if DOCUMENT_ID_FIELD_NAME in record[FIELD_TO_CHECK].keys():
-                    out_record["id"] = record[FIELD_TO_CHECK][DOCUMENT_ID_FIELD_NAME]
+                if DOCUMENT_ID_FIELD_NAME in _record.keys():
+                    out_record["id"] = _record[DOCUMENT_ID_FIELD_NAME]
                 
-            if DOCUMENT_TEXT_FIELD_NAME in record[FIELD_TO_CHECK].keys() :
-                if len(record[FIELD_TO_CHECK][DOCUMENT_TEXT_FIELD_NAME]) > 1:
-                    out_record["text"] = record[FIELD_TO_CHECK][DOCUMENT_TEXT_FIELD_NAME]
+            if DOCUMENT_TEXT_FIELD_NAME in _record.keys() :
+                if len(_record[DOCUMENT_TEXT_FIELD_NAME]) > 1:
+                    out_record["text"] = _record[DOCUMENT_TEXT_FIELD_NAME]
                     out_records.append(out_record)
                 else:
-                    invalid_record_ids.append(record["_id"])
+                    invalid_record_ids.append(_record["_id"])
                     log.debug("Document id :" + str(record["_id"]) + ", text field has no content, document will not be added to the queue.")
             else:
-                invalid_record_ids.append(record["_id"])
-                log.debug("Document id :" + str(record["_id"]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
+                invalid_record_ids.append(_record["_id"])
+                log.debug("Document id :" + str(_record["_id"]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 

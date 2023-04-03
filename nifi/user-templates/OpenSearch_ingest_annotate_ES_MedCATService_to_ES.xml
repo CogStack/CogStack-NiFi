@@ -1723,7 +1723,7 @@
                             </entry>
                             <entry>
 <key>Script File</key>
-<value>/opt/nifi/user-scripts/parse-es-result-for-nlp-request-bulk.py</value>
+<value>/opt/nifi/user-scripts/parse-es-db-result-for-nlp-request-bulk.py</value>
                             </entry>
                             <entry>
 <key>Script Body</key>
