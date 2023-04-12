@@ -85,7 +85,7 @@ The `DBCConnectionPool` controller service can be configured to operate with mul
   PgSQL:
     - Database Connection URL: jdbc:postgresql://samples-db:5432/db_samples
     - Database Driver Class Name: org.postgresql.Driver
-    - Database Driver Location(s): /opt/nifi/drivers/postgresql-42.3.3.jar
+    - Database Driver Location(s): /opt/nifi/drivers/postgresql-42.6.0.jar
 ``` 
 ```
   MSSQL:

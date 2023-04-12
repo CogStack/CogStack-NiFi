@@ -239,7 +239,7 @@ The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiF
 
 The key used ones are: 
 - `mssql-jdbc-9.4.1.jre11.jar` \ `mssql-jdbc-9.4.1.jre8.jar` and `mssql-jdbc-11.2.0.jre11.jar` \ `mssql-jdbc-11.2.0.jre8.jar`  - MS SQL Server JDBC driver, older version of the driver for backwards compatibility across setups.
-- `postgresql-42.3.3.jar` - PostgreSQL JDBC driver.
+- `postgresql-42.6.0.jar` - PostgreSQL JDBC driver.
 
 These drivers come bundled for both `jre8` and `jre11`.
 
