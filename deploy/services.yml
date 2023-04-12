@@ -808,7 +808,7 @@ services:
       - cognet
 
   nifi-nginx:
-    build:  ../services/nginx/
+    image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
