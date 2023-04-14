@@ -81,7 +81,7 @@ services:
       - cognet
   
   cogstack-databank-db-mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: cogstack-production-databank-db
     shm_size: 1024mb
     restart: always
@@ -91,7 +91,7 @@ services:
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_USER:-admin!COGSTACK2022}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-admin!COGSTACK2022}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/mssql/schemas:/data/:ro
@@ -108,9 +108,7 @@ services:
         hard: 262144
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-      - 2433:1433
-    expose:
-      - 5432
+      - 1433:1433
     networks:
       - cognet
 
