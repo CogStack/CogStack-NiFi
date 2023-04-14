@@ -14,8 +14,10 @@ import sys
 
 folder_to_ingest = "2022"
 folder_pattern = ".*\d{4}\/\d{2}\/\d{2}"
-file_id_csv_column_name_match="file_name_id_no_ext"
-root_project_data_dir="/opt/data/"
+file_id_csv_column_name_match = "file_name_id_no_ext"
+root_project_data_dir = "/opt/data/"
+csv_separator = "|"
+output_batch_size = 1000
 
 encoding="UTF-8"
 
@@ -29,6 +31,10 @@ for arg in sys.argv:
         file_id_csv_column_name_match = _arg[1]
     elif _arg[0] == "root_project_data_dir":
         root_project_data_dir = _arg[1]
+    elif _arg[0] == "csv_separator":
+        csv_separator = _arg[1]
+    elif _arg[0] == "output_batch_size":
+        output_batch_size = int(_arg[1])
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
 processed_folder_dump="processed_" + folder_to_ingest
@@ -71,58 +77,78 @@ def get_files_and_metadata():
     if not os.path.exists(full_ingest_path):
         print("Could not open or find ingestion folder:" + str(full_ingest_path))
 
+    
+    record_counter = 0
+
     for root, sub_directories, files in os.walk(full_ingest_path):
-        
         # it will only ingest
-        if root not in list(folders_ingested.keys()) and pattern_c.match(root):
-            txt_file_df = []
+        if pattern_c.match(root):
+            if root not in folders_ingested:
+                folders_ingested[root] = []
+
+            txt_file_df = None
+            
             doc_files = {}
-            
-            no_jsons = [file_name for file_name in files if "json" not in file_name]
-            for file_name in no_jsons:
-                extensionless_file_name = file_name[: -(len(file_name.split(".")[-1]) + 1)]
-            
-                file_path = os.path.join(root, file_name)
+            csv_files = []
+
+            non_csvs = [file_name if "csv" not in file_name else csv_files.append(file_name) for file_name in files]
+            non_csvs = [file_name for file_name in non_csvs if file_name is not None]
+
+
+            if len(non_csvs) != len(folders_ingested[root]):
+                for csv_file_name in csv_files:
+                    file_path = os.path.join(root, csv_file_name)
+                    _txt_file_df = pandas.read_csv(file_path, sep=csv_separator, encoding=encoding)
+                    _txt_file_df["binarydoc"] = pandas.Series(dtype=str)
+                    _txt_file_df["text"] = pandas.Series(dtype=str)
+
+                    if txt_file_df is not None:
+                        txt_file_df.append(_txt_file_df)
+                    else:
+                        txt_file_df = _txt_file_df
+
+                for file_name in non_csvs:
+                    extensionless_file_name = file_name[: - (len(file_name.split(".")[-1]) + 1)]
+
+                    file_path = os.path.join(root, file_name)
+
+                    try:
+                        if "pdf" in file_name:
+                            with open(file_path, mode="rb") as original_file_contents:
+                                original_file = original_file_contents.read()
+                                doc_files[extensionless_file_name] = original_file 
+
+                    except Exception as e:
+                        print("Failed to open file:" + file_path)   
+                        traceback.print_exc()
+
                 try:
-                    if "pdf" in file_name:
-                        with open(file_path, mode="rb") as original_file_contents:
-                            original_file = original_file_contents.read()
-                            doc_files[extensionless_file_name] = original_file 
-
-                    elif "csv" in file_name:
-                        txt_file_df = pandas.read_csv(file_path, sep="|", encoding=encoding)
-                        txt_file_df["binarydoc"] = pandas.Series(dtype=str)
-                        txt_file_df["text"] = pandas.Series(dtype=str)
-                        
-                except Exception as e:
-                    print("Failed to open file:" + file_path)   
-                    traceback.print_exc()
-
-            try:
-                if pattern_c.match(root):
-                    folders_ingested[root] = []
-
                     for i in range(0, len(txt_file_df)):
                         file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
-                        if file_id in list(doc_files.keys()):
-                            txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
-                            txt_file_df.at[i, "text"] = ""
-                            folders_ingested[root].append(file_id) 
+
+                        if file_id not in folders_ingested[root]:
+                            if record_counter < output_batch_size:
+                                if file_id in list(doc_files.keys()):
+                                    txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
+                                    txt_file_df.at[i, "text"] = ""
+                                    folders_ingested[root].append(file_id) 
+                                    record_counter += 1
+                            else:
+                                break
 
                     txt_file_df = txt_file_df.loc[txt_file_df["binarydoc"].notna()]
                     txt_file_df = txt_file_df.replace(numpy.nan,'',regex=True)
 
                     global output_data
-                    
+
                     for i in range(0, len(txt_file_df)):
                         output_data.append(txt_file_df.iloc[i].to_dict())
                     
-                    # break so we only pull data from only one folder at a time ...
-                    break
-               
-            except Exception as e:
-                print("failure")
-                traceback.print_exc()
+                except Exception as e:
+                    print("failure")
+                    traceback.print_exc()
+            elif record_counter >= output_batch_size:
+                break
 
 get_files_and_metadata()
 
