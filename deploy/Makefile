@@ -44,6 +44,9 @@ start-nlp-gate:
 start-production-db:
 	docker-compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
+start-ocr-services:
+	docker-compose -f services.yml ${DC_START_CMD} ocr-service-1 ocr-service-2 ocr-service-3 ocr-service-4
+
 start-data-infra: start-nifi start-elastic start-tika start-samples
 
 start-all: start-data-infra start-jupyter start-nlp-medcat start-nlp-gate
@@ -88,6 +91,9 @@ stop-medcat-service:
 
 stop-nlp-gate:
 	docker-compose -f services.yml $(DC_STOP_CMD) nlp-gate-drugapp
+
+stop-ocr-services:
+	docker-compose -f services.yml ${DC_STOP_CMD} ocr-service-1 ocr-service-2 ocr-service-3 ocr-service-4
 
 stop-data-infra: stop-nifi stop-elastic stop-tika stop-samples
 
