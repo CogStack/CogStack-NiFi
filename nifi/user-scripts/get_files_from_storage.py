@@ -147,7 +147,7 @@ def get_files_and_metadata():
                 except Exception as e:
                     print("failure")
                     traceback.print_exc()
-            elif record_counter >= output_batch_size:
+            elif record_counter >= output_batch_size - 1:
                 break
 
 get_files_and_metadata()
