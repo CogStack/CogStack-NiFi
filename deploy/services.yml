@@ -253,7 +253,7 @@ services:
         soft: 65536
         hard: 262144
     ports:
-      - "8091:8090"
+      - "8092:8090"
     expose: 
       - "8090"
     networks:
@@ -287,7 +287,7 @@ services:
         soft: 65536
         hard: 262144
     ports:
-      - "8091:8090"
+      - "8093:8090"
     expose: 
       - "8090"
     networks:
