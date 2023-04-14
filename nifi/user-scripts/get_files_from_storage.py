@@ -110,17 +110,17 @@ def get_files_and_metadata():
                 for file_name in non_csvs:
                     extensionless_file_name = file_name[: - (len(file_name.split(".")[-1]) + 1)]
 
-                    file_path = os.path.join(root, file_name)
+                    if extensionless_file_name not in folders_ingested[root]:
+                        file_path = os.path.join(root, file_name)
+                        try:
+                            if "pdf" in file_name:
+                                with open(file_path, mode="rb") as original_file_contents:
+                                    original_file = original_file_contents.read()
+                                    doc_files[extensionless_file_name] = original_file 
 
-                    try:
-                        if "pdf" in file_name:
-                            with open(file_path, mode="rb") as original_file_contents:
-                                original_file = original_file_contents.read()
-                                doc_files[extensionless_file_name] = original_file 
-
-                    except Exception as e:
-                        print("Failed to open file:" + file_path)   
-                        traceback.print_exc()
+                        except Exception as e:
+                            print("Failed to open file:" + file_path)   
+                            traceback.print_exc()
 
                 try:
                     for i in range(0, len(txt_file_df)):
