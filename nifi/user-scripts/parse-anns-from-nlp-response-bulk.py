@@ -63,8 +63,14 @@ class PyStreamCallback(StreamCallback):
 
             for annotation in annotations:
                 new_ann_record = {}
-                annotation_data = annotation.values()[0]
+                annotation_data = annotation.values()
 
+                # sometimes there's an empty annotation list
+                if len(annotation_data) == 0:
+                    log.info("Empty annotation list - " + footer[DOCUMENT_ID_FIELD_NAME])
+                    continue
+                # should now be a dictionary in a list
+                annotation_data = annotation_data[0]
                 ignore_annotation = False
                 for type_to_ignore in ANNOTATION_TYPES_TO_IGNORE:
                     if type_to_ignore in annotation_data["types"]:
