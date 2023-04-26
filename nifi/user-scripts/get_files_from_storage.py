@@ -36,6 +36,7 @@ for arg in sys.argv:
     elif _arg[0] == "output_batch_size":
         output_batch_size = int(_arg[1])
 
+
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
 processed_folder_dump="processed_" + folder_to_ingest
 processed_folder_dump_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
@@ -72,13 +73,13 @@ def get_files_and_metadata():
                         └── metadata.csv <- contains file ID for matching
 
     '''
+
+    record_counter = 0
+
     full_ingest_path = os.path.join(root_project_data_dir, folder_to_ingest)
 
     if not os.path.exists(full_ingest_path):
         print("Could not open or find ingestion folder:" + str(full_ingest_path))
-
-    
-    record_counter = 0
 
     for root, sub_directories, files in os.walk(full_ingest_path):
         # it will only ingest
@@ -93,7 +94,6 @@ def get_files_and_metadata():
 
             non_csvs = [file_name if "csv" not in file_name else csv_files.append(file_name) for file_name in files]
             non_csvs = [file_name for file_name in non_csvs if file_name is not None]
-
 
             if len(non_csvs) != len(folders_ingested[root]):
                 for csv_file_name in csv_files:
@@ -113,40 +113,41 @@ def get_files_and_metadata():
                     if extensionless_file_name not in folders_ingested[root]:
                         file_path = os.path.join(root, file_name)
                         try:
-                            if "pdf" in file_name:
-                                with open(file_path, mode="rb") as original_file_contents:
-                                    original_file = original_file_contents.read()
-                                    doc_files[extensionless_file_name] = original_file 
-
+                            if record_counter < output_batch_size:
+                                if "pdf" in file_name:
+                                    with open(file_path, mode="rb") as original_file_contents:
+                                        original_file = original_file_contents.read()
+                                        doc_files[extensionless_file_name] = original_file
+                                    record_counter += 1
+                            else:
+                                break
                         except Exception as e:
                             print("Failed to open file:" + file_path)   
                             traceback.print_exc()
 
                 try:
-                    for i in range(0, len(txt_file_df)):
-                        file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
+                    if txt_file_df is not None:
+                        for i in range(0, len(txt_file_df)):
+                            file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
 
-                        if file_id not in folders_ingested[root]:
-                            if record_counter < output_batch_size:
+                            if file_id not in folders_ingested[root]:
                                 if file_id in list(doc_files.keys()):
                                     txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
                                     txt_file_df.at[i, "text"] = ""
                                     folders_ingested[root].append(file_id) 
-                                    record_counter += 1
-                            else:
-                                break
 
-                    txt_file_df = txt_file_df.loc[txt_file_df["binarydoc"].notna()]
-                    txt_file_df = txt_file_df.replace(numpy.nan,'',regex=True)
+                        txt_file_df = txt_file_df.loc[txt_file_df["binarydoc"].notna()]
+                        txt_file_df = txt_file_df.replace(numpy.nan,'',regex=True)
 
-                    global output_data
+                        global output_data
 
-                    for i in range(0, len(txt_file_df)):
-                        output_data.append(txt_file_df.iloc[i].to_dict())
+                        for i in range(0, len(txt_file_df)):
+                            output_data.append(txt_file_df.iloc[i].to_dict())
                     
                 except Exception as e:
                     print("failure")
                     traceback.print_exc()
+
             elif record_counter >= output_batch_size - 1:
                 break
 
