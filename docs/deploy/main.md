@@ -162,7 +162,7 @@ FATAL  Error: [config validation of [opensearch].hosts]: types that failed valid
 
 This issue may appear after the recent switch to using fully customizable environment variables. Strings and ENV vars may be parsed differently depending on the shell version found on the host system.
 
-To solve this, the easiest way is to make sure to load the `elasticsearch.env` variables before starting he Elastic & Kibana containers by doing the following:
+To solve this, the easiest way is to make sure to load the `elasticsearch.env` variables before starting the Elastic & Kibana containers by doing the following:
 
 ```
     cd ./deploy/
@@ -171,7 +171,7 @@ To solve this, the easiest way is to make sure to load the `elasticsearch.env` v
     make start-elastic
 ```
 
-Alternative (if the script executes without issues):
+Alternatively (if the script executes without issues):
 ```
     cd ./deploy/
     source export_env_vars.sh
