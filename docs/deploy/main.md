@@ -118,11 +118,16 @@ When dealing with contaminated deployments ( containers using volumes from previ
     <br />
     - `System Error: Invalid host header : this occurs when nifi host has not been properly configured`, please check the `/nifi/conf/nifi.properties` file and set the `nifi.web.proxy.host` property to the IP address of the server along with the port `<host>:<port>`, if this does not work then it is usually a proxy/network configuration problem (also check firewalls), another workaround would be to comment out the following subsections of the `nifi` service in the `services.yml` file : `ports:` and `networks` with all their child settings. After this is done the following property should be added `network_mode: host`, restart the instance using the `docker-compoes -f services.yml up -d nifi` command afterwards. 
     <br />
-    - Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if older DB system is used)
+    - Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if an older DB system is used)
     - Possible error on Linux systems related to `nifi.properties` permission error and/or other files from the `nifi/conf/` folder, please see the [nifi doc](./nifi/main.md#span-style-color-red-strong-important-note-about-nifi-properties-strong-span) {nifi.properties} section. 
 
 ####  **Elasticsearch Errors**
-It is quite a common issue for both opensearchand native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
+<br>
+
+##### **VM memory errors, failed bootstrap check**
+<br>
+
+It is quite a common issue for both opensearch and native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
 
 ```
 ERROR: [1] bootstrap checks failed
@@ -142,3 +147,33 @@ To solve this one needs to simply execute :
     ```sysctl -w vm.max_map_count=262144```
 
 For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+
+<br>
+
+##### **OpenSearch: validating opensearch.yml hosts**
+<br>
+
+
+```
+FATAL  Error: [config validation of [opensearch].hosts]: types that failed validation:
+- [config validation of [opensearch].hosts.0]: expected URI with scheme [http|https].
+- [config validation of [opensearch].hosts.1]: could not parse array value from json input
+```
+
+This issue may appear after the recent switch to using fully customizable environment variables. Strings and ENV vars may be parsed differently depending on the shell version found on the host system.
+
+To solve this, the easiest way is to make sure to load the `elasticsearch.env` variables before starting he Elastic & Kibana containers by doing the following:
+
+```
+    cd ./deploy/
+    set -a
+    source elasticsearch.env
+    make start-elastic
+```
+
+Alternative (if the script executes without issues):
+```
+    cd ./deploy/
+    source export_env_vars.sh
+    make start-elastic
+```
