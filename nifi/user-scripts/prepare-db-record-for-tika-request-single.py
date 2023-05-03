@@ -53,7 +53,6 @@ class PyStreamCallback(StreamCallback):
             if binary_data_property == record_attr_name:
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
-                binary_data = base64.b64decode(binary_data)
                 del avro_record[binary_data_property]
                 break
         
