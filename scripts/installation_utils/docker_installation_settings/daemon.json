@@ -33,7 +33,9 @@
     "live-restore": true,
     "log-driver": "",
     "log-level": "",
-    "log-opts": {},
+    "log-opts": {
+      "max-size": "1024m"
+    },
     "max-concurrent-downloads": 3,
     "max-concurrent-uploads": 5,
     "mtu": 0,
