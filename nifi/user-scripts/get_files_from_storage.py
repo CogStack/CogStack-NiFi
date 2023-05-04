@@ -19,6 +19,9 @@ root_project_data_dir = "/opt/data/"
 csv_separator = "|"
 output_batch_size = 1000
 
+# default: None, possible values: "files_only" - read files and only store their text & binary content (pre-ocr) and the file name as the document_Id
+operation_mode = ""
+
 encoding="UTF-8"
 
 for arg in sys.argv:
@@ -35,6 +38,8 @@ for arg in sys.argv:
         csv_separator = _arg[1]
     elif _arg[0] == "output_batch_size":
         output_batch_size = int(_arg[1])
+    elif _arg[0] == "operation_mode":
+        operation_mode = str(_arg[1])
 
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
@@ -96,16 +101,18 @@ def get_files_and_metadata():
             non_csvs = [file_name for file_name in non_csvs if file_name is not None]
 
             if len(non_csvs) != len(folders_ingested[root]):
-                for csv_file_name in csv_files:
-                    file_path = os.path.join(root, csv_file_name)
-                    _txt_file_df = pandas.read_csv(file_path, sep=csv_separator, encoding=encoding)
-                    _txt_file_df["binarydoc"] = pandas.Series(dtype=str)
-                    _txt_file_df["text"] = pandas.Series(dtype=str)
 
-                    if txt_file_df is not None:
-                        txt_file_df.append(_txt_file_df)
-                    else:
-                        txt_file_df = _txt_file_df
+                if operation_mode == "":
+                    for csv_file_name in csv_files:
+                        file_path = os.path.join(root, csv_file_name)
+                        _txt_file_df = pandas.read_csv(file_path, sep=csv_separator, encoding=encoding)
+                        _txt_file_df["binarydoc"] = pandas.Series(dtype=str)
+                        _txt_file_df["text"] = pandas.Series(dtype=str)
+
+                        if txt_file_df is not None:
+                            txt_file_df.append(_txt_file_df)
+                        else:
+                            txt_file_df = _txt_file_df
 
                 for file_name in non_csvs:
                     extensionless_file_name = file_name[: - (len(file_name.split(".")[-1]) + 1)]
@@ -114,11 +121,10 @@ def get_files_and_metadata():
                         file_path = os.path.join(root, file_name)
                         try:
                             if record_counter < output_batch_size:
-                                if "pdf" in file_name:
-                                    with open(file_path, mode="rb") as original_file_contents:
-                                        original_file = original_file_contents.read()
-                                        doc_files[extensionless_file_name] = original_file
-                                    record_counter += 1
+                                with open(file_path, mode="rb") as original_file_contents:
+                                    original_file = original_file_contents.read()
+                                    doc_files[extensionless_file_name] = original_file
+                                record_counter += 1
                             else:
                                 break
                         except Exception as e:
@@ -126,15 +132,32 @@ def get_files_and_metadata():
                             traceback.print_exc()
 
                 try:
-                    if txt_file_df is not None:
-                        for i in range(0, len(txt_file_df)):
-                            file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
+                    if txt_file_df is None and operation_mode == "files_only":
 
-                            if file_id not in folders_ingested[root]:
-                                if file_id in list(doc_files.keys()):
-                                    txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
-                                    txt_file_df.at[i, "text"] = ""
-                                    folders_ingested[root].append(file_id) 
+                        # field names are taken from the cogstack common schema dict (cogstack_common_schema_mapping.json)
+                        txt_file_df = pandas.DataFrame()
+                        txt_file_df["document_Id"] = pandas.Series(dtype=str)
+                        txt_file_df["binarydoc"] = pandas.Series(dtype=str)
+                        txt_file_df["document_Fields_text"] = pandas.Series(dtype=str)
+
+                    if txt_file_df is not None:
+                        if operation_mode == "files_only":
+                            for file_id in list(doc_files.keys()):
+                                if file_id not in folders_ingested[root]:
+                                    txt_file_df = pandas.concat([txt_file_df, pandas.DataFrame.from_dict([{
+                                       "document_Id" : str(file_id),
+                                       "binarydoc" : base64.b64encode(doc_files[file_id]).decode(),
+                                       "document_Fields_text" : ""
+                                    }], orient="columns")])
+                        else:
+                            for i in range(0, len(txt_file_df)):
+                                file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
+
+                                if file_id not in folders_ingested[root]:
+                                    if file_id in list(doc_files.keys()):
+                                        txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
+                                        txt_file_df.at[i, "text"] = ""
+                                        folders_ingested[root].append(file_id)
 
                         txt_file_df = txt_file_df.loc[txt_file_df["binarydoc"].notna()]
                         txt_file_df = txt_file_df.replace(numpy.nan,'',regex=True)
