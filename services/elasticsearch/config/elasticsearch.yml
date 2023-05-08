@@ -21,7 +21,9 @@ cluster.initial_master_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
 # ES backup repository
 path.repo: ${ELASTICSEARCH_BACKUPS_PATH_REPO}
 
-indices.query.bool.max_clause_count: 4096
+indices.query.bool.max_clause_count: ${ELASTICSEARCH_QUERY_BOOL_MAX_CLAUSE_COUNT}
+indices.memory.index_buffer_size: ${ELASTICSEARCH_INDICES_MEMORY_INDEX_BUFFER_SIZE}
+
 #
 # Enable Cross-Origin Resource Sharing (CORS)
 #
