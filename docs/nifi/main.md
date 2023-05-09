@@ -5,7 +5,7 @@ There are multiple workflow templates provided with custom user scripts to work 
 
 For more information about Apache NiFi please refer to [the official website](https://nifi.apache.org/) and the [guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi).
 
-## Concepts you should understand
+## Concepts you should understand in NiFi
 Before going deeper into the NiFi setup and workflows, a few key concepts need to be understood:
 - processor: main compontent responsible for executing tasks, this can be anything: custom scripts, DB queries, http queries, .etc
 - flowfiles: these represent the common datastructure used in a NiFi session to store data between two or more entities in the workflow, a flowfile will hold one or multiple records of data.

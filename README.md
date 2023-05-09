@@ -23,6 +23,9 @@ The project is organised in the following directories:
 - [`data`](./data) - any data that you wish to ingest should be placed here.
 
 # Documentation and getting started
+
+Knowledge requirements: Docker usage (mandatory), Python, Linux/UNIX understarting.
+
 Official documentation now available [here](https://cogstack-nifi.readthedocs.io/en/latest/).
 
 As a good starting point, [deployment](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) walks through an example deployment with some workflow examples.
