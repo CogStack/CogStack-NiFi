@@ -1,3 +1,4 @@
+import binascii
 import traceback
 import io
 import sys
@@ -53,6 +54,13 @@ class PyStreamCallback(StreamCallback):
             if binary_data_property == record_attr_name:
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
+
+                try:
+                    _binary_data = base64.b64decode(binary_data, validate=True)
+                    binary_data = _binary_data
+                except binascii.Error:
+                    pass
+                binary_data = base64.b64decode(binary_data)
                 del avro_record[binary_data_property]
                 break
         
