@@ -2,6 +2,7 @@ import traceback
 import io
 import sys
 import os
+import base64
 
 # jython packages
 import java.io
@@ -19,6 +20,7 @@ JYTHON_HOME = os.environ.get("JYTHON_HOME", "")
 sys.path.append(JYTHON_HOME + "/Lib/site-packages")
 
 global flowFile
+global operation_mode
 
 flowFile = session.get()
 
@@ -39,6 +41,10 @@ class PyStreamCallback(StreamCallback):
             if binary_data_property == record_attr_name:
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
+
+                if operation_mode == "base64":
+                    binary_data = base64.b64decode(binary_data)
+
                 del avro_record[binary_data_property]
                 break
         
@@ -53,6 +59,9 @@ if flowFile != None:
     doc_id_property = str(context.getProperty(DOC_ID_ATTRIBUTE_NAME))
     binary_data_property = str(context.getProperty(BINARY_FIELD_NAME))
     output_text_property = str(context.getProperty(OUTPUT_TEXT_FIELD_NAME))
+    
+    # check if this has been set
+    operation_mode = str(context.getProperty("operation_mode"))
 
     try:
         flowFile = session.write(flowFile, PyStreamCallback())
