@@ -8,6 +8,7 @@ import re
 import numpy
 import base64
 import sys
+import uuid
 
 # get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
 # example args: ['/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/', 'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 'file_id_csv_column_name_match=file_name_id_no_ext']
@@ -18,6 +19,8 @@ file_id_csv_column_name_match = "file_name_id_no_ext"
 root_project_data_dir = "/opt/data/"
 csv_separator = "|"
 output_batch_size = 1000
+# generates a separate pseudoID, in this case, UUID for the documents. useful when doc IDs are weird or a mess and you dont want to spend time cleaning.
+generate_pseudo_doc_id = False
 
 # default: None, possible values: "files_only" - read files and only store their text & binary content (pre-ocr) and the file name as the document_Id
 operation_mode = ""
@@ -40,7 +43,8 @@ for arg in sys.argv:
         output_batch_size = int(_arg[1])
     elif _arg[0] == "operation_mode":
         operation_mode = str(_arg[1])
-
+    elif _arg[0] == "generate_pseudo_doc_id":
+        generate_pseudo_doc_id = str(_arg[1])
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
 processed_folder_dump="processed_" + folder_to_ingest
@@ -140,15 +144,22 @@ def get_files_and_metadata():
                         txt_file_df["binarydoc"] = pandas.Series(dtype=str)
                         txt_file_df["document_Fields_text"] = pandas.Series(dtype=str)
 
+                        if generate_pseudo_doc_id != False:
+                            txt_file_df["document_Pseudo_Id"] = pandas.Series(dtype=str)
+
                     if txt_file_df is not None:
                         if operation_mode == "files_only":
                             for file_id in list(doc_files.keys()):
                                 if file_id not in folders_ingested[root]:
-                                    txt_file_df = pandas.concat([txt_file_df, pandas.DataFrame.from_dict([{
+                                    _file_id_dict = {
                                        "document_Id" : str(file_id),
                                        "binarydoc" : base64.b64encode(doc_files[file_id]).decode(),
                                        "document_Fields_text" : ""
-                                    }], orient="columns")])
+                                    } 
+                                    if generate_pseudo_doc_id != False:
+                                        _file_id_dict["document_Pseudo_Id"] = str(uuid.uuid4().hex)
+
+                                    txt_file_df = pandas.concat([txt_file_df,  pandas.DataFrame.from_dict([_file_id_dict], orient="columns")])
                         else:
                             for i in range(0, len(txt_file_df)):
                                 file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]

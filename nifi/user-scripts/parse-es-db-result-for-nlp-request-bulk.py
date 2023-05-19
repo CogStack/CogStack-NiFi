@@ -55,7 +55,7 @@ class PyStreamCallback(StreamCallback):
             else:
                 if DOCUMENT_ID_FIELD_NAME in _record.keys():
                     out_record["id"] = _record[DOCUMENT_ID_FIELD_NAME]
-                
+            
             if DOCUMENT_TEXT_FIELD_NAME in _record.keys() :
                 if len(_record[DOCUMENT_TEXT_FIELD_NAME]) > 1:
                     out_record["text"] = _record[DOCUMENT_TEXT_FIELD_NAME]
