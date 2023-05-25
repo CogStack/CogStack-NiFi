@@ -22,4 +22,4 @@ else
     echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/es_native folder"
 fi
 
-chown -R $USER:$USER ./es_certificates/es_native
+chown -R $USER:$USER ./es_certificates/elasticsearch
