@@ -160,7 +160,7 @@ services:
   ocr-service-1:
     container_name: ocr-service-1
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:latest
+    image: cogstacksystems/cogstack-ocr-service:0.2.0
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -194,7 +194,7 @@ services:
   ocr-service-2:
     container_name: ocr-service-2
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:latest
+    image: cogstacksystems/cogstack-ocr-service:0.2.0
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -228,7 +228,7 @@ services:
   ocr-service-3:
     container_name: ocr-service-3
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:latest
+    image: cogstacksystems/cogstack-ocr-service:0.2.0
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -262,7 +262,7 @@ services:
   ocr-service-4:
     container_name: ocr-service-4
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:latest
+    image: cogstacksystems/cogstack-ocr-service:0.2.0
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
