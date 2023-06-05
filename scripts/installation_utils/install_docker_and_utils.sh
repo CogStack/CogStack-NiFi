@@ -9,10 +9,21 @@ if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
 then
     sudo apt-get update -y && sudo apt-get upgrade -y
 
+    sudo apt-get install samba cifs-utils nfs-common nfs-kernel-server
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
 
     sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
+
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
     sudo apt -y update 
     sudo apt -y upgrade 
     sudo apt -y install docker-ce docker-ce-cli containerd.io
@@ -32,6 +43,7 @@ elif  [ "$os_distribution" == "redhat" ] || [ "$os_distribution" == "red hat" ] 
 then
     yum -y update && yum -y upgrade
 
+    sudo yum install samba samba-client cifs-utils nfs-utils rpcbind
     sudo yum install libreoffice-base libreoffice-writer
   
     sudo yum remove -y docker \
