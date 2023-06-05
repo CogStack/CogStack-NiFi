@@ -525,11 +525,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
   elasticsearch-2:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
@@ -614,11 +614,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
   elasticsearch-3:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
@@ -703,11 +703,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
@@ -736,11 +736,11 @@ services:
       - cognet
 
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
@@ -767,11 +767,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
 #---------------------------------------------------------------------------#
 # Kibana webapp                                                             #
@@ -814,11 +814,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
 #---------------------------------------------------------------------------#
 # NiFi webapp                                                               #
@@ -888,11 +888,11 @@ services:
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 
     # user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
     ulimits:
@@ -988,11 +988,11 @@ services:
     networks:
       - cognet
     extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME}
-      - ${ELASTICSEARCH_2_HOST_NAME}
-      - ${ELASTICSEARCH_3_HOST_NAME}
-      - ${KIBANA_HOST_NAME}
-      - ${NIFI_HOST_NAME}
+      - ${ELASTICSEARCH_1_HOST_NAME:-"elasticsearch-1:test-1"}
+      - ${ELASTICSEARCH_2_HOST_NAME:-"elasticsearch-2:test-2"}
+      - ${ELASTICSEARCH_3_HOST_NAME:-"elasticsearch-3:test-3"}
+      - ${KIBANA_HOST_NAME:-"kibana:test-4"}
+      - ${NIFI_HOST_NAME:-"nifi:test-5"}
 #---------------------------------------------------------------------------#
 # Annotation ingester service                                               #
 #---------------------------------------------------------------------------#
