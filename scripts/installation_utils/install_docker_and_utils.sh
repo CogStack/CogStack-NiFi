@@ -9,7 +9,7 @@ if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
 then
     sudo apt-get update -y && sudo apt-get upgrade -y
 
-    sudo apt-get install samba cifs-utils nfs-common nfs-kernel-server
+    sudo apt-get install samba cifs-utils nfs-common nfs-kernel-server archivemount
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
 
@@ -28,7 +28,7 @@ then
     sudo apt -y upgrade 
     sudo apt -y install docker-ce docker-ce-cli containerd.io
 
-    # create docker group and add the root user to it, as root will be used to run the docker process
+    # create docker group and add the root user to it, as root will be used to run the docker
     sudo groupadd docker
     sudo usermod -aG docker root
     sudo usermod -aG docker $USER
@@ -43,7 +43,7 @@ elif  [ "$os_distribution" == "redhat" ] || [ "$os_distribution" == "red hat" ] 
 then
     yum -y update && yum -y upgrade
 
-    sudo yum install samba samba-client cifs-utils nfs-utils rpcbind
+    sudo yum install samba samba-client cifs-utils nfs-utils rpcbind archivemount
     sudo yum install libreoffice-base libreoffice-writer
   
     sudo yum remove -y docker \
