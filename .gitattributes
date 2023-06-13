@@ -31,3 +31,7 @@
 # Other
 *.exe filter=lfs diff=lfs merge=lfs -text
 # Doc images
+
+# Binaries
+*.class binary
+*.jar binary
