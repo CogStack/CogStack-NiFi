@@ -51,6 +51,12 @@ class PyStreamCallback(StreamCallback):
         medcat_info = json_data_records["medcat_info"]
         
         for annotated_text_record in result:
+            # skip if this document has no annotations
+            if "annotations" not in annotated_text_record:
+                continue
+            if len(annotated_text_record["annotations"]) == 0:
+                continue
+
             annotations = annotated_text_record["annotations"][0]
             footer = annotated_text_record["footer"]
 
@@ -94,6 +100,7 @@ class PyStreamCallback(StreamCallback):
  
                     new_flow_file = session.create(flowFile)
                     new_flow_file = session.putAttribute(new_flow_file, "document_annotation_id", document_annotation_id)
+                    new_flow_file = session.putAttribute(new_flow_file, "mime.type", "application/json")
                     new_flow_file = session.write(new_flow_file, WriteContentCallback(json.dumps(new_ann_record).encode("UTF-8")))
                     flowFiles.append(new_flow_file)
 
