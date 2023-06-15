@@ -49,23 +49,25 @@ class PyStreamCallback(StreamCallback):
             for k, v in _record.iteritems():
                 if k!= DOCUMENT_TEXT_FIELD_NAME:
                     out_record["footer"][k] = v
-        
+
             if DOCUMENT_ID_FIELD_NAME == "_id" and FIELD_TO_CHECK is not None:
                 out_record["id"] = record["_id"]
+                out_record["footer"]["_id"] = record["_id"]
             else:
                 if DOCUMENT_ID_FIELD_NAME in _record.keys():
                     out_record["id"] = _record[DOCUMENT_ID_FIELD_NAME]
-            
+                    out_record["footer"][DOCUMENT_ID_FIELD_NAME] = _record[DOCUMENT_ID_FIELD_NAME]
+
             if DOCUMENT_TEXT_FIELD_NAME in _record.keys() :
                 if len(_record[DOCUMENT_TEXT_FIELD_NAME]) > 1:
                     out_record["text"] = _record[DOCUMENT_TEXT_FIELD_NAME]
                     out_records.append(out_record)
                 else:
-                    invalid_record_ids.append(_record[DOCUMENT_ID_FIELD_NAME])
-                    log.debug("Document id :" + str(_record[DOCUMENT_ID_FIELD_NAME]) + ", text field has no content, document will not be added to the queue.")
+                    invalid_record_ids.append(record[DOCUMENT_ID_FIELD_NAME])
+                    log.debug("Document id :" + str(record[DOCUMENT_ID_FIELD_NAME]) + ", text field has no content, document will not be added to the queue.")
             else:
-                invalid_record_ids.append(_record[DOCUMENT_ID_FIELD_NAME])
-                log.debug("Document id :" + str(_record[DOCUMENT_ID_FIELD_NAME]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
+                invalid_record_ids.append(record[DOCUMENT_ID_FIELD_NAME])
+                log.debug("Document id :" + str(record[DOCUMENT_ID_FIELD_NAME]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 

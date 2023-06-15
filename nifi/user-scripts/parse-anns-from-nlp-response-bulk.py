@@ -86,8 +86,9 @@ class PyStreamCallback(StreamCallback):
                 
                 if ignore_annotation is False:
                     new_ann_record = {}
-                    new_ann_record[FIELD_NLP_PREFIX + str(ann_id)] = annotation
- 
+                    for k,v in annotation.iteritems():
+                        new_ann_record[FIELD_NLP_PREFIX + str(k)] = v
+
                     # create the new _id for the annotation record in ElasticSearch
                     new_ann_record["timestamp"] = annotated_text_record["timestamp"]
                     new_ann_record["service_model"] = medcat_info["service_model"]
