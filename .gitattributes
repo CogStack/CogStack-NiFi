@@ -20,12 +20,13 @@
 *.tar filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 # Documents
-*.pdf filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -binary
 # Images
-*.jpg filter=lfs diff=lfs merge=lfs -text
-*.jpeg filter=lfs diff=lfs merge=lfs -text
-*.psd filter=lfs diff=lfs merge=lfs -text
-*.webp filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -binary
+*.jpeg filter=lfs diff=lfs merge=lfs -binary
+*.psd filter=lfs diff=lfs merge=lfs -binary
+*.webp filter=lfs diff=lfs merge=lfs -binary
+*.png filter=lfs diff=lfs merge=lfs -binary
 # Fonts
 *.woff2 filter=lfs diff=lfs merge=lfs -text
 # Other
@@ -36,3 +37,4 @@ docs/_static/img filter=lfs diff=lfs merge=lfs -text
 # Binaries
 *.class binary
 *.jar binary
+*.nar binary
