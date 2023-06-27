@@ -211,6 +211,9 @@ services:
 
       # tesseract threading is disabled as the processing will take care of distribution
       - OMP_THREAD_LIMIT=1
+
+      # second service setting only
+      - OCR_SERVICE_OPRATION_MODE=${OCR_SERVICE_2_OPRATION_MODE:-NO_OCR}
     ulimits:
       memlock:
         soft: -1
