@@ -9,7 +9,12 @@ if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
 then
     sudo apt-get update -y && sudo apt-get upgrade -y
 
+    # NFS STUFF
     sudo apt-get install samba cifs-utils nfs-common nfs-kernel-server archivemount
+
+    # monitoring
+    sudo apt-get install htop iotop sysstat
+
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
 
@@ -43,7 +48,12 @@ elif  [ "$os_distribution" == "redhat" ] || [ "$os_distribution" == "red hat" ] 
 then
     yum -y update && yum -y upgrade
 
+    # NFS STUFF
     sudo yum install samba samba-client cifs-utils nfs-utils rpcbind archivemount
+
+    # monitoring
+    sudo yum install htop iotop sysstat
+
     sudo yum install libreoffice-base libreoffice-writer
   
     sudo yum remove -y docker \
