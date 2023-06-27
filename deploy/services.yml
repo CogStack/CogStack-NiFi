@@ -203,7 +203,7 @@ services:
     security_opt:
       - seccomp:unconfined
     env_file:
-      - ./ocr_service.env
+      - ./ocr_service_text_only.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -211,9 +211,6 @@ services:
 
       # tesseract threading is disabled as the processing will take care of distribution
       - OMP_THREAD_LIMIT=1
-
-      # second service setting only
-      - OCR_SERVICE_OPRATION_MODE=${OCR_SERVICE_2_OPRATION_MODE:-NO_OCR}
     ulimits:
       memlock:
         soft: -1
