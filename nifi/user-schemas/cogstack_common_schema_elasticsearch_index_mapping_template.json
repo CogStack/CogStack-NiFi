@@ -167,6 +167,11 @@
                 "document_Fields.valueText.keyword": {
                     "type": "keyword"
                 },
+                "document_Fields" : {
+                    "type" : "nested",
+                    "properties": {
+                    }
+                },
                 "document_Id": {
                     "type": "keyword"
                 },
