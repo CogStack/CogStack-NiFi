@@ -160,7 +160,7 @@ services:
   ocr-service-1:
     container_name: ocr-service-1
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:0.2.0
+    image: cogstacksystems/cogstack-ocr-service:0.2.1
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -194,7 +194,7 @@ services:
   ocr-service-2:
     container_name: ocr-service-2
     platform: linux
-    image: cogstacksystems/cogstack-ocr-service:0.2.0
+    image: cogstacksystems/cogstack-ocr-service:0.2.1
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -430,7 +430,6 @@ services:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - CERTIFICATE_PASSWORD=${CERTIFICATE_PASSWORD}
       - CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
       - ES_HOSTNAMES=${ES_HOSTNAMES}
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
