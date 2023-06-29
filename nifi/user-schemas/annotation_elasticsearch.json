@@ -1,0 +1,140 @@
+{
+    "mappings": {
+      "properties": {
+        "document_annotation_id": {
+          "type": "keyword"
+        },
+        "meta": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            }
+          }
+        },
+        "nlp": {
+          "properties": {
+            "acc": {
+              "type": "float"
+            },
+            "context_similarity": {
+              "type": "float"
+            },
+            "cui": {
+              "type": "keyword"
+            },
+            "detected_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "end": {
+              "type": "long"
+            },
+            "id": {
+              "type": "long"
+            },
+            "meta_anns": {
+              "properties": {
+                "Presence": {
+                  "properties": {
+                    "confidence": {
+                      "type": "float"
+                    },
+                    "name": {
+                      "type": "keyword"
+                    },
+                    "value": {
+                      "type": "keyword"
+                    }
+                  }
+                },
+                "Subject": {
+                  "properties": {
+                    "confidence": {
+                      "type": "float"
+                    },
+                    "name": {
+                      "type": "keyword"
+                    },
+                    "value": {
+                      "type": "keyword"
+                    }
+                  }
+                },
+                "Time": {
+                  "properties": {
+                    "confidence": {
+                      "type": "float"
+                    },
+                    "name": {
+                      "type": "keyword"
+                    },
+                    "value": {
+                      "type": "keyword"
+                    }
+                  }
+                }
+              }
+            },
+            "pretty_name": {
+              "type": "text"
+            },
+            "source_value": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "start": {
+              "type": "long"
+            },
+            "type_ids": {
+              "type": "keyword"
+            },
+            "types": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
+        "service_service_app_name": {
+          "type": "keyword"
+        },
+        "service_service_language": {
+          "type": "keyword"
+        },
+        "service_service_model": {
+          "type": "keyword"
+        },
+        "service_service_version": {
+          "type": "keyword"
+        }
+      }
+    },
+    "settings": {
+      "index": {
+        "codec": "best_compression",
+        "routing": {
+          "allocation": {
+            "include": {
+              "_tier_preference": "data_content"
+            }
+          }
+        },
+        "number_of_shards": "25",
+        "number_of_replicas": "1"
+      }
+    }
+  }
