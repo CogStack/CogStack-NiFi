@@ -425,8 +425,9 @@ services:
   es_native_create_certs:
     container_name: es_create_certs
     image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
-    environment:
+    env_file:
       - ../security/certificates_elasticsearch.env
+    environment:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
