@@ -133,7 +133,7 @@
             }
           }
         },
-        "number_of_shards": "25",
+        "number_of_shards": "20",
         "number_of_replicas": "1"
       }
     }
