@@ -96,3 +96,8 @@ sudo -H pip3 install wheel docker-compose
 sudo -H pip3 install html2text jsoncsv detect
 
 echo "Finished installing docker and utils.."
+
+
+sudo sysctl -w vm.max_map_count=262144
+
+sudo sh -c "echo 'vm.max_map_count=262144' >> /etc/sysctl.conf"
