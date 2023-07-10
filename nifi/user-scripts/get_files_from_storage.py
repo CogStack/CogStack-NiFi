@@ -159,6 +159,7 @@ def get_files_and_metadata():
                                     if generate_pseudo_doc_id != False:
                                         _file_id_dict["document_Pseudo_Id"] = str(uuid.uuid4().hex)
 
+                                    folders_ingested[root].append(file_id)
                                     txt_file_df = pandas.concat([txt_file_df,  pandas.DataFrame.from_dict([_file_id_dict], orient="columns")])
                         else:
                             for i in range(0, len(txt_file_df)):
