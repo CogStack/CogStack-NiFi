@@ -193,6 +193,20 @@
             "activity_VisitUpdatedWhen": {
                 "type": "date"
             },
+            "activity_VisitDurationArrivalToInitialAssessment" : {"type": "date"},
+            "activity_VisitDurationArrivalToInitialDoctorSeen" : {"type": "date"},
+            "activity_VisitDurationInitialDoctorSeenToDeparture" : {"type": "date"},
+            "activity_VisitDurationArrivalToDeparture" : {"type": "date"},
+            "activity_VisitPriority" : {"type": "text"},
+            "activity_TestSampleCollectionTime" : {"type": "date"},
+            "activity_TestSampleReceivedTime" : {"type": "date"},
+            "activity_TestInitialReportedDate" : {"type": "date"},
+            "activity_VisitPointOfCareType" : {"type": "text"},
+            "activity_VisitPointOfCarePurpose" : {"type": "text"},
+            "activity_VisitProviderType" : {"type": "text"},
+            "activity_VisitCancelReason" : {"type": "text"},
+            "activity_VisitCancelGroup" : {"type": "text"},
+            "activity_VisitDuration" : {"type": "date"},
             "activity_metadata": {
                 "type": "text"
             },
