@@ -169,9 +169,6 @@
             "activity_VisitProviderName": {
                 "type": "text"
             },
-            "activity_VisitProviderName.keyword": {
-                "type": "keyword"
-            },
             "activity_VisitService": {
                 "type": "keyword"
             },
@@ -249,9 +246,6 @@
             "document_Fields_label": {
                 "type": "text"
             },
-            "document_Fields_label.keyword": {
-                "type": "keyword"
-            },
             "document_Fields_lastModifiedComments": {
                 "type": "text"
             },
@@ -288,9 +282,6 @@
             "document_Fields_text": {
                 "type": "text"
             },
-            "document_Fields_text.keyword": {
-                "type": "keyword"
-            },
             "document_Fields_unitOfMeasure": {
                 "type": "keyword"
             },
@@ -304,9 +295,6 @@
             "document_Fields_valueText": {
                 "type": "text"
             },
-            "document_Fields_valueText.keyword": {
-                "type": "keyword"
-            },
             "document_Fields": {
                 "type": "nested",
                 "properties": {}
@@ -314,17 +302,11 @@
             "document_Id": {
                 "type": "keyword"
             },
-            "document_Name.keyword": {
-                "type": "keyword"
-            },
             "document_OrderId": {
                 "type": "keyword"
             },
             "document_OrderName": {
                 "type": "text"
-            },
-            "document_OrderName.keyword": {
-                "type": "keyword"
             },
             "document_Type": {
                 "type": "keyword"
@@ -347,17 +329,11 @@
             "patient_AddressCity": {
                 "type": "text"
             },
-            "patient_AddressCity.keyword": {
-                "type": "keyword"
-            },
             "patient_AddressGeoLocation": {
                 "type": "geo_point"
             },
             "patient_AddressPostalCode": {
                 "type": "text"
-            },
-            "patient_AddressPostalCode.keyword": {
-                "type": "keyword"
             },
             "patient_Age": {
                 "type": "scaled_float",
