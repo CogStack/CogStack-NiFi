@@ -97,7 +97,7 @@
             "document_EnteredDate": {
                 "type": "date"
             },
-            "document_Fields.recordedDate": {
+            "document_Fields_recordedDate": {
                 "type": "date"
             },
             "document_History_createdWhen": {
@@ -211,86 +211,86 @@
             "document_FacilityId": {
                 "type": "keyword"
             },
-            "document_Fields.abnormalityCode": {
+            "document_Fields_abnormalityCode": {
                 "type": "keyword"
             },
-            "document_Fields.accessToken": {
+            "document_Fields_accessToken": {
                 "type": "keyword"
             },
-            "document_Fields.arrivalDate": {
+            "document_Fields_arrivalDate": {
                 "type": "date"
             },
-            "document_Fields.category": {
+            "document_Fields_category": {
                 "type": "keyword"
             },
-            "document_Fields.enteredDate": {
+            "document_Fields_enteredDate": {
                 "type": "date"
             },
-            "document_Fields.isTextual": {
+            "document_Fields_isTextual": {
                 "type": "boolean"
             },
-            "document_Fields.key": {
+            "document_Fields_key": {
                 "type": "keyword"
             },
-            "document_Fields.label": {
+            "document_Fields_label": {
                 "type": "text"
             },
-            "document_Fields.label.keyword": {
+            "document_Fields_label.keyword": {
                 "type": "keyword"
             },
-            "document_Fields.lastModifiedComments": {
+            "document_Fields_lastModifiedComments": {
                 "type": "text"
             },
-            "document_Fields.lastModifiedReason": {
+            "document_Fields_lastModifiedReason": {
                 "type": "text"
             },
-            "document_Fields.mediaCode": {
+            "document_Fields_mediaCode": {
                 "type": "keyword"
             },
-            "document_Fields.media_CreateBy": {
+            "document_Fields_media_CreateBy": {
                 "type": "keyword"
             },
-            "document_Fields.media_CreateWhen": {
+            "document_Fields_media_CreateWhen": {
                 "type": "date"
             },
-            "document_Fields.media_UpdatedBy": {
+            "document_Fields_media_UpdatedBy": {
                 "type": "keyword"
             },
-            "document_Fields.media_UpdatedWhen": {
+            "document_Fields_media_UpdatedWhen": {
                 "type": "date"
             },
-            "document_Fields.referenceLowerLimit": {
+            "document_Fields_referenceLowerLimit": {
                 "type": "keyword"
             },
-            "document_Fields.referenceUpperLimit": {
+            "document_Fields_referenceUpperLimit": {
                 "type": "keyword"
             },
-            "document_Fields.resultId": {
+            "document_Fields_resultId": {
                 "type": "keyword"
             },
-            "document_Fields.subCategory": {
+            "document_Fields_subCategory": {
                 "type": "keyword"
             },
-            "document_Fields.text": {
+            "document_Fields_text": {
                 "type": "text"
             },
-            "document_Fields.text.keyword": {
+            "document_Fields_text.keyword": {
                 "type": "keyword"
             },
-            "document_Fields.unitOfMeasure": {
+            "document_Fields_unitOfMeasure": {
                 "type": "keyword"
             },
-            "document_Fields.valueDate": {
+            "document_Fields_valueDate": {
                 "type": "date"
             },
-            "document_Fields.valueNum": {
+            "document_Fields_valueNum": {
                 "type": "scaled_float",
                 "scaling_factor": 100
             },
-            "document_Fields.valueText": {
+            "document_Fields_valueText": {
                 "type": "text"
             },
-            "document_Fields.valueText.keyword": {
+            "document_Fields_valueText.keyword": {
                 "type": "keyword"
             },
             "document_Fields": {
