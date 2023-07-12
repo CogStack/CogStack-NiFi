@@ -1068,6 +1068,9 @@ volumes:
   metricbeat-data-2:
     driver: local
 
+  filebeat-data-1:
+    driver: local
+
   # NiFi related
   nifi-vol-logs:
     driver: local
