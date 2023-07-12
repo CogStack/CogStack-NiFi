@@ -774,6 +774,37 @@ services:
       - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
+  filebeat-1:
+    container_name: cogstack-filebeat-1
+    image: docker.elastic.co/beats/filebeat:8.3.3
+    command: filebeat setup --dashboards && -e --strict.perms=false
+    env_file:
+        - ./elasticsearch.env
+        - ../security/elasticsearch_users.env
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
+      - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+    volumes:
+      - filebeat-data-1:/usr/share/filebeat/data
+
+      - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/etc/pki/client/esnode.key:ro
+    networks:
+      - cognet
+    extra_hosts:
+      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
 #---------------------------------------------------------------------------#
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
