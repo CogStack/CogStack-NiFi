@@ -43,8 +43,17 @@ class PyStreamCallback(StreamCallback):
         for _record in json_data_records:
             record = {}
             for k, v in available_mapping_keys.iteritems():
-                    if v in _record.keys():
+                if v in _record.keys():
+                    if type(v) is dict:
+                        record[k] = {}
+                        for k_child, v_child in v.iteritems():
+                            record[k][k_child] = v[k_child]
+                    else:
                         record[k] = _record[v]
+                elif type(v) is dict:
+                    record[k] = {}
+                    for k_child, v_child in v.iteritems():
+                            record[k][k_child] = _record[v_child]
             new_json.append(record)
 
         outputStream.write(json.dumps(new_json).encode("UTF-8"))
