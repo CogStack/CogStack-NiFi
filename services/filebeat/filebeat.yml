@@ -1613,7 +1613,7 @@ setup.kibana:
 
 # Sets log level. The default log level is info.
 # Available log levels are: error, warning, info, debug
-#logging.level: info
+logging.level: info
 
 # Enable debug output for selected components. To enable all selectors use ["*"]
 # Other available selectors are "beat", "publisher", "service"
@@ -1649,7 +1649,7 @@ logging.to_files: true
 logging.files:
   # Configure the path where the logs are written. The default is the logs directory
   # under the home path (the binary location).
-  #path: /var/log/filebeat
+  path: /var/log/filebeat
 
   # The name of the files where the logs are written to.
   #name: filebeat
@@ -1659,7 +1659,7 @@ logging.files:
   #rotateeverybytes: 10485760 # = 10MB
 
   # Number of rotated log files to keep. Oldest files will be deleted first.
-  #keepfiles: 7
+  keepfiles: 30
 
   # The permissions mask to apply when rotating log files. The default value is 0600.
   # Must be a valid Unix-style file permissions mask expressed in octal notation.
@@ -1682,7 +1682,7 @@ logging.files:
 # reporting is disabled by default.
 
 # Set to true to enable the monitoring reporter.
-#monitoring.enabled: false
+monitoring.enabled: true
 
 # Sets the UUID of the Elasticsearch cluster under which monitoring data for this
 # Filebeat instance will appear in the Stack Monitoring UI. If output.elasticsearch
@@ -1696,24 +1696,24 @@ logging.files:
 # output configuration, so if you have the Elasticsearch output configured such
 # that it is pointing to your Elasticsearch monitoring cluster, you can simply
 # uncomment the following line.
-#monitoring.elasticsearch:
+monitoring.elasticsearch:
 
   # Array of hosts to connect to.
   # Scheme and port can be left out and will be set to the default (http and 9200)
   # In case you specify and additional path, the scheme is required: http://localhost:9200/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-  #hosts: ["localhost:9200"]
+  hosts: ${ELASTICSEARCH_HOSTS}
 
   # Set gzip compression level.
   #compression_level: 0
 
   # Protocol - either `http` (default) or `https`.
-  #protocol: "https"
+  protocol: "https"
 
   # Authentication credentials - either API key or username/password.
   #api_key: "id:api_key"
-  #username: "beats_system"
-  #password: "changeme"
+  username: "${FILEBEAT_USER}"
+  password: "${FILEBEAT_PASSWORD}"
 
   # Dictionary of HTTP parameters to pass within the URL with index operations.
   #parameters:
@@ -1751,7 +1751,7 @@ logging.files:
   #timeout: 90
 
   # Use SSL settings for HTTPS.
-  #ssl.enabled: true
+  ssl.enabled: true
 
   # Controls the verification of certificates. Valid values are:
   # * full, which verifies that the provided certificate is signed by a trusted
@@ -1769,20 +1769,20 @@ logging.files:
   # diagnostic mechanism when attempting to resolve TLS errors; its use in
   # production environments is strongly discouraged.
   # The default value is full.
-  #ssl.verification_mode: full
+  ssl.verification_mode: certificate
 
   # List of supported/valid TLS versions. By default all TLS versions from 1.1
   # up to 1.3 are enabled.
-  #ssl.supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
-
-  # List of root certificates for HTTPS server verifications
-  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+  ssl.supported_protocols: [TLSv1.1, TLSv1.2, TLSv1.3]
+    # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: ["/etc/pki/root/root-ca.crt"]
 
   # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/client/cert.pem"
+  ssl.certificate: "/etc/pki/client/esnode.crt"
 
   # Client certificate key
-  #ssl.key: "/etc/pki/client/cert.key"
+  ssl.key: "/etc/pki/client/esnode.key"
+
 
   # Optional passphrase for decrypting the certificate key.
   #ssl.key_passphrase: ''
