@@ -174,7 +174,7 @@
         {"name":"document_EntryType", "type": ["null", "string"], "default": null},
         {"name":"document_Extension", "type": ["null", "string"], "default": null},
         {"name":"document_FacilityId", "type": ["null", "string"], "default": null},
-        {"name":"document_Fields", "type": ["null", "string"], "default": null},
+        {"name":"document_Fields", "type": {"type": "map", "values" : "string"}, "default": {}},
         {"name":"document_Fields_abnormalityCode", "type": ["null", "string"], "default": null},
         {"name":"document_Fields_accessToken", "type": ["null", "string"], "default": null},
         {"name":"document_Fields_arrivalDate", "type":["null", { "type" : "long", "logicalType" : "timestamp-millis" }],  "default" : null},

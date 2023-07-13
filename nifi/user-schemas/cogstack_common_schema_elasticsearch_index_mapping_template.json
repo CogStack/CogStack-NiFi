@@ -297,7 +297,11 @@
             },
             "document_Fields": {
                 "type": "nested",
-                "properties": {}
+                "properties": {
+                    "fields" : {
+                        "type" : "text"
+                    }
+                }
             },
             "document_Id": {
                 "type": "keyword"
