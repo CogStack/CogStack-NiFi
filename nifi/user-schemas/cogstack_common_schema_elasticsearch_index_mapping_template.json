@@ -2,145 +2,145 @@
     "mappings": {
         "properties": {
             "activity_AdmissionDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_AttendanceArrivalDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_AttendanceCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_AttendanceUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_DischargeCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_DischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_DischargeUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_EpisodeCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_EpisodeDischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_EpisodeStartDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_EpisodeUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_ReferralCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_ReferralDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_ReferralDischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_ReferralUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_SpellAdmissionDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_SpellCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_SpellDischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_SpellUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitCanceledDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitExpectedAdmissionDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitPlannedDischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_ActivateDateReference": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_ArrivalDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_AuthoredDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_CompleteDateReference": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_ConfirmDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Date": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_DateAdded": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_DateCreated": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_EncounterDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_EnteredDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_recordedDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_History_createdWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_LastUpdated": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_MediaCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_MediaUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_ModifiedDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_PerformedDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_RequestedDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_SignificantDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_StopDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitAdmissionDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitCareLevel": {
                 "type": "keyword"
             },
             "activity_VisitCloseDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitCreatedBy": {
                 "type": "keyword"
             },
             "activity_VisitCreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitCurrentLengthOfStay": {
                 "type": "integer"
@@ -149,7 +149,7 @@
                 "type": "keyword"
             },
             "activity_VisitDischargeDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "activity_VisitDischargeDisposition": {
                 "type": "keyword"
@@ -188,22 +188,22 @@
                 "type": "keyword"
             },
             "activity_VisitUpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
-            "activity_VisitDurationArrivalToInitialAssessment" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
-            "activity_VisitDurationArrivalToInitialDoctorSeen" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
-            "activity_VisitDurationInitialDoctorSeenToDeparture" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
-            "activity_VisitDurationArrivalToDeparture" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
+            "activity_VisitDurationArrivalToInitialAssessment" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
+            "activity_VisitDurationArrivalToInitialDoctorSeen" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
+            "activity_VisitDurationInitialDoctorSeenToDeparture" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
+            "activity_VisitDurationArrivalToDeparture" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
             "activity_VisitPriority" : {"type": "text"},
-            "activity_TestSampleCollectionTime" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
-            "activity_TestSampleReceivedTime" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
-            "activity_TestInitialReportedDate" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
+            "activity_TestSampleCollectionTime" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
+            "activity_TestSampleReceivedTime" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
+            "activity_TestInitialReportedDate" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
             "activity_VisitPointOfCareType" : {"type": "text"},
             "activity_VisitPointOfCarePurpose" : {"type": "text"},
             "activity_VisitProviderType" : {"type": "text"},
             "activity_VisitCancelReason" : {"type": "text"},
             "activity_VisitCancelGroup" : {"type": "text"},
-            "activity_VisitDuration" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"},
+            "activity_VisitDuration" : {"type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"},
             "activity_metadata": {
                 "type": "text"
             },
@@ -217,7 +217,7 @@
                 "type": "keyword"
             },
             "document_CreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_FacilityId": {
                 "type": "keyword"
@@ -229,13 +229,13 @@
                 "type": "keyword"
             },
             "document_Fields_arrivalDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_category": {
                 "type": "keyword"
             },
             "document_Fields_enteredDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_isTextual": {
                 "type": "boolean"
@@ -259,13 +259,13 @@
                 "type": "keyword"
             },
             "document_Fields_media_CreateWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_media_UpdatedBy": {
                 "type": "keyword"
             },
             "document_Fields_media_UpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_referenceLowerLimit": {
                 "type": "keyword"
@@ -286,7 +286,7 @@
                 "type": "keyword"
             },
             "document_Fields_valueDate": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_Fields_valueNum": {
                 "type": "scaled_float",
@@ -315,7 +315,7 @@
                 "type": "keyword"
             },
             "document_UpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "document_sourcedb": {
                 "type": "keyword"
@@ -343,13 +343,13 @@
                 "type": "keyword"
             },
             "patient_CreatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "patient_DateOfBirth": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "patient_DateOfDeath": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "patient_Ethnicity": {
                 "type": "keyword"
@@ -394,7 +394,7 @@
                 "type": "keyword"
             },
             "patient_UpdatedWhen": {
-                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute"
+                "type": "date", "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm"
             },
             "patient_activity_document_identifiers": {
                 "type": "text"
