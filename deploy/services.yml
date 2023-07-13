@@ -733,6 +733,14 @@ services:
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/metricbeat/esnode.crt:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/metricbeat/esnode.key:ro
 
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+
     networks:
       - cognet
 
@@ -765,6 +773,14 @@ services:
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/metricbeat/esnode.p12:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/metricbeat/esnode.crt:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/metricbeat/esnode.key:ro
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
     networks:
       - cognet
     extra_hosts:
@@ -777,7 +793,7 @@ services:
   filebeat-1:
     container_name: cogstack-filebeat-1
     image: docker.elastic.co/beats/filebeat:8.3.3
-    command: filebeat setup --dashboards && -e --strict.perms=false
+    command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
         - ../security/elasticsearch_users.env
@@ -796,6 +812,14 @@ services:
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/etc/pki/client/esnode.p12:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/etc/pki/client/esnode.crt:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/etc/pki/client/esnode.key:ro
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
     networks:
       - cognet
     extra_hosts:
