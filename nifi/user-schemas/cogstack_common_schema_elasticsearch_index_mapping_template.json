@@ -1,6 +1,9 @@
 {
     "mappings": {
         "date_detection" : true,
+        "dynamic_date_formats": [
+            "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis"
+        ],
         "dynamic_templates": [
             {
                 "date" : {
@@ -8,10 +11,9 @@
                         "type" : "date",
                         "format" : "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis"
                     }
-                 },
-                "dynamic_date_formats": [
-                    "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis"
-                ],
+                 }
+            },
+            {
                 "nested": {
                     "match_mapping_type": "string",
                     "mapping": {
