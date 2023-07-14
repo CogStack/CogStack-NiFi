@@ -505,6 +505,9 @@ services:
       # ES data persistence
       - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
+      # ES logs
+      - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+
       # ES snapshot backups
       - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
       - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
@@ -595,6 +598,9 @@ services:
       # ES data persistence
       - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
 
+      # ES logs
+      - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+
       # ES snapshot backups
       - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
       - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
@@ -684,6 +690,9 @@ services:
      
       # ES data persistence
       - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
+
+      # ES logs
+      - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
 
       # ES snapshot backups
       - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
@@ -816,6 +825,9 @@ services:
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/etc/pki/client/esnode.crt:ro
       - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/etc/pki/client/esnode.key:ro
 
+    # ES logs
+      - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+
     ulimits:
       memlock:
         soft: -1
@@ -832,6 +844,89 @@ services:
       - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
+  filebeat-2:
+    container_name: cogstack-filebeat-2
+    image: docker.elastic.co/beats/filebeat:8.3.3
+    command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
+    env_file:
+        - ./elasticsearch.env
+        - ../security/elasticsearch_users.env
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
+      - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+    volumes:
+      - filebeat-data-2:/usr/share/filebeat/data
+
+      - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/etc/pki/client/esnode.key:ro
+
+    # ES logs
+      - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    networks:
+      - cognet
+    extra_hosts:
+      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
+  filebeat-3:
+    container_name: cogstack-filebeat-3
+    image: docker.elastic.co/beats/filebeat:8.3.3
+    command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
+    env_file:
+        - ./elasticsearch.env
+        - ../security/elasticsearch_users.env
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
+      - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+    volumes:
+      - filebeat-data-3:/usr/share/filebeat/data
+
+      - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/etc/pki/client/esnode.key:ro
+
+    # ES logs
+      - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    networks:
+      - cognet
+    extra_hosts:
+      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 #---------------------------------------------------------------------------#
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
@@ -1090,12 +1185,23 @@ volumes:
   elasticsearch-certs-vol:
     driver: local
   
+  elasticsearch-vol-log-1:
+    driver: local
+  elasticsearch-vol-log-2:
+    driver: local
+  elasticsearch-vol-log-3:
+    driver: local
+
   metricbeat-data-1:
     driver: local
   metricbeat-data-2:
     driver: local
 
   filebeat-data-1:
+    driver: local
+  filebeat-data-2:
+    driver: local
+  filebeat-data-3:
     driver: local
 
   # NiFi related
