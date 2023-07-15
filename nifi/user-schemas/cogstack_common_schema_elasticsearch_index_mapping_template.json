@@ -2,14 +2,14 @@
     "mappings": {
         "date_detection" : true,
         "dynamic_date_formats": [
-            "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis"
+                   "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||yyyy/MM/dd||dd/MM/yyyy||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis||basic_time||basic_time_no_millis||basic_t_time||hour_minute_second||HH:mm.ss||HH:mm.sssZ"
         ],
         "dynamic_templates": [
             {
                 "date" : {
                     "mapping" : {
                         "type" : "date",
-                        "format" : "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis"
+                        "format" :  "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour||date_hour_minute||date_hour_minute_second||time||hour_minute||yyyy/MM/dd||dd/MM/yyyy||dd/MM/yyyy HH:mm||date_time||t_time||date_hour_minute_second_millis||basic_time||basic_time_no_millis||basic_t_time||hour_minute_second||HH:mm.ss||HH:mm.sssZ"
                     }
                  }
             },
