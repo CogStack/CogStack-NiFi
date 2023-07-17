@@ -2636,7 +2636,7 @@
                             </entry>
                             <entry>
 <key>avro_common_schema_location</key>
-<value>/opt/nifi/user-schemas/cogstack_common_schema.avsc</value>
+<value>/opt/nifi/user-schemas/cogstack_common_schema_full.avsc</value>
                             </entry>
                             <entry>
 <key>mapper_schema_location</key>

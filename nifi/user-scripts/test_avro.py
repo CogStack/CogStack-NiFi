@@ -16,7 +16,7 @@ from pydoc import locate
 stream = object()
 
 json_mapper_schema = json.loads(open("../user-schemas/cogstack_common_schema_mapping.json").read())
-avro_cogstack_schema = avro.schema.parse(open("../user-schemas/cogstack_common_schema.avsc", "rb").read(), validate_enum_symbols=False)
+avro_cogstack_schema = avro.schema.parse(open("../user-schemas/cogstack_common_schema_full.avsc", "rb").read(), validate_enum_symbols=False)
 
 test_records = [{ "docid" : "1",
   "sampleid" : 1041,
