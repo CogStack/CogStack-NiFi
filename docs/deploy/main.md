@@ -120,6 +120,9 @@ When dealing with contaminated deployments ( containers using volumes from previ
     <br />
     - Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if an older DB system is used)
     - Possible error on Linux systems related to `nifi.properties` permission error and/or other files from the `nifi/conf/` folder, please see the [nifi doc](./nifi/main.md#span-style-color-red-strong-important-note-about-nifi-properties-strong-span) {nifi.properties} section. 
+    <br />
+    - `Driver class org.postgresql.Driver is not found` or something similar for other MSSQL/SQL drivers, this is a known issue after NiFi version v1.20+, first, make sure you pull the latest version of the repository, then for the JAR file you are using, please execute the following command in order to verify its integrity `jar -tvf ./nifi/drivers/your_file_version.jar`, if this returns a list of files and NO errors then the files are not corrupted and can be loaded. On the NiFi side make sure to go to the `DBCPConnectionPool` controller service and verify the propertiesit a few times, make sure the file path is correct and in the following format: `file:///opt/nifi/drivers/postgresql-42.6.0.jar` for example. If all this fails stop nifi, delete all the Docker volumes associated with it -> restart NiFi, perform the above steps again. You can try forcefully starting the `GenerateTableFetch` or `QueryDatabaseTable` processors by enabling the `DBCPConnectionPool` even if an error popus up after clicking the verify button.
+
 
 ####  **Elasticsearch Errors**
 <br>
