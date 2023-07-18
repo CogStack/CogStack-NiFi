@@ -86,7 +86,7 @@ xpack.security.audit.logfile.events.ignore_filters.exclude_admin_users.users: ["
                     "filebeat_internal"]
 xpack.security.audit.logfile.events.ignore_filters.single_policy.users: ["_system", "_xpack_security", "_service_account"]
 xpack.security.audit.logfile.events.ignore_filters.single_policy.indices: [".kibana"]
-xpack.security.audit.logfile.events.ignore_filters.single_policy.realm: ["_service_account"]
+xpack.security.audit.logfile.events.ignore_filters.single_policy.realms: ["_service_account"]
 
 # Extra ES settings to allow for bigger search results by query on in Kibana
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/async-search.html
