@@ -441,8 +441,8 @@ filebeat.inputs:
 
   #### JSON configuration
 
-  #parsers:
-    #- ndjson:
+  parsers:
+    - ndjson:
       # Decode JSON options. Enable this if your logs are structured in JSON.
       # JSON key on which to apply the line filtering and multiline settings. This key
       # must be top level and its value must be a string, otherwise it is ignored. If
@@ -451,12 +451,12 @@ filebeat.inputs:
 
       # By default, the decoded JSON is placed under a "json" key in the output document.
       # If you enable this setting, the keys are copied to the top level of the output document.
-      #keys_under_root: false
+      keys_under_root: true
 
       # If keys_under_root and this setting are enabled, then the values from the decoded
       # JSON object overwrite the fields that Filebeat normally adds (type, source, offset, etc.)
       # in case of conflicts.
-      #overwrite_keys: false
+      overwrite_keys: true
 
       # If this setting is enabled, then keys in the decoded JSON object will be recursively
       # de-dotted, and expanded into a hierarchical object structure.
@@ -466,7 +466,7 @@ filebeat.inputs:
       # If this setting is enabled, Filebeat adds an "error.message" and "error.key: json" key in case of JSON
       # unmarshaling errors or when a text key is defined in the configuration but cannot
       # be used.
-      #add_error_key: false
+      add_error_key: true
 
   #### Filtering messages
 
