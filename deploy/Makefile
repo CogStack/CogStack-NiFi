@@ -20,6 +20,9 @@ start-elastic-1:
 start-elastic-2:
 	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-2
 
+start-elastic-3:
+	docker-compose -f services.yml $(DC_START_CMD) elasticsearch-3
+
 start-metricbeat-1:
 	docker-compose -f services.yml $(DC_START_CMD) metricbeat-1
 
@@ -28,6 +31,12 @@ start-metricbeat-2:
 
 start-filebeat-1:
 	docker-compose -f services.yml $(DC_START_CMD) filebeat-1
+
+start-filebeat-2:
+	docker-compose -f services.yml $(DC_START_CMD) filebeat-2
+
+start-filebeat-3:
+	docker-compose -f services.yml $(DC_START_CMD) filebeat-3
 
 start-kibana:
 	docker-compose -f services.yml $(DC_START_CMD) kibana
@@ -80,6 +89,9 @@ stop-elastic-1:
 stop-elastic-2:
 	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-2
 
+stop-elastic-3:
+	docker-compose -f services.yml $(DC_STOP_CMD) elasticsearch-3
+
 stop-metricbeat-1:
 	docker-compose -f services.yml $(DC_STOP_CMD) metricbeat-1
 
@@ -88,6 +100,12 @@ stop-metricbeat-2:
 
 stop-filebeat-1:
 	docker-compose -f services.yml $(DC_STOP_CMD) filebeat-1
+
+stop-filebeat-2:
+	docker-compose -f services.yml $(DC_STOP_CMD) filebeat-2
+
+stop-filebeat-3:
+	docker-compose -f services.yml $(DC_STOP_CMD) filebeat-3
 
 stop-kibana:
 	docker-compose -f services.yml $(DC_STOP_CMD) kibana
