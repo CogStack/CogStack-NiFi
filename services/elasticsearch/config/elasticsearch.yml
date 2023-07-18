@@ -73,15 +73,16 @@ xpack.security.audit.logfile.events.emit_request_body: true
 xpack.security.audit.logfile.events.exclude: ["anonymous_access_denied", "realm_authentication_failed"]
 xpack.security.audit.logfile.events.ignore_filters.exclude_admin_users.users: ["logstashUser",
                     "elasticSuperUser",
-                    "elastic",
+                    "elastic*",
                     "kibanaAdmin",
                     "kibana*",
                     "_xpack_*",
                     "cogstack_ingest",
                     "kibanaserver",
                     "ingest_service",
-                    "metricbeat",
-                    "filebeat",
+                    "metricbeat*",
+                    "metricbeat_internal",
+                    "filebeat*",
                     "filebeat_internal"]
 
 # Extra ES settings to allow for bigger search results by query on in Kibana
