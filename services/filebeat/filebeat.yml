@@ -80,7 +80,7 @@ filebeat.modules:
 - module: elasticsearch
   # Server log
   server:
-    enabled: true
+    enabled: false
 
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
@@ -95,7 +95,7 @@ filebeat.modules:
       - /usr/share/elasticsearch/logs/gc.log.[0-9]*
       - /usr/share/elasticsearch/logs/gc.log
   audit:
-    enabled: true
+    enabled: false
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
     var.paths:
@@ -154,7 +154,7 @@ filebeat.inputs:
 - type: filestream
 
   # Change to true to enable this input configuration.
-  enabled: true
+  enabled: false
 
   # Paths that should be crawled and fetched. Glob based paths.
   # To fetch all ".log" files from a specific level of subdirectories
@@ -378,10 +378,10 @@ filebeat.inputs:
 - type: filestream
 
   # Unique ID among all inputs, an ID is required.
-  id: my-filestream-id
+  id: filebeat-cogstack-logging
 
   # Change to true to enable this input configuration.
-  enabled: false
+  enabled: true
 
   # Paths that should be crawled and fetched. Glob based paths.
   # To fetch all ".log" files from a specific level of subdirectories
@@ -389,7 +389,7 @@ filebeat.inputs:
   # For each file found under this path, a harvester is started.
   # Make sure not file is defined twice as this can lead to unexpected behaviour.
   paths:
-    - /var/log/*.log
+    - /usr/share/elasticsearch/logs/*.json
     #- c:\programdata\elasticsearch\logs\*
 
   # Configure the file encoding for reading files with international characters
