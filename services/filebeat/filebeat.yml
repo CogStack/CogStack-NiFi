@@ -88,7 +88,7 @@ filebeat.modules:
       - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}.log  # Plain text logs
 
   gc:
-    enabled: true
+    enabled: false
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
     var.paths:
