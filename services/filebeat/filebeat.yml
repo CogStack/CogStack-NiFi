@@ -152,7 +152,7 @@ filebeat.inputs:
 # * stdin: Reads the standard in
 
 #------------------------------ Log input --------------------------------
-- type: log
+- type: filestream
 
   # Change to true to enable this input configuration.
   enabled: true
