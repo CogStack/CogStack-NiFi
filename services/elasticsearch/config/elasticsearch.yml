@@ -70,8 +70,19 @@ xpack.security.transport.ssl.certificate_authorities: ["root-ca.crt"]
 #
 xpack.security.audit.enabled: true
 xpack.security.audit.logfile.events.emit_request_body: true
-#xpack.security.audit.logfile.events.exclude": ["run_as_granted", "anonymous_access_denied"]
-
+xpack.security.audit.logfile.events.exclude: ["anonymous_access_denied", "realm_authentication_failed"]
+xpack.security.audit.logfile.events.ignore_filters.exclude_admin_users.users: ["logstashUser",
+                    "elasticSuperUser",
+                    "elastic",
+                    "kibanaAdmin",
+                    "kibana*",
+                    "_xpack_*",
+                    "cogstack_ingest",
+                    "kibanaserver",
+                    "ingest_service",
+                    "metricbeat",
+                    "filebeat",
+                    "filebeat_internal"]
 
 # Extra ES settings to allow for bigger search results by query on in Kibana
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/async-search.html
