@@ -85,7 +85,7 @@ filebeat.modules:
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
     var.paths:
-      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}.log  # Plain text logs
+      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}.json
 
   gc:
     enabled: false
@@ -99,16 +99,15 @@ filebeat.modules:
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
     var.paths:
-      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_access.log  # Plain text logs
-      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_audit.json  # JSON logs
+      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_access.json
+      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_audit.json
 
   slowlog:
     enabled: true
     # Set custom paths for the log files. If left empty,
     # Filebeat will choose the paths depending on your OS.
     var.paths:
-      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_index_indexing_slowlog.log
-      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_index_search_slowlog.log
+      - /usr/share/elasticsearch/logs/${ELASTICSEARCH_CLUSTER_NAME}_index_search_slowlog.json
 
   deprecation:
     enabled: false
@@ -163,7 +162,7 @@ filebeat.inputs:
   # For each file found under this path, a harvester is started.
   # Make sure not file is defined twice as this can lead to unexpected behaviour.
   paths:
-    - /var/log/*.log
+    - /usr/share/elasticsearch/logs/*.json
     #- c:\programdata\elasticsearch\logs\*
 
   # Configure the file encoding for reading files with international characters
