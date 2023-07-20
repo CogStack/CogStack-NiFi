@@ -49,6 +49,12 @@ The ones that are used and should be modified depending on the deployment are:
     - `database_users.env` - production and sample DB users, the user should be changed for a production environment
     - `elasticsearch_users.env` - all users used for ES native and OpenSearch deployments are declared here.
 
+## IMPORTANT NOTE
+<span style="color: red"><strong> IMPORTANT: RUN EVERY TIME YOU UPDATE ANY SECURITY ENV VARIABLES.</strong></span>
+
+Assuming you are in the `security` folder:
+1. run `source ../deploy/export_env_vars.sh` <-- needed to set the env vars if you have modified them in the above files.
+
 ## Generation of self-signed certificates
 Assuming that one needs to generate self-signed certificates for the services, there are provided some useful scripts:
 - `create_root_ca_cert.sh` - creates root CA key and certificate, used for NiFi, MedCAT service, Jupyterhub, ocr-service etc.
@@ -72,8 +78,11 @@ Using `create_root_ca_cert.sh` the key files that are generated are:
 
 Configure certificate settings for NiFi in [certificates_nifi.env](../security/certificates_nifi.env) and for the root CA in [certificates_general.env](../security/certificates_general.env).
 
-1. run `create_root_ca_cert.sh`
-2. run `nifi_toolkit_security.sh`
+Assuming you are in the `security` folder:
+
+1. run `source ../deploy/export_env_vars.sh` <-- needed to set the env vars if you have modified them in the above files.
+2. run `bash create_root_ca_cert.sh`
+3. run `bash nifi_toolkit_security.sh`
 
 You must run them in the above order as the root CA is required by the NiFi toolkit.
 
