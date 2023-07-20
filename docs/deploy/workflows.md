@@ -345,7 +345,7 @@ The main files responsible for the schema mapping are the following:
 
 `cogstack_common_schema_mapping.json` - <span style="color: red">IMPORTANT:</span> contains a JSON dict, here is where you can map your fields to the already predifined ones, as a sample we used the fields in the `medical_reports_text` DB and mapped them accordingly. 
 
-`cogstack_common_schema.avsc` - this contains the Avro field specifications, including data types and so on. Usually this will not need changing.
+`cogstack_common_schema_full.avsc` - this contains the Avro field specifications, including data types and so on. Usually this will not need changing.
 
 The flow is displayed in the image below. Split into two sections, it does the following:
 

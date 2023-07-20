@@ -23,7 +23,7 @@ The information provided in this README hence should be only considered as a hin
 ├── create_opensearch_internal_passwords.sh <- Optional way of generating passwords for Opensearch Admin & Kibana accounts
 ├── create_opensearch_node_cert.sh <---- Use this to create certificates for the OpenSearch ES nodes
 ├── create_opensearch_users.sh <-------- Script to set up users for Opensearch after start-up, needs manual execution.
-├── create_root_ca_cert.sh <------------ Script for generating root CA, used for OpenSearch/Jupyterhub/OCR service
+├── create_root_ca_cert.sh <------------ Script for generating root CA, used for NiFi/OpenSearch/Jupyterhub/OCR service
 ├── database_users.env <---------------- DB users env vars, for both production and samples DB
 ├── elasticsearch_users.env <----------- OpenSearch/ES native users, used in 'deploy/services.yml' and 'elasticsearch.yml' files for Kibana/ES and 'metricbeat.yml'
 ├── es_certificates <------------------- This is where OpenSearch/Elasticsearch certificates will go once generated.
@@ -51,13 +51,14 @@ The ones that are used and should be modified depending on the deployment are:
 
 ## Generation of self-signed certificates
 Assuming that one needs to generate self-signed certificates for the services, there are provided some useful scripts:
-- `create_root_ca_cert.sh` - creates root CA key and certificate, used for Jupyterhub, ocr-service etc.
+- `create_root_ca_cert.sh` - creates root CA key and certificate, used for NiFi, MedCAT service, Jupyterhub, ocr-service etc.
 - `create_opensearch_client_cert.sh` - creates the client key and certificate for external apps
 - `create_keystore.sh` - creates the JKS keystore using previously generated (client) certificates, used in `create_opensearch_node_cert.sh`
 - `create_opensearch_users.sh` - creates system users for OpenSearch instances, to be used after finishing the container startup(s)
 - `create_opensearch_admin_cert.sh` - creates certs for OpenSearch Dashboard (Kibana) 
 - `create_opensearch_node_cert.sh` - creates certificates for OpenSearch nodes
 - `create_es_native_certs.sh` - creates certificates for pure Elasticsearch (ES native) nodes only
+
 
 ### Root CA
 Using `create_root_ca_cert.sh` the key files that are generated are:
@@ -66,6 +67,15 @@ Using `create_root_ca_cert.sh` the key files that are generated are:
 - keystore: `root-ca.keystore.jks`
 - p12 cert: `root-ca.p12`
 - pem cert: `root-ca.pem`
+
+### Generating the base certificates for NiFi/Nginx/JupyterHub/OCR-service/Tika/MedCAT service certificates
+
+Configure certificate settings for NiFi in [certificates_nifi.env](../security/certificates_nifi.env) and for the root CA in [certificates_general.env](../security/certificates_general.env).
+
+1. run `create_root_ca_cert.sh`
+2. run `nifi_toolkit_security.sh`
+
+You must run them in the above order as the root CA is required by the NiFi toolkit.
 
 ### ELK stack
 For information on OpenSearch for Elasticsearch security features and their configuration please refer to [the official documentation](https://opensearch.org/docs/latest/security-plugin/index/).
@@ -212,10 +222,12 @@ For more information on JupyterHub security features and their configuration ple
 For securing Apache NiFi endpoint with self-signed certificates please refer to [the official documentation](https://nifi.apache.org/docs/nifi-docs/html/walkthroughs.html#securing-nifi-with-provided-certificates).
 
 Regarding connecting to services that use self-signed certificates (such as Elasticsearch), it is required that these certificates use JKS keystore format.
-The certificates can be generated using `create_keystore.sh`.
+The certificates can be generated using `create_keystore.sh`. Usage: bash create_keystore.sh <cert_name> <jks_store> <password> | the password is optional.
 
 
 ## NGINX
 Alternatively, one can secure the access to selected services by using NGINX reverse proxy.
 This may be essential in case some of the web services that need to be exposed to end-users do not offer SSL encryption. 
 See [the official documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/) for more details on using NGINX for that.
+
+Nginx only requires the root-CA certificate by default, so use the above [generate cert](#generating-the-base-certificates-for-nifinginxjupyterhubocr-servicetikamedcat-service-certificates) section to create it.

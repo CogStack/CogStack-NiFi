@@ -100,42 +100,54 @@ echo "user id (UID):"$(id -u $USER)
 echo "group id (GID):"$(id -g $USER)
 ```
 You'd need to export your ENV vars:
+
 ```
 export NIFI_UID=$(id -u $USER)
 export NIFI_GID=$(id -g $USER)
-
 ```
+
 A better way is to also manually edit the `./deploy/nifi.env` file and change the default NIFI_UID and NIFI_GID variables there, after which you must execute the `export_env_vars.sh` script.
+
 ```
 cd ./deploy/
 source export_env_vars.sh
 cd ../
 ```
+
 You should check if the env vars have been set after running the script:
+
 ```
 echo $NIFI_UID
 echo $NIFI_GID
 ```
+
 If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
+
 ```
     set -o allexport
     source nifi.env
     set +o allexport
 ```
+
 or, on Windows, via `git bash` terminal:
+
 ```
     set -a
     source nifi.env
     set +a
 ```
+
 Make sure to execute the above commands in the order they are mentioned.
 
 
 Delete the older docker image from the nifi repo:
+
 ```
 docker image rm cogstacksystems/cogstack-nifi:latest -f
 ```
+
 Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` folder.
+
 ```
 cd ./nifi
 bash recreate_nifi_docker_image.sh
@@ -144,6 +156,7 @@ bash recreate_nifi_docker_image.sh
 Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute the `./deploy/export_env_vars.sh` so that the variables will be visible by docker at runtime, because it uses the GID/UID in the `services.yml` file , specifying in the service definition `user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"`.
 
 ### <strong>`{bootstrap.conf}`</strong>
+
 <br>
 This file allows users to configure settings for how NiFi should be started, it deals with location of configuration folder, files, JVM heap and Java System Properties.
 
@@ -200,6 +213,8 @@ This custom image will use embedeed Zookeeper within NiFi service and will use t
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
 
 Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
+
+- this step is optional (as you might have done it before from configuring other certificates), run `create_root_ca_cert.sh` to create the ROOT certificates, these will be used by NiFi/OpenSearch/OCR_service/Tika/MedcatService/Jupyterhub etc.
 
 - the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file. 
 - the trust/store keys generated for production will be in the `nifi_certificates/localhost` folder and  the `nifi-cert.pem` + `nifi-key.key` files. in the baes `nifi_certificates` folder.

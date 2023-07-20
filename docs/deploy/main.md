@@ -109,20 +109,21 @@ Common issues that can be encountered across services.
 #### **NiFi**
 
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
-    <br />   
+    <br /><br/>
     - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
-    <br />   
+    <br /><br/>
     - building the NiFi image manually on a restricted system, this is usually not necessary, but if for some reason this needs to be done then some settings such as proxy configs might need to be set up in the `nifi/Dockerfile` epecially ones related to the `grape` application and dealing with external downloads.
-    <br />  
+    <br /><br/>
     - `keystore.jks`/`truststore.jks` related errors, remove the nifi container & related volumes then restart the nifi instance. 
-    <br />
+     <br /><br/>
     - `System Error: Invalid host header : this occurs when nifi host has not been properly configured`, please check the `/nifi/conf/nifi.properties` file and set the `nifi.web.proxy.host` property to the IP address of the server along with the port `<host>:<port>`, if this does not work then it is usually a proxy/network configuration problem (also check firewalls), another workaround would be to comment out the following subsections of the `nifi` service in the `services.yml` file : `ports:` and `networks` with all their child settings. After this is done the following property should be added `network_mode: host`, restart the instance using the `docker-compoes -f services.yml up -d nifi` command afterwards. 
-    <br />
+    <br /><br/>
     - Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if an older DB system is used)
     - Possible error on Linux systems related to `nifi.properties` permission error and/or other files from the `nifi/conf/` folder, please see the [nifi doc](./nifi/main.md#span-style-color-red-strong-important-note-about-nifi-properties-strong-span) {nifi.properties} section. 
-    <br />
+    <br /><br/>
     - `Driver class org.postgresql.Driver is not found` or something similar for other MSSQL/SQL drivers, this is a known issue after NiFi version v1.20+, first, make sure you pull the latest version of the repository, then for the JAR file you are using, please execute the following command in order to verify its integrity `jar -tvf ./nifi/drivers/your_file_version.jar`, if this returns a list of files and NO errors then the files are not corrupted and can be loaded. On the NiFi side make sure to go to the `DBCPConnectionPool` controller service and verify the propertiesit a few times, make sure the file path is correct and in the following format: `file:///opt/nifi/drivers/postgresql-42.6.0.jar` for example. If all this fails stop nifi, delete all the Docker volumes associated with it -> restart NiFi, perform the above steps again. You can try forcefully starting the `GenerateTableFetch` or `QueryDatabaseTable` processors by enabling the `DBCPConnectionPool` even if an error popus up after clicking the verify button.
-
+    <br /><br/>
+    - `502 Bad Gateway`, NiFi simply not starting, even after waiting more than 2-3 minutes. This can occur due to a wide variety of issues, you can check the NiFi container log : “docker logs -f --tail 1000 cogstack-nifi > my_log_file.txt” to capture the output easily. The most common cause is running out of memory, increase or decrease the limits in `nifi/conf/bootstrap.conf` according to your machine's spec, please read [bootstrap.conf](../nifi/main.md#bootstrapconf)
 
 ####  **Elasticsearch Errors**
 <br>
