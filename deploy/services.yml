@@ -978,7 +978,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:latest
+    image: cogstacksystems/cogstack-nifi:1.2.1
     #build:
     #   context: ../nifi/
     #   args:      
@@ -1070,28 +1070,34 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:latest
+    image: cogstacksystems/nifi-nginx:1.2.1
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
       - ./nifi.env
       - ./elasticsearch.env
       - ./project.env
+      - ./nginx.env
+      - ./jupyter.env
+      - ./nlp_service.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
+      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
       - ../security/root-ca.pem:/etc/nginx/root-ca.pem:ro
       - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
+      - ../security/es_certificates:/etc/nginx/es_certificates:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:
       - cognet
+    command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
 
 #---------------------------------------------------------------------------#
 # Jupyter Hub                                                               #
@@ -1147,6 +1153,7 @@ services:
       - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
       - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
 #---------------------------------------------------------------------------#
 # Annotation ingester service                                               #
 #---------------------------------------------------------------------------#
@@ -1164,6 +1171,26 @@ services:
      networks:
       - cognet
     
+#---------------------------------------------------------------------------#
+# Version control service                                                   #
+#---------------------------------------------------------------------------#
+  gitea:
+    container_name: cogstack-gitea
+    image:  gitea/gitea:1.20-rootless
+    shm_size : 256mb
+    restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+    volumes:
+      - gitea-config-vol:/etc/gitea:rw
+      - gitea-data-vol:/var/lib/gitea:rw
+    networks:
+      - cognet
+    ports:
+      - "3000:3000"
+      - "2222:2222"
 
 #---------------------------------------------------------------------------#
 # Docker named volumes                                                      #
@@ -1238,6 +1265,13 @@ volumes:
     driver: local
   jupyter-hub-shared-scratch:
     driver: local
+
+  # Gitea
+  gitea-config-vol:
+    driver: local
+  gitea-data-vol:
+    driver: local
+
 #---------------------------------------------------------------------------#
 # Docker networks.                                                          #
 #---------------------------------------------------------------------------#
