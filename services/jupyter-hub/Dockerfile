@@ -75,7 +75,7 @@ RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbexten
 RUN pip3 install jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator --ignore-installed PyYAML 
 RUN pip3 install jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner jupyterhub-idle-culler
 
-RUN python3 -m jupyter contrib nbextension install --sys-prefix
+# RUN python3 -m jupyter contrib nbextension install --sys-prefix
 
 RUN mkdir -p /home/jovyan/scratch
 RUN chmod -R 777 /home/jovyan/scratch
