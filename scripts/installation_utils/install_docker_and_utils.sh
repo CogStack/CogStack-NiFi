@@ -10,10 +10,10 @@ then
     sudo apt-get update -y && sudo apt-get upgrade -y
 
     # NFS STUFF
-    sudo apt-get install samba cifs-utils nfs-common nfs-kernel-server archivemount
+    sudo apt-get install -y samba cifs-utils nfs-common nfs-kernel-server archivemount
 
     # monitoring
-    sudo apt-get install htop iotop sysstat
+    sudo apt-get install -y htop iotop sysstat
 
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
