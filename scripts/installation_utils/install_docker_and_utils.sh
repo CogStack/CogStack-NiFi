@@ -16,9 +16,9 @@ then
     sudo apt-get install -y htop iotop sysstat
 
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
-    sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip openssl-devel zip unzip tar nano gcc gcc-c++ make python3-dev build-essential software-properties-common
+    sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip libssl-dev zip unzip tar nano gcc make python3-dev build-essential software-properties-common
 
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
+    sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
 
     sudo install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
