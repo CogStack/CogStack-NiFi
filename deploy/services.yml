@@ -1097,7 +1097,6 @@ services:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:
       - cognet
-    command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
 
 #---------------------------------------------------------------------------#
 # Jupyter Hub                                                               #
