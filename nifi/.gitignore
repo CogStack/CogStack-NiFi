@@ -1,8 +1,9 @@
 conf/archive
 conf/templates
+conf/nifi.properties
+conf/bootstrap.conf
 **devel
 devel
-nifi-app.log
 **flow
 **login
 **conf
