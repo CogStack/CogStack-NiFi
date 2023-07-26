@@ -1183,9 +1183,15 @@ services:
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
     volumes:
-      - gitea-config-vol:/etc/gitea:rw
-      - gitea-data-vol:/var/lib/gitea:rw
+      # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
+      # certificates
+      - ../security/root-ca.key:/certificates/root-ca.key:ro
+      - ../security/root-ca.pem:/certificates/root-ca.pem:ro
+      # data & conf volumes
+      - gitea-config-vol:/etc/gitea:rw
+      - gitea-lib-vol:/var/lib/gitea:rw
+      - gitea-data-vol:/data:rw
     networks:
       - cognet
     ports:
@@ -1267,6 +1273,8 @@ volumes:
     driver: local
 
   # Gitea
+  gitea-lib-vol:
+    driver: local
   gitea-config-vol:
     driver: local
   gitea-data-vol:
