@@ -1185,6 +1185,7 @@ services:
     volumes:
       - gitea-config-vol:/etc/gitea:rw
       - gitea-data-vol:/var/lib/gitea:rw
+      - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
     networks:
       - cognet
     ports:
