@@ -321,7 +321,7 @@ services:
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
   nlp-medcat-service-production:
-    image: cogstacksystems/medcat-service:0.3.2
+    image: cogstacksystems/medcat-service:0.5.0
     container_name: cogstack-medcat-production
     restart: always
     env_file:
@@ -1092,7 +1092,10 @@ services:
       - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
       - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
       - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
-      - ../security/es_certificates:/etc/nginx/es_certificates:ro
+
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/etc/nginx/es_certificates/elastic-stack-ca.crt.pem:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/etc/nginx/es_certificates/elastic-stack-ca.key.pem:ro
+      # - ../security/es_certificates/:/etc/nginx/es_certificates/:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:
