@@ -164,6 +164,7 @@ This file allows users to configure settings for how NiFi should be started, it 
 java.arg.2=-Xms8g
 java.arg.3=-Xmx16g
 ```
+
 These properties specify the maximum memory that can be allocated to the JVM `-Xmx16g` and the initial memory allocation `-Xms8g`, values of 8g and 16g are used by default, however you may need to change these to fully utilise the memory of the machines you are spinning the service on.
 <br><br>
 
@@ -255,6 +256,7 @@ The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiF
 The key used ones are: 
 - `mssql-jdbc-9.4.1.jre11.jar` \ `mssql-jdbc-9.4.1.jre8.jar` and `mssql-jdbc-11.2.0.jre11.jar` \ `mssql-jdbc-11.2.0.jre8.jar`  - MS SQL Server JDBC driver, older version of the driver for backwards compatibility across setups.
 - `postgresql-42.6.0.jar` - PostgreSQL JDBC driver.
+- `mysql-connector-j-8.1.0.jar` - MySQL JDBC driver.
 
 These drivers come bundled for both `jre8` and `jre11`.
 
@@ -323,3 +325,12 @@ You can then select the type of history you wish to check by clicking the drop-d
 ## Accessing NiFi via nifi-api 
 
 Certain methods can be executed via scripts, either python or shell. Python has the `nifi-api` package for this. Check this [article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html) for more details on the methods available.
+
+
+## Various data  type issues
+This section covers dealing with data type issues depending on DB types and/or other data structures to Apache AVRO format.
+
+
+### MySQL
+Issues have been found with MySQL:
+- allows zero dates in DateTime fields  -> solution: can be overcome in the URL connection string using parameters
