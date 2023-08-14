@@ -19,7 +19,6 @@ security/nifi_certificates/*
 security/nifi_toolkit
 
 # other
-nifi/nifi-app.log
 scripts/data_processing/anonymistion_hw_clean/anonymised
 
 # docs

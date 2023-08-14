@@ -45,8 +45,8 @@ OUTPUT_DIRECTORY="./nifi_certificates"
 # -C,--clientCertDn <arg> Generate client certificate suitable for use in browser with specified DN (Can be specified multiple times)
 # this should respect whatever is used to generate the other certificate with regards CN=nifi, this needs to match the HOSTNAME of the nifi container(s)
 if [[ -z "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" ]]; then
-    NIFI_SUBJ_LINE_CERTIFICATE_CN="C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
-    echo "NIFI_SUBJ_LINE_CERTIFICATE_CN not set, defaulting to NIFI_SUBJ_LINE_CERTIFICATE_CN=C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+    NIFI_SUBJ_LINE_CERTIFICATE_CN="CN=cogstack, OU=cogstack, C=UK, ST=UK, L=UK, O=cogstack"
+    echo "NIFI_SUBJ_LINE_CERTIFICATE_CN not set, defaulting to NIFI_SUBJ_LINE_CERTIFICATE_CN=CN=cogstack, OU=cogstack, C=UK, ST=UK, L=UK, O=cogstack"
 else
     NIFI_SUBJ_LINE_CERTIFICATE_CN=${NIFI_SUBJ_LINE_CERTIFICATE_CN}
 fi

@@ -22,8 +22,8 @@ else
 fi
 
 if [[ -z "${ROOT_CERTIFICATE_SUBJ_LINE}" ]]; then
-    ROOT_CERTIFICATE_SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
-    echo "ROOT_CERTIFICATE_SUBJ_LINE not set, defaulting to ROOT_CERTIFICATE_SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=cogstack"
+    ROOT_CERTIFICATE_SUBJ_LINE="/CN=cogstack/OU=NIFI/C=UK/ST=UK/L=UK/O=cogstack"
+    echo "ROOT_CERTIFICATE_SUBJ_LINE not set, defaulting to ROOT_CERTIFICATE_SUBJ_LINE=CN=cogstack/OU=NIFI/C=UK/ST=UK/L=UK/O=cogstack"
 else
     ROOT_CERTIFICATE_SUBJ_LINE=${ROOT_CERTIFICATE_SUBJ_LINE}
 fi
