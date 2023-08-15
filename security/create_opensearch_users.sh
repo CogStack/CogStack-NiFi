@@ -39,7 +39,7 @@ ES_ADMIN_USER=admin
 # load the internal users passwords
 # IMPORTANT: for production deployments please remember to change the passwords
 #
-source es_internal_users.env
+source elasticsearch_users.env
 
 
 # load the custom users passwords

@@ -17,7 +17,7 @@ if [ -z "$1" ]; then
 fi
 
 # load the ES users configuration
-source es_internal_users.env
+source elasticsearch_users.env
 
 ES_CONTAINER_NAME="$1"
 
