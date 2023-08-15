@@ -51,3 +51,16 @@ xpack.security.session.cleanupInterval: "1d"
 xpack.reporting.capture.timeouts.renderComplete: 900000
 xpack.reporting.roles.enabled: false
 
+
+# Logging
+
+# logging:
+#   appenders:
+#     json-layout:
+#       type: console
+#       layout:
+#         type: json
+#         fileName: /var/log/kibana.json
+#   root:
+#     appenders: [json-layout]
+#     level: info
