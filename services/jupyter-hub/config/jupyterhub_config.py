@@ -134,6 +134,35 @@ resource_allocation_user_ram_limit = os.environ.get("RESOURCE_ALLOCATION_USER_RA
 resource_allocation_admin_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_CPU_LIMIT", "2")
 resource_allocation_admin_ram_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT", "4G")
 
+
+# Spawn single-user servers as Docker containers
+class DockerSpawner(dockerspawner.DockerSpawner):
+    def start(self):
+        # username is self.user.name
+        self.volumes = {"jupyterhub-user-{}".format(self.user.name): notebook_dir}
+
+        if self.user.name not in whitelist:
+            whitelist.add(self.user.name)
+            with open(userlist_path) as f:
+                f.write(self.user.name + "\n")
+
+        if self.user.name in list(team_map.keys()):
+            for team in team_map[self.user.name]:
+                team_dir_path = os.path.join(shared_content_dir, team)
+                self.volumes["jupyterhub-team-{}".format(team)] = {
+                    "bind": team_dir_path,
+                    "mode": "rw",  # or ro for read-only
+                }
+
+        self.post_start_cmd = "chmod -R 777 " + shared_content_dir
+
+        return super().start()
+
+
+# Spawn single-user servers as Docker containers
+c.JupyterHub.spawner_class = DockerSpawner
+c.DockerSpawner.extra_create_kwargs = {"user": "root"}
+
 with open(userlist_path) as f:
     for line in f:
         if not line:
@@ -165,33 +194,6 @@ with open(teamlist_path) as f:
             members = set(parts[1:])
             for member in members:
                 team_map[member].add(team)
-
-# Spawn single-user servers as Docker containers
-class DockerSpawner(dockerspawner.DockerSpawner):
-    def start(self):
-        # username is self.user.name
-        self.volumes = {"jupyterhub-user-{}".format(self.user.name): notebook_dir}
-        
-        if self.user.name not in whitelist:
-            whitelist.add(self.user.name)
-            with open(userlist_path) as f:
-                f.write(self.user.name + "\n")
-
-        if self.user.name in list(team_map.keys()):
-            for team in team_map[self.user.name]:
-                team_dir_path = os.path.join(shared_content_dir, team)
-                self.volumes["jupyterhub-team-{}".format(team)] = {
-                    "bind": team_dir_path,
-                    "mode": "rw",  # or ro for read-only
-                }
-        
-        self.post_start_cmd = "chmod -R 777 " + shared_content_dir
-        
-        return super().start()
-
-# Spawn single-user servers as Docker containers
-c.JupyterHub.spawner_class = DockerSpawner
-c.DockerSpawner.extra_create_kwargs = {"user": "root"}
 
 gpu_support_enabled = os.environ.get("DOCKER_ENABLE_GPU_SUPPORT", "false")
 
@@ -333,10 +335,10 @@ c.Spawner.start_timeout = 360
 # This is the default spawner for JupyterHub.
 
 # Seconds to wait for process to halt after SIGINT before proceeding to SIGTERM
-c.LocalProcessSpawner.interrupt_timeout = 60
+c.LocalProcessSpawner.interrupt_timeout = 120
 
 # Seconds to wait for process to halt after SIGKILL before giving up
-c.LocalProcessSpawner.kill_timeout = 60
+c.LocalProcessSpawner.kill_timeout = 120
 
 # Seconds to wait for process to halt after SIGTERM before proceeding to SIGKILL
-c.LocalProcessSpawner.term_timeout = 60
+c.LocalProcessSpawner.term_timeout = 120
