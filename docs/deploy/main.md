@@ -1,3 +1,11 @@
+# Prequisites
+
+Software required on machine:
+    - git + git-lfs
+    - Docker
+
+Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
+
 # Deployment
 [./deploy](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/) contains an example deployment of the customised NiFi image with related services for document processing, NLP and text analytics.
 
@@ -181,3 +189,10 @@ Alternatively (if the script executes without issues):
     source export_env_vars.sh
     make start-elastic
 ```
+
+
+### DB-samples issues
+
+``` No table data  for samples_db```
+It is possible that you may have forgotten to pull the large files from the repo, please do : `git lfs pull` .
+Delete the samples-db container and it's volumes and restart it, you should now see the data in the tables.

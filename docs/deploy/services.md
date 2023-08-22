@@ -345,3 +345,8 @@ set +a
 Re-run the above if you change the values. Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user. DO NOT delete their volumes, you don't want to delete their data!
 
 
+## Git-ea
+
+This is a GitHub/GitLab equivalent. Feel free to use it if you organisation doesn't allow access to Github, etc.
+
+
