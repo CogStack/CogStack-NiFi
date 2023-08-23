@@ -4,7 +4,7 @@ Software required on machine:
     - git + git-lfs
     - Docker
 
-Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
+#### <span style="color: red"><strong>IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
 
 # Deployment
 [./deploy](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/) contains an example deployment of the customised NiFi image with related services for document processing, NLP and text analytics.
@@ -103,7 +103,7 @@ When using a fork of this repository for a customized deployments, it can be use
 
 Always start with fresh containers and volumes, to make sure that there are no volumes from previous experimentations, make sure to always delete all/any cogstack running containers by executing:
 
-`docker container rm samples-db elasticsearch-1 kibana nifi nlp-medcat-medmen tika-service nlp-gate-drugapp nlp-medcat-snomed nlp-gate-bioyodie medcat-trainer-ui medcat-trainer-nginx jupyter-hub -f`
+`docker container rm samples-db elasticsearch-1 kibana nifi  nlp-medcat-service-production tika-service nlp-gate-drugapp nlp-medcat-snomed nlp-gate-bioyodie medcat-trainer-ui medcat-trainer-nginx jupyter-hub -f`
 
 followed by a cleanup or dangling volumes (careful as this will remove all volumes which are NOT being used by a container, if you want to remove specific volumes you will have to manually specifiy the volume names), otherwise, you can specify :
 

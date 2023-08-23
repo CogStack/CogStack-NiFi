@@ -20,7 +20,7 @@ All the services are defined in `services.yml` file and these are:
 - `nifi-nginx` - used for reverse proxy to enable secure access to NiFi and other services.
 - `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
 - `nlp-gate-drugapp` - an example drug names extraction NLP application using [GATE NLP Service runner exposing a REST API](https://github.com/CogStack/gate-nlp-service),
-- `nlp-medcat-medmen` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
+- `nlp-medcat-service-production` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
 - `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
 - `medcat-trainer-nginx` - a [NGINX](https://www.nginx.com/) reverse-proxy for MedCAT Trainer,
 - `elasticsearch-1/elasticsearch-2` - a two-node cluster of Elasticsearch based on [OpenSearch for Elasticsearch](https://opensearch.org/) distribution, 
@@ -29,21 +29,11 @@ All the services are defined in `services.yml` file and these are:
 
 ## Optional NLP services
 In addition, there are defined such NLP services:
-- `nlp-medcat-snomed` - same as `nlp-medcat-medmen` but serving a SNOMED CT model,
+- `nlp-medcat-service-production` serving SNOMED CT model,
 - `nlp-gate-bioyodie` - same as `nlp-gate-drugapp` but serving [Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) NLP application.
 
 These services are optional and won't be started by default.
 They were left in the `services.yml` file for informative purposes if one would be interested in deploying these having access to necessary resources.
-
-
-**Important**
-Please note that `nlp-medcat-snomed` and `nlp-gate-bioyodie` NLP services use license-restricted resources and these need to be provided by the user prior running these services.
-Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) resources that need to be provided in the `RES_BIOYODIE_UMLS_PATH` directory.
-MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SNOMED_PATH` directory.
-These paths can be defined in `.env` file in the deployment directory.
-
-For more information on available services resources, please see [README](../services/README.md) in `services` directory.
-
 
 ## Security
 **Important**
@@ -60,6 +50,7 @@ To deploy the data ingestion and storage infrastructure, type:
 ```
 make start-data-infra
 ```
+
 The command will deploy services: `nifi`, `elasticsearch-1`, `kibana`, `tika-service`, `samples-db`.
 Please see below the description of the services with the information on the accessibility.
 
@@ -68,7 +59,23 @@ To stop the services, type:
 make stop-data-infra
 ```
 
+## Services & definition description
+All the essential details on the services configuration are defined in `services.yml` file.
+
+Please note that all the services are running within a private `cognet` Docker network hence the endpoints are all accessible within the deployed services.
+However, for the ease of use, some of the services have their ports bound from container to the host machine.
+
+
 ## NLP services
+
+**Important**
+<br>
+Please note that `nlp-medcat-service-production` and `nlp-gate-bioyodie` NLP services use license-restricted resources and these need to be provided by the user prior running these services.
+Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) resources that need to be provided in the `RES_BIOYODIE_UMLS_PATH` directory.
+MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH` directory.
+These paths can be defined in `.env` file in the deployment directory.
+
+For more information on available services resources, please see [README](../services/README.md) in `services` directory.
 
 ### GATE
 To deploy an example GATE NLP Drug names extraction application as a service, type:
@@ -83,18 +90,27 @@ To stop the service, type:
 make stop-nlp-gate
 ```
 
-### MedCAT
+
+**Important**
+This service will be discontinued in the near future, meaning it will be removed from the repo.
+
+### MedCAT Service
+
 To deploy MedCAT application stack, type:
 ```
 make start-nlp-medcat
 ```
-The command will deploy MedCAT NLP service `nlp-medcat-medmen` with related MedCAT Trainer services `medcat-trainer-ui`, `medcat-trainer-nginx`.
+The command will deploy MedCAT NLP service ` nlp-medcat-service-production` with related MedCAT Trainer services `medcat-trainer-ui`, `medcat-trainer-nginx`.
 Please see below the description of the deployed NLP services.
 
 To stop the services, type:
 ```
 make stop-nlp-medcat
 ```
+
+#### ENV/CONF files:
+- `/service/nlp-services/applications/medcat/config/env_app` - settings specifically related to the medcat service app, such as model(pack) file location(s)
+- `/service/nlp-services/applications/medcat/config/env_medcat` - medcat specific settings
 
 ## Jupyter Hub
 To deploy Jupyter Hub, type:
@@ -107,18 +123,14 @@ To stop the services, type:
 ```
 make stop-jupyter
 ```
+#### ENV/CONF files:
+- `/deploy/jupyter.env`
 
 ## Cleanup
 To tear down all the containers and the data persisted in mounted volumes, type:
 ```
 make cleanup
 ```
-
-## Services description
-All the essential details on the services configuration are defined in `services.yml` file.
-
-Please note that all the services are running within a private `cognet` Docker network hence the endpoints are all accessible within the deployed services.
-However, for the ease of use, some of the services have their ports bound from container to the host machine.
 
 
 ## Samples DB
@@ -142,6 +154,10 @@ The tables available in the database are:
 
 The tables used in the deployment example are marked with `(*)`.
 
+
+#### ENV/CONF files:
+- `/deploy/database.env` - currently only basic stuff like DB users/passwords are included
+
 ## Cogstack-db
 This is a general database provided for production, it does not have any data in it beyond the defined cogstack_schema (this is not yet present) and annotation_schema.
 Provided for both PGSQL and MSSQL.
@@ -150,8 +166,12 @@ In the future the `${DB_PROVIDER}` will be an environment variable that will tak
 
 By default all the `.sql` files beginning with `annotations*` and `cogstack*` prefix in the `services/cogstack-db/${DB_PROVIDER}/schemas/` will be loaded. This is defined in the `services/cogstack-db/${DB_PROVIDER}/init_db.sh`. There should not be a need to change them as users can simply name their schemas accordingly. Place the desired `sql` files in the `schemas` folder and it will be picked up. To debug any issues with the container or with the SQL scripts please run the startup commands separately `docker-compose -f services.yml up cogstack-databank-db` or `docker-compose -f services.yml cogstack-databank-db-mssql` while in the `deploy/` folder.
 
-### MSSQL note
+<span>MSSQL note</span>
 The MSSQL container will require license activation for production as per [Microsoft's guideline](https://hub.docker.com/_/microsoft-mssql-server), setting the `MSSQL_PID` env variable to the correct license PID key should activate the product.
+
+
+### ENV/CONF files:
+- `/deploy/database.env` - currently only basic stuff like DB users/passwords are included
 
 ## Apache NiFi
 `nifi` serves a single-node instance of Apache NiFi that includes the data processing engine with user interface for defining data flows and monitoring.
@@ -168,6 +188,10 @@ For more information on configuration, user scripts and user templates that are 
 The available example workflows are covered in [workflows](./workflows.md)
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
+#### ENV/CONF files:
+- `/deploy/nifi.env` - most notable settings are related to port mapping and proxy
+- `/security/certificates_nifi.env` - define NiFi certificate settings here
+
 ## Tika Service
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
 [Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
@@ -176,6 +200,24 @@ When deployed Tika Service exposes port `8090` at `tika-service` container being
 The Tika service REST API endpoint for processing documents is available at `http://tika-service:8090/api/process`.
 
 For more details on configuration, API definition and example use of Tika Service please refer to [the official documentation](https://github.com/CogStack/tika-service).
+
+#### ENV/CONF files:
+- `/deploy/tika-service/config/application.yaml`
+
+## OCR Service
+
+The new `ocr-service` provides a new way to OCR documents at good speed, the equivalent in Tika-service but revwritten in Python and optimized.
+
+`ocr-service-1` - this container is used for OCR
+`ocr-service-2` - this container is used for NON-OCR, meaning documents will simply have their text extracted if they contain text without images
+
+#### ENV/CONF files:
+- `/deploy/ocr_service.env` - for `ocr-service-1`
+- `/deploy/ocr_service_text_only.env` - for `ocr-service-2`, NON-OCR instance
+
+**IMPORTANT**
+All settings are decribed [here](https://github.com/CogStack/ocr-service/README.md).
+
 
 ## NLP Services
 
@@ -214,16 +256,17 @@ For more information on the GATE NLP Service configuration and use please refer 
 MedCAT deployment consists of [MedCAT NLP Service](https://github.com/CogStack/MedCATservice) serving NLP models via RESTful API and [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) for collecting annotations and refinement of the NLP models.
 
 ### MedCAT Service
-`nlp-medcat-medmen` serves a basic UMLS model trained on MedMentions dataset via RESTful API.
+` nlp-medcat-service-production` serves a basic UMLS model trained on MedMentions dataset via RESTful API.
 The served model data is available in [`./services/nlp-services/applications/medcat/models/medmen/`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/medcat/models/medmen`) directory.
 
-When deployed `nlp-medcat-medmen` exposes port `5000` on the container and binds it to port `5000` on the host machine.
-For example, to access the API endpoint to process a document by a service from `cognet` Docker network, the endpoint address would be `http://nlp-medcat-medmen:5000/api/process`.
+When deployed ` nlp-medcat-service-production` exposes port `5000` on the container and binds it to port `5000` on the host machine.
+For example, to access the API endpoint to process a document by a service from `cognet` Docker network, the endpoint address would be `http:// nlp-medcat-service-production:5000/api/process`.
 
-As a side note, when deployed `nlp-medcat-snomed` (assuming that the MedCAT SNOMED CT model is available and set via `RES_MEDCAT_SNOMED_PATH` variable), the service will only expose port `5000` on container.
+As a side note, when deployed `nlp-medcat-service-production` (assuming that the MedCAT SNOMED CT model is available and set via `RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH` variable), the service will only expose port `5000` on container.
 Although the service won't be accessible from the host machine, but all the services inside the `cognet` network will be able to access it.
 
 For more information on the MedCAT NLP Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
+
 
 
 ### MedCAT Trainer
@@ -278,6 +321,11 @@ However, for manual tailoring the available configuration parameters are availab
 
 For more information on use of Kibana please refer either to [the official Kibana documentation](https://www.elastic.co/guide/en/kibana/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/docs/latest/dashboards/index/).
 
+
+#### ENV/CONF files:
+- `/deploy/elasticsearch.env` - general settings for boith Kibana andES`
+- `/security/certificates_elasticsearch.env` - you can control the settings for the SSL certificates here
+- `/security/elasticsearch_users.env` - define system user credentials here
 
 ## Jupyter Hub
 
@@ -344,9 +392,10 @@ set +a
 
 Re-run the above if you change the values. Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user. DO NOT delete their volumes, you don't want to delete their data!
 
-
 ## Git-ea
 
 This is a GitHub/GitLab equivalent. Feel free to use it if you organisation doesn't allow access to Github, etc.
 
+### ENV/settings files:
 
+    - `/services/gitea/app.ini`` - this is the file you will need to edit manually for settings for now, ENV file will soon be available.
