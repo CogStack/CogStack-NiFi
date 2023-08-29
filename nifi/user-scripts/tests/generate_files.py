@@ -3,10 +3,10 @@ import os
 import uuid
 import random
 
-path = "../../data/ingestion/2022/"
+path = "../../../data/ingestion/2022/"
 
-str_file_name = "test_file_name"
-tmp_pdf_path = "/path/to/test/" + str_file_name + ".pdf"
+str_file_name = "ex1.pdf"
+tmp_pdf_path = "./test_files/" + str_file_name
 
 tmp_pdf = open(tmp_pdf_path, "r+", encoding="utf-8", errors="ignore").read()
 
@@ -22,7 +22,7 @@ for i in range(1,13):
         os.makedirs(day_dir_path, exist_ok=True)
 
         metadata_csv = csv_header
-        for file_counter in range(0, random.randint(10, 1500)):
+        for file_counter in range(0, random.randint(2, 5)):
             uid = str(uuid.uuid4().hex)
             new_file_name_no_ext = str_file_name + "_" + uid
             metadata_csv += "\n" + new_file_name_no_ext + "|pdf"
