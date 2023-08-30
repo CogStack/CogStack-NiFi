@@ -363,7 +363,7 @@ services:
 # MedCAT Trainer                                                            #
 #---------------------------------------------------------------------------#
   medcat-trainer-ui:
-    image: cogstacksystems/medcat-trainer:v2.6.1
+    image: cogstacksystems/medcat-trainer:v2.11.0
     container_name: cogstack-medcat-trainer-ui
     restart: always
     # INFO: MedCAT library config provided via env file
@@ -373,7 +373,7 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
-      - MCT_VERSION=v2.6.1
+      - MCT_VERSION=v2.11.0
       - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
       - CONCEPT_SEARCH_SERVICE_PORT=8983
     volumes:
@@ -386,7 +386,7 @@ services:
     command: /home/run.sh
 
   medcat-trainer-nginx:
-    image: cogstacksystems/medcat-trainer-nginx:v2.6.1
+    image: cogstacksystems/medcat-trainer-nginx:v2.11.0
     container_name: cogstack-medcat-trainer-nginx
     restart: always
     environment:
