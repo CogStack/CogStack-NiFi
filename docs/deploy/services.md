@@ -216,7 +216,7 @@ The new `ocr-service` provides a new way to OCR documents at good speed, the equ
 - `/deploy/ocr_service_text_only.env` - for `ocr-service-2`, NON-OCR instance
 
 **IMPORTANT**
-All settings are decribed [here](https://github.com/CogStack/ocr-service/README.md).
+All settings are decribed [here](https://github.com/CogStack/ocr-service/blob/master/README.md).
 
 
 ## NLP Services
