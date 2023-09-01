@@ -8,7 +8,7 @@ path = "../../../data/ingestion/2022/"
 str_file_name = "ex1.pdf"
 tmp_pdf_path = "./test_files/" + str_file_name
 
-tmp_pdf = open(tmp_pdf_path, "r+", encoding="utf-8", errors="ignore").read()
+tmp_pdf = open(tmp_pdf_path, mode="rb").read()
 
 csv_header = "file_name_id_no_ext|file_ext"
 
@@ -27,7 +27,7 @@ for i in range(1,13):
             new_file_name_no_ext = str_file_name + "_" + uid
             metadata_csv += "\n" + new_file_name_no_ext + "|pdf"
 
-            with open(os.path.join(day_dir_path, new_file_name_no_ext + ".pdf"), "w+") as file:
+            with open(os.path.join(day_dir_path, new_file_name_no_ext + ".pdf"), "wb") as file:
                 file.write(tmp_pdf)
 
         with(open(os.path.join(day_dir_path, "metadata.csv"), "w+")) as csv_file:
