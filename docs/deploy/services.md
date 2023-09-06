@@ -4,12 +4,13 @@ This file covers the available services in the example deployment.
 Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
+Please see [example deployment](deploy/main.md) for more details on the used services and their configuration.
 
 ## Overview
 
 The below image sums up how CogStack services work with eachother in an environment where all available components are used.
 
-![nifi-servies](../_static/img/nifi_services.png)
+![nifi-services](../_static/img/nifi_services.png)
 
 ## Primary services
 All the services are defined in `services.yml` file and these are:
@@ -19,13 +20,20 @@ All the services are defined in `services.yml` file and these are:
 - `nifi` - a single instance of Apache NiFi processor (with Zookeper embedded) with exposing a web user interface,
 - `nifi-nginx` - used for reverse proxy to enable secure access to NiFi and other services.
 - `tika-service` - the [Apache Tika](https://tika.apache.org/) running as a web service (see: [Tika Service repository](https://github.com/CogStack/tika-service/)).
+- `ocr-service-1/ocr-service-2` - the new OCR text extraction tool that is a replacement of `tika-service`.
 - `nlp-gate-drugapp` - an example drug names extraction NLP application using [GATE NLP Service runner exposing a REST API](https://github.com/CogStack/gate-nlp-service),
 - `nlp-medcat-service-production` - [MedCAT](https://github.com/CogStack/MedCAT) NLP application running as a [web Service](https://github.com/CogStack/MedCATservice) and using an example model trained on [Med-Mentions](https://github.com/chanzuckerberg/MedMentions) corpus,
 - `medcat-trainer-ui` - [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) web application used for training and refining MedCAT NLP models,
 - `medcat-trainer-nginx` - a [NGINX](https://www.nginx.com/) reverse-proxy for MedCAT Trainer,
 - `elasticsearch-1/elasticsearch-2` - a two-node cluster of Elasticsearch based on [OpenSearch for Elasticsearch](https://opensearch.org/) distribution, 
+- `metricbeat` - Elasticsearch Native only cluster monitoring service
+- `filebeat` - log ingestion service for ElasticSearch Native
 - `kibana` - Kibana user-interface based on [OpenSearch for Elasticsearch](https://opensearch.org/docs/latest/dashboards/index/) distribution,
 - `jupyter-hub` - a single instance of [Jupyter Hub](https://jupyter.org/hub) for serving Jupyter Notebooks for interacting with the data.
+- `git-ea` - Github-like web service, you can host your own repositories here if your organisation is strict security-wise
+
+**IMPORTANT**
+Please note that some of the necessary configuration parameters, variables and paths are also defined in the [`services.yml`](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/services.yml) file.
 
 ## Optional NLP services
 In addition, there are defined such NLP services:
@@ -77,7 +85,34 @@ These paths can be defined in `.env` file in the deployment directory.
 
 For more information on available services resources, please see [README](../services/README.md) in `services` directory.
 
+
+### Bio-YODIE
+[Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
+
+The application files are stored in [`nlp-services/applications/bio-yodie/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/bio-yodie) directory.
+
+The Bio-Yodie service configuration is stored in [`nlp-services/applications/bio-yodie/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/bio-yodie/config) directory - the key service configuration properties are defined in `application.properties` file.
+
+
 ### GATE
+
+**Important**
+Please note that this application is provided just as a proof-of-concept of running GATE applications.
+
+
+This simple application implements annotation of common drugs and medications.
+It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin.
+The application was been created in GATE Developer studio and exported into `gapp` format.
+This application is hence ready to be used by GATE and is stored in `nlp-services/applications/drug-app/gate` directory as `drug.gapp` alongside the used resources.
+
+The list of drugs and medications to annotate is based on a publicly available list of FDA-approved drugs and active ingredients.
+The data can be downloaded directly from [Drugs@FDA database](https://www.fda.gov/drugs/informationondrugs/ucm079750.htm).
+
+This applications is being run using a NLP Service runner application that uses internally [GATE Embedded](https://gate.ac.uk/family/embedded.html) (for running GATE applications) and exposes a REST API.
+The NLP Service necessary configuration files are stored in `nlp-services/applications/drug-app/config/` directory - the key service configuration properties are defined in `application.properties` file.
+
+If you would like to build the docker image with already initialized NLP application, service and necessary resources bundled, please use provided `Dockerfile` in the `nlp-services/applications/drug-app/` directory.
+
 To deploy an example GATE NLP Drug names extraction application as a service, type:
 ```
 make start-nlp-gate
@@ -94,7 +129,26 @@ make stop-nlp-gate
 **Important**
 This service will be discontinued in the near future, meaning it will be removed from the repo.
 
+
+### MedCAT
+[MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.
+MedCAT is deployed as a service exposing RESTful API using the implementation from [MedCATservice](https://github.com/CogStack/MedCATservice).
+
 ### MedCAT Service
+
+
+MedCAT Service resources are stored in [`./services/nlp-services/applications/medcat/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat) directory.
+The key configuration properties stored as environment variables are defined in [`./services/nlp-services/applications/medcat/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/config) sub-directory.
+The models used by MedCAT are stored in [`./servies/nlp-services/applications/cat/models/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/models).
+A default model to play with is provided `MedMen` and there is a script `download_medmen.sh` to download it.
+
+For more information on the MedCAT Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
+
+**Important**
+For the example deployment we provide a simple and publicly available MedCAT model.
+However, custom and more advanced MedCAT models can be used based on license-restricted terminology dictionaries such as [UMLS](https://www.nlm.nih.gov/research/umls/index.html) or [SNOMED CT](http://www.snomed.org/).
+Which model is being used by the deployed MedCAT Service is defined both in the MedCAT Service config file and the deployment configuration file (see: [deploy](deploy/main.md)).
+
 
 To deploy MedCAT application stack, type:
 ```
@@ -132,17 +186,27 @@ To tear down all the containers and the data persisted in mounted volumes, type:
 make cleanup
 ```
 
+## Database Stack
+
+The samples DB uses PgSQL, but we also provide an MSSQL instance (no data on it however), that can be used in prod environments.Please see [the workflows section](./deploy/workflows.md#configuring-db-connector) about how to configure the difference controllers and DB drivers.
+
 
 ## Samples DB
-`samples-db` provides a [PostgreSQL](https://www.postgresql.org/) database that contains sample data to play with. 
+`samples-db` provides a [PostgreSQL](https://www.postgresql.org/) database that contains sample data to play with.
 During start-up the data is loaded from a previously generated DB dump.
+
+All the necessary resources, data and scripts are stored in `pgsamples/` directory.
+During the service initialization, the script `init_db.sh` will populate the database with sample data read from a database dump stored in `db_dump` directory.
+The directory [`./services/pgsamples/scripts`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/pgsamples/scripts) contains SQL schemas with scripts that will generate the database dump using sample data.
 
 When deployed the PostgreSQL database is exposed at port `5432` of the `samples-db` container.
 The port is also bound from container to the host machine `5555` port.
-The example data is stored in `db_samples` database. 
+The example data is stored in `db_samples` database.
 Use user `test` with password `test` to connect to it.
 
+For an example deployment, a PostgreSQL database that contains some example data to play with was generated [synthetic records](https://github.com/synthetichealth/synthea) enrinched with free-text from [MTSamples](https://www.mtsamples.com/).
 The free-text sample data is based on [MT Samples](https://www.mtsamples.com/) dataset with the structured fields generated by [Synthea](https://github.com/synthetichealth/synthea).
+
 The tables available in the database are:
 - `patients` -  structured patient information,
 - `encounters` - structured encounters information,
@@ -164,7 +228,7 @@ Provided for both PGSQL and MSSQL.
 
 In the future the `${DB_PROVIDER}` will be an environment variable that will take into account the db-provider you can select, possible values [`mssql`,`pgsql`]
 
-By default all the `.sql` files beginning with `annotations*` and `cogstack*` prefix in the `services/cogstack-db/${DB_PROVIDER}/schemas/` will be loaded. This is defined in the `services/cogstack-db/${DB_PROVIDER}/init_db.sh`. There should not be a need to change them as users can simply name their schemas accordingly. Place the desired `sql` files in the `schemas` folder and it will be picked up. To debug any issues with the container or with the SQL scripts please run the startup commands separately `docker-compose -f services.yml up cogstack-databank-db` or `docker-compose -f services.yml cogstack-databank-db-mssql` while in the `deploy/` folder.
+By default all the `.sql` files beginning with `annotations*` and `cogstack*` prefix in the `services/cogstack-db/${DB_PROVIDER}/schemas/` will be loaded.This is defined in the `services/cogstack-db/${DB_PROVIDER}/init_db.sh`.There should not be a need to change them as users can simply name their schemas accordingly.Place the desired `sql` files in the `schemas` folder and it will be picked up.To debug any issues with the container or with the SQL scripts please run the startup commands separately `docker-compose -f services.yml up cogstack-databank-db` or `docker-compose -f services.yml cogstack-databank-db-mssql` while in the `deploy/` folder.
 
 <span>MSSQL note</span>
 The MSSQL container will require license activation for production as per [Microsoft's guideline](https://hub.docker.com/_/microsoft-mssql-server), setting the `MSSQL_PID` env variable to the correct license PID key should activate the product.
@@ -181,7 +245,7 @@ Since this is a single-node NiFi instance, it also contains the default, embedde
 <br>
 
 `nifi-nginx` contianer exposes the 8443 port directly, reverser-proxying the connection to nifi.
-The Apache NiFi user interface can be hence accessed by navigating on the host (e.g. `localhost`) machine at `http://localhost:8443`.
+The Apache NiFi user interface can be hence accessed by navigating on the host (e.g.`localhost`) machine at `http://localhost:8443`.
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
 For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [nifi](../nifi.md).
@@ -193,8 +257,11 @@ Alternatively, please refer to [the official Apache NiFi documentation](https://
 - `/security/certificates_nifi.env` - define NiFi certificate settings here
 
 ## Tika Service
+
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
 [Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
+
+The application data, alongside configuration file, is stored in [`./services/tika-service`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/tika-service) directory.
 
 When deployed Tika Service exposes port `8090` at `tika-service` container being available to all services within `cognet` Docker network, most importantly by `nifi` data processing engine.
 The Tika service REST API endpoint for processing documents is available at `http://tika-service:8090/api/process`.
@@ -221,6 +288,11 @@ All settings are decribed [here](https://github.com/CogStack/ocr-service/blob/ma
 
 ## NLP Services
 
+In the example deployment we use NLP applications running as a service exposing REST API.
+The current version of API specs is specified in [`./services/nlp-services/api-specs/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/api-specs) directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
+The applications are stored in [`./services/nlp-services/applications`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications).
+
+
 ### NLP API
 All the NLP services implement a RESTful API that is defined in [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml).
 
@@ -236,8 +308,8 @@ For further details on the used API please refer to the [OpenAPI specification](
 
 ### GATE NLP
 `nlp-gate-drugapp` serves a simple drug names extraction NLP application using [GATE NLP Service](https://github.com/CogStack/gate-nlp-service).
-This simple application implements annotation of common drugs and medications. 
-It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin. 
+This simple application implements annotation of common drugs and medications.
+It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin.
 The GATE application definition and resources are available in directory [`./services/nlp-services/applications/drug-app`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/drug-app/).
 
 When deployed `nlp-gate-drugapp` exposes port `8095` on the container.
@@ -268,8 +340,16 @@ Although the service won't be accessible from the host machine, but all the serv
 For more information on the MedCAT NLP Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
 
 
+#### ENV/CONF files:
+- `/service/nlp-services/applications/medcat/config/env_app` - settings specifically related to the medcat service app, such as model(pack) file location(s)
+- `/service/nlp-services/applications/medcat/config/env_medcat` - medcat specific settings
+
 
 ### MedCAT Trainer
+Apart from MedCAT Service, there is provided [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) that serves a web application used for training and refining MedCAT NLP models.
+Such trained models can be later saved as files and loaded into MedCAT Service.
+Alternatively, the models can be loaded into custom application.
+
 `medcat-trainer-ui` serves the MedCAT Trainer web application used for training and refining MedCAT NLP models.
 Such trained models can be later saved as files and loaded into MedCAT Service.
 Alternatively, the models can be loaded into custom application.
@@ -278,21 +358,44 @@ As a companion service, `medcat-trainer-nginx` serves as a NGINX reverse-proxy f
 
 When deployed, `medcat-trainer-ui` exposes port `8000` on the container.
 `medcat-trainer-nginx` exposes port `8000` on the container and binds it to port `8001` on the host machine - it proxies all the requests to the MedCAT Trainer web service.
+The NGINX configuration is stored in [`./services/medcat-trainer/nginx`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/medcat-trainer/nginx) directory.
 
 To access the MedCAT Trainer user interface and admin panel, one can use the default built-in credentials: user `admin` with password `admin`.
 
 For more information on the MedCAT Trainer  configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATtrainer).
 
+MedCAT Trainer resources are stored in [`./services/medcat-trainer`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services//medcat-trainer) directory.
+The key configuration is stored in [`./services/medcat-trainer/env`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/medcat-trainer/envs/env) file.
+
+
 
 ## ELK stack
+
+There are two types of Elasticsearch versions available, apart from the native one there is a also OpenSearch, which is a fork of the original but developed & maintained by Amazon.
+
 The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenSearch for Elasticsearch](https://opensearch.org/) distribution.
 OpenSearch for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
-It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support. 
-Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenSearch remain the same. 
+It implements many of the commercial X-Pack components functionality, such as advanced security module, alerting module or SQL support.
+Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenSearch remain the same.
 Hence, OpenSearch can be used as a drop-in replacement for the standard ELK stack.
 
-In the example deployment, the default built-in user credentials are used, such as user: `admin` with pass `admin`.
 
+The names of the services within the NiFi project are the same even though they have different names, we will refer to original Elasticsearch as ES native in the documentation.
+
+Services names Elasticsearch | OpenSearch:
+    - Elasticsearch <-> OpenSearch
+    - Kibana <-> OpenSearch Dashboards
+
+Please note that both ElasticSearch and Kibana use security module from the OpenDistro to manage user access permissions and roles.
+However, for production use, proper users and roles need to be set up otherwise the default built-in ones will be used and with default passwords.
+For more details on setting up the security in this example deployment please refer to [`security`](security.md).
+
+Please note that in some scenarios a manual creation of index mapping may be a good idea prior to starting ingestion.
+A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/scripts) directory to help with that.
+
+In the example deployment, the default built-in user credentials are used, such as:
+    - OpenSearch user: `admin` with pass `admin`.
+    - ElasticSearch user: `elastic` with pass `kibanaserver`
 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
@@ -312,9 +415,9 @@ For more information on use of Elasticsearch please refer either to [the officia
 
 
 ### Kibana
-`kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster. 
+`kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster.
 It exposes port `5601` on the container and binds it to the same port on the host machine.
-To access Kibana user interface from web browser on the host (e.g. `localhost`) machine one can use URL: `https://localhost:5601`.
+To access Kibana user interface from web browser on the host (e.g.`localhost`) machine one can use URL: `https://localhost:5601`.
 The default user is : `admin` and password `admin`.
 In the example deployment, the default, built-in configuration file is used with selected configuration options being overridden in `services.yml` file.
 However, for manual tailoring the available configuration parameters are available in `kibana.yml` [configuration file](https://github.com/CogStack/CogStack-Nifi/services/kibana/config/kibana.yml).
@@ -323,27 +426,39 @@ For more information on use of Kibana please refer either to [the official Kiban
 
 
 #### ENV/CONF files:
-- `/deploy/elasticsearch.env` - general settings for boith Kibana andES`
+- `/deploy/elasticsearch.env` - general settings for boith Kibana and ES , OpenSearch and OpenSearch-Dashboards
 - `/security/certificates_elasticsearch.env` - you can control the settings for the SSL certificates here
 - `/security/elasticsearch_users.env` - define system user credentials here
 
+You should not really need to ever modify these files, only the `.env` files should be modified.
+- `/services/elasticsearch/config/elasticsearch.yml` - Elasticsearch
+- `/services/kibana/config/elasticsearch.yml` - Elasticsearch Kibana
+- `/services/elasticsearch/config/opensearch.yml` - Opensearch
+- `/services/kibana/config/opensearch.yml` - Opensearch-Dashboards
+
+
+The used configuration files for ElasticSearch and Kibana are provided in [`./services/elasticsearch/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/config) and [`./services/kibana/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/kibana/config) directories respectively for [`OpenSearch`](https://opensearch.org/docs/latest/install-and-configure/configuration/) and [`OpenSearch Dashboard`](https://opensearch.org/docs/latest/dashboards/index/).
+
 ## Jupyter Hub
 
-`jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks containers to users. In essence, the jupyter-hub container will spawn jupyter-singleuser containers for users, on the fly, as necessary. The settings applied to the jupyter-hub service in `services.yml` won't apply to the singleuser containers, please note that the singleuser containers and jupyter-hub container are entirely independent of one another.
+`jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks containers to users.In essence, the jupyter-hub container will spawn jupyter-singleuser containers for users, on the fly, as necessary.The settings applied to the jupyter-hub service in `services.yml` won't apply to the singleuser containers, please note that the singleuser containers and jupyter-hub container are entirely independent of one another.
 
 It exposes port `8888` on the container and binds to the same port on the host machine.
 Since `jupyter-hub` is running in the `cognet` Docker network it has access to all services available within it, hence can be used to read data directly from Elasticsearch or query NLP services.
 
 For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
 
+The JupyterHub comes with an example Jupyter notebook that is stored in [`./services/jupyter-hub/notebooks`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/jupyter-hub/notebooks) directory.
+
 ### Access and account control
-To access Jupyter Hub on the host machine (e.g. localhost), one can type in the browser `http://localhost:8888`.
+To access Jupyter Hub on the host machine (e.g.localhost), one can type in the browser `http://localhost:8888`.
+
 
 Creating accounts for other users is possible, just go to the admin page `https://localhost:8888/hub/admin#/`, click on add users and follow the instructions (make sure usernames are lower-cased and DO NOT contain symbols, if usernames contain uppercase they will be converted to lower case in the creation process).
 
 The default password is blank, you can set the password for the admin user the first time you LOG IN, remember it.
 
-Or you can set the password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value if the authenticator is set to either LocalAuthenticator or Native read more in [jupyter doc](https://jupyterhub.readthedocs.io/en/stable/api/auth.html?highlight#) about this. 
+Or you can set the password is defined by a local variable `JUPYTERHUB_PASSWORD` in `.env` file that is the password SHA-1 value if the authenticator is set to either LocalAuthenticator or Native read more in [jupyter doc](https://jupyterhub.readthedocs.io/en/stable/api/auth.html?highlight#) about this.
 
 <strong><u>Users must use the "/work/"directory for their work, otherwise files might not get saved!</u></strong>
 
@@ -358,7 +473,7 @@ Pre-requisites (for Linux and Windows):
     - for Linux, you need to install the nvidia-docker2 package / nvidia toolkit package that adds gpu spport for docker, official documentation [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
     - this also needs to be done for Windows machines, please read the the documentation for WSL2 [here](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)
 
-GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file. Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
+GPU support is disabled by default, to enable it, set `DOCKER_ENABLE_GPU_SUPPORT=true` in the `services.yml` file.Please note that only the `cogstacksystems/jupyter-singleuser-gpu:latest`/ `cogstack-gpu` should be used, as it is the only image that has the drivers installed.
 
 Do not attempt to use the gpu image on a non-gpu machine, it wont work and it will crash the container service.
 
@@ -390,12 +505,30 @@ source jupyter.env
 set +a
 ```
 
-Re-run the above if you change the values. Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user. DO NOT delete their volumes, you don't want to delete their data!
+#### ENV/CONF files:
+
+- `/deploy/jupyter.env` - all you should ever set
+- `/services/jupyter-hub/jupyter_config.py`
+
+IMPORTANT:
+- `/services/jupyter-hub/userlist` - userlist that gets loaded once jupyter starts up, you will need to update this manually at the moment whenever a user is created
+- `/services/jupyter-hub/teamlist` - teamlist that gets loaded once jupyter starts up
+
+
+
+Re-run the above if you change the values.Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user.DO NOT delete their volumes, you don't want to delete their data!
 
 ## Git-ea
 
-This is a GitHub/GitLab equivalent. Feel free to use it if you organisation doesn't allow access to Github, etc.
+This is a GitHub/GitLab equivalent.Feel free to use it if you organisation doesn't allow access to Github, etc.
 
 ### ENV/settings files:
 
     - `/services/gitea/app.ini`` - this is the file you will need to edit manually for settings for now, ENV file will soon be available.
+
+
+## NGINX
+Although by default not used in the deployment example, NGINX is primarily used as a reverse proxy, limiting the access to the used services that normally expose endpoint for the end-user.
+For a simple scenario, it can used only for securing access to Apache NiFi webservice endpoint.
+
+All the necessary configuration files and scripts are located in [`./services/nginx/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nginx/config) directory where the user and password generation script `setup_passwd.sh`.
