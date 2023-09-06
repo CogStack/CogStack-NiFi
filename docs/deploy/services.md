@@ -256,6 +256,8 @@ Alternatively, please refer to [the official Apache NiFi documentation](https://
 - `/deploy/nifi.env` - most notable settings are related to port mapping and proxy
 - `/security/certificates_nifi.env` - define NiFi certificate settings here
 
+More configuration options are covered in [nifi-doc](../nifi/main.md).
+
 ## Tika Service
 
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
@@ -371,7 +373,7 @@ The key configuration is stored in [`./services/medcat-trainer/env`](https://git
 
 ## ELK stack
 
-There are two types of Elasticsearch versions available, apart from the native one there is a also OpenSearch, which is a fork of the original but developed & maintained by Amazon.
+There are two types of Elasticsearch versions available, apart from the native one there is a also OpenSearch, which is a fork of the original but developed & maintained by Amazon as an opensource alternative.
 
 The example deployment uses [ELK stack](https://www.elastic.co/what-is/elk-stack) from [OpenSearch for Elasticsearch](https://opensearch.org/) distribution.
 OpenSearch for Elasticsearch is a fully open-source, free and community-driven fork of Elasticseach.
@@ -379,23 +381,23 @@ It implements many of the commercial X-Pack components functionality, such as ad
 Nonetheless, the standard core functionality and APIs of the official Elasticsearch and OpenSearch remain the same.
 Hence, OpenSearch can be used as a drop-in replacement for the standard ELK stack.
 
-
 The names of the services within the NiFi project are the same even though they have different names, we will refer to original Elasticsearch as ES native in the documentation.
 
-Services names Elasticsearch | OpenSearch:
+Services names Elasticsearch | OpenSearch :
+
     - Elasticsearch <-> OpenSearch
     - Kibana <-> OpenSearch Dashboards
 
-Please note that both ElasticSearch and Kibana use security module from the OpenDistro to manage user access permissions and roles.
-However, for production use, proper users and roles need to be set up otherwise the default built-in ones will be used and with default passwords.
-For more details on setting up the security in this example deployment please refer to [`security`](security.md).
+In essence the configuration is very similar, however, there are a few differences:
 
-Please note that in some scenarios a manual creation of index mapping may be a good idea prior to starting ingestion.
-A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/scripts) directory to help with that.
+|                                                                                                                                      | Elasticsearch Native      | OpenSearch                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Subscription        | paid licensing, will require [subscription](https://www.elastic.co/subscriptions), 30-day free trial available                             | Free                      |
+| Plugins             | Xpack (native), analysis-icu & elastiknn (3rd party), for more check this [link](https://www.elastic.co/guide/en/elasticsearch/plugins/8.9/index.html).                                                                                                       | Xpack                      |
+| Security            | AD/LDAP/AWS/OpenID/Native auth                                                                                                             | AD/LDAP/AWS/OpenID auth   |
 
-In the example deployment, the default built-in user credentials are used, such as:
-    - OpenSearch user: `admin` with pass `admin`.
-    - ElasticSearch user: `elastic` with pass `kibanaserver`
+
+
 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
@@ -439,11 +441,31 @@ You should not really need to ever modify these files, only the `.env` files sho
 
 The used configuration files for ElasticSearch and Kibana are provided in [`./services/elasticsearch/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/config) and [`./services/kibana/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/kibana/config) directories respectively for [`OpenSearch`](https://opensearch.org/docs/latest/install-and-configure/configuration/) and [`OpenSearch Dashboard`](https://opensearch.org/docs/latest/dashboards/index/).
 
+
+### Security
+
+Please note that both ElasticSearch and Kibana use security module to manage user access permissions and roles.
+However, for production use, proper users and roles need to be set up otherwise the default built-in ones will be used and with default passwords.
+
+In the example deployment, the default built-in user credentials are used, such as:
+    - OpenSearch user: `admin` with pass `admin`.
+    - ElasticSearch user: `elastic` with pass `kibanaserver`
+
+For more details on setting up the security certificates, users, roles and more in this example deployment please refer to [`security`](security.md).
+
+### Indexing & Ingesting data
+
+Also note that in some scenarios a manual creation of index mapping may be a good idea prior to starting ingestion. Please look at Elasticsearch [mapping](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html) and OpenSearch [mapping](https://opensearch.org/docs/2.4/opensearch/mappings/) docs on how to create the mapping before ingesting.
+ <span style="color: red"><strong> IMPORTANT: not creating the mapping of an index will result in ElasticSearch/OpenSearch automatically map all field datatypes as string, making fields such as date/timestamps not incredibly  !</strong></span>
+
+
+A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/scripts) directory to help with that.
+
 ## Jupyter Hub
 
 `jupyter-hub` service provides a single instance of Jupyter Hub to serve Jupyter Notebooks containers to users.In essence, the jupyter-hub container will spawn jupyter-singleuser containers for users, on the fly, as necessary.The settings applied to the jupyter-hub service in `services.yml` won't apply to the singleuser containers, please note that the singleuser containers and jupyter-hub container are entirely independent of one another.
 
-It exposes port `8888` on the container and binds to the same port on the host machine.
+It exposes port `8888` by default on the container and binds to the same port on the host machine.
 Since `jupyter-hub` is running in the `cognet` Docker network it has access to all services available within it, hence can be used to read data directly from Elasticsearch or query NLP services.
 
 For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
@@ -479,7 +501,7 @@ Do not attempt to use the gpu image on a non-gpu machine, it wont work and it wi
 
 ### Resource limit control in Jupyter-Hub
 
-It is possible to set CPU and RAM limits for admins and normal users, check the following properties in  `/deploy/jupyter.env`.
+It is possible to set CPU and RAM limits for admins and normal users, check the following properties in  [/deploy/jupyter.env](../../deploy/jupyter.env).
 
 ```
 # general user resource cap per container
@@ -498,6 +520,7 @@ Check if the variables have been set by running:
 ```
     echo $RESOURCE_ALLOCATION_USER_CPU_LIMIT
 ```
+
 If no value is diplsayed then you will manually have to set it, run the following:
 ```
 set -a
@@ -507,16 +530,21 @@ set +a
 
 #### ENV/CONF files:
 
-- `/deploy/jupyter.env` - all you should ever set
-- `/services/jupyter-hub/jupyter_config.py`
+- `/deploy/jupyter.env` - all you should ever set is located here
+- `/services/jupyter-hub/jupyter_config.py` - only tamper if you know what you are doing, please see [config documentation](https://github.com/jupyterhub/jupyterhub-deploy-docker/blob/main/basic-example/jupyterhub_config.py) for detailed settings
 
-IMPORTANT:
+**IMPORTANT**:
 - `/services/jupyter-hub/userlist` - userlist that gets loaded once jupyter starts up, you will need to update this manually at the moment whenever a user is created
 - `/services/jupyter-hub/teamlist` - teamlist that gets loaded once jupyter starts up
 
-
-
 Re-run the above if you change the values.Make sure to delete old instances of Jupyter-hub containers, and Jupyter single-user containers for each user.DO NOT delete their volumes, you don't want to delete their data!
+
+<span style="color: red"><strong>IMPORTANT NOTE: all environment variable(s) are described in detail in the env file comments in </strong></span> `/deploy/jupyter.env`
+
+
+### Security
+
+This service users NiFi's `../../security/root-ca.p12` and  `../../security/root-ca.key` certificates,so if you have generated them for NiFi then there is nothing else to do, please see the [jupytherhub secion](../security.md#jupyterhub) for other security configs.
 
 ## Git-ea
 
@@ -527,8 +555,25 @@ This is a GitHub/GitLab equivalent.Feel free to use it if you organisation doesn
     - `/services/gitea/app.ini`` - this is the file you will need to edit manually for settings for now, ENV file will soon be available.
 
 
+### Security
+
+This service users NiFi's `../../security/root-ca.p12` and  `../../security/root-ca.key` certificates, nothing else is required.
+
 ## NGINX
 Although by default not used in the deployment example, NGINX is primarily used as a reverse proxy, limiting the access to the used services that normally expose endpoint for the end-user.
 For a simple scenario, it can used only for securing access to Apache NiFi webservice endpoint.
 
 All the necessary configuration files and scripts are located in [`./services/nginx/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nginx/config) directory where the user and password generation script `setup_passwd.sh`.
+
+### NGINX-NiFi
+
+This is a specific nginx instance that is used directly by all services EXCEPT MedCAT Trainer, the trainer has it's own instance started separately with different rules.
+
+### NGINX-MEDCAT-TRAINER
+
+Please refer to the trainer docs, [MedCAT Trainer](https://github.com/CogStack/MedCATtrainer) for more info on configuration.
+
+
+#### Security
+
+This service users NiFi's `../../security/root-ca.p12` and  `../../security/root-ca.key` certificates.
