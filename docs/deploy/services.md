@@ -550,9 +550,27 @@ This service users NiFi's `../../security/root-ca.p12` and  `../../security/root
 
 This is a GitHub/GitLab equivalent.Feel free to use it if you organisation doesn't allow access to Github, etc.
 
+
+### Migrating Git repositories:
+
+Migrating git repos is straightforward.
+
+If you have an Git organisation (e.g COGSTACK) on your git-ea server, make sure you do the following steps:
+- make sure you have the same organisation name created/existing on both servers, and that the source server has the repos you need migrating assigned to the organisation
+- select <New Migration>
+- the above option reveals a screen, select `Git` not `Gitea`
+- in the next screen we can pick a user
+- complete the migration as per the following example:
+    - get url of the source and dest servers : e.g cogstack1 (source) and cogstack2 (dest) respectively
+    - use a user and password that is able to manage the repo on cogstack2
+    - untick the `mirror` option as we will not be using cogstack2 in future
+    - select <Migrate Repository> and it should report success and the repo will be migrated into the COGSTACK organisation on the new server
+
+
+
 ### ENV/settings files:
 
-    - `/services/gitea/app.ini`` - this is the file you will need to edit manually for settings for now, ENV file will soon be available.
+- `/services/gitea/app.ini`` - this is the file you will need to edit manually for settings for now, ENV file will soon be available.
 
 
 ### Security
