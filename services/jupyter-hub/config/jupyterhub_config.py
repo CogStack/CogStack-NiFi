@@ -1,5 +1,5 @@
 # Configuration file for jupyter-hub
-# source : https://github.com/jupyterhub/jupyterhub-deploy-docker/blob/master/jupyterhub_config.py
+# source : https://github.com/jupyterhub/jupyterhub-deploy-docker/blob/main/basic-example/jupyterhub_config.py
 
 import os
 import pwd
@@ -130,10 +130,14 @@ teamlist_path = os.path.join(pwd, "teamlist")
 # Resource allocation env vars
 # RAM - GB of ram, CPU - num of cores
 resource_allocation_user_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_USER_CPU_LIMIT", "2")
-resource_allocation_user_ram_limit = os.environ.get("RESOURCE_ALLOCATION_USER_RAM_LIMIT", "2G")
+resource_allocation_user_ram_limit = os.environ.get("RESOURCE_ALLOCATION_USER_RAM_LIMIT", "2.0G")
 resource_allocation_admin_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_CPU_LIMIT", "2")
-resource_allocation_admin_ram_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT", "4G")
+resource_allocation_admin_ram_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT", "4.0G")
 
+def per_user_limit(role):
+    ram_limits = {"user": (int(resource_allocation_user_cpu_limit), resource_allocation_user_ram_limit ),
+                   "admin": (int(resource_allocation_admin_cpu_limit), resource_allocation_admin_ram_limit )}
+    return ram_limits.get(role)
 
 # Spawn single-user servers as Docker containers
 class DockerSpawner(dockerspawner.DockerSpawner):
@@ -143,7 +147,7 @@ class DockerSpawner(dockerspawner.DockerSpawner):
 
         if self.user.name not in whitelist:
             whitelist.add(self.user.name)
-            with open(userlist_path) as f:
+            with open(userlist_path , "a") as f:
                 f.write(self.user.name + "\n")
 
         if self.user.name in list(team_map.keys()):
@@ -154,9 +158,11 @@ class DockerSpawner(dockerspawner.DockerSpawner):
                     "mode": "rw",  # or ro for read-only
                 }
 
+        self.mem_limit = "2.0G"
         self.post_start_cmd = "chmod -R 777 " + shared_content_dir
 
         return super().start()
+
 
 
 # Spawn single-user servers as Docker containers
@@ -171,16 +177,23 @@ with open(userlist_path) as f:
         # in case of newline at the end of userlist file
         if len(parts) >= 1:
             name = str(parts[0]).lower()
+            role = "user"
+            if(len(parts) > 1):
+                role = parts[1]
             whitelist.add(name)
-            if len(parts) > 1 and parts[1] == "admin":
+            if len(parts) > 1 and role == "admin":
                 admin.add(name)
-                    
-                c.DockerSpawner.spawner.mem_limit = resource_allocation_admin_ram_limit
-                c.DockerSpawner.spawner.cpu_limit = resource_allocation_admin_cpu_limit
-            else:
-                c.DockerSpawner.spawner.mem_limit = resource_allocation_user_ram_limit
-                c.DockerSpawner.spawner.cpu_limit = resource_allocation_user_cpu_limit
 
+            c.Spawner.mem_limit = c.SwarmSpawner.mem_limit = c.DockerSpawner.mem_limit = per_user_limit(role)[1]
+            c.Spawner.cpu_limit = c.SwarmSpawner.cpu_limit = c.DockerSpawner.cpu_limit = per_user_limit(role)[0]
+
+            c.Spawner.cpu_guarantee = c.SwarmSpawner.cpu_guarantee = c.DockerSpawner.cpu_guarantee = 1
+            c.Spawner.mem_guarantee = c.SwarmSpawner.mem_guarantee = c.DockerSpawner.mem_guarantee = "1.0G"
+
+            prev_conf = c.DockerSpawner.extra_host_config
+            prev_conf.update({"mem_limit": c.DockerSpawner.mem_limit})
+
+            c.DockerSpawner.extra_host_config = prev_conf
 
 # Get team memberships
 team_map = {user: set() for user in whitelist}
@@ -305,14 +318,14 @@ c.JupyterHub.allow_named_servers = False
 #  
 #  .. versionadded: 1.1.0
 #  Default: 10
-c.JupyterHub.init_spawners_timeout = 360
+c.JupyterHub.init_spawners_timeout = 720
 
 ## Timeout (in seconds) before giving up on a spawned HTTP server
 #  
 #  Once a server has successfully been spawned, this is the amount of time we
 #  wait before assuming that the server is unable to accept connections.
 #  Default: 30
-c.Spawner.http_timeout = 360
+c.Spawner.http_timeout = 720
 
 ## Timeout (in seconds) before giving up on starting of single-user server.
 #  
@@ -321,7 +334,7 @@ c.Spawner.http_timeout = 360
 #  takes longer than this. start should return when the server process is started
 #  and its location is known.
 #  Default: 60
-c.Spawner.start_timeout = 360
+c.Spawner.start_timeout = 720
 
 
 #------------------------------------------------------------------------------

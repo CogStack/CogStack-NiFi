@@ -1,4 +1,4 @@
-FROM jupyterhub/singleuser:3
+FROM jupyterhub/singleuser:4
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -120,7 +120,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install setuptools wheel virtualenv
 
 # jupyterhub stuff
-RUN pip3 install ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
+RUN pip3 install ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git dask-labextension importlib_metadata
 RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
 RUN pip3 install docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
 RUN pip3 install jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator

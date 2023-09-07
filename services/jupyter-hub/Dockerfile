@@ -1,4 +1,4 @@
-FROM jupyterhub/jupyterhub:3
+FROM jupyterhub/jupyterhub:4
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -71,7 +71,7 @@ RUN pip3 install setuptools wheel virtualenv cython isort netifaces
 
 # jupyterhub stuff
 RUN pip3 install sqlalchemy detect simplejson ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata jupyterhub-firstuseauthenticator dockerspawner jupyterhub-nativeauthenticator
-RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
+RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions dask-labextension jupyter-server-proxy fastbook
 RUN pip3 install jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator --ignore-installed PyYAML 
 RUN pip3 install jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner jupyterhub-idle-culler
 
