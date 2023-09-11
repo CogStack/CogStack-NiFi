@@ -424,7 +424,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
     env_file:
       - ../security/certificates_elasticsearch.env
     environment:
@@ -724,7 +724,7 @@ services:
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
-    image: docker.elastic.co/beats/metricbeat:8.3.3
+    image: ${METRICBEAT_IMAGE:docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -765,7 +765,7 @@ services:
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
-    image: docker.elastic.co/beats/metricbeat:8.3.3
+    image: ${METRICBEAT_IMAGE:docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -804,7 +804,7 @@ services:
 
   filebeat-1:
     container_name: cogstack-filebeat-1
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -846,7 +846,7 @@ services:
 
   filebeat-2:
     container_name: cogstack-filebeat-2
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -888,7 +888,7 @@ services:
 
   filebeat-3:
     container_name: cogstack-filebeat-3
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
