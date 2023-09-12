@@ -405,7 +405,7 @@ For enabling it and generating self-signed certificates please refer directly to
 The security aspects are covered expensively in [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
-### Elasticsearch
+### Elasticsearch / Opensearch
 Elasticsearch cluster is deployed as a single-node cluster with `elasticsearch-1` service.
 It exposes port `9200` on the container and binds it to the same port on the host machine.
 The service endpoint should be available to all the services running inside the `cognet` Docker network under address `http://elasticsearch-1:9200`.
@@ -416,7 +416,7 @@ However, for manual tailoring the available configuration parameters are availab
 For more information on use of Elasticsearch please refer either to [the official Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) or [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
-### Kibana
+### Kibana / Opensearch-Dashboard
 `kibana` service implements the Kibana user interface for interacting with the data stored in Elasticsearch cluster.
 It exposes port `5601` on the container and binds it to the same port on the host machine.
 To access Kibana user interface from web browser on the host (e.g.`localhost`) machine one can use URL: `https://localhost:5601`.
@@ -460,6 +460,86 @@ Also note that in some scenarios a manual creation of index mapping may be a goo
 
 
 A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/scripts) directory to help with that.
+
+### Installing and maintaining Elasticsearch/Opensearch
+
+Please follow the instructions carefully and adapt where necessary.
+
+#### Setting up a fresh cluster with 3 nodes
+
+Assuming you will respect the proper guidelines, you would need 3 machines to set things up. If not, then you can still set them up on one machine.
+
+Steps:
+- go into the `/deploy/` folder, edit `elasticsearch.env`
+- once you get the machine's IP addresses, modify the following variable on each machine `ELASTICSEARCH_NETWORK_HOST`, with the IP of each instance
+- next, the env file will have a var for each server for settings such as:
+    - `node name`: ELASTICSEARCH_NODE_1_NAME
+    - `alternative node name`: ELASTICSEARCH_ALTERNATIVE_NODE_1_NAME (used in certificate generation)
+    - `output port`: ELASTICSEARCH_NODE_1_OUTPUT_PORT
+    - `docker volume names`: ELASTICSEARCH_NODE_1_DATA_VOL_NAME. 
+  
+  the only setting that you may change here IF needed is the `ELASTICSEARCH_NODE_1_NAME`, for each server, e.g: ELASTICSEARCH_NODE_1_NAME="test1", ELASTICSEARCH_NODE_2_NAME="test2", ELASTICSEARCH_NODE_3_NAME="test3"
+
+##### Other settings
+- OPTIONAL: you will need to setup the LDAP connection, if you are using LDAP, modify `ELASTICSEARCH_AD_URL`, `ELASTICSEARCH_AD_DOMAIN_NAME` and `ELASTICSEARCH_AD_TIMEOUT` (for timeout controls) also `ELASTICSEARCH_AD_UNMAPPED_GROUPS_AS_ROLES` for automatic LDAP group to role mapping (check [this](https://www.elastic.co/guide/en/enterprise-search/8.9/ldap-auth.html) for more info)
+- OPTIONAL: additionally, you may want to have an email for your watcher jobs, this can be set via the `ELASTICSEARCH_EMAIL_ACCOUNT_PROFILE` variable and `ELASTICSEARCH_EMAIL_ACCOUNT_EMAIL_DEFAULTS`, the SMTP server must be set for this to work, so set `ELASTICSEARCH_EMAIL_SMTP_HOST` and `ELASTICSEARCH_EMAIL_SMTP_PORT` accordingly, look at the sample settings in the env file for guidance.
+
+
+#### Updating the version of the cluster
+
+ <span style="color: red"><strong> IMPORTANT: Make sure to disable any ingestion jobs before doing any of the update steps</strong></span>
+
+##### For ElasticSearch:
+- please check [this link](https://www.elastic.co/guide/en/elastic-stack/8.9/upgrading-elastic-stack.html) for specific version guides.
+- carefully read [this](https://www.elastic.co/guide/en/elastic-stack/current/upgrading-elasticsearch.html), there are a few steps that need to be completed via the Dev Console in Kibana and/or via `curl` in terminal.
+- take note of which Elastic version you are using and check if there are any extra steps that you might need to do, for example you cant upgrade from v7.1.0 to v8.9.2, you'd need to go v7.1.0->7.9.0 first then v8.1.0 -> v8.9.x, this is a pattern that will likely repeat for future versions
+- there may be some additional steps that can be done via Kibana if the documentation says you may need to upgrade your indices to a later version, check [this](https://www.elastic.co/guide/en/elastic-stack/8.9/upgrading-elastic-stack.html#prepare-to-upgrade) as an example, upgrading from 7.x to 8.x requires a REINDEX operation on all indices!
+- steps:
+    - make sure you stop ALL ingestion jobs 
+
+    - this disables shard allocation: <br> `curl -u your_username -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d'
+    {
+    "persistent": {
+        "cluster.routing.allocation.enable": "primaries"
+    }
+    }
+    '`
+    - flush indices: `curl -u your_username -X POST "localhost:9200/_flush/synced?pretty"`
+    - wait for everything to complete, check to see if the health of all clusters is green and the shards are fine
+    - shut down all ES services, start with Kibana, Metricbeat, Filebeat and then the Elasticserch cluster : `docker container stop cogstack-kibana cogstack-metricbeat-1 cogstack-metricbeat-2  cogstack-filebeat-1  cogstack-filebeat-2  cogstack-filebeat-3`, `docker container stop elasticsearch-1 elasticsearch-2 elasticsearch-3`, obviously execute these on each
+    - change the relevant ENV VARS (change these in `deploy/elasticsearch.env`): ELASTICSEARCH_DOCKER_IMAGE="docker.elastic.co/elasticsearch/elasticsearch:8.3.3", ELASTICSEARCH_KIBANA_DOCKER_IMAGE="docker.elastic.co/kibana/kibana:8.3.3", METRICBEAT_IMAGE="docker.elastic.co/beats/metricbeat:8.3.3", FILEBEAT_IMAGE="docker.elastic.co/beats/filebeat:8.3.3"
+    - go to the `deploy` folder and start update the source env vars by executing `source export_env_vars.sh`, do a test to see if the new vars are set `echo $ELASTICSEARCH_DOCKER_IMAGE` for example
+    - start only the elastic instance on the correct cluster (assuming each node is on its own separate machine, as it should normally be), wait for startup to complete
+    - start the rest of the services and check for the health of each node
+    - re-enable shard allocation:
+    <br> `curl -u your_username -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d'
+    {
+    "persistent": {
+        "cluster.routing.allocation.enable": "all"
+    }
+    }
+    '`
+    - go to Kibana > System Monitor > Clusters and check the status of all the nodes & shards.
+
+##### For OpenSearch:
+- please check [this link](https://opensearch.org/docs/2.0/install-and-configure/upgrade-opensearch/index/)
+- the follow the steps from the `For Elasticsearch` section above, the only diference is the curl command for disabling the shard allocation:
+    - `curl -u your_username -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d
+{
+   "persistent":{
+      "cluster.routing.rebalance.enable": "primaries"
+   }
+}`
+- shut down kibana & the nodes
+- change the relevant ENV vars in `deploy/elasticsearch.env` such as ELASTICSEARCH_KIBANA_DOCKER_IMAGE and ELASTICSEARCH_DOCKER_IMAGE.
+- go to the `deploy` folder and start update the source env vars by executing `source export_env_vars.sh`, do a test to see if the new vars are set `echo $ELASTICSEARCH_DOCKER_IMAGE` for example
+- all things should be working, re-enable allocation of shards: 
+    - `curl -u your_username -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d
+{
+   "persistent":{
+      "cluster.routing.rebalance.enable": "primaries"
+   }
+}`
 
 ## Jupyter Hub
 
