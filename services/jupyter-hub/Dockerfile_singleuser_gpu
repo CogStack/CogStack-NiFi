@@ -167,6 +167,10 @@ RUN pip3 install medcat
 COPY r_kernel_install.sh /etc/jupyterhub/
 RUN Rscript /etc/jupyterhub/r_kernel_install.sh
 
+# clean apt & pypi cache
+RUN apt-get clean
+RUN pip3 cache purge
+
 # create jupyterhub shared folder
 RUN mkdir -p /home/jovyan/scratch
 RUN chmod -R 777 /home/jovyan/scratch
