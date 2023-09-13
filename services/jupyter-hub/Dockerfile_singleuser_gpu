@@ -168,6 +168,7 @@ COPY r_kernel_install.sh /etc/jupyterhub/
 RUN Rscript /etc/jupyterhub/r_kernel_install.sh
 
 # clean apt & pypi cache
+RUN apt-get autoremove -y
 RUN apt-get clean
 RUN pip3 cache purge
 
@@ -182,9 +183,6 @@ COPY config/jupyter_notebook_config.py /home/jovyan/.jupyter/
 
 # copy notebooks
 COPY notebooks /home/jovyan/work/
-
-# clean up
-RUN apt-get autoremove -y
 
 WORKDIR /home/jovyan
 USER jovyan
