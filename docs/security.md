@@ -27,7 +27,6 @@ The information provided in this README hence should be only considered as a hin
 ├── database_users.env <---------------- DB users env vars, for both production and samples DB
 ├── elasticsearch_users.env <----------- OpenSearch/ES native users, used in 'deploy/services.yml' and 'elasticsearch.yml' files for Kibana/ES and 'metricbeat.yml'
 ├── es_certificates <------------------- This is where OpenSearch/Elasticsearch certificates will go once generated.
-├── es_cogstack_users.env <------------- Custom cogstack users
 ├── es_native_cert_generator.sh <------- This is the script used to generate native ES certificates (NOT for Opensearch), used in create_es_native_credentials.sh
 ├── es_roles <-------------------------- This folder stores Elasticsearch native/Opensearch account roles and role_mappings.
 ├── nginx_users.env <------------------- Nginx users
@@ -127,7 +126,7 @@ The `${ELASTICSEARCH_VERSION}` MUST be set in the `deploy/elastiscsearch.env` be
 ### For OpenSearch
 For information on OpenSearch security features and their configuration please refer to [the official documentation](https://opensearch.org/docs/latest/security-plugin/index/).
 
-We have to make sure to execute the following commands `bash ./create_opensearch_nodecert.sh elasticsearch-1 && bash ./create_opensearch_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, make sure to generate the ADMIN authorization certificate by doing `bash ./create_opensearch_admin_cert.sh`.
+We have to make sure to execute the following commands `bash ./create_opensearch_nodecert.sh elasticsearch-1 && bash ./create_opensearch_nodecert.sh elasticsearch-2 && bash ./create_opensearch_nodecert.sh elasticsearch-3` this will generate the certificates for all 3 nodes, make sure to generate the ADMIN authorization certificate by doing `bash ./create_opensearch_admin_cert.sh`.
 
 The keystore/truststore certificates are also generated when creating the node certificates, these are used in the NiFi workflows.
 
@@ -142,6 +141,15 @@ To generate the above certificates all that is needed is to run the [`create_es_
 
 <br>
 
+There are a few variables related to the certificate names, pleas read the following carefully:
+- `ES_INSTANCE_NAME_1`, this variable is usually set to the same name as `ELASTICSEARCH_NODE_1_NAME` from `/deploy/elasticsearch.env`, it is used to determine the certificate paths, and also in the certificate hostname SUBJ lines, there are two other vars with the same name aside from the  numbering for each node.
+- `ES_INSTANCE_ALTERNATIVE_1_NAME`, this is used along with `ES_INSTANCE_NAME_1` to provide additional hostnames forr the certificate generation, also useful incase the node name is different from the elastic search hostname.
+- `ES_HOSTNAMES`, set all your hostnames here, they should include the names of the nodes and also additional hostnames & DNS-es, please follow the exact indentation as it is in the `.env` file. If it does not work, then manually do :
+    `export ES_HOSTNAMES="- elasticsearch-1`
+    <br>`- elasticsearch-2`
+    <br>`- elasticsearch-3`<br> 
+`"`
+- `ES_CLIENT_SUBJ_ALT_NAMES` and `ES_NODE_SUBJ_ALT_NAMES`, set these with additional domain names as needed, both client and node should have the nodes and the kibana hostname instances added.
 
 ### Kibana
 
@@ -178,7 +186,6 @@ Once generated, the files can be further referenced in `services/kibana/config/k
 The sample users and passwords are specified in the following `.env` files in `security/` directory:
 - `elasticsearch_users.env` - contains passwords for ElasticSearch internal users.
 - `database_users.env` - containes account details for both production and samples DB instances
-- `es_cogstack_users.env` - contains passwords for custom ElasticSearch users.
 - `nginx_users.env` - nginx account
 
 #### Setting up OpenSearch

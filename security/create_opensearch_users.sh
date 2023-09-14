@@ -45,8 +45,6 @@ source elasticsearch_users.env
 # load the custom users passwords
 # IMPORTANT: for production deployments please remember to change the passwords
 #
-source es_cogstack_users.env
-
 
 echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
 
@@ -139,7 +137,7 @@ curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PO
     \"cogstack_access\",
     \"kibanauser\"
   ],
-  \"password\": \"$COGSTACK_USER_PASS\",
+  \"password\": \"$INGEST_SERVICE_PASSWORD\",
   \"attributes\": {}
 }"
 echo ""
@@ -149,7 +147,7 @@ curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PO
   \"backend_roles\": [
     \"cogstack_ingest\"
   ],
-  \"password\": \"$COGSTACK_PIPELINE_PASS\",
+  \"password\": \"$INGEST_SERVICE_PASSWORD\",
   \"attributes\": {}
 }"
 echo ""
@@ -159,7 +157,7 @@ curl -k -XPUT -u $ES_ADMIN_USER:$ES_ADMIN_PASS "$HTTP_PROTOCOL://$ES_HOST:$ES_PO
   \"backend_roles\": [
     \"cogstack_ingest\"
   ],
-  \"password\": \"$COGSTACK_NIFI_PASS\",
+  \"password\": \"$INGEST_SERVICE_PASSWORD\",
   \"attributes\": {}
 }"
 echo ""

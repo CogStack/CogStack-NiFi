@@ -486,7 +486,6 @@ Steps:
 - once you get the machine's IP addresses, modify the following variable on each machine `ELASTICSEARCH_NETWORK_HOST`, with the IP of each instance
 - next, the env file will have a var for each server for settings such as:
     - `node name`: ELASTICSEARCH_NODE_1_NAME
-    - `alternative node name`: ELASTICSEARCH_ALTERNATIVE_NODE_1_NAME (used in certificate generation)
     - `output port`: ELASTICSEARCH_NODE_1_OUTPUT_PORT
     - `docker volume names`: ELASTICSEARCH_NODE_1_DATA_VOL_NAME. 
 - on all three servers this variable should be the same: `ELASTICSEARCH_SEED_HOSTS`, it should be set to all 3 ip addresess or machine names, respect the format as it is given in the file `ELASTICSEARCH_SEED_HOSTS=localhost,elasticsearch-2,elasticsearch-1,elasticsearch-3` for example, localhost must always be present
