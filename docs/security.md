@@ -86,11 +86,9 @@ Assuming you are in the `security` folder:
 
 You must run them in the above order as the root CA is required by the NiFi toolkit.
 
-### ELK stack
-For information on OpenSearch for Elasticsearch security features and their configuration please refer to [the official documentation](https://opensearch.org/docs/latest/security-plugin/index/).
+# ELK stack
 
-We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](ttps://www.elastic.co/). 
-Please note that the deployment of native ES version requires different settings to be changed from the current repository state.
+Follow the instructions carefully, there are a few sections detailing the differences between Elastic versions.
 
 ## Generating Elasticsearch native/OpenSearch + KIBANA/OpenSearch Dashboard CERTS
 
@@ -127,6 +125,7 @@ The `${ELASTICSEARCH_VERSION}` MUST be set in the `deploy/elastiscsearch.env` be
 <br>
 
 ### For OpenSearch
+For information on OpenSearch security features and their configuration please refer to [the official documentation](https://opensearch.org/docs/latest/security-plugin/index/).
 
 We have to make sure to execute the following commands `bash ./create_opensearch_nodecert.sh elasticsearch-1 && bash ./create_opensearch_nodecert.sh elasticsearch-2` this will generate the certificates for both nodes, make sure to generate the ADMIN authorization certificate by doing `bash ./create_opensearch_admin_cert.sh`.
 
@@ -135,6 +134,10 @@ The keystore/truststore certificates are also generated when creating the node c
 <br>
 
 ### For Elasticsearch Native
+
+We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](ttps://www.elastic.co/). 
+Please note that the deployment of native ES version requires different settings to be changed from the current repository state.
+
 To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](security/create_es_native_certs.sh).
 
 <br>

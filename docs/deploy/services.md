@@ -140,7 +140,7 @@ MedCAT is deployed as a service exposing RESTful API using the implementation fr
 MedCAT Service resources are stored in [`./services/nlp-services/applications/medcat/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat) directory.
 The key configuration properties stored as environment variables are defined in [`./services/nlp-services/applications/medcat/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/config) sub-directory.
 The models used by MedCAT are stored in [`./servies/nlp-services/applications/cat/models/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/models).
-A default model to play with is provided `MedMen` and there is a script `download_medmen.sh` to download it.
+A default model to play with is provided, called `MedMen` and there is a script `./services/nlp-services/applications/medcat/models/download_medmen.sh` to download it, please make sure you are in the `./services/nlp-services/applications/medcat/models/` before executing the download script.
 
 For more information on the MedCAT Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
 
@@ -465,6 +465,18 @@ A script `es_index_initializer.py` has been provided in [`./services/elasticsear
 
 Please follow the instructions carefully and adapt where necessary.
 
+#### Switching between OpenSearch and ElasticSearch
+
+You can switch by simple modifying the following variables:
+
+- `ELASTICSEARCH_VERSION` - set to `elasticsearch` or `opensearch`
+- `ELASTICSEARCH_DOCKER_IMAGE` - check the possible values in the `elasticsearch.env` file
+- `ELASTICSEARCH_KIBANA_DOCKER_IMAGE` - check the possible values in the `elasticsearch.env` file
+- `KIBANA_VERSION` - set to either `kibana` or `opensearch-dashboards` (note that opensearch-dashboards does not have an underscore in the name..)
+- `KIBANA_CONFIG_FILE_VERSION` - set to either `kibana` or `opensearch_dashboards`
+
+There are no metricbeat & filebeat equivalents provided for OpenSearch at the moment as part of this repo.
+
 #### Setting up a fresh cluster with 3 nodes
 
 Assuming you will respect the proper guidelines, you would need 3 machines to set things up. If not, then you can still set them up on one machine.
@@ -477,15 +489,46 @@ Steps:
     - `alternative node name`: ELASTICSEARCH_ALTERNATIVE_NODE_1_NAME (used in certificate generation)
     - `output port`: ELASTICSEARCH_NODE_1_OUTPUT_PORT
     - `docker volume names`: ELASTICSEARCH_NODE_1_DATA_VOL_NAME. 
-  
-  the only setting that you may change here IF needed is the `ELASTICSEARCH_NODE_1_NAME`, for each server, e.g: ELASTICSEARCH_NODE_1_NAME="test1", ELASTICSEARCH_NODE_2_NAME="test2", ELASTICSEARCH_NODE_3_NAME="test3"
+- on all three servers this variable should be the same: `ELASTICSEARCH_SEED_HOSTS`, it should be set to all 3 ip addresess or machine names, respect the format as it is given in the file `ELASTICSEARCH_SEED_HOSTS=localhost,elasticsearch-2,elasticsearch-1,elasticsearch-3` for example, localhost must always be present
+- change the cluster name if needed, by setting `ELASTICSEARCH_CLUSTER_NAME`.
+- the intial cluster manager must be set via `ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES`, normally this can be either of the servers
+- a setting you may change here IF needed is the `ELASTICSEARCH_NODE_1_NAME`, for each server, e.g: ELASTICSEARCH_NODE_1_NAME="test1", ELASTICSEARCH_NODE_2_NAME="test2", ELASTICSEARCH_NODE_3_NAME="test3".
+- extra step for Kibana and Metricbeat we will need to add all three URLs to the nodes via the `ELASTICSEARCH_HOSTS` variable, e.g: ELASTICSEARCH_HOSTS='["https://elasticsearch-1:9200","https://elasticsearch-2:9200","https://elasticsearch-3:9200"]', please respect the quotes as shown in the file otherwise there can be parsing errors.
+- update your license, set `ELASTICSEARCH_LICENSE_TYPE` from `trial` to `basic` if you are on ElasticSearch native and if you have a bought license!
+- after you are finished please read [post-setup-todos](#post-setup-to-dos)
+
+#### Resource management
+
+You may want to also change the allocated number of CPUs to one instance/node, to do this, change the following variables:
+    - `ELASTICSEARCH_NODE_PROCESSORS`, default is 2 cores, max it out if you have a node dedicated for ES only.
+    - `ELASTICSEARCH_JAVA_OPTS`, default is to `-Xms2048m -Xmx2048m` only, the max allowed memory for HEAP is 32GB, read [this article](https://www.elastic.co/blog/managing-and-troubleshooting-elasticsearch-memory).
 
 ##### Other settings
+- OPTIONAL: you can change the location of the backup mounted volumes in the container if needed by setting the `ELASTICSEARCH_BACKUPS_PATH_REPO` var, please check the syntax so it matches the format of the provided string sample:["/mnt/es_data_backups","/mnt/es_config_backups"]
 - OPTIONAL: you will need to setup the LDAP connection, if you are using LDAP, modify `ELASTICSEARCH_AD_URL`, `ELASTICSEARCH_AD_DOMAIN_NAME` and `ELASTICSEARCH_AD_TIMEOUT` (for timeout controls) also `ELASTICSEARCH_AD_UNMAPPED_GROUPS_AS_ROLES` for automatic LDAP group to role mapping (check [this](https://www.elastic.co/guide/en/enterprise-search/8.9/ldap-auth.html) for more info)
 - OPTIONAL: additionally, you may want to have an email for your watcher jobs, this can be set via the `ELASTICSEARCH_EMAIL_ACCOUNT_PROFILE` variable and `ELASTICSEARCH_EMAIL_ACCOUNT_EMAIL_DEFAULTS`, the SMTP server must be set for this to work, so set `ELASTICSEARCH_EMAIL_SMTP_HOST` and `ELASTICSEARCH_EMAIL_SMTP_PORT` accordingly, look at the sample settings in the env file for guidance.
 
+#### Setting up Kibana/OpenSearch Dashboards
+- if you wish to change the kibana instance name, change the `KIBANA_SERVER_NAME` var.
+- the `ELASTICSEARCH_HOSTS` var must be set so that it contains the URLs of all the nodes in the cluster [check the previous section's last non-optional step](#setting-up-a-fresh-cluster-with-3-nodes)
+- set `KIBANA_PUBLIC_BASE_URL` to the url of the server hosting Kibana/OS dashboards
 
-#### Updating the version of the cluster
+#### Setting up Metricbeat and Filebeat
+- set `KIBANA_HOST` to the host of your Kibana server
+- set `FILEBEAT_HOST` to the url of the server each FileBeat is on, it can be just `https://localhost:9200` or `https://0.0.0.0:9200`, if it does not work, then set it to the URL of each docker instance `https://elasticsearch-1` etc.
+- set `FILEBEAT_USER` and `FILEBEAT_PASSWORD` in `./security/elasticsearch_users.env` if needed.
+
+#### POST-SETUP TO DOs
+You have to create accounts for the default users. Please use the provided scripts in the `/security` folder.
+
+Set users in `elasticsearch_users.env` for either versions.
+For ElasticSearch native, use: `create_es_native_credentials.sh`. 
+For OpenSearch use: `create_opensearch_users.sh`.
+
+If you wish to also setup certificates, check the [security section](../security.md#elk-stack).
+
+
+### Updating the version of the cluster
 
  <span style="color: red"><strong> IMPORTANT: Make sure to disable any ingestion jobs before doing any of the update steps</strong></span>
 
@@ -508,6 +551,7 @@ Steps:
     - wait for everything to complete, check to see if the health of all clusters is green and the shards are fine
     - shut down all ES services, start with Kibana, Metricbeat, Filebeat and then the Elasticserch cluster : `docker container stop cogstack-kibana cogstack-metricbeat-1 cogstack-metricbeat-2  cogstack-filebeat-1  cogstack-filebeat-2  cogstack-filebeat-3`, `docker container stop elasticsearch-1 elasticsearch-2 elasticsearch-3`, obviously execute these on each
     - change the relevant ENV VARS (change these in `deploy/elasticsearch.env`): ELASTICSEARCH_DOCKER_IMAGE="docker.elastic.co/elasticsearch/elasticsearch:8.3.3", ELASTICSEARCH_KIBANA_DOCKER_IMAGE="docker.elastic.co/kibana/kibana:8.3.3", METRICBEAT_IMAGE="docker.elastic.co/beats/metricbeat:8.3.3", FILEBEAT_IMAGE="docker.elastic.co/beats/filebeat:8.3.3"
+    - NOTE: all docker images must have the same version, e.g 8.3.3, otherwise there may be errors, please check this before starting the services.
     - go to the `deploy` folder and start update the source env vars by executing `source export_env_vars.sh`, do a test to see if the new vars are set `echo $ELASTICSEARCH_DOCKER_IMAGE` for example
     - start only the elastic instance on the correct cluster (assuming each node is on its own separate machine, as it should normally be), wait for startup to complete
     - start the rest of the services and check for the health of each node
