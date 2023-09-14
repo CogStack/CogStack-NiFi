@@ -724,7 +724,7 @@ services:
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
-    image: ${METRICBEAT_IMAGE:docker.elastic.co/beats/metricbeat:8.3.3}
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -765,7 +765,7 @@ services:
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
-    image: ${METRICBEAT_IMAGE:docker.elastic.co/beats/metricbeat:8.3.3}
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
