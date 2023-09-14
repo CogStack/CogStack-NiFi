@@ -85,11 +85,11 @@ Assuming you are in the `security` folder:
 
 You must run them in the above order as the root CA is required by the NiFi toolkit.
 
-# ELK stack
+## ELK stack
 
 Follow the instructions carefully, there are a few sections detailing the differences between Elastic versions.
 
-## Generating Elasticsearch native/OpenSearch + KIBANA/OpenSearch Dashboard CERTS
+### Generating Elasticsearch native/OpenSearch + KIBANA/OpenSearch Dashboard CERTS
 
 ### Elasticsearch/OpenSearch Security Requirements
 
@@ -179,7 +179,7 @@ Once generated, the files can be further referenced in `services/kibana/config/k
 <br>
 
 
-## Users and roles in ElasticSearch/OpenSearch
+### Users and roles in ElasticSearch/OpenSearch
 
 ### Generating users
 ### Users and passwords enironment variables
