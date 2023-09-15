@@ -114,6 +114,30 @@ Common issues that can be encountered across services.
 <br>
 <br>
 
+#### **Apple Silicon**
+
+Many services cannot run natively on Apple Silicon (such as M1 and M2 architectures). Common error messages related to Apple silicon follow patterns similar to:
+    <br /><br/>
+    - `no match for platform in manifest`
+    <br /><br/>
+    <br /><br/>
+    - `no matching manifest for linux/arm64/v8 in the manifest list entries`
+    <br /><br/>
+    <br /><br/>
+    - `image with reference cogstacksystems/cogstack-ocr-service:0.2.4 was found but does not match the specified platform: wanted linux/arm64, actual: linux/amd64`
+    <br /><br/>
+To solve these issues; Rosetta is required and enabled in Docker Desktop. Finally an environment variable is required to be set.
+
+Rosetta can which can be installed via the following command:
+```
+softwareupdate --install-rosetta
+```
+When Rosetta and Docker Desktop are installed, Rosetta must be enabled. This done by going to Docker Desktop -> Setting -> General and enabling "Use Virtualization framework". After in the same settings go to "features in development" -> "Use Rosetta for x86/amd64 emulation on Apple Silicon". Finally execute the following command:
+```
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+```
+to set the environment variable. These issues are known to occur on the "cogstack-nifi", "cogstack-ocr-services" and "jupyter-hub" services and may occur on others.
+
 #### **NiFi**
 
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
