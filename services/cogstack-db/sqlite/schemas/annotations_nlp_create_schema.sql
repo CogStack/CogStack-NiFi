@@ -1,16 +1,7 @@
 CREATE TABLE documents (
-	id UUID PRIMARY KEY,
+	id VARCHAR PRIMARY KEY,
 	document_id VARCHAR  NOT NULL, 
 	document_text TEXT
-);
-
-CREATE TABLE nlp_models (
-	id BIGINT PRIMARY KEY,
-	"name" VARCHAR NOT NULL, 
-    tag VARCHAR,
-    "description" VARCHAR,
-    domains VARCHAR,
-    "url" VARCHAR
 );
 
 CREATE TABLE annotations (
@@ -40,4 +31,13 @@ CREATE TABLE meta_annotations (
     "value" VARCHAR,
     confidence DECIMAL,
     "name" VARCHAR
+);
+
+CREATE TABLE nlp_models (
+	id BIGINT PRIMARY KEY,
+	"name" VARCHAR NOT NULL, 
+    tag VARCHAR,
+    "description" VARCHAR,
+    domains VARCHAR,
+    "url" VARCHAR
 );

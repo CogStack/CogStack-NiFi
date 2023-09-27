@@ -1,4 +1,5 @@
 conf/*
+user-scripts/db/*
 **devel
 devel
 **flow
