@@ -36,7 +36,7 @@ CREATE TABLE annotations (
 
 CREATE TABLE meta_annotations (
     id BIGINT PRIMARY KEY,
-    annotation_id VARCHAR REFERENCES annotations,
+    annotation_id BIGINT REFERENCES annotations,
     "value" VARCHAR,
     confidence DECIMAL,
     "name" VARCHAR
