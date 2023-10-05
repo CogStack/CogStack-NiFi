@@ -4,6 +4,9 @@ Software required on machine:
     - git + git-lfs
     - Docker
 
+You can use the script with `SUDO` rights, located at `/scripts/installation_utils/install_docker_and_utils.sh`, it can be used on Debian/Ubuntu/CentOS/RedHAT RHEL 8 only, run it once and everything should be set up.
+Consult the (`Docker installation steps`)[https://docs.docker.com/engine/install/debian/] if there are issues with the docker setup.
+
 #### <span style="color: red"><strong>IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
 
 # Deployment
