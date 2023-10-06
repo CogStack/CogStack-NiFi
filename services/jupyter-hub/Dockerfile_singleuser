@@ -50,6 +50,7 @@ RUN apt-get update && apt-get upgrade -y && \
     gnupg \
     ssl-cert \ 
     libevent-dev \
+    libsqlite3-dev \
     python3-dev \
     python3.10-dev \
     python3-all-dev \
@@ -114,6 +115,9 @@ RUN fix-permissions $CONDA_DIR && fix-permissions /home/$NB_USER
 
 # deps for psycopg2
 RUN apt-get install -y postgresql-server-dev-all --no-install-recommends 
+
+# install rust, medcat requirement
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # update pip and install basic utilities
 RUN pip3 install --upgrade pip
