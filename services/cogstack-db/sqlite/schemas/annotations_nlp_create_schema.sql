@@ -1,13 +1,13 @@
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
 	id VARCHAR PRIMARY KEY,
-	document_id VARCHAR  NOT NULL, 
+	document_id VARCHAR NOT NULL, 
 	document_text TEXT
 );
 
-CREATE TABLE annotations (
-	id BIGINT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS annotations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
     elasticsearch_id VARCHAR NULL,
-	label VARCHAR(255) NOT NULL,
+	label VARCHAR(255),
     label_id VARCHAR(10),
     source_value VARCHAR,
     accuracy DECIMAL,
@@ -22,18 +22,18 @@ CREATE TABLE annotations (
     snomed VARCHAR,
     "type" VARCHAR(255),
     medcat_version VARCHAR,
-    model_id_used INTEGER REFERENCES nlp_models
+    model_id_used INTEGER REFERENCES nlp_models NULL
 );
 
-CREATE TABLE meta_annotations (
-    id BIGINT PRIMARY KEY,
-    annotation_id BIGINT REFERENCES annotations,
+CREATE TABLE IF NOT EXISTS meta_annotations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    annotation_id INTEGER REFERENCES annotations NULL,
     "value" VARCHAR,
     confidence DECIMAL,
     "name" VARCHAR
 );
 
-CREATE TABLE nlp_models (
+CREATE TABLE IF NOT EXISTS nlp_models (
 	id BIGINT PRIMARY KEY,
 	"name" VARCHAR NOT NULL, 
     tag VARCHAR,

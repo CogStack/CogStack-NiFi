@@ -6,3 +6,4 @@ devel
 **login
 **conf
 *.jks
+**__pycache__
