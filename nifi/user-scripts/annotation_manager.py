@@ -11,7 +11,10 @@ global LOG_FILE_NAME
 global OPERATION_MODE
 
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/data/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
+# default values from /deploy/nifi.env
+
 USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
+USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR")
 
 # possible values:
 #   - check - check if a document ID has already been annotated
@@ -19,8 +22,6 @@ USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
 OPERATION_MODE = "check"
 
 # get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
-USER_SCRIPT_DB_DIR = os.environ.get("USER_SCRIPT_DB_DIR")
-
 for arg in sys.argv:
     _arg = arg.split("=", 1)
     if _arg[0] == "index_db_file_name":
@@ -39,7 +40,7 @@ def main():
     output_stream = {}
 
     try:
-        log_file_path = os.path.join(str(os.environ .get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), str(LOG_FILE_NAME))
+        log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
         db_file_path = os.path.join(USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
 
         json_data_record = json.loads(input_stream)
