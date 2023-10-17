@@ -36,10 +36,13 @@ RUN apt-add-repository restricted && \
     add-apt-repository ppa:graphics-drivers/ppa && \
     apt-get update && apt-get upgrade -y
 
-RUN apt-get install -y libsqlite3-dev postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 --no-install-recommends
+RUN apt-get install -y libsqlite3-dev postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 python3.11 python3.11-dev --no-install-recommends
 
 # install rust, medcat requirement
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+RUN curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# needed for rust & cargo
+# RUN bash $HOME/.cargo/env
 
 # timezone setting
 RUN apt-get install -y tzdata
@@ -47,7 +50,7 @@ RUN apt-get install -y tzdata
 RUN pip3 install --upgrade pip && \
     pip3 install setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
     pip3 install pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
-    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc openpyxl sqlite3
+    pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc openpyxl
 
 # XNAT
 RUN pip3 install xnat
