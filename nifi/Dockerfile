@@ -50,6 +50,8 @@ RUN curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # clean up apt
 RUN apt-get clean autoclean && apt-get autoremove --purge -y
 
+######################################## Python / PIP SECTION ########################################
+
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
     pip3 install --no-cache-dir pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
@@ -71,26 +73,25 @@ RUN pip3 install --no-cache-dir jupyter geocoder
 # clean up pip
 RUN pip3 cache purge
 
+#######################################################################################################
+
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
 RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROXY -Dhttp.nonProxyHosts=$no_proxy"
 
 # USER nifi
 
-# copy drivers
-WORKDIR /opt/nifi/
-#COPY ./drivers ./drivers
-#COPY ../security ./security
-
-# copy user scripts, schemas and templates
+# copy user scripts, schemas
 COPY ./user-scripts ./user-scripts
 COPY ./user-schemas ./user-schemas
+
+# copy templates
+WORKDIR /opt/nifi/nifi-current/conf/templates/
+COPY ./user-templates ./    
 
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-#####
-WORKDIR /opt/nifi/nifi-current/conf/templates/
-COPY ./user-templates ./    
+# Install Groovy
 
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
@@ -101,6 +102,7 @@ RUN curl https://archive.apache.org/dist/groovy/4.0.9/distribution/apache-groovy
 ENV GROOVY_BIN=/opt/nifi/groovy/groovy-4.0.9/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.11.0
 
+# install Jython
 RUN mkdir -p /opt/nifi/jython
 RUN curl https://repo1.maven.org/maven2/org/python/jython-installer/2.7.3/jython-installer-2.7.3.jar --output jython-installer-2.7.3.jar --max-time 3600
 RUN java -jar jython-installer-2.7.3.jar -s -v -d /opt/nifi/jython
@@ -111,8 +113,6 @@ RUN rm jython-installer-2.7.3.jar
 RUN $JYTHON_HOME/bin/jython -m ensurepip
 RUN $JYTHON_HOME/bin/jython -m pip install --upgrade pip
 RUN $JYTHON_HOME/bin/jython -m pip install avro pysqlite3
-
-WORKDIR  /opt/nifi/nifi-toolkit-current/
 
 # copy configuration files
 WORKDIR /opt/nifi/nifi-current/conf/
@@ -126,4 +126,5 @@ COPY ./conf/login-identity-providers.xml ./
 # finalize
 WORKDIR /opt/nifi/nifi-current/
 
+# add log file
 RUN touch logs/nifi-app.log
