@@ -11,8 +11,8 @@ global LOG_FILE_NAME
 global OPERATION_MODE
 
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/data/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
-# default values from /deploy/nifi.env
 
+# default values from /deploy/nifi.env
 USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
 USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR")
 

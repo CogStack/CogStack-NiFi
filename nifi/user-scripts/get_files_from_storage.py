@@ -131,7 +131,7 @@ def get_files_and_metadata():
                                 record_counter += 1
                             else:
                                 break
-                        except Exception as e:
+                        except Exception as exception:
                             print("Failed to open file:" + file_path)   
                             traceback.print_exc()
 
@@ -179,7 +179,7 @@ def get_files_and_metadata():
                         for i in range(0, len(txt_file_df)):
                             output_data.append(txt_file_df.iloc[i].to_dict())
                     
-                except Exception as e:
+                except Exception as exception:
                     print("failure")
                     traceback.print_exc()
 
