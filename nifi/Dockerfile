@@ -36,10 +36,10 @@ RUN apt-add-repository restricted && \
     add-apt-repository ppa:graphics-drivers/ppa && \
     apt-get update && apt-get upgrade -y
 
-RUN apt-get install -y libsqlite3-dev postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 python3.11 python3.11-dev --no-install-recommends
+RUN apt-get install --no-install-recommends -y libsqlite3-dev postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 python3.11 python3.11-dev
 
 # timezone setting
-RUN apt-get install -y tzdata
+RUN apt-get install --no-install-recommends -y tzdata
 
 # install rust, medcat requirement
 RUN curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

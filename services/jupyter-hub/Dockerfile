@@ -62,20 +62,29 @@ RUN apt-get update && apt-get upgrade -y && \
     libkrb5-dev \
     libsasl2-modules-gssapi-mit
 
-RUN apt-get install -y python3 python3-pip python3-dev python3-all-dev ssl-cert --no-install-recommends
+RUN apt-get install --no-install-recommends -y python3 python3-pip python3-dev python3-all-dev ssl-cert
 
-RUN pip3 install --upgrade pip
+# clean up apt
+RUN apt-get clean autoclean && apt-get autoremove --purge -y
+
+######################################## Python / PIP SECTION ########################################
+RUN pip3 install --no-cache-dir --upgrade pip
 
 # utils for jupyterhub
-RUN pip3 install setuptools wheel virtualenv cython isort netifaces
+RUN pip3 install --no-cache-dir setuptools wheel virtualenv cython isort netifaces
 
 # jupyterhub stuff
-RUN pip3 install sqlalchemy detect simplejson ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata jupyterhub-firstuseauthenticator dockerspawner jupyterhub-nativeauthenticator
-RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions dask-labextension jupyter-server-proxy fastbook
-RUN pip3 install jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator --ignore-installed PyYAML 
-RUN pip3 install jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner jupyterhub-idle-culler
+RUN pip3 install --no-cache-dir sqlalchemy detect simplejson ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata jupyterhub-firstuseauthenticator dockerspawner jupyterhub-nativeauthenticator
+RUN pip3 install --no-cache-dir jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions dask-labextension jupyter-server-proxy fastbook
+RUN pip3 install --no-cache-dir jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator --ignore-installed PyYAML 
+RUN pip3 install --no-cache-dir jupyterhub-ldapauthenticator jupyterhub-nanowireauthenticator jupyterhub-kubespawner jupyterhub-idle-culler
 
 # RUN python3 -m jupyter contrib nbextension install --sys-prefix
+
+# clean up pip
+RUN pip3 cache purge
+
+#######################################################################################################
 
 RUN mkdir -p /home/jovyan/scratch
 RUN chmod -R 777 /home/jovyan/scratch
@@ -83,12 +92,5 @@ RUN chmod g+s /home/jovyan/scratch
 
 # copy scripts and config files
 COPY config/jupyterhub_config.py /etc/jupyterhub/
-
-# copy notebooks
-COPY notebooks /home/jovyan/work/
-
-# clean up
-RUN pip3 cache purge
-RUN apt-get autoremove -y
 
 USER $NB_UID
