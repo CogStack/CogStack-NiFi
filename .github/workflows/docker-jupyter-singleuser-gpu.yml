@@ -1,4 +1,4 @@
-name: docker-jupyter-singleuser
+name: docker-jupyter-singleuser-gpu
 
 on:
 
@@ -76,14 +76,14 @@ jobs:
         if: ${{ env.RELEASE_VERSION == 'master' }}
         run: echo "RELEASE_VERSION=latest" >> $GITHUB_ENV
 
-      - name: Build and push Docker Jupyter singleuser image
+      - name: Build and push Docker Jupyter singleuser image with GPU support
         uses: docker/build-push-action@v2
         with:
           context : ./services/jupyter-hub
-          file : "./services/jupyter-hub/Dockerfile_singleuser"
+          file : "./services/jupyter-hub/Dockerfile_singleuser_gpu"
           allow: network.host
           github-token: ${{ github.token }}
-          tags: cogstacksystems/jupyter-singleuser:${{ env.RELEASE_VERSION }}
+          tags: cogstacksystems/jupyter-singleuser-gpu:${{ env.RELEASE_VERSION }}
           push: true
 
       - name: Image digest
