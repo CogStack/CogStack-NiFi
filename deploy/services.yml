@@ -978,7 +978,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.1
+    image: cogstacksystems/cogstack-nifi:1.2.2
     #build:
     #   context: ../nifi/
     #   args:      
@@ -1032,7 +1032,10 @@ services:
 
       # this is where you should place data to be ingested, under the form of symbolic
       - ${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
-         
+
+      # DB-schemas, from the services folder
+      - ../services/cogstack-db/:/opt/data/cogstack-db/:rw
+
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
