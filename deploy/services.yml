@@ -159,7 +159,7 @@ services:
 #---------------------------------------------------------------------------#
   ocr-service-1:
     container_name: ocr-service-1
-    platform: linux
+    
     image: cogstacksystems/cogstack-ocr-service:0.2.4
     restart: always
     # mem_swappiness: 0
@@ -193,7 +193,7 @@ services:
 
   ocr-service-2:
     container_name: ocr-service-2
-    platform: linux
+    
     image: cogstacksystems/cogstack-ocr-service:0.2.4
     restart: always
     # mem_swappiness: 0
@@ -227,7 +227,7 @@ services:
 
   ocr-service-3:
     container_name: ocr-service-3
-    platform: linux
+    
     image: cogstacksystems/cogstack-ocr-service:0.2.4
     restart: always
     # mem_swappiness: 0
@@ -261,7 +261,7 @@ services:
 
   ocr-service-4:
     container_name: ocr-service-4
-    platform: linux
+    
     image: cogstacksystems/cogstack-ocr-service:0.2.4
     restart: always
     # mem_swappiness: 0
@@ -446,7 +446,7 @@ services:
   elasticsearch-1:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-1
-    platform: linux
+    
     shm_size : 1024mb
     restart: always
     # mem_limit: 2g
@@ -539,7 +539,7 @@ services:
   elasticsearch-2:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-2
-    platform: linux
+    
     shm_size : 1024mb
     restart: always
     # mem_limit: 2g
@@ -632,7 +632,6 @@ services:
   elasticsearch-3:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-3
-    platform: linux
     shm_size : 1024mb
     restart: always
     # mem_limit: 2g
@@ -1118,7 +1117,7 @@ services:
     #    - no_proxy=$no_proxy
     container_name: cogstack-jupyter-hub
     restart: always
-    platform: linux
+    
     env_file:
       - ./jupyter.env
     environment:
