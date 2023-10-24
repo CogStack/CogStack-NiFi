@@ -1033,7 +1033,7 @@ services:
       - ${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
 
       # DB-schemas, from the services folder
-      - ../services/cogstack-db/:/opt/data/cogstack-db/:rw
+      - ../services/cogstack-db/:/opt/cogstack-db/:rw
 
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -1072,7 +1072,7 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.1
+    image: cogstacksystems/nifi-nginx:1.2.2
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
