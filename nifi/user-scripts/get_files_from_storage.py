@@ -68,7 +68,7 @@ output_data = []
 
 def get_files_and_metadata():
     '''_summary_
-        This will read the pdf documents and metadata.csv file from one folder and output them as a json,
+        This will read the pdf/docx/txt etc. documents and metadata.csv file from one folder and output them as a json,
         NiFi will handle the conversion of this json to a proper flowfile using the ConvertRecord processor.
 
         It will only ingest one folder of that matches the yyyy/mm/dd pattern, then stop declared in the 'folder_pattern' variable.
@@ -184,7 +184,7 @@ def get_files_and_metadata():
                     print("failure")
                     traceback.print_exc()
 
-            elif record_counter >= output_batch_size - 1:
+            if record_counter >= output_batch_size - 1:
                 break
 
 get_files_and_metadata()
