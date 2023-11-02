@@ -370,3 +370,9 @@ The result of the script is a JSON with all the records within a folder passted 
 , and the designated binary data column is set as the content of the new flowfile, so that we send binary data to the ocr service.
 5. perform the OCR
 6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!
+
+Prerequisite if you want to test this template for testing, please run the following commands:
+- `cd nifi/user-scripts/tests`
+- `python3 generate_files.py`
+
+The above assumes that you already have the NiFi container running, the script just generates some sample files.
