@@ -63,7 +63,7 @@ start-production-db:
 	docker-compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
 start-ocr-services:
-	docker-compose -f services.yml ${DC_START_CMD} ocr-service-1 ocr-service-2 ocr-service-3 ocr-service-4
+	docker-compose -f services.yml ${DC_START_CMD} ocr-service-1 ocr-service-2
 
 start-git-ea:
 	docker-compose -f services.yml ${DC_START_CMD} gitea
@@ -135,7 +135,7 @@ stop-git-ea:
 	docker-compose -f services.yml ${DC_STOP_CMD} gitea
 
 stop-ocr-services:
-	docker-compose -f services.yml ${DC_STOP_CMD} ocr-service-1 ocr-service-2 ocr-service-3 ocr-service-4
+	docker-compose -f services.yml ${DC_STOP_CMD} ocr-service-1 ocr-service-2
 
 stop-data-infra: stop-nifi stop-elastic stop-tika stop-samples
 
