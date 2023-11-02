@@ -354,3 +354,19 @@ The flow is displayed in the image below. Split into two sections, it does the f
   - in the bottom second half of the image we convert the current fields gotten from the DB to our own schema mapping, the resulting record being in Avro format, we then ingest the record into ES. The only two processors that need changing here are `GenerateTableFetch` and `PutElasticsearchRecord`.
 
 ![common-schema-workflow](../_static/img/cogstack_common_schema_full_workflow.png)
+
+## Ingesting raw files from disk with extra optional data
+
+NiFi template name: `Raw_file_read_from_disk_ocr_custom`
+
+Journey of this workflow: 
+1. execute python file that gets the record files from a folder which respects the yyyy/mm/dd pattern, each folder has a meta.csv file containing record data columns,
+ the free text is however stored in raw format however and needs to be OCR-ed, with the file name being the record ID from the meta.csv file. 
+We perform a lookup up and add the raw file content as a column to its corresponding record. 
+The result of the script is a JSON with all the records within a folder passted to STDOUT (only one flowfile can be generated per processor call since it is stdout).
+2. we add the content-type as "application/json" to each flowfile, for completness.
+3. we split the list of dictionaries so that we from one flowfile containing X records we will have a flowfile per record (required as for OCR-ing, we can only do one file per request). This step may require additional adjustment, the SplitJson processor has a text char limit (2mil) that it can split. If we go above that we can't split, so adjust the `output_batch_size` parameter of the `ExecuteProcess-getFilesFromDisk` processor, contained within the `Command Arguments` property, at the very end.
+4. we convert the JSON output to AVRO for easier manipulation within the NiFi Jython script, which transfers the record's fields as attributes of a flowfile for future use
+, and the designated binary data column is set as the content of the new flowfile, so that we send binary data to the ocr service.
+5. perform the OCR
+6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!
