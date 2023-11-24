@@ -909,7 +909,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.2
+    image: cogstacksystems/cogstack-nifi:1.2.3
     #build:
     #   context: ../nifi/
     #   args:      
@@ -966,6 +966,9 @@ services:
 
       # DB-schemas, from the services folder
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
+
+      # medcat models
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/opt/data/models:rw
 
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
