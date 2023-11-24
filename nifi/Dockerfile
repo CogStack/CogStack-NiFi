@@ -81,12 +81,12 @@ RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROX
 # USER nifi
 
 # copy user scripts, schemas
-COPY ./user-scripts ./user-scripts
-COPY ./user-schemas ./user-schemas
+#COPY ./user-scripts ./user-scripts
+#COPY ./user-schemas ./user-schemas
 
 # copy templates
 WORKDIR /opt/nifi/nifi-current/conf/templates/
-COPY ./user-templates ./    
+#COPY ./user-templates ./    
 
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
