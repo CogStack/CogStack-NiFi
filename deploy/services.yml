@@ -1007,7 +1007,7 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.2
+    image: cogstacksystems/nifi-nginx:1.2.3
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
