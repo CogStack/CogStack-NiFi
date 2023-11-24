@@ -968,7 +968,7 @@ services:
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
 
       # medcat models
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/opt/data/models:rw
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/opt/models:rw
 
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
