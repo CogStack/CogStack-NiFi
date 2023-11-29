@@ -1,6 +1,7 @@
 from medcat.utils.ner.deid import DeIdModel
 import sys
 import os
+
 input_text = sys.stdin.read()
 
 model_pack_path = os.environ.get("MODEL_PACK_PATH", "/opt/models/de_id_base.zip")
