@@ -1,11 +1,11 @@
-FROM apache/nifi:${NIFI_VERSION:-1.23.2}
+FROM apache/nifi:${NIFI_VERSION:-1.24.0}
 
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
 ARG no_proxy=""
 ARG DEBIAN_FRONTEND=noninteractive
 
-ENV NIFI_VERSION=${NIFI_VERSION:-1.23.2}
+ENV NIFI_VERSION=${NIFI_VERSION:-1.24.0}
 
 ENV NIFI_UID ${NIFI_UID:-1000}
 ENV NIFI_GID ${NIFI_GID:-1000}
@@ -62,7 +62,7 @@ RUN pip3 install --no-cache-dir xnat
 
 # medcat & models
 RUN pip3 install --no-cache-dir -U spacy click torch thinc
-RUN pip3 install --no-cache-dir medcat
+RUN pip3 install --no-cache-dir medcat==1.5.3
 
 # ApacheNifi specific packages
 RUN pip3 install --no-cache-dir nipyapi nifi.flowfile avro
