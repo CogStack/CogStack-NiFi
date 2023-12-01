@@ -1,7 +1,6 @@
 import traceback
 import io
 import json
-import avro
 import copy
 
 # jython packages
@@ -57,14 +56,14 @@ class PyStreamCallback(StreamCallback):
         for record in records:
             metadata = copy.deepcopy(records.meta)
             schema_from_file = json.loads(metadata["avro.schema"])
-            
-            #with open("/opt/nifi/user-scripts/tmp/test_schmea.avsc", "w+") as f:
-            #    f.write(str(record))
-
             new_flow_file = session.create(flowFile)
 
+            new_flow_file = session.putAttribute(new_flow_file, "attribute_list", str(list(record.keys())))
+            new_flow_file = session.putAttribute(new_flow_file, "avro_schema", json.dumps(schema_from_file))
+
             for k, v in record.iteritems():
-                new_flow_file = session.putAttribute(new_flow_file, k, str(v))
+                if k != FIELD_NAMES_TO_KEEP_AS_CONTENT:
+                    new_flow_file = session.putAttribute(new_flow_file, k, str(v))
                 if FIELD_NAMES_TO_KEEP_AS_CONTENT is not "" and k == FIELD_NAMES_TO_KEEP_AS_CONTENT:
                     new_flow_file = session.write(new_flow_file, WriteContentCallback(str(v).encode("UTF-8")))
             output_flowFiles.append(new_flow_file)
