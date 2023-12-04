@@ -909,7 +909,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.3
+    image: cogstacksystems/cogstack-nifi:1.2.4
     #build:
     #   context: ../nifi/
     #   args:      
@@ -1007,7 +1007,7 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.3
+    image: cogstacksystems/nifi-nginx:1.2.4
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
