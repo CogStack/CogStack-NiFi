@@ -5,7 +5,6 @@ import json
 
 from medcat.cat import CAT
 
-
 def special_deid(cat, text, record):
     return record, deid_text(cat, text)
 
@@ -31,8 +30,11 @@ final_records = []
 cat = CAT.load_model_pack(model_pack_path)
 
 for record in records:
-    _anon_text = deid_text(cat, record[text_field_name])
-    record[text_field_name] = _anon_text
-    final_records.append(record)
+    if text_field_name in record.keys():
+        _anon_text = deid_text(cat, record[text_field_name])
+        record[text_field_name] = _anon_text
+        final_records.append(record)
+    else:
+        final_records.append(record)
 
 sys.stdout.write(json.dumps(final_records))
