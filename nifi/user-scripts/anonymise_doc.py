@@ -43,7 +43,7 @@ for record in records:
         if len(text_field) > char_limit:
             sections = int(len(text_field) / char_limit)
 
-            for i in range(sections):
+            for i in range(0, sections):
                 _tmp_text = text_field[i * char_limit:(i + 1) * char_limit]
                 _anon_text += deid_text(cat, _tmp_text)
         else:
