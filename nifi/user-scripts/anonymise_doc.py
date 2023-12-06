@@ -11,8 +11,13 @@ def special_deid(cat, text, record):
 input_text = sys.stdin.read()
 
 model_pack_path = os.environ.get("MODEL_PACK_PATH", "/opt/models/de_id_base.zip")
+
 text_field_name = "document"
 nproc = 100
+
+# if there are issues with DE-ID model not working on certain long documents please play around with the character limit
+# dependent on the tokenizer used
+char_limit = 512
 
 for arg in sys.argv:
     _arg = arg.split("=", 1)
@@ -22,6 +27,8 @@ for arg in sys.argv:
         text_field_name = _arg[1]
     if _arg[0] == "nproc":
         nproc = _arg[1]
+    if _arg[0] == "char_limit":
+        char_limit = _arg[1]
 
 
 records = json.loads(str(input_text))
@@ -31,7 +38,16 @@ cat = CAT.load_model_pack(model_pack_path)
 
 for record in records:
     if text_field_name in record.keys():
-        _anon_text = deid_text(cat, record[text_field_name])
+        text_field = record[text_field_name]
+        _anon_text = ""
+        if len(text_field) > char_limit:
+            sections = int(len(text_field_name) / char_limit)
+
+            for i in range(sections):
+                _tmp_text = text_field[i * char_limit: (i + 1) * char_limit]
+                _anon_text += deid_text(cat, _tmp_text)
+        else:
+            _anon_text = deid_text(cat, text_field)
         record[text_field_name] = _anon_text
         final_records.append(record)
     else:
