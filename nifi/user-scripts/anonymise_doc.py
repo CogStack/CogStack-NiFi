@@ -1,54 +1,57 @@
+# tested with medcat==1.5.3
+
 from medcat.utils.ner import deid_text
 import sys
 import os
 import json
+import ast
 
 from medcat.cat import CAT
 
-def special_deid(cat, text, record):
-    return record, deid_text(cat, text)
-
 input_text = sys.stdin.read()
 
-model_pack_path = os.environ.get("MODEL_PACK_PATH", "/opt/models/de_id_base.zip")
+MODEL_PACK_PATH = os.environ.get("MODEL_PACK_PATH", "/opt/models/de_id_base.zip")
 
-text_field_name = "document"
-nproc = 100
+TEXT_FIELD_NAME = "document"
+NPROC = 100
 
 # if there are issues with DE-ID model not working on certain long documents please play around with the character limit
 # dependent on the tokenizer used
-char_limit = 512
+CHAR_LIMIT = 512
+
+REDACT = True
 
 for arg in sys.argv:
     _arg = arg.split("=", 1)
     if _arg[0] == "model_pack_path":
-        model_pack_path = _arg[1]
+        MODEL_PACK_PATH = _arg[1]
     if _arg[0] == "text_field_name":
-        text_field_name = _arg[1]
+        TEXT_FIELD_NAME = _arg[1]
     if _arg[0] == "nproc":
-        nproc = _arg[1]
+        NPROC = _arg[1]
     if _arg[0] == "char_limit":
-        char_limit = _arg[1]
-
+        CHAR_LIMIT = int(_arg[1])
+    if _arg[0] == "redact":
+        REDACT = ast.literal_eval(_arg[1])
 
 records = json.loads(str(input_text))
 final_records = []
 
-cat = CAT.load_model_pack(model_pack_path)
+cat = CAT.load_model_pack(MODEL_PACK_PATH)
 
 for record in records:
-    if text_field_name in record.keys():
-        text_field = record[text_field_name]
+    if TEXT_FIELD_NAME in record.keys():
+        text_field = record[TEXT_FIELD_NAME]
         _anon_text = ""
-        if len(text_field) > char_limit:
-            sections = int(len(text_field) / char_limit)
+        if len(text_field) > CHAR_LIMIT:
+            sections = int(len(text_field) / CHAR_LIMIT)
 
             for i in range(0, sections):
-                _tmp_text = text_field[i * char_limit:(i + 1) * char_limit]
-                _anon_text += deid_text(cat, _tmp_text)
+                _tmp_text = text_field[i * CHAR_LIMIT:(i + 1) * CHAR_LIMIT]
+                _anon_text += deid_text(cat, _tmp_text, redact=REDACT)
         else:
-            _anon_text = deid_text(cat, text_field)
-        record[text_field_name] = _anon_text
+            _anon_text = deid_text(cat, text_field, redact=REDACT)
+        record[TEXT_FIELD_NAME] = _anon_text
         final_records.append(record)
     else:
         final_records.append(record)
