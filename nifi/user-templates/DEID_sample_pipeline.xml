@@ -12,7 +12,7 @@
             <bundle>
                 <artifact>nifi-record-serialization-services-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
@@ -178,7 +178,7 @@
             <bundle>
                 <artifact>nifi-dbcp-service-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
@@ -559,7 +559,7 @@
                     <bundle>
                         <artifact>nifi-scripting-nar</artifact>
                         <group>org.apache.nifi</group>
-                        <version>1.23.2</version>
+                        <version>1.24.0</version>
                     </bundle>
                     <config>
                         <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -665,7 +665,7 @@
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
                         <group>org.apache.nifi</group>
-                        <version>1.23.2</version>
+                        <version>1.24.0</version>
                     </bundle>
                     <config>
                         <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -740,7 +740,7 @@
                             </entry>
                             <entry>
 <key>Command Path</key>
-<value>python3.11</value>
+<value>python3.10</value>
                             </entry>
                             <entry>
 <key>argumentsStrategy</key>
@@ -803,7 +803,7 @@
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
                         <group>org.apache.nifi</group>
-                        <version>1.23.2</version>
+                        <version>1.24.0</version>
                     </bundle>
                     <config>
                         <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -989,7 +989,7 @@
                     <bundle>
                         <artifact>nifi-standard-nar</artifact>
                         <group>org.apache.nifi</group>
-                        <version>1.23.2</version>
+                        <version>1.24.0</version>
                     </bundle>
                     <config>
                         <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
