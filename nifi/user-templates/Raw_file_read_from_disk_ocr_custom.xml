@@ -613,7 +613,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-record-serialization-services-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
@@ -801,7 +801,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-record-serialization-services-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <comments></comments>
             <descriptors>
@@ -1095,7 +1095,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-update-attribute-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1186,7 +1186,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1259,7 +1259,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1418,7 +1418,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1577,7 +1577,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1716,7 +1716,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1817,7 +1817,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-scripting-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -1943,7 +1943,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -2439,7 +2439,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -2527,7 +2527,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-scripting-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
@@ -2614,7 +2614,7 @@ The result of the script is a JSON with all the records within a folder passted 
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.23.2</version>
+                <version>1.24.0</version>
             </bundle>
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
