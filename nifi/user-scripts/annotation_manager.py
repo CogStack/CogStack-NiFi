@@ -10,7 +10,7 @@ global DB_FILE_NAME
 global LOG_FILE_NAME
 global OPERATION_MODE
 
-ANNOTATION_DB_SQL_FILE_PATH = "/opt/data/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
+ANNOTATION_DB_SQL_FILE_PATH = "/opt/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
 
 # default values from /deploy/nifi.env
 USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
@@ -35,9 +35,12 @@ for arg in sys.argv:
     elif _arg[0] == "operation_mode":
         OPERATION_MODE = _arg[1]
 
+global output_stream
+
+output_stream = {}
+
 def main():
     input_stream = sys.stdin.read()
-    output_stream = {}
 
     try:
         log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
@@ -49,8 +52,8 @@ def main():
             create_db_from_file(ANNOTATION_DB_SQL_FILE_PATH, db_file_path)
 
         if OPERATION_MODE == "check":
-            document_id = str(json_data_record["content"][0]["id"])
-            query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE (" + document_id + "_" + ")"
+            document_id = str(json_data_record["id"])
+            query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE (" + document_id + ")"
             result = connect_and_query(query, db_file_path)
             
             output_stream = input_stream
@@ -58,6 +61,7 @@ def main():
                 output_stream = len(result)
             else:
                 output_stream = json_data_record
+
         elif OPERATION_MODE == "insert":
             query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(json_data_record["meta.docid"]) + "_" + str(json_data_record["nlp.id"]) + '"' +")"
             result = connect_and_query(query, db_file_path, sql_script_mode=True)
