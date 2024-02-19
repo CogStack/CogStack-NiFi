@@ -1,6 +1,6 @@
 # Workflows
 
-Our custom Apache NiFi image comes with 4 example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
+Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
 These are:
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
 2. `OpenSearch_ingest_DB_to_ES_OCR` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using Tika-service.
@@ -8,6 +8,10 @@ These are:
 4. `OpenSearch_ingest_annotate_ES_MedCATService_to_ES` - the same as (3) but reading notes from Elasticsearch.
 
 If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), please note that all of these templates have SSL configured (SSLContext service controller being present), please make sure that you set the password(s) to the key/trust(store) for the templates to work.
+
+There are more workflows available in the sections below
+
+<span style="color: red"><strong> IMPORTANT:</strong></span> if you do not see some workflows in the NiFi Template Web interface then you will have to manually go to the `./nifi/user-templates` folder and upload whatever templates are missing, the reason for this is that NiFi keep its own available template(s) file separately and we do not update this as it will overwrite the user's own file.
 
 <br>
 
@@ -19,6 +23,8 @@ In the workflow examples, the following services are used:
 - `elasticsearch-2` - second node 
 - `tika-service` - extraction of text from binary documents,
 - `nlp-medcat-service-production` - an example NLP application for extracting annotations from free-text.
+- `cogstack-cohort` - CogStack-Cohort tool
+- `ocr-service-1`/`ocr-service-2` - OCR service(s)
 
 To deploy the above services, one can type in the `deploy` directory: 
 ```
@@ -376,3 +382,18 @@ Prerequisite if you want to test this template for testing, please run the follo
 - `python3 generate_files.py`
 
 The above assumes that you already have the NiFi container running, the script just generates some sample files.
+
+## CogStack Cohort source file creation.
+
+Check the "CogStack_Cohort_create_source_docs" template, you will have to manually upload the xml if it is not already there (presuming you already have a working installation).
+
+This workflow will not work with sample data and annotations because there are not enough patients in the provided dataset.
+
+Prerequisites for this workflow: 
+1. make sure your concepts have been generated using a SNOMED model.
+2. make sure you have enough patients (>1k)
+3. you have the required fields in your patient records: age, ethnicity, date of death, date of birth, patient_id, doc_id, gender.
+4. datetime fields must have the same format.
+
+The script used for this process is located here: `nifi/user-scripts/cogstack_cohort_generate_data.py`. Please read all the info provided in the NiFi template.
+
