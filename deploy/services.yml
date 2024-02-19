@@ -254,7 +254,7 @@ services:
 #---------------------------------------------------------------------------#
   nlp-medcat-service-production:
     image: cogstacksystems/medcat-service:0.5.1
-    container_name: cogstack-medcat-production
+    container_name: cogstack-medcat-service-production
     restart: always
     env_file:
       - ./nlp_service.env
@@ -912,7 +912,7 @@ services:
     image: cogstacksystems/cogstack-nifi:1.2.4
     #build:
     #   context: ../nifi/
-    #   args:      
+    #   args:
     #       HTTP_PROXY: $HTTP_PROXY
     #       HTTPS_PROXY: $HTTPS_PROXY
     #       no_proxy: $no_proxy
@@ -1099,7 +1099,7 @@ services:
 #---------------------------------------------------------------------------#
   annotation-ingester:
      image: cogstacksystems/annotations-ingester:latest
-     shm_size : 128mb
+     shm_size: 128mb
      restart: always
      environment:
        - http_proxy=$HTTP_PROXY
@@ -1110,14 +1110,36 @@ services:
      command: "/app/run.sh"
      networks:
       - cognet
-    
+
+#---------------------------------------------------------------------------#
+# Cogstack cohort service                                                   #
+#---------------------------------------------------------------------------#
+  cogstack-cohort:
+      container_name: cogstack-cohort
+      image: cogstacksystems/cogstackcohort:latest
+      shm_size: 128mb
+      restart: always
+      environment:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
+      volumes:
+        - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
+        - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
+        - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
+      networks:
+        - cognet
+      #command: "ls -la /usr/src/app/server/data/"
+      ports:
+        - "3001:3000"
+
 #---------------------------------------------------------------------------#
 # Version control service                                                   #
 #---------------------------------------------------------------------------#
   gitea:
     container_name: cogstack-gitea
     image:  gitea/gitea:1.20-rootless
-    shm_size : 256mb
+    shm_size: 256mb
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY

@@ -11,6 +11,8 @@ global DB_FILE_NAME
 global LOG_FILE_NAME
 global OPERATION_MODE
 
+global output_stream
+
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
 
 # default values from /deploy/nifi.env
@@ -21,6 +23,8 @@ USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR")
 #   - check - check if a document ID has already been annotated
 #   - insert - inserts new annotation(s) into DB
 OPERATION_MODE = "check"
+
+LOG_FILE_NAME = "annotation_manager.log"
 
 # get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
 for arg in sys.argv:
@@ -37,8 +41,6 @@ for arg in sys.argv:
         LOG_FILE_NAME = _arg[1]
     elif _arg[0] == "operation_mode":
         OPERATION_MODE = _arg[1]
-
-global output_stream
 
 def main():
     input_stream = sys.stdin.read()
@@ -60,33 +62,37 @@ def main():
         records = json_data_records
         if "content" in json_data_records.keys():
             records = json_data_records["content"]
-            
+        
         # if we are parsing an annotation only (post-NLP)
         if type(records) == dict:
             records = [records]
             output_stream = []
         
+
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
-                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE (%" + document_id + "_%)"
+
+                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "_%'"
                 result = connect_and_query(query, db_file_path)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
 
             elif OPERATION_MODE == "insert":
-                query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(record["meta.docid"]) + "_" + str(record["nlp.id"]) + '"' +")"
+                query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(record["meta.docid"]) + "_" + str(record["nlp.id"]) + '"' + ")"
                 result = connect_and_query(query, db_file_path, sql_script_mode=True)
-                output_stream = record
+                
+                if len(result) == 0:
+                    output_stream = record
 
     except Exception as exception:
         if os.path.exists(log_file_path):
             with open(log_file_path, "a+") as log_file:
-                log_file.write("\n", + traceback.print_exc())
+                log_file.write("\n" + str(traceback.print_exc()))
         else:
-            with open(log_file_path, "w+") as log_file:
-                log_file.write(traceback.print_exc())
+            with open(log_file_path, "a+") as log_file:
+                log_file.write("\n" + str(traceback.print_exc()))
     finally:
         return output_stream
 
