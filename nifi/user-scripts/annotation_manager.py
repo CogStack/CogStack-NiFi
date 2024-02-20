@@ -80,7 +80,7 @@ def main():
                     output_stream["content"].append(record)
 
             elif OPERATION_MODE == "insert":
-                query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(record["meta.docid"]) + "_" + str(record["nlp.id"]) + '"' + ")"
+                query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(record["meta." + DOCUMENT_ID_FIELD_NAME]) + "_" + str(record["nlp.id"]) + '"' + ")"
                 result = connect_and_query(query, db_file_path, sql_script_mode=True)
                 
                 if len(result) == 0:
