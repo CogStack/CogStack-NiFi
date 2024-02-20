@@ -261,7 +261,6 @@ services:
       - ../services/nlp-services/applications/medcat/config/env_app
       - ../services/nlp-services/applications/medcat/config/env_medcat
     environment:
-      - APP_MODEL_NAME=production-medmen
       - RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH=${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}
     volumes:
       - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/cat/models/:rw
