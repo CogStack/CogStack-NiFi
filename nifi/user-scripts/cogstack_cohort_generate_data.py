@@ -9,6 +9,7 @@ from datetime import datetime
 from utils.ethnicity_map import ethnicity_map, ethnicity_map_detail
 
 ANNOTATION_DOCUMENT_ID_FIELD_NAME = "meta.docid"
+DOCUMENT_ID_FIELD_NAME = "docid"
 
 PATIENT_ID_FIELD_NAME = "patient"
 PATIENT_ETHNICITY_FIELD_NAME = "ethnicity"
@@ -44,6 +45,8 @@ for arg in sys.argv:
         PATIENT_DEATH_DATE_FIELD_NAME = _arg[1]
     if _arg[0] == "patient_gender_field_name":
         PATIENT_GENDER_FIELD_NAME = _arg[1]
+    if _arg[0] == "document_id_field_name":
+        DOCUMENT_ID_FIELD_NAME  = _arg[1]
 
 # function to convert a dictionary to json and write to file (d: dictionary, fn: string (filename))
 def dict2json_file(input_dict, fn):
@@ -118,9 +121,13 @@ for patient_record in input_patient_record_data:
     ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
     ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
 
-    docuemnt_id_field = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
+    _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
+    if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
+        docid = patient_record[DOCUMENT_ID_FIELD_NAME]
+    else:
+        docid = _derived_document_id_field_from_ann
 
-    doc2ptt[patient_record[docuemnt_id_field]] = patient_record[PATIENT_ID_FIELD_NAME]
+    doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
 
 # for each part of the MedCAT output (e.g., part_0.pickle)
 for annotation_record in input_annotations:
