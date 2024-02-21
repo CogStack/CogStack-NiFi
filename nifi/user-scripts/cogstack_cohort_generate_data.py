@@ -80,7 +80,7 @@ ptt2dod = {}
 
 for patient_record in input_patient_record_data:
     
-    _ethnicity =  str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ")
+    _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
     
     if _ethnicity in ethnicity_map.keys():
         ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
@@ -88,7 +88,7 @@ for patient_record in input_patient_record_data:
         ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
 
     # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
-    _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower()
+    _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
     if _tmp_gender in ["male", "1", "m"]:
         _tmp_gender = "Male"
     elif _tmp_gender in ["female", "2", "f"]:
@@ -100,10 +100,10 @@ for patient_record in input_patient_record_data:
 
     dob = datetime.strptime(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
     
-    dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME]
+    dod =  patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
     patient_age = 0
 
-    if dod not in [None, "null"]:
+    if dod not in [None, "null", 0]:
         dod = datetime.strptime(patient_record[PATIENT_DEATH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
         patient_age = dod.year - dob.year
     else:
