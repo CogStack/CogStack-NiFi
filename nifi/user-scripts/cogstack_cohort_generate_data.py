@@ -34,7 +34,7 @@ for arg in sys.argv:
         INPUT_ANNOTATIONS_RECORDS_PATH = _arg[1]
     if _arg[0] == "date_time_format":
         DATE_TIME_FORMAT = _arg[1]
-    if _arg[0] == "patient_field_name":
+    if _arg[0] == "patient_id_field_name":
         PATIENT_ID_FIELD_NAME = _arg[1]
     if _arg[0] == "patient_ethnicity_field_name":
         PATIENT_ETHNICITY_FIELD_NAME = _arg[1]
