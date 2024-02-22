@@ -1,12 +1,17 @@
 import json
 import sys
+import logging
 import datetime
 import os
+import traceback
 import regex
+import multiprocess
 
+from multiprocess import Pool, Queue
 from collections import defaultdict, Counter
 from datetime import datetime
 from utils.ethnicity_map import ethnicity_map, ethnicity_map_detail
+from utils.generic import chunk, dict2json_file
 
 ANNOTATION_DOCUMENT_ID_FIELD_NAME = "meta.docid"
 DOCUMENT_ID_FIELD_NAME = "docid"
@@ -24,6 +29,10 @@ INPUT_PATIENT_RECORDS_PATH = ""
 INPUT_ANNOTATIONS_RECORDS_PATH = ""
 
 DATE_TIME_FORMAT = "%Y-%m-%d"
+
+TIMEOUT = 3600
+
+CPU_THREADS = os.getenv("CPU_THREADS", int(multiprocess.cpu_count() / 2))
 
 for arg in sys.argv:
     _arg = arg.split("=", 1)
@@ -47,12 +56,13 @@ for arg in sys.argv:
         PATIENT_GENDER_FIELD_NAME = _arg[1]
     if _arg[0] == "document_id_field_name":
         DOCUMENT_ID_FIELD_NAME  = _arg[1]
+    if _arg[0] == "cpu_threads":
+        CPU_THREADS = _arg[1]
+    if _arg[0] == "timeout":
+        TIMEOUT = _arg[1]
+    if _arg[0] == "output_folder_path":
+        OUTPUT_FOLDER_PATH = _arg[1]
 
-# function to convert a dictionary to json and write to file (d: dictionary, fn: string (filename))
-def dict2json_file(input_dict, fn):
-    # write the json file
-    with open(fn, 'w', encoding='utf-8') as outfile:
-        json.dump(input_dict, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
 
 # json file containing annotations exported by NiFi, the input format is expected to be one provided
 # by MedCAT Service which was stored in an Elasticsearch index
@@ -81,72 +91,139 @@ ptt2age = {}
 # ptt2dod.json a dictionary for dod if the patient has died {<patient_id>:<dod>, ...}
 ptt2dod = {}
 
-for patient_record in input_patient_record_data:
-    
-    _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
-    
-    if _ethnicity in ethnicity_map.keys():
-        ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
-    else:
-        ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
 
-    # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
-    _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
-    if _tmp_gender in ["male", "1", "m"]:
-        _tmp_gender = "Male"
-    elif _tmp_gender in ["female", "2", "f"]:
-        _tmp_gender = "Female"
-    else:
-        _tmp_gender = "Unknown"
+def process_patient_records(patient_records: list):
+    _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = {}, {}, {}, {}, {}, {}
+  
+    for patient_record in patient_records:
+        
+        _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
+        
+        if _ethnicity in ethnicity_map.keys():
+            _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
+        else:
+            _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
 
-    ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
+        # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
+        _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
+        if _tmp_gender in ["male", "1", "m"]:
+            _tmp_gender = "Male"
+        elif _tmp_gender in ["female", "2", "f"]:
+            _tmp_gender = "Female"
+        else:
+            _tmp_gender = "Unknown"
 
-    dob = datetime.strptime(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
-    
-    dod =  patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
-    patient_age = 0
+        _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
 
-    if dod not in [None, "null", 0]:
-        dod = datetime.strptime(patient_record[PATIENT_DEATH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
-        patient_age = dod.year - dob.year
-    else:
-        patient_age = datetime.now().year - dob.year
+        dob = datetime.strptime(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
+        
+        dod =  patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
+        patient_age = 0
 
-    # convert to ints
-    dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [None, "null"] else 0
-    dob = int(dob.strftime("%Y%m%d%H%M%S"))
+        if dod not in [None, "null", 0]:
+            dod = datetime.strptime(patient_record[PATIENT_DEATH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
+            patient_age = dod.year - dob.year
+        else:
+            patient_age = datetime.now().year - dob.year
 
-    # change records
-    ptt2dod[patient_record[PATIENT_ID_FIELD_NAME]] = dod
-    ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
-    ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
+        # convert to ints
+        dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [None, "null"] else 0
+        dob = int(dob.strftime("%Y%m%d%H%M%S"))
 
-    _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
-    if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
-        docid = patient_record[DOCUMENT_ID_FIELD_NAME]
-    else:
-        docid = _derived_document_id_field_from_ann
+        # change records
+        _ptt2dod[patient_record[PATIENT_ID_FIELD_NAME]] = dod
+        _ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
+        _ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
 
-    doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
+        _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
+        if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
+            docid = patient_record[DOCUMENT_ID_FIELD_NAME]
+        else:
+            docid = _derived_document_id_field_from_ann
 
-# for each part of the MedCAT output (e.g., part_0.pickle)
-for annotation_record in input_annotations:
-    annotation_entity = annotation_record   
-    if "_source" in annotation_record.keys():
-        annotation_entity = annotation_record["_source"]
-    docid = annotation_entity[ANNOTATION_DOCUMENT_ID_FIELD_NAME]
+        _doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
 
-    if docid in list(doc2ptt.keys()):
-        ptt = doc2ptt[docid]
-        if annotation_entity["nlp.meta_anns"]["Subject"]["value"] == "Patient" and annotation_entity["nlp.meta_anns"]["Presence"]["value"] == "True" and annotation_entity["nlp.meta_anns"]["Time"]["value"] != "Future":
-            cui = annotation_entity["nlp.cui"]
-            cui2ptt_pos[cui][ptt] += 1
+    return _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt 
 
-        if "timestamp" in annotation_entity.keys():
-            time =  int(round(datetime.fromisoformat(annotation_entity["timestamp"]).timestamp()))
-            if cui2ptt_tsp[cui][ptt] == 0 or time < cui2ptt_tsp[cui][ptt]:
-                cui2ptt_tsp[cui][ptt] = time
+def process_annotation_records(annotation_records: list, _doc2ptt: dict):
 
+    _cui2ptt_pos = defaultdict(Counter)
+    _cui2ptt_tsp = defaultdict(lambda: defaultdict(int))
+
+    try:
+
+        # for each part of the MedCAT output (e.g., part_0.pickle)
+        for annotation_record in annotation_records:
+            annotation_entity = annotation_record   
+            if "_source" in annotation_record.keys():
+                annotation_entity = annotation_record["_source"]
+            docid = annotation_entity[ANNOTATION_DOCUMENT_ID_FIELD_NAME]
+
+            if docid in list(_doc2ptt.keys()):
+                patient_id = _doc2ptt[docid]
+                cui = annotation_entity["nlp.cui"]
+
+                if annotation_entity["nlp.meta_anns"]["Subject"]["value"] == "Patient" and annotation_entity["nlp.meta_anns"]["Presence"]["value"] == "True" and annotation_entity["nlp.meta_anns"]["Time"]["value"] != "Future":
+                    _cui2ptt_pos[cui][patient_id] += 1
+
+                    if "timestamp" in annotation_entity.keys():
+                        time =  int(round(datetime.fromisoformat(annotation_entity["timestamp"]).timestamp()))
+                        if _cui2ptt_tsp[cui][patient_id] == 0 or time < _cui2ptt_tsp[cui][patient_id]:
+                            _cui2ptt_tsp[cui][patient_id] = time
+    except Exception:
+        raise Exception("exception generated by process_annotation_records: " + str(traceback.format_exc()))
+
+    return _cui2ptt_pos, _cui2ptt_tsp
+
+patient_process_pool_results = []
+annotation_process_pool_results = []
+
+with Pool(processes=CPU_THREADS) as patient_process_pool:
+    results = list()
+
+    record_chunks = list(chunk(input_patient_record_data, CPU_THREADS))
+
+    counter = 0
+    for record_chunk in record_chunks:
+        patient_process_pool_results.append(patient_process_pool.starmap_async(process_patient_records, [(record_chunk,)], chunksize=1, error_callback=logging.error))
+        counter += 1
+
+    try:
+        for result in patient_process_pool_results:
+            result_data = result.get(timeout=TIMEOUT)
+            _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = result_data[0][0], result_data[0][1], result_data[0][2], result_data[0][3], result_data[0][4], result_data[0][5]
+            
+            ptt2sex.update(_ptt2sex)
+            ptt2eth.update(_ptt2eth)
+            ptt2dob.update(_ptt2dob)
+            ptt2age.update(_ptt2age)
+            ptt2dod.update(_ptt2dod)
+            doc2ptt.update(_doc2ptt)
+
+    except Exception:
+        raise Exception("exception generated by worker: " + str(traceback.format_exc()))
+
+
+with Pool(processes=CPU_THREADS) as annotations_process_pool:
+    results = list()
+
+    record_chunks = list(chunk(input_annotations, CPU_THREADS))
+
+    counter = 0
+    for record_chunk in record_chunks:
+        annotation_process_pool_results.append(annotations_process_pool.starmap_async(process_annotation_records, [(record_chunk, doc2ptt )], chunksize=1, error_callback=logging.error))
+        counter += 1
+
+    try:
+        for result in annotation_process_pool_results:
+            result_data = result.get(timeout=TIMEOUT)
+
+            _cui2ptt_pos, _cui2ptt_tsp = result_data[0][0], result_data[0][1]
+            cui2ptt_pos.update(_cui2ptt_pos)
+            cui2ptt_tsp.update(_cui2ptt_tsp)
+
+    except Exception:
+        raise Exception("exception generated by worker: " + str(traceback.format_exc()))
 
 dict2json_file(ptt2sex, os.path.join(OUTPUT_FOLDER_PATH, "ptt2sex.json"))
 dict2json_file(ptt2eth, os.path.join(OUTPUT_FOLDER_PATH, "ptt2eth.json"))
