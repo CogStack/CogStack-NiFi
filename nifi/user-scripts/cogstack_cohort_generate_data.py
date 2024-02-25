@@ -230,5 +230,17 @@ dict2json_file(ptt2eth, os.path.join(OUTPUT_FOLDER_PATH, "ptt2eth.json"))
 dict2json_file(ptt2dob, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dob.json"))
 dict2json_file(ptt2dod, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dod.json"))
 dict2json_file(ptt2age, os.path.join(OUTPUT_FOLDER_PATH, "ptt2age.json"))
-dict2json_file(cui2ptt_pos, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"))
-dict2json_file(cui2ptt_tsp, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"))
+
+with open('cui2ptt_pos.jsonl', 'a', encoding='utf-8') as outfile:
+    for k,v in cui2ptt_pos.items():
+        o = {k: v}
+        json_obj = json.loads(json.dumps(o))
+        json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
+        print('', file = outfile)
+
+with open('cui2ptt_tsp.jsonl', 'a', encoding='utf-8') as outfile:
+    for k,v in cui2ptt_tsp.items():
+        o = {k: v}
+        json_obj = json.loads(json.dumps(o))
+        json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
+        print('', file = outfile)
