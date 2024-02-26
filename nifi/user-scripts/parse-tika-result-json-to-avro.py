@@ -36,7 +36,7 @@ class PyStreamCallback(StreamCallback):
 
         # add text and metadata column to record
         avro_data_dict["text"] = json_data_record["result"]["text"]
-        avro_data_dict["ocr_matadata"] = json_data_record["result"]["metadata"]
+        avro_data_dict["ocr_metadata"] = json_data_record["result"]["metadata"]
         avro_data_dict["ocr_timestamp"] = json_data_record["result"]["timestamp"]
 
         outputStream.write(json.dumps(avro_data_dict).encode("UTF-8"))
