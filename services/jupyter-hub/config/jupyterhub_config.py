@@ -148,7 +148,8 @@ class DockerSpawner(dockerspawner.DockerSpawner):
         if self.user.name not in whitelist:
             whitelist.add(self.user.name)
             with open(userlist_path , "a") as f:
-                f.write(self.user.name + "\n")
+                f.write("\n")
+                f.write(self.user.name)
 
         if self.user.name in list(team_map.keys()):
             for team in team_map[self.user.name]:
