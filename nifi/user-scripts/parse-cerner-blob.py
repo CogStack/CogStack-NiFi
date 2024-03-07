@@ -1,5 +1,5 @@
 import sys
-from .utils.cerner_blob import DecompressLzwCernerBlob
+from utils.cerner_blob import DecompressLzwCernerBlob
 
 # This needs to be investigated, records might have different charsets,
 #   currently only tested with "iso-8859-1"
@@ -11,7 +11,7 @@ INPUT_CHARSET = "iso-8859-1"
 # expected (optional)
 OUTPUT_CHARSET = "windows-1252"
 
-input_cerner_blob = bytearray(sys.stdin.read(), encoding=INPUT_CHARSET)
+input_cerner_blob = str(sys.stdin.buffer.read(), INPUT_CHARSET).encode(INPUT_CHARSET)
 
 for arg in sys.argv:
     _arg = arg.split("=", 1)
