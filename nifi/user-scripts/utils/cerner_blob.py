@@ -22,6 +22,7 @@ class DecompressLzwCernerBlob:
     def save_to_lookup_table(self, compressed_code: int):
         self.tmp_buffer_index = -1
         while compressed_code >= 258:
+            self.tmp_buffer_index += 1
             self.tmp_decompression_buffer[self.tmp_buffer_index] = \
                 self.lzw_lookup_table[compressed_code].suffix
             compressed_code = self.lzw_lookup_table[compressed_code].prefix
