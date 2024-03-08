@@ -11,6 +11,11 @@ INPUT_CHARSET = "iso-8859-1"
 # expected (optional)
 OUTPUT_CHARSET = "windows-1252"
 
+# possible values:
+#   - binary: output binary code
+#   - string: output string after decompression 
+OUTPUT_MODE = "binary"
+
 input_cerner_blob = str(sys.stdin.buffer.read(), INPUT_CHARSET).encode(INPUT_CHARSET)
 
 for arg in sys.argv:
@@ -20,8 +25,13 @@ for arg in sys.argv:
         INPUT_CHARSET = str(_arg[1]).lower()
     elif _arg[0] == "output_charset":
         OUTPUT_CHARSET = str(_arg[1]).lower()
+    elif _arg[0] == "output_mode":
+        OUTPUT_MODE = str(_arg[1]).lower()
 
 decompress_blob = DecompressLzwCernerBlob()
 decompress_blob.decompress(input_cerner_blob)
 
-sys.stdout.write(decompress_blob.output_stream.decode(encoding=OUTPUT_CHARSET))
+if OUTPUT_MODE == "binary":
+    sys.stdout.buffer.write(bytes(decompress_blob.output_stream))
+else:
+    sys.stdout.write(decompress_blob.output_stream.decode(OUTPUT_CHARSET))
