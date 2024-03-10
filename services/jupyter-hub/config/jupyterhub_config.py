@@ -25,7 +25,7 @@ c = get_config()
 # Spawn containers from this image
 # Either use the CoGstack one from the repo which is huge and contains all the stuff needed or,
 # use the default official one which is clean.
-c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "jupyterhub/singleuser:latest")
+c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "cogstacksystems:jupyterhub/singleuser:latest")
 
 # JupyterHub requires a single-user instance of the Notebook server, so we
 # default to using the `start-singleuser.sh` script included in the
@@ -148,7 +148,8 @@ class DockerSpawner(dockerspawner.DockerSpawner):
         if self.user.name not in whitelist:
             whitelist.add(self.user.name)
             with open(userlist_path , "a") as f:
-                f.write(self.user.name + "\n")
+                f.write("\n")
+                f.write(self.user.name)
 
         if self.user.name in list(team_map.keys()):
             for team in team_map[self.user.name]:
