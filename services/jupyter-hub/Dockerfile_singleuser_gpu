@@ -155,6 +155,7 @@ RUN pip3 install --no-cache-dir  setuptools wheel virtualenv
 
 # jupyterhub stuff
 RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
+RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata bitstream
 RUN pip3 install --no-cache-dir jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
 RUN pip3 install --no-cache-dir docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
 RUN pip3 install --no-cache-dir jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator

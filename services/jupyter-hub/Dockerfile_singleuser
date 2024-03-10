@@ -90,7 +90,11 @@ RUN apt-get update && apt-get upgrade -y && \
     r-base
 
 # python 3.11
+<<<<<<< HEAD
 RUN apt-get install -y python3.11-full python3.11-dev
+=======
+RUN apt-get install python3.11-full python3.11-dev
+>>>>>>> 12bea4451882c71c72ffd3ec9fcbaf40131a1e18
 
 # be careful, this conflicts
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
@@ -141,7 +145,8 @@ RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install --no-cache-dir setuptools wheel virtualenv
 
 # jupyterhub stuff
-RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
+RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata bitstream
+
 RUN pip3 install --no-cache-dir jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
 RUN pip3 install --no-cache-dir docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
 RUN pip3 install --no-cache-dir jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
