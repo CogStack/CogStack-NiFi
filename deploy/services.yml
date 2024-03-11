@@ -82,7 +82,7 @@ services:
   
   cogstack-databank-db-mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: cogstack-production-databank-db
+    container_name: cogstack-production-databank-db-mssql
     shm_size: 1024mb
     restart: always
     env_file:
