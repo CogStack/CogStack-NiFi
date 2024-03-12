@@ -47,8 +47,8 @@ if __name__ == "__main__":
         # check the output
         print(output)
 
-    except Exception as e:
-        print(e)
+    except Exception as exception:
+        print(exception)
 
 
 
