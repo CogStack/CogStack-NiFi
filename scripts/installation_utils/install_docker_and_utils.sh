@@ -31,7 +31,7 @@ then
 
     sudo apt -y update 
     sudo apt -y upgrade 
-    sudo apt -y install docker-ce docker-ce-cli containerd.io
+    sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker
     sudo groupadd docker
@@ -73,7 +73,7 @@ then
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum-config-manager --enable docker-ce-stable
     sudo yum-config-manager --enable docker-ce-stable-source
-    sudo yum install -y docker-ce docker-ce-cli containerd.io
+    sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker process
     sudo groupadd docker
