@@ -68,23 +68,26 @@ def main():
             records = [records]
             output_stream = []
         
-
+        last_doc_id = ""
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
 
-                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "_%'"
+                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%'"
                 result = connect_and_query(query, db_file_path)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
 
             elif OPERATION_MODE == "insert":
-                query = "INSERT INTO annotations (elasticsearch_id) VALUES (" + '"' + str(record["meta." + DOCUMENT_ID_FIELD_NAME]) + "_" + str(record["nlp.id"]) + '"' + ")"
-                result = connect_and_query(query, db_file_path, sql_script_mode=True)
-                
-                if len(result) == 0:
-                    output_stream = record
+                document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
+
+                if last_doc_id != document_id:
+                    query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + '"' + ")"
+                    result = connect_and_query(query, db_file_path, sql_script_mode=True)
+                    
+                    if len(result) == 0:
+                        output_stream = record
 
     except Exception as exception:
         if os.path.exists(log_file_path):
