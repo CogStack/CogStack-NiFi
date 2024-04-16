@@ -73,7 +73,7 @@ def main():
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
 
-                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%'"
+                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
                 result = connect_and_query(query, db_file_path)
 
                 if len(result) < 1:
