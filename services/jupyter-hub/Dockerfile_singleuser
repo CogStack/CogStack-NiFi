@@ -143,7 +143,6 @@ RUN pip3 install --no-cache-dir setuptools wheel virtualenv
 RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
 RUN pip3 install --no-cache-dir jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
 RUN pip3 install --no-cache-dir docker dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator
-#RUN pip3 install --no-cache-dir docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator
 RUN pip3 install --no-cache-dir jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
 
 # extra packages for DB connections & utilities (charts, data formats, and other useful tools such as neo4j)
@@ -161,7 +160,10 @@ RUN pip3 install --no-cache-dir -U spacy click torch thinc
 #ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
 #RUN for spacy_model in ${SPACY_MODELS}; do python3 -m spacy download $spacy_model; done
 
-RUN pip3 install --no-cache-dir medcat
+# install requirements for working with cogstack scripts
+# RUN pip3 isntall --no-cache-dir -r notebooks/working_with_cogstack/requirements.txt
+
+RUN pip3 install --no-cache-dir medcat eland plotly
 
 # clean up pip
 RUN pip3 cache purge

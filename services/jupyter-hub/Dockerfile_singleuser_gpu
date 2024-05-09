@@ -180,7 +180,10 @@ RUN pip3 install --no-cache-dir -U spacy click torch thinc
 #ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
 #RUN for spacy_model in ${SPACY_MODELS}; do python3 -m spacy download $spacy_model; done
 
-RUN pip3 install --no-cache-dir medcat
+# install requirements for working with cogstack scripts
+# RUN pip3 isntall --no-cache-dir -r notebooks/working_with_cogstack/requirements.txt
+
+RUN pip3 install --no-cache-dir medcat eland plotly
 
 # clean up pip
 RUN pip3 cache purge
