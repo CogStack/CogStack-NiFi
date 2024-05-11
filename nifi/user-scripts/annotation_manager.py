@@ -64,11 +64,12 @@ def main():
             records = json_data_records["content"]
         
         # if we are parsing an annotation only (post-NLP)
-        if type(records) == dict:
+        if type(records) is dict:
             records = [records]
             output_stream = []
         
-        last_doc_id = ""
+        inserted_doc_ids = []
+
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
@@ -82,10 +83,10 @@ def main():
             elif OPERATION_MODE == "insert":
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
 
-                if last_doc_id != document_id:
+                if document_id not in inserted_doc_ids:
                     query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + '"' + ")"
                     result = connect_and_query(query, db_file_path, sql_script_mode=True)
-                    
+                    inserted_doc_ids.append(document_id)
                     if len(result) == 0:
                         output_stream = record
 
