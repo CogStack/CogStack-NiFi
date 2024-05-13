@@ -49,7 +49,7 @@ def create_connection(db_file_path: str, read_only_mode=False) -> sqlite3.Connec
     if read_only_mode:
         connection_str += "?mode=ro"
 
-    return sqlite3.connect(connection_str)
+    return sqlite3.connect(connection_str, uri=True)
 
 
 def query_with_connection(query: str, sqlite_connection: sqlite3.Connection) -> List:
