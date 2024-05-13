@@ -906,7 +906,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.4
+    image: cogstacksystems/cogstack-nifi:1.2.5
     #build:
     #   context: ../nifi/
     #   args:
@@ -1004,7 +1004,7 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.4
+    image: cogstacksystems/nifi-nginx:1.2.5
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
@@ -1040,7 +1040,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:latest
+    image: cogstacksystems/jupyter-hub:1.2.5
     #build:
     #  context: ../services/jupyter-hub/
     #  args:
