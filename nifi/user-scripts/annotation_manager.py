@@ -2,7 +2,6 @@ import os
 import json
 import traceback
 import sys
-import sqlite3
 from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file,create_connection
 
 global DOCUMENT_ID_FIELD_NAME
