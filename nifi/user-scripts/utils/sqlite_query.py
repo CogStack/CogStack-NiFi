@@ -2,7 +2,7 @@ from ast import List
 import sqlite3
 
 
-def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.Connection, sql_script_mode: bool = False) -> List:
+def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.Connection = None, sql_script_mode: bool = False) -> List:
     """  Executes whatever query.
 
     Args:
@@ -20,7 +20,7 @@ def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.
     result = []
 
     try:
-        if sqlite_connection:
+        if sqlite_connection is not None:
             sqlite_connection = sqlite_connection
         else:
             sqlite_connection = create_connection(db_file_path)
