@@ -44,7 +44,7 @@ def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.
 
 def create_connection(db_file_path: str, read_only_mode=False) -> sqlite3.Connection:
 
-    connection_str = "file:/" + str(db_file_path)
+    connection_str = "file:" + str(db_file_path)
 
     if read_only_mode:
         connection_str += "?mode=ro"
