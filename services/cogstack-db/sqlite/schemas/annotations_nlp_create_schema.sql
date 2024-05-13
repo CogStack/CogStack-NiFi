@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS annotations (
     model_id_used INTEGER REFERENCES nlp_models NULL
 );
 
+CREATE INDEX annotations_elasticsearch_id_index ON annotations (elasticsearch_id);
+
 CREATE TABLE IF NOT EXISTS meta_annotations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     annotation_id INTEGER REFERENCES annotations NULL,
@@ -41,3 +43,4 @@ CREATE TABLE IF NOT EXISTS nlp_models (
     domains VARCHAR,
     "url" VARCHAR
 );
+
