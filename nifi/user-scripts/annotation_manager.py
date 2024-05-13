@@ -2,7 +2,8 @@ import os
 import json
 import traceback
 import sys
-from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file
+import sqlite3
+from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file,create_connection
 
 global DOCUMENT_ID_FIELD_NAME
 global DOCUMENT_TEXT_FIELD_NAME
@@ -70,12 +71,16 @@ def main():
         
         inserted_doc_ids = []
 
+        _sqlite_connection_ro = None
+        if OPERATION_MODE == "check":
+            _sqlite_connection_ro = create_connection(db_file_path, read_only_mode=True)
+
+
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
-
-                query = "SELECT * FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
-                result = connect_and_query(query, db_file_path)
+                query = "SELECT id, elasticsearch_id FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
+                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
