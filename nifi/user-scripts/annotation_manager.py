@@ -79,20 +79,22 @@ def main():
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
                 query = "SELECT id, elasticsearch_id FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
-                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro)
+                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro, keep_conn_open=True)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
 
             elif OPERATION_MODE == "insert":
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
-
                 if document_id not in inserted_doc_ids:
                     query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + '"' + ")"
                     result = connect_and_query(query, db_file_path, sql_script_mode=True)
                     inserted_doc_ids.append(document_id)
                     if len(result) == 0:
                         output_stream = record
+
+        if _sqlite_connection_ro:
+            _sqlite_connection_ro.close()
 
     except Exception as exception:
         if os.path.exists(log_file_path):
