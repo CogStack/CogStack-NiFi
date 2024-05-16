@@ -55,7 +55,7 @@ RUN apt-get clean autoclean && apt-get autoremove --purge -y
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir setuptools dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
     pip3 install --no-cache-dir pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
-    pip3 install --no-cache-dir pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc openpyxl
+    pip3 install --no-cache-dir pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2-binary python-certifi-win32 certifi pyodbc openpyxl rancoord
 
 # XNAT
 RUN pip3 install --no-cache-dir xnat
