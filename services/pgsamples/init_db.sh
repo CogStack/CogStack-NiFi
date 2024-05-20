@@ -30,6 +30,42 @@ psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME -f $DATA_DIR/$ANNOTATIONS_NLP_DB
 
 echo "Restoring DB from dump"
 gunzip -c $DATA_DIR/$DB_DUMP_FILE | psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME
+
+# create view (cant be restored from sql dump for unknown reason)
+psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d $DB_NAME <<-EOSQL
+CREATE VIEW medical_reports_encounters_by_patient_view AS WITH res AS (
+	SELECT
+		mrt.docid,
+		mrt.sampleid,
+		mrt.typeid,
+		mrt.dct,
+		mrt.filename,
+		mrt.document,
+		e.patient
+	FROM
+		encounters AS e
+		JOIN medical_reports_text AS mrt ON e.docid = mrt.docid
+)
+SELECT
+	res.docid,
+	res.sampleid,
+	res.typeid,
+	res.dct,
+	res.filename,
+	res.document,
+	res.patient,
+	p.birthdate,
+	p.ethnicity,
+	p.race,
+	p.deathdate,
+    p.gender
+FROM
+	res
+	JOIN patients AS p ON res.patient = p.id;
+
+ALTER TABLE public.medical_reports_encounters_by_patient_view OWNER TO "$DB_USER";
+EOSQL
+
 # cleanup
 #
 echo "Done with initializing the sample data."
