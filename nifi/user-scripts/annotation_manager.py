@@ -1,6 +1,7 @@
 import os
 import json
 import traceback
+import datetime
 import sys
 from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file,create_connection
 
@@ -10,8 +11,6 @@ global USER_SCRIPT_DB_DIR
 global DB_FILE_NAME
 global LOG_FILE_NAME
 global OPERATION_MODE
-
-global output_stream
 
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
 
@@ -45,6 +44,8 @@ for arg in sys.argv:
 def main():
     input_stream = sys.stdin.read()
 
+    output_stream = {}
+
     try:
         log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
         db_file_path = os.path.join(USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
@@ -54,26 +55,23 @@ def main():
         if len(check_db_exists("annotations", db_file_path)) == 0:
             create_db_from_file(ANNOTATION_DB_SQL_FILE_PATH, db_file_path)
 
-        output_stream = {}
-
-        # keep original structure of JSON:
-        output_stream["content"] = []
-
         records = json_data_records
-        if "content" in json_data_records.keys():
-            records = json_data_records["content"]
-        
-        # if we are parsing an annotation only (post-NLP)
-        if type(records) is dict:
-            records = [records]
-            output_stream = []
-        
-        inserted_doc_ids = []
 
         _sqlite_connection_ro = None
+
+        if isinstance(records, dict):
+            if "content" in json_data_records.keys():
+                records = json_data_records["content"]
+
         if OPERATION_MODE == "check":
+            output_stream = {}
+            # keep original structure of JSON:
+            output_stream["content"] = []
             _sqlite_connection_ro = create_connection(db_file_path, read_only_mode=True)
 
+        if OPERATION_MODE == "insert":
+            del output_stream
+            output_stream = []
 
         for record in records:
             if OPERATION_MODE == "check":
@@ -84,26 +82,22 @@ def main():
                 if len(result) < 1:
                     output_stream["content"].append(record)
 
-            elif OPERATION_MODE == "insert":
+            if OPERATION_MODE == "insert":
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
-                if document_id not in inserted_doc_ids:
-                    query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + '"' + ")"
-                    result = connect_and_query(query, db_file_path, sql_script_mode=True)
-                    inserted_doc_ids.append(document_id)
-                    if len(result) == 0:
-                        output_stream = record
+                nlp_id = str(record["nlp.id"])
+                query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + ")"
+                result = connect_and_query(query, db_file_path, sql_script_mode=True)
+                output_stream.append(record)
 
-        if _sqlite_connection_ro:
+        if _sqlite_connection_ro is not None:
             _sqlite_connection_ro.close()
 
     except Exception as exception:
-        if os.path.exists(log_file_path):
-            with open(log_file_path, "a+") as log_file:
-                log_file.write("\n" + str(traceback.print_exc()))
-        else:
-            with open(log_file_path, "a+") as log_file:
-                log_file.write("\n" + str(traceback.print_exc()))
-    finally:
-        return output_stream
+        time = datetime.datetime.now()
+        with open(log_file_path, "a+") as log_file:
+            log_file.write("\n" + str(time) + ": " + str(exception))
+            log_file.write("\n" + str(time) + ": " + traceback.format_exc())
+  
+    return output_stream
 
 sys.stdout.write(json.dumps(main()))
