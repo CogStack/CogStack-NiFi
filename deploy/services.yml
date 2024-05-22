@@ -975,6 +975,7 @@ services:
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+      - nifi-vol-state:/opt/nifi/nifi-current/state
     extra_hosts:
       - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
       - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
@@ -1211,6 +1212,9 @@ volumes:
     driver: local
 
   nifi-vol-content:
+    driver: local
+  
+  nifi-vol-state:
     driver: local
 
   nifi-vol-errors:
