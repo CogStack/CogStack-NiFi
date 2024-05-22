@@ -265,7 +265,7 @@ services:
     expose:
       - 5000
     ports:
-      - "5555:5000"
+      - "${MEDCAT_SERVICE_SERVER_OUTPUT_PORT:-5555}:5000"
     networks:
       - cognet
 
