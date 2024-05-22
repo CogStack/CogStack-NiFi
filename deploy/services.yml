@@ -268,6 +268,14 @@ services:
       - "${MEDCAT_SERVICE_SERVER_OUTPUT_PORT:-5555}:5000"
     networks:
       - cognet
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          count: all
+    #          # device_ids: ['0']
+    #          capabilities: ["gpu", "utility", "compute", "video"]
 
   nlp-gate-bioyodie:
     image: cogstacksystems/nlp-rest-service-gate:latest
