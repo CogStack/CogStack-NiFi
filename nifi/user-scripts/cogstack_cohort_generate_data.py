@@ -153,10 +153,8 @@ def _process_annotation_records(annotation_records: list, _doc2ptt: dict):
                 if annotation_entity["nlp.meta_anns"]["Subject"]["value"] == "Patient" and annotation_entity["nlp.meta_anns"]["Presence"]["value"] == "True" and annotation_entity["nlp.meta_anns"]["Time"]["value"] != "Future":
                     _cui2ptt_pos[cui][patient_id] += 1
 
-                    print(annotation_record)
                     if "timestamp" in annotation_entity.keys():
                         time = int(round(datetime.fromisoformat(annotation_entity["timestamp"]).timestamp()))
-                        print(patient_id)
 
                         if _cui2ptt_tsp[cui][patient_id] == 0 or time < _cui2ptt_tsp[cui][patient_id]:
                             _cui2ptt_tsp[cui][patient_id] = time
