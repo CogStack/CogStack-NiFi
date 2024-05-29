@@ -195,7 +195,7 @@ Please see the `security/opensearch` folder for the roles mappings and internal 
 On the first run, after changing the default passwords, one should change the default `admin` and `kibanaserver` passwords as specified in the [OpenSearch documentation](https://opensearch.org/docs/latest/security-plugin/access-control/users-roles/).
 
 To do so, one can:
-- run the script `generate_es_internal_passwords.sh` to generate hashes,
+- run the script `generate_opensearch_internal_passwords.sh` to generate hashes,
 - modify the `internal_users.yml` file with the generated hashes, 
 - restart the stack, but with using `docker-compose down -v` to remove the volume data.
 
