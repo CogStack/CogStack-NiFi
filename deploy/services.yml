@@ -929,6 +929,7 @@ services:
       - ./project.env
       - ./general.env
       - ./network_settings.env
+      - ../security/nifi_users.env
     shm_size: 1024mb
     environment:
       - http_proxy=$HTTP_PROXY
@@ -958,10 +959,12 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      # Security credentials scripts
+      - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
@@ -981,9 +984,10 @@ services:
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
       - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      - nifi-vol-state:/opt/nifi/nifi-current/state
+
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-      - nifi-vol-state:/opt/nifi/nifi-current/state
     extra_hosts:
       - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
       - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}

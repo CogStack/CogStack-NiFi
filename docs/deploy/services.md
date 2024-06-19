@@ -255,8 +255,10 @@ Alternatively, please refer to [the official Apache NiFi documentation](https://
 #### ENV/CONF files:
 - `/deploy/nifi.env` - most notable settings are related to port mapping and proxy
 - `/security/certificates_nifi.env` - define NiFi certificate settings here
-
+- `/security/nifi_users.env` - defines the NiFi user credentials for single user auth & others
 More configuration options are covered in [nifi-doc](../nifi/main.md).
+
+Other `.env` files are mounted but those are only useful for custom scripts where you plan to use certain vars from other services, check the `services.yml` nifi `env-file` section definition.
 
 ## Tika Service
 

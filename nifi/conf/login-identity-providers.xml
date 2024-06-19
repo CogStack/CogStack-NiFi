@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
   this work for additional information regarding copyright ownership.
@@ -29,8 +29,8 @@
     <provider>
         <identifier>single-user-provider</identifier>
         <class>org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider</class>
-        <property name="Username">a6510d3e-25e1-4f70-8a09-be894c9af8f7</property>
-        <property name="Password">$2b$12$J15HtovNfS7hez6ao0e15.hbzlYzt.EVq4rw6DJGE5uJv5Z/b80za</property>
+        <property name="Username">admin</property>
+        <property name="Password">$2b$12$xPMAjNXTFFeppRPM2rUiiuYaH4vOimlBGUbejJWF9UNkv1afGhiSC</property>
     </provider>
     <!--
         Identity Provider for users logging in with username/password against an LDAP server.
