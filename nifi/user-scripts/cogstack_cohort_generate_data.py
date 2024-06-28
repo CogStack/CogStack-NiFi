@@ -1,7 +1,7 @@
 import json
 import sys
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import traceback
 import multiprocess
@@ -80,53 +80,63 @@ for arg in sys.argv:
 
 def _process_patient_records(patient_records: list):
     _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = {}, {}, {}, {}, {}, {}
-  
+
     for patient_record in patient_records:
-        
-        _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
-        
-        if _ethnicity in ethnicity_map.keys():
-            _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
-        else:
-            _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
+        if PATIENT_ID_FIELD_NAME in patient_record.keys():
+            _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
 
-        # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
-        _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
-        if _tmp_gender in ["male", "1", "m"]:
-            _tmp_gender = "Male"
-        elif _tmp_gender in ["female", "2", "f"]:
-            _tmp_gender = "Female"
-        else:
-            _tmp_gender = "Unknown"
+            if _ethnicity in ethnicity_map.keys():
+                _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
+            else:
+                _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
 
-        _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
+            # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
+            _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
+            if _tmp_gender in ["male", "1", "m"]:
+                _tmp_gender = "Male"
+            elif _tmp_gender in ["female", "2", "f"]:
+                _tmp_gender = "Female"
+            else:
+                _tmp_gender = "Unknown"
 
-        dob = datetime.strptime(str(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
-        dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
-        patient_age = 0
+            _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
 
-        if dod not in [None, "null", 0]:
-            dod = datetime.strptime(str(patient_record[PATIENT_DEATH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
-            patient_age = dod.year - dob.year
-        else:
-            patient_age = datetime.now().year - dob.year
+            dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]
 
-        # convert to ints
-        dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [None, "null"] else 0
-        dob = int(dob.strftime("%Y%m%d%H%M%S"))
+            if isinstance(dob, int):
+                dob = datetime.fromtimestamp(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] / 1000, tz=timezone.utc)
+            else:
+                dob = datetime.strptime(str(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
 
-        # change records
-        _ptt2dod[patient_record[PATIENT_ID_FIELD_NAME]] = dod
-        _ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
-        _ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
+            dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
+            patient_age = 0
 
-        _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
-        if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
-            docid = patient_record[DOCUMENT_ID_FIELD_NAME]
-        else:
-            docid = _derived_document_id_field_from_ann
+            if dod not in [None, "null", 0]:
+                if isinstance(dod, int):
+                    dod = datetime.fromtimestamp(patient_record[PATIENT_DEATH_DATE_FIELD_NAME] / 1000, tz=timezone.utc)
+                else:
+                    dod = datetime.strptime(str(patient_record[PATIENT_DEATH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
 
-        _doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
+                patient_age = dod.year - dob.year
+            else:
+                patient_age = datetime.now().year - dob.year
+
+            # convert to ints
+            dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [None, "null"] else 0
+            dob = int(dob.strftime("%Y%m%d%H%M%S"))
+
+            # change records
+            _ptt2dod[patient_record[PATIENT_ID_FIELD_NAME]] = dod
+            _ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
+            _ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
+
+            _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
+            if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
+                docid = patient_record[DOCUMENT_ID_FIELD_NAME]
+            else:
+                docid = _derived_document_id_field_from_ann
+
+            _doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
 
     return _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt 
 
