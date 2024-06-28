@@ -101,12 +101,12 @@ def _process_patient_records(patient_records: list):
 
         _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
 
-        dob = datetime.strptime(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
+        dob = datetime.strptime(str(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
         dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
         patient_age = 0
 
         if dod not in [None, "null", 0]:
-            dod = datetime.strptime(patient_record[PATIENT_DEATH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
+            dod = datetime.strptime(str(patient_record[PATIENT_DEATH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
             patient_age = dod.year - dob.year
         else:
             patient_age = datetime.now().year - dob.year
@@ -246,7 +246,7 @@ def multiprocess_annotation_records(doc2ptt: dict, input_annotations: dict):
                 cui2ptt_tsp.update(_cui2ptt_tsp)
 
         except Exception as exception:
-            time = datetime.datetime.now()
+            time = datetime.now()
             with open(log_file_path, "a+") as log_file:
                 log_file.write("\n" + str(time) + ": " + str(exception))
                 log_file.write("\n" + str(time) + ": " + traceback.format_exc())
