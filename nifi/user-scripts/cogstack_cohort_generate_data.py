@@ -101,7 +101,7 @@ def _process_patient_records(patient_records: list):
 
             _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
 
-            dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]
+            dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] if PATIENT_BIRTH_DATE_FIELD_NAME in patient_record.keys() else 0
 
             if isinstance(dob, int):
                 dob = datetime.fromtimestamp(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] / 1000, tz=timezone.utc)
