@@ -108,18 +108,18 @@ def _process_patient_records(patient_records: list):
             dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] if PATIENT_BIRTH_DATE_FIELD_NAME in patient_record.keys() else 0
 
             if isinstance(dob, int):
-                dob = datetime.fromtimestamp(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] / 1000, tz=timezone.utc)
+                dob = datetime.fromtimestamp(dob / 1000, tz=timezone.utc)
             else:
-                dob = datetime.strptime(str(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
+                dob = datetime.strptime(str(dob), DATE_TIME_FORMAT)
 
             dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
             patient_age = 0
 
             if dod not in [None, "null", 0]:
                 if isinstance(dod, int):
-                    dod = datetime.fromtimestamp(patient_record[PATIENT_DEATH_DATE_FIELD_NAME] / 1000, tz=timezone.utc)
+                    dod = datetime.fromtimestamp(dod / 1000, tz=timezone.utc)
                 else:
-                    dod = datetime.strptime(str(patient_record[PATIENT_DEATH_DATE_FIELD_NAME]), DATE_TIME_FORMAT)
+                    dod = datetime.strptime(str(dod), DATE_TIME_FORMAT)
 
                 patient_age = dod.year - dob.year
             else:
