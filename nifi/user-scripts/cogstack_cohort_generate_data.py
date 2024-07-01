@@ -46,6 +46,8 @@ INPUT_FOLDER_PATH = ""
 INPUT_PATIENT_RECORD_FILE_NAME_PATTERN = ""
 INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN = ""
 
+EXPORT_ONLY_PATIENT_RECORDS = "false"
+
 for arg in sys.argv:
     _arg = arg.split("=", 1)
     if _arg[0] == "annotation_document_id_field_name":
@@ -85,10 +87,12 @@ def _process_patient_records(patient_records: list):
         if PATIENT_ID_FIELD_NAME in patient_record.keys():
             _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
 
+            _PATIENT_ID = str(patient_record[PATIENT_ID_FIELD_NAME]).replace("\"", "").replace("\'", "")
+
             if _ethnicity in ethnicity_map.keys():
-                _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
+                _ptt2eth[_PATIENT_ID] = ethnicity_map[_ethnicity].title()
             else:
-                _ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = _ethnicity.title()
+                _ptt2eth[_PATIENT_ID] = _ethnicity.title()
 
             # based on: https://www.datadictionary.nhs.uk/attributes/person_gender_code.html    
             _tmp_gender = str(patient_record[PATIENT_GENDER_FIELD_NAME]).lower() if PATIENT_GENDER_FIELD_NAME in patient_record.keys() else "Unknown"
@@ -99,7 +103,7 @@ def _process_patient_records(patient_records: list):
             else:
                 _tmp_gender = "Unknown"
 
-            _ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
+            _ptt2sex[_PATIENT_ID] = _tmp_gender
 
             dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] if PATIENT_BIRTH_DATE_FIELD_NAME in patient_record.keys() else 0
 
@@ -126,9 +130,9 @@ def _process_patient_records(patient_records: list):
             dob = int(dob.strftime("%Y%m%d%H%M%S"))
 
             # change records
-            _ptt2dod[patient_record[PATIENT_ID_FIELD_NAME]] = dod
-            _ptt2dob[patient_record[PATIENT_ID_FIELD_NAME]] = dob
-            _ptt2age[patient_record[PATIENT_ID_FIELD_NAME]] = patient_age
+            _ptt2dod[_PATIENT_ID] = dod
+            _ptt2dob[_PATIENT_ID] = dob
+            _ptt2age[_PATIENT_ID] = patient_age
 
             _derived_document_id_field_from_ann = ANNOTATION_DOCUMENT_ID_FIELD_NAME.removeprefix("meta.")
             if DOCUMENT_ID_FIELD_NAME in patient_record.keys():
@@ -136,7 +140,7 @@ def _process_patient_records(patient_records: list):
             else:
                 docid = _derived_document_id_field_from_ann
 
-            _doc2ptt[docid] = patient_record[PATIENT_ID_FIELD_NAME]
+            _doc2ptt[docid] = _PATIENT_ID
 
     return _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt 
 
@@ -294,6 +298,9 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
                     dict2json_truncate_add_to_file(_ptt2age, os.path.join(OUTPUT_FOLDER_PATH, "ptt2age.json"))
 
                     global_doc2ptt.update(_doc2ptt)
+
+# dump patients for future ref
+dict2json_truncate_add_to_file(_doc2ptt, os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json"))
 
 if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
     # read each of the patient record files one by one
