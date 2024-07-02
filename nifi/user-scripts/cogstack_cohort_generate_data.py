@@ -110,7 +110,7 @@ def _process_patient_records(patient_records: list):
             if isinstance(dob, int):
                 dob = datetime.fromtimestamp(dob / 1000, tz=timezone.utc)
             else:
-                dob = datetime.strptime(str(dob), DATE_TIME_FORMAT)
+                dob = datetime.strptime(str(dob).replace("\"", "").replace("'", ""), DATE_TIME_FORMAT)
 
             dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
             patient_age = 0
@@ -119,7 +119,7 @@ def _process_patient_records(patient_records: list):
                 if isinstance(dod, int):
                     dod = datetime.fromtimestamp(dod / 1000, tz=timezone.utc)
                 else:
-                    dod = datetime.strptime(str(dod), DATE_TIME_FORMAT)
+                    dod = datetime.strptime(str(dod).replace("\"", "").replace("'", ""), DATE_TIME_FORMAT)
 
                 patient_age = dod.year - dob.year
             else:
@@ -300,7 +300,15 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
                     global_doc2ptt.update(_doc2ptt)
 
 # dump patients for future ref
-dict2json_truncate_add_to_file(_doc2ptt, os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json"))
+doc2ptt_path = os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json")
+dict2json_truncate_add_to_file(global_doc2ptt, doc2ptt_path)
+
+# if we have no patients, perhaps we have a list that is already present, ready to be used
+#   so that we only care about generating the annotations...
+if len(global_doc2ptt.keys()) < 1:
+    if os.path.exists(doc2ptt_path):
+        with open(doc2ptt_path, "r+") as f:
+            global_doc2ptt = json.loads(f.read()) 
 
 if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
     # read each of the patient record files one by one
