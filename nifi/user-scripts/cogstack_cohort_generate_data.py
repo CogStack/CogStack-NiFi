@@ -67,7 +67,7 @@ for arg in sys.argv:
     if _arg[0] == "document_id_field_name":
         DOCUMENT_ID_FIELD_NAME  = _arg[1]
     if _arg[0] == "cpu_threads":
-        CPU_THREADS = _arg[1]
+        CPU_THREADS = int(_arg[1])
     if _arg[0] == "timeout":
         TIMEOUT = _arg[1]
     if _arg[0] == "output_folder_path":
