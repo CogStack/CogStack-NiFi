@@ -112,7 +112,7 @@ def _process_patient_records(patient_records: list):
                 dob = int(dob)
             except ValueError:
                 dob = str(dob).replace("\"", "").replace("'", "")
-            
+
             try:
                 dod = int(dod)
             except ValueError:
@@ -301,11 +301,17 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
                 with open(f_path, mode="r+") as f:
                     contents = json.loads(f.read())
                     _doc2ptt, _ptt2dod, _ptt2age, _ptt2dob, _ptt2eth, _ptt2sex = multiprocess_patient_records(contents)
-                    dict2json_truncate_add_to_file(_ptt2sex, os.path.join(OUTPUT_FOLDER_PATH, "ptt2sex.json"))
-                    dict2json_truncate_add_to_file(_ptt2eth, os.path.join(OUTPUT_FOLDER_PATH, "ptt2eth.json"))
-                    dict2json_truncate_add_to_file(_ptt2dob, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dob.json"))
-                    dict2json_truncate_add_to_file(_ptt2dod, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dod.json"))
-                    dict2json_truncate_add_to_file(_ptt2age, os.path.join(OUTPUT_FOLDER_PATH, "ptt2age.json"))
+
+                    if _ptt2sex != {}:
+                        dict2json_truncate_add_to_file(_ptt2sex, os.path.join(OUTPUT_FOLDER_PATH, "ptt2sex.json"))
+                    if _ptt2eth != {}:
+                        dict2json_truncate_add_to_file(_ptt2eth, os.path.join(OUTPUT_FOLDER_PATH, "ptt2eth.json"))
+                    if _ptt2dob != {}:
+                        dict2json_truncate_add_to_file(_ptt2dob, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dob.json"))
+                    if _ptt2dod != {}:
+                        dict2json_truncate_add_to_file(_ptt2dod, os.path.join(OUTPUT_FOLDER_PATH, "ptt2dod.json"))
+                    if _ptt2age != {}:
+                        dict2json_truncate_add_to_file(_ptt2age, os.path.join(OUTPUT_FOLDER_PATH, "ptt2age.json"))
 
                     global_doc2ptt.update(_doc2ptt)
 
