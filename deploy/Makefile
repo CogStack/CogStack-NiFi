@@ -53,6 +53,9 @@ start-jupyter:
 start-medcat-service:
 	docker compose -f services.yml $(DC_START_CMD) nlp-medcat-service-production
 
+start-medcat-trainer:
+	docker compose -f services.yml $(DC_START_CMD) medcat-trainer-ui medcat-trainer-nginx
+
 start-nlp-medcat:
 	docker compose -f services.yml $(DC_START_CMD) nlp-medcat-service-production medcat-trainer-ui medcat-trainer-nginx
 
@@ -124,6 +127,9 @@ stop-jupyter:
 
 stop-nlp-medcat:
 	docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production medcat-trainer-ui medcat-trainer-nginx
+
+stop-medcat-trainer:
+	docker compose -f services.yml $(DC_STOP_CMD) medcat-trainer-ui medcat-trainer-nginx
 
 stop-medcat-service:
 	docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production
