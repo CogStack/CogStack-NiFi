@@ -37,7 +37,7 @@ DATE_TIME_FORMAT = "%Y-%m-%d"
 
 TIMEOUT = 3600
 
-CPU_THREADS = os.getenv("CPU_THREADS", int(multiprocess.cpu_count() / 2))
+CPU_THREADS = int(os.getenv("CPU_THREADS", int(multiprocess.cpu_count() / 2)))
 
 INPUT_FOLDER_PATH = ""
 
