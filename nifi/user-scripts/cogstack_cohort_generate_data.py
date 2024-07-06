@@ -118,14 +118,18 @@ def _process_patient_records(patient_records: list):
             except ValueError:
                 dod = str(dod).replace("\"", "").replace("'", "")
 
+            patient_age = 0
+
+            dob = 0 if dob in [None, "null"] else dob
+
             if isinstance(dob, int):
                 dob = datetime.fromtimestamp(dob / 1000, tz=timezone.utc)
             else:
                 dob = datetime.strptime(str(dob), DATE_TIME_FORMAT)
 
-            patient_age = 0
+            dod = 0 if dod in [None, "null"] else dod
 
-            if dod not in [None, "null", 0]:
+            if dod not in [None, "null"]:
                 if isinstance(dod, int):
                     dod = datetime.fromtimestamp(dod / 1000, tz=timezone.utc)
                 else:
@@ -136,7 +140,7 @@ def _process_patient_records(patient_records: list):
                 patient_age = datetime.now().year - dob.year
 
             # convert to ints
-            dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [None, "null"] else 0
+            dod = int(dod.strftime("%Y%m%d%H%M%S"))
             dob = int(dob.strftime("%Y%m%d%H%M%S"))
 
             # change records
