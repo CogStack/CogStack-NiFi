@@ -321,7 +321,8 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
 
 # dump patients for future ref
 doc2ptt_path = os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json")
-dict2json_truncate_add_to_file(global_doc2ptt, doc2ptt_path)
+with open(doc2ptt_path, "a+") as doc2ptt_file:
+    doc2ptt_file.write(json.dumps(global_doc2ptt))
 
 # if we have no patients, perhaps we have a list that is already present, ready to be used
 #   so that we only care about generating the annotations...
