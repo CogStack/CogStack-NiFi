@@ -106,7 +106,7 @@ def _process_patient_records(patient_records: list):
             _ptt2sex[_PATIENT_ID] = _tmp_gender
 
             dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] if PATIENT_BIRTH_DATE_FIELD_NAME in patient_record.keys() else 0
-            dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else None
+            dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else 0
 
             try:
                 dob = int(dob)
