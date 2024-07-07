@@ -317,7 +317,8 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
                     if _ptt2age != {}:
                         dict2json_truncate_add_to_file(_ptt2age, os.path.join(OUTPUT_FOLDER_PATH, "ptt2age.json"))
 
-                    global_doc2ptt.update(_doc2ptt)
+                    if _doc2ptt != {}:
+                        global_doc2ptt.update(_doc2ptt)
 
                 with open(log_file_path, "a+") as log_file:
                     time = datetime.now()
