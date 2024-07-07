@@ -35,7 +35,7 @@ INPUT_ANNOTATIONS_RECORDS_PATH = ""
 
 DATE_TIME_FORMAT = "%Y-%m-%d"
 
-TIMEOUT = 3600
+TIMEOUT = int(os.getenv("TIMEOUT", 360))
 
 CPU_THREADS = int(os.getenv("CPU_THREADS", int(multiprocess.cpu_count() / 2)))
 
@@ -319,6 +319,10 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
 
                     global_doc2ptt.update(_doc2ptt)
 
+                with open(log_file_path, "a+") as log_file:
+                    time = datetime.now()
+                    log_file.write("\n" + str(time) + ": processed file" + str(file_name))
+
 # dump patients for future ref
 doc2ptt_path = os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json")
 with open(doc2ptt_path, "a+") as doc2ptt_file:
@@ -357,3 +361,7 @@ if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
                             json_obj = json.loads(json.dumps(o))
                             json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
                             print('', file=outfile)
+
+                with open(log_file_path, "a+") as log_file:
+                    time = datetime.now()
+                    log_file.write("\n" + str(time) + ": processed file" + str(file_name))
