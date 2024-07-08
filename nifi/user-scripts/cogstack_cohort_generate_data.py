@@ -173,7 +173,7 @@ def _process_annotation_records(annotation_records: list):
                 annotation_entity = annotation_record["_source"]
             docid = annotation_entity[ANNOTATION_DOCUMENT_ID_FIELD_NAME]
 
-            if str(docid) in unique_doc_ids.keys():
+            if str(docid) in unique_doc_ids:
                 patient_id = global_doc2ptt[str(docid)]
                 cui = annotation_entity["nlp.cui"]
 
