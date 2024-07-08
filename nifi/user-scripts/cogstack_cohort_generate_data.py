@@ -69,7 +69,7 @@ for arg in sys.argv:
     if _arg[0] == "cpu_threads":
         CPU_THREADS = int(_arg[1])
     if _arg[0] == "timeout":
-        TIMEOUT = _arg[1]
+        TIMEOUT = int(_arg[1])
     if _arg[0] == "output_folder_path":
         OUTPUT_FOLDER_PATH = _arg[1]
     if _arg[0] == "input_folder_path":
