@@ -257,21 +257,24 @@ def multiprocess_annotation_records(input_annotations: dict):
     with Pool(processes=CPU_THREADS) as annotations_process_pool:
         rec_que = Queue()
 
-        record_chunks = list(chunk(input_annotations, int(len(input_annotations) / CPU_THREADS)))
-
-        counter = 0
-        for record_chunk in record_chunks:
-            rec_que.put(record_chunk)
-            annotation_process_pool_results.append(annotations_process_pool.starmap_async(_process_annotation_records, [(rec_que.get(),)], error_callback=logging.error))
-            counter += 1
-
         try:
-            for result in annotation_process_pool_results:
-                result_data = result.get(timeout=TIMEOUT)
+            if len(input_annotations) > 1:
+                record_chunks = list(chunk(input_annotations, int(len(input_annotations) / CPU_THREADS)))
+            else:
+                record_chunks = input_annotations
 
-                _cui2ptt_pos, _cui2ptt_tsp = result_data[0][0], result_data[0][1]
-                cui2ptt_pos.update(_cui2ptt_pos)
-                cui2ptt_tsp.update(_cui2ptt_tsp)
+            counter = 0
+            for record_chunk in record_chunks:
+                rec_que.put(record_chunk)
+                annotation_process_pool_results.append(annotations_process_pool.starmap_async(_process_annotation_records, [(rec_que.get(),)], error_callback=logging.error))
+                counter += 1
+
+                for result in annotation_process_pool_results:
+                    result_data = result.get(timeout=TIMEOUT)
+
+                    _cui2ptt_pos, _cui2ptt_tsp = result_data[0][0], result_data[0][1]
+                    cui2ptt_pos.update(_cui2ptt_pos)
+                    cui2ptt_tsp.update(_cui2ptt_tsp)
 
         except Exception as exception:
             time = datetime.now()
