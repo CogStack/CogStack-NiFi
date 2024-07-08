@@ -173,7 +173,7 @@ def _process_annotation_records(annotation_records: list):
                 annotation_entity = annotation_record["_source"]
             docid = annotation_entity[ANNOTATION_DOCUMENT_ID_FIELD_NAME]
 
-            if str(docid) in unique_doc_ids:
+            if str(docid) in global_doc2ptt.keys():
                 patient_id = global_doc2ptt[str(docid)]
                 cui = annotation_entity["nlp.cui"]
 
@@ -337,8 +337,6 @@ if len(global_doc2ptt.keys()) < 1:
         with open(doc2ptt_path, "r+") as f:
             global_doc2ptt = f.read()
             global_doc2ptt = json.loads(global_doc2ptt)
-
-unique_doc_ids = set(global_doc2ptt.keys())
 
 if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
     # read each of the patient record files one by one
