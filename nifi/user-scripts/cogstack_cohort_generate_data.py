@@ -322,19 +322,21 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
 
                 with open(log_file_path, "a+") as log_file:
                     time = datetime.now()
-                    log_file.write("\n" + str(time) + ": processed file" + str(file_name))
+                    log_file.write("\n" + str(time) + ": processed file " + str(file_name))
 
 # dump patients for future ref
 doc2ptt_path = os.path.join(OUTPUT_FOLDER_PATH, "doc2ptt.json")
-with open(doc2ptt_path, "a+") as doc2ptt_file:
-    doc2ptt_file.write(json.dumps(global_doc2ptt))
+if global_doc2ptt != {}:
+    with open(doc2ptt_path, "w") as doc2ptt_file:
+        doc2ptt_file.write(json.dumps(global_doc2ptt))
 
 # if we have no patients, perhaps we have a list that is already present, ready to be used
 #   so that we only care about generating the annotations...
 if len(global_doc2ptt.keys()) < 1:
     if os.path.exists(doc2ptt_path):
         with open(doc2ptt_path, "r+") as f:
-            global_doc2ptt = json.loads(f.read()) 
+            global_doc2ptt = f.read()
+            global_doc2ptt = json.loads(global_doc2ptt)
 
 if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
     # read each of the patient record files one by one
@@ -365,4 +367,4 @@ if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
 
                 with open(log_file_path, "a+") as log_file:
                     time = datetime.now()
-                    log_file.write("\n" + str(time) + ": processed file" + str(file_name))
+                    log_file.write("\n" + str(time) + ": processed file " + str(file_name))
