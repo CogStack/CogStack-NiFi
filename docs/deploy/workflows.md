@@ -3,7 +3,7 @@
 Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
 These are:
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
-2. `OpenSearch_ingest_DB_to_ES_OCR` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using Tika-service.
+2. `OpenSearch_ingest_DB_OCR_service_to_ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using the OCR-service.
 3. `OpenSearch_ingest_annotate_DB_MedCATService_to_ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
 4. `OpenSearch_ingest_annotate_ES_MedCATService_to_ES` - the same as (3) but reading notes from Elasticsearch.
 
