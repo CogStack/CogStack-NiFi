@@ -26,6 +26,7 @@ PATIENT_ETHNICITY_FIELD_NAME = "ethnicity"
 PATIENT_GENDER_FIELD_NAME = "gender"
 PATIENT_BIRTH_DATE_FIELD_NAME = "birthdate"
 PATIENT_DEATH_DATE_FIELD_NAME = "deathdate"
+PATIENT_DEATH_DATE_BACKUP_FIELD_NAME = ""
 
 OUTPUT_FOLDER_PATH = os.path.join(os.getenv("NIFI_DATA_PATH", "/opt/data/"), "cogstack-cohort")
 
@@ -62,6 +63,8 @@ for arg in sys.argv:
         PATIENT_BIRTH_DATE_FIELD_NAME = _arg[1]
     if _arg[0] == "patient_death_date_field_name":
         PATIENT_DEATH_DATE_FIELD_NAME = _arg[1]
+    if _arg[0] == "patient_death_date_backup_field_name":
+        PATIENT_DEATH_DATE_BACKUP_FIELD_NAME = _arg[1]
     if _arg[0] == "patient_gender_field_name":
         PATIENT_GENDER_FIELD_NAME = _arg[1]
     if _arg[0] == "document_id_field_name":
@@ -106,7 +109,8 @@ def _process_patient_records(patient_records: list):
             _ptt2sex[_PATIENT_ID] = _tmp_gender
 
             dob = patient_record[PATIENT_BIRTH_DATE_FIELD_NAME] if PATIENT_BIRTH_DATE_FIELD_NAME in patient_record.keys() else 0
-            dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else 0
+            dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME] if PATIENT_DEATH_DATE_FIELD_NAME in patient_record.keys() else \
+                  patient_record[PATIENT_DEATH_DATE_BACKUP_FIELD_NAME] if PATIENT_DEATH_DATE_BACKUP_FIELD_NAME in patient_record.keys() else 0
 
             try:
                 dob = int(dob)
