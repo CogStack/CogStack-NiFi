@@ -79,9 +79,9 @@ ptt2age = {}
 ptt2dod = {}
 
 for patient_record in input_patient_record_data:
-    
-    _ethnicity =  str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ")
-    
+
+    _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ")
+
     if _ethnicity in ethnicity_map.keys():
         ptt2eth[patient_record[PATIENT_ID_FIELD_NAME]] = ethnicity_map[_ethnicity].title()
     else:
@@ -99,7 +99,7 @@ for patient_record in input_patient_record_data:
     ptt2sex[patient_record[PATIENT_ID_FIELD_NAME]] = _tmp_gender
 
     dob = datetime.strptime(patient_record[PATIENT_BIRTH_DATE_FIELD_NAME], DATE_TIME_FORMAT)
-    
+
     dod = patient_record[PATIENT_DEATH_DATE_FIELD_NAME]
     patient_age = 0
 
@@ -135,10 +135,10 @@ for annotation_record in input_annotations:
             cui = annotation_entity["nlp.cui"]
             cui2ptt_pos[cui][ptt] += 1
 
-        if "timestamp" in annotation_entity.keys():
-            time =  int(round(datetime.fromisoformat(annotation_entity["timestamp"]).timestamp()))
-            if cui2ptt_tsp[cui][ptt] == 0 or time < cui2ptt_tsp[cui][ptt]:
-                cui2ptt_tsp[cui][ptt] = time
+            if "timestamp" in annotation_entity.keys():
+                time = int(round(datetime.fromisoformat(annotation_entity["timestamp"]).timestamp()))
+                if cui2ptt_tsp[cui][ptt] == 0 or time < cui2ptt_tsp[cui][ptt]:
+                    cui2ptt_tsp[cui][ptt] = time
 
 
 dict2json_file(ptt2sex, os.path.join(OUTPUT_FOLDER_PATH, "ptt2sex.json"))
