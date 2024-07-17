@@ -139,9 +139,9 @@ def _process_patient_records(patient_records: list):
                 else:
                     dod = datetime.strptime(str(dod), DATE_TIME_FORMAT)
 
-                patient_age = dod.year - dob.year
+                patient_age = abs(dod.year - dob.year)
             else:
-                patient_age = datetime.now().year - dob.year
+                patient_age = abs(datetime.now().year - dob.year)
 
             # convert to ints
             dod = int(dod.strftime("%Y%m%d%H%M%S"))
