@@ -144,7 +144,7 @@ def _process_patient_records(patient_records: list):
                 patient_age = abs(datetime.now().year - dob.year)
 
             # convert to ints
-            dod = int(dod.strftime("%Y%m%d%H%M%S"))
+            dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [0, None, "null"] else 0
             dob = int(dob.strftime("%Y%m%d%H%M%S"))
 
             # change records
