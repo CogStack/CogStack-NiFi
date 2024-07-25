@@ -48,6 +48,10 @@ INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN = ""
 
 EXPORT_ONLY_PATIENT_RECORDS = "false"
 
+# if this is enabled, the maximum patient age will be somewhere between 90 and 99 IF there is no DATE OF DEATH available
+# calculated as: current_year - patient_year_of_birth, if > 100, patient_age = rand(90,99)
+ENABLE_PATIENT_AGE_LIMIT = "false"
+
 for arg in sys.argv:
     _arg = arg.split("=", 1)
     if _arg[0] == "annotation_document_id_field_name":
@@ -80,7 +84,8 @@ for arg in sys.argv:
         INPUT_PATIENT_RECORD_FILE_NAME_PATTERN = _arg[1]
     if _arg[0] == "input_annotations_records_file_name_pattern":
         INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN = _arg[1]
-
+    if _arg[0] == "enable_patient_age_limit":
+        ENABLE_PATIENT_AGE_LIMIT = str(_arg[1]).lower()
 
 def _process_patient_records(patient_records: list):
     _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = {}, {}, {}, {}, {}, {}
@@ -133,6 +138,9 @@ def _process_patient_records(patient_records: list):
                     patient_age = abs(dod.year - dob.year)
                 else:
                     patient_age = abs(datetime.now().year - dob.year)
+                    if patient_age >= 100 and ENABLE_PATIENT_AGE_LIMIT == "true":
+                        dod = datetime.now(tz=timezone.utc)
+                        patient_age = -1
 
                 # convert to ints
                 dod = int(dod.strftime("%Y%m%d%H%M%S")) if dod not in [0, None, "null"] else 0
