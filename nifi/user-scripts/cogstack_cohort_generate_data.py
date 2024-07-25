@@ -87,6 +87,7 @@ for arg in sys.argv:
     if _arg[0] == "enable_patient_age_limit":
         ENABLE_PATIENT_AGE_LIMIT = str(_arg[1]).lower()
 
+
 def _process_patient_records(patient_records: list):
     _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = {}, {}, {}, {}, {}, {}
 
@@ -228,23 +229,23 @@ def multiprocess_patient_records(input_patient_record_data: dict):
             patient_process_pool_results.append(patient_process_pool.starmap_async(_process_patient_records, [(rec_que.get(),)], error_callback=logging.error))
             counter += 1
 
-            for result in patient_process_pool_results:
-                try:
-                    result_data = result.get(timeout=TIMEOUT)
-                    _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = result_data[0][0], result_data[0][1], result_data[0][2], result_data[0][3], result_data[0][4], result_data[0][5]
+        for result in patient_process_pool_results:
+            try:
+                result_data = result.get(timeout=TIMEOUT)
+                _ptt2sex, _ptt2eth, _ptt2dob, _ptt2age, _ptt2dod, _doc2ptt = result_data[0][0], result_data[0][1], result_data[0][2], result_data[0][3], result_data[0][4], result_data[0][5]
 
-                    ptt2sex.update(_ptt2sex)
-                    ptt2eth.update(_ptt2eth)
-                    ptt2dob.update(_ptt2dob)
-                    ptt2age.update(_ptt2age)
-                    ptt2dod.update(_ptt2dod)
-                    doc2ptt.update(_doc2ptt)
+                ptt2sex.update(_ptt2sex)
+                ptt2eth.update(_ptt2eth)
+                ptt2dob.update(_ptt2dob)
+                ptt2age.update(_ptt2age)
+                ptt2dod.update(_ptt2dod)
+                doc2ptt.update(_doc2ptt)
 
-                except Exception as exception:
-                    time = datetime.now()
-                    with open(log_file_path, "a+") as log_file:
-                        log_file.write("\n" + str(time) + ": " + str(exception))
-                        log_file.write("\n" + str(time) + ": " + traceback.format_exc())
+            except Exception as exception:
+                time = datetime.now()
+                with open(log_file_path, "a+") as log_file:
+                    log_file.write("\n" + str(time) + ": " + str(exception))
+                    log_file.write("\n" + str(time) + ": " + traceback.format_exc())
 
     return doc2ptt, ptt2dod, ptt2age, ptt2dob, ptt2eth, ptt2sex
 
