@@ -183,7 +183,7 @@ RUN pip3 install --no-cache-dir -U spacy click torch thinc
 # install requirements for working with cogstack scripts
 # RUN pip3 isntall --no-cache-dir -r notebooks/working_with_cogstack/requirements.txt
 
-RUN pip3 install --no-cache-dir medcat eland plotly
+RUN pip3 install --no-cache-dir medcat==1.12.0 eland plotly
 
 # clean up pip
 RUN pip3 cache purge
