@@ -8,7 +8,7 @@ import multiprocess
 from multiprocess import Pool, Queue
 from collections import defaultdict, Counter
 from utils.ethnicity_map import ethnicity_map
-from utils.generic import chunk, dict2json_truncate_add_to_file, dict2json_file
+from utils.generic import chunk, dict2jsonl_file, dict2json_file
 
 # default values from /deploy/nifi.env
 USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR", "")
@@ -96,7 +96,7 @@ def _process_patient_records(patient_records: list):
             try:
                 _ethnicity = str(patient_record[PATIENT_ETHNICITY_FIELD_NAME]).lower().replace("-", " ").replace("_", " ") if PATIENT_ETHNICITY_FIELD_NAME in patient_record.keys() else "other"
 
-                _PATIENT_ID = str(patient_record[PATIENT_ID_FIELD_NAME]).replace("\"", "").replace("\'", "")
+                _PATIENT_ID = str(patient_record[PATIENT_ID_FIELD_NAME]).replace("\"", "").replace("\'", "").strip()
 
                 if _ethnicity in ethnicity_map.keys():
                     _ptt2eth[_PATIENT_ID] = ethnicity_map[_ethnicity].title()
@@ -275,12 +275,30 @@ def multiprocess_annotation_records(input_annotations: dict):
                 annotation_process_pool_results.append(annotations_process_pool.starmap_async(_process_annotation_records, [(rec_que.get(),)], error_callback=logging.error))
                 counter += 1
 
-                for result in annotation_process_pool_results:
-                    result_data = result.get(timeout=TIMEOUT)
+            for result in annotation_process_pool_results:
+                result_data = result.get(timeout=TIMEOUT)
 
-                    _cui2ptt_pos, _cui2ptt_tsp = result_data[0][0], result_data[0][1]
-                    cui2ptt_pos.update(_cui2ptt_pos)
-                    cui2ptt_tsp.update(_cui2ptt_tsp)
+                _cui2ptt_pos, _cui2ptt_tsp = result_data[0][0], result_data[0][1]
+
+                for cui, patient_id_count_vals in _cui2ptt_pos.items():
+                    if cui not in cui2ptt_pos.keys():
+                        cui2ptt_pos[cui] = patient_id_count_vals
+                    else:
+                        for patient_id, count in patient_id_count_vals.items():
+                            if patient_id not in cui2ptt_pos[cui].keys():
+                                cui2ptt_pos[cui][patient_id] = count
+                            else:
+                                cui2ptt_pos[cui][patient_id] += count
+
+                for cui, patient_id_timestamps in _cui2ptt_tsp.items():
+                    if cui not in cui2ptt_tsp.keys():
+                        cui2ptt_tsp[cui] = patient_id_timestamps
+                    else:
+                        for patient_id, timestamp in patient_id_timestamps.items():
+                            if patient_id not in cui2ptt_tsp[cui].keys():
+                                cui2ptt_tsp[cui][patient_id] = timestamp
+                            else:
+                                cui2ptt_tsp[cui][patient_id] = timestamp
 
         except Exception as exception:
             time = datetime.now()
@@ -368,20 +386,50 @@ if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
                     contents = json.loads(f.read())
 
                     cui2ptt_pos, cui2ptt_tsp = multiprocess_annotation_records(contents)
-                    with open(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"), "a+", encoding="utf-8") as outfile:
-                        for k,v in cui2ptt_pos.items():
-                            o = {k: v}
-                            json_obj = json.loads(json.dumps(o))
-                            json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
-                            print('', file=outfile)
-
-                    with open(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"), "a+", encoding="utf-8") as outfile:
-                        for k,v in cui2ptt_tsp.items():
-                            o = {k: v}
-                            json_obj = json.loads(json.dumps(o))
-                            json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
-                            print('', file=outfile)
+                    dict2jsonl_file(cui2ptt_pos, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"))
+                    dict2jsonl_file(cui2ptt_tsp, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"))
 
                 with open(log_file_path, "a+") as log_file:
                     time = datetime.now()
                     log_file.write("\n" + str(time) + ": processed file " + str(file_name))
+
+    # merge all records
+    cui2ptt_pos = defaultdict(Counter) # store the count of a SNOMED term for a patient
+    cui2ptt_tsp = defaultdict(lambda: defaultdict(int)) # store the first mention timestamp of a SNOMED term for a patient
+
+    with open(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"), "r+", encoding="utf-8") as cui2ptt_tspfile:
+
+        for line in cui2ptt_tspfile:
+            _dict_line = json.loads(line)
+
+            for cui, cui_timestamps in _dict_line.items():
+                if cui not in cui2ptt_tsp.keys():
+                    cui2ptt_tsp[cui] = cui_timestamps
+                else:
+                    for pttid, timestamp in cui_timestamps.items():
+                        if pttid not in cui2ptt_tsp[cui].keys():
+                            cui2ptt_tsp[cui][pttid] = int(timestamp)
+                        else:
+                            if int(cui2ptt_tsp[cui][pttid]) < int(timestamp):
+                                cui2ptt_tsp[cui][pttid] = timestamp
+
+    os.rename(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"), os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl.bk"))
+    dict2jsonl_file(cui2ptt_tsp, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"))
+
+    with open(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"), "r+", encoding="utf-8") as cui2ptt_posfile:
+
+        for line in cui2ptt_posfile:
+            _dict_line = json.loads(line)
+
+            for cui, pttid_cui_count in _dict_line.items():
+                if cui not in cui2ptt_pos.keys():
+                    cui2ptt_pos[cui] = pttid_cui_count
+                else:
+                    for pttid, cui_count in pttid_cui_count.items():
+                        if pttid not in cui2ptt_pos[cui].keys():
+                            cui2ptt_pos[cui][pttid] = int(cui_count)
+                        else:
+                            cui2ptt_pos[cui][pttid] += int(cui_count)
+
+    os.rename(os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"), os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl.bk"))
+    dict2jsonl_file(cui2ptt_pos, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"))
