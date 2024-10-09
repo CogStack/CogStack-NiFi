@@ -253,7 +253,7 @@ services:
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
   nlp-medcat-service-production:
-    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:0.6.1}
+    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:0.7.0}
     container_name: cogstack-medcat-service-production
     restart: always
     env_file:

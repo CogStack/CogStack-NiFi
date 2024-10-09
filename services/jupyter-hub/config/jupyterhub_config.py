@@ -159,7 +159,8 @@ class DockerSpawner(dockerspawner.DockerSpawner):
                     "mode": "rw",  # or ro for read-only
                 }
 
-        self.mem_limit = "2.0G"
+        # this is a temporary fix, need to actually check permissions
+        self.mem_limit = resource_allocation_user_ram_limit
         self.post_start_cmd = "chmod -R 777 " + shared_content_dir
 
         return super().start()
