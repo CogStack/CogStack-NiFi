@@ -914,7 +914,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.6
+    #image: cogstacksystems/cogstack-nifi:1.2.6
     #build:
     #   context: ../nifi/
     #   args:
@@ -961,8 +961,8 @@ services:
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
-      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      - ../security/nifi_certificates/nifi/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/nifi/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
       # Security credentials scripts
       - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
