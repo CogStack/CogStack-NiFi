@@ -146,9 +146,10 @@ RUN pip3 install --no-cache-dir docker dockerspawner jupyterhub-firstuseauthenti
 RUN pip3 install --no-cache-dir jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
 
 # extra packages for DB connections & utilities (charts, data formats, and other useful tools such as neo4j)
-RUN pip3 install --no-cache-dir pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm 
+RUN pip3 install --no-cache-dir pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm
 RUN pip3 install --no-cache-dir pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2 psycopg2-binary pyodbc openpyxl
 RUN pip3 install --no-cache-dir dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML 
+RUN pip3 install --no-cache-dir opencv-python torchvision
 
 # XNAT
 RUN pip3 install --no-cache-dir xnat
