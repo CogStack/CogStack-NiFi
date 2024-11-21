@@ -92,11 +92,9 @@ fi;
 echo "Installing require python packages.."
 
 sudo -H pip3 install --upgrade pip
-sudo -H pip3 install wheel docker-compose
-sudo -H pip3 install html2text jsoncsv detect
+sudo -H pip3 install html2text jsoncsv detect --break-system-packages
 
 echo "Finished installing docker and utils.."
-
 
 sudo sysctl -w vm.max_map_count=262144
 
