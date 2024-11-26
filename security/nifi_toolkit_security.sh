@@ -60,8 +60,6 @@ else
 fi
 
 
-
-
 # IMPRTANT: this is used in StandardSSLContextService controllers on the NiFi side, trusted keystore password field.
 if [[ -z "${NIFI_KEY_PASSWORD}" ]]; then
     NIFI_KEY_PASSWORD="cogstackNifi"
