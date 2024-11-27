@@ -52,6 +52,14 @@ else
 fi
 
 
+if [[ -z "${NIFI_SUBJ_ALT_NAMES}" ]]; then
+    NIFI_SUBJ_ALT_NAMES="test[1-6].cogstack.net"
+    echo "NIFI_SUBJ_ALT_NAMES not set, defaulting to NIFI_SUBJ_ALT_NAMES=test[1-6].cogstack.net"
+else
+    NIFI_SUBJ_ALT_NAMES=${NIFI_SUBJ_ALT_NAMES}
+fi
+
+
 # IMPRTANT: this is used in StandardSSLContextService controllers on the NiFi side, trusted keystore password field.
 if [[ -z "${NIFI_KEY_PASSWORD}" ]]; then
     NIFI_KEY_PASSWORD="cogstackNifi"
@@ -72,7 +80,7 @@ export JAVA_OPTS="-Xmx2048m -Xms2048m"
 
 for win_os in ${windows_unames[@]}; do
     if [[ $win_os == *"$os_name"* ]]; then
-        ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD
+        ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEY_PASSWORD --subjectAlternativeNames $NIFI_SUBJ_ALT_NAMES
         is_os_windows=1
     fi
 done
