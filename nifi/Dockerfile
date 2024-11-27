@@ -62,7 +62,7 @@ RUN pip3 install --no-cache-dir xnat
 
 # medcat & models
 RUN pip3 install --no-cache-dir -U spacy click torch thinc
-RUN pip3 install --no-cache-dir medcat==1.5.3
+RUN pip3 install --no-cache-dir medcat==1.13.0
 
 # ApacheNifi specific packages
 RUN pip3 install --no-cache-dir nipyapi nifi.flowfile avro
