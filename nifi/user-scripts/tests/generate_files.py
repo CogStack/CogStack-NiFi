@@ -3,6 +3,9 @@ import os
 import uuid
 import random
 
+from pathlib import Path
+from reportlab.pdfgen import canvas
+
 path = "../../../data/ingestion/2022/"
 
 str_file_name = "ex1.pdf"
@@ -32,3 +35,29 @@ for i in range(1,13):
 
         with(open(os.path.join(day_dir_path, "metadata.csv"), "w+")) as csv_file:
             csv_file.write(metadata_csv)
+
+
+def create_long_pdf_over_char_limit(file_path, text):
+    c = canvas.Canvas(file_path)
+    # Set font and size
+    c.setFont("Helvetica", 12)
+
+    # Set margin
+    margin = 50
+    width, height = c._pagesize
+
+    # Split the text into lines
+    lines = [text[i:i + 100] for i in range(0, len(text), 100)]  # Adjust line length as needed
+
+    # Write lines to PDF
+    y = height - margin
+    for line in lines:
+        c.drawString(margin, y, line)
+        y -= 12 + 2  # Adjust spacing between lines as needed
+
+    c.save()
+
+# this is a string over the int limit (for testing the built in jackson XML parser)
+over_char_text = "a" * 2147483647
+
+#create_long_pdf_over_char_limit(path + "long_pdf.pdf", over_char_text)

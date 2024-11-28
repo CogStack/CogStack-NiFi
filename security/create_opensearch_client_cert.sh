@@ -77,5 +77,7 @@ openssl x509 -req -days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS -in "$ES_CLIENT_CE
 
 #-extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") 
 
+chmod -R 755 "./$ES_CLIENT_CERT_NAME"*
+
 mv "$ES_CLIENT_CERT_NAME"* $OPENSEARCH_ES_CERTIFICATES_FOLDER
 

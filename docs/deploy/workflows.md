@@ -1,13 +1,17 @@
 # Workflows
 
-Our custom Apache NiFi image comes with 4 example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
+Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
 These are:
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
-2. `OpenSearch_ingest_DB_to_ES_OCR` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using Tika-service.
+2. `OpenSearch_ingest_DB_OCR_service_to_ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using the OCR-service.
 3. `OpenSearch_ingest_annotate_DB_MedCATService_to_ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
 4. `OpenSearch_ingest_annotate_ES_MedCATService_to_ES` - the same as (3) but reading notes from Elasticsearch.
 
 If you are using Nifi with SSL mode (which is on by default as of the upgrade to version 1.15+), please note that all of these templates have SSL configured (SSLContext service controller being present), please make sure that you set the password(s) to the key/trust(store) for the templates to work.
+
+There are more workflows available in the sections below
+
+<span style="color: red"><strong> IMPORTANT:</strong></span> if you do not see some workflows in the NiFi Template Web interface then you will have to manually go to the `./nifi/user-templates` folder and upload whatever templates are missing, the reason for this is that NiFi keep its own available template(s) file separately and we do not update this as it will overwrite the user's own file.
 
 <br>
 
@@ -19,6 +23,8 @@ In the workflow examples, the following services are used:
 - `elasticsearch-2` - second node 
 - `tika-service` - extraction of text from binary documents,
 - `nlp-medcat-service-production` - an example NLP application for extracting annotations from free-text.
+- `cogstack-cohort` - CogStack-Cohort tool
+- `ocr-service-1`/`ocr-service-2` - OCR service(s)
 
 To deploy the above services, one can type in the `deploy` directory: 
 ```
@@ -354,3 +360,40 @@ The flow is displayed in the image below. Split into two sections, it does the f
   - in the bottom second half of the image we convert the current fields gotten from the DB to our own schema mapping, the resulting record being in Avro format, we then ingest the record into ES. The only two processors that need changing here are `GenerateTableFetch` and `PutElasticsearchRecord`.
 
 ![common-schema-workflow](../_static/img/cogstack_common_schema_full_workflow.png)
+
+## Ingesting raw files from disk with extra optional data
+
+NiFi template name: `Raw_file_read_from_disk_ocr_custom`
+
+Journey of this workflow: 
+1. execute python file that gets the record files from a folder which respects the yyyy/mm/dd pattern, each folder has a meta.csv file containing record data columns,
+ the free text is however stored in raw format however and needs to be OCR-ed, with the file name being the record ID from the meta.csv file. 
+We perform a lookup up and add the raw file content as a column to its corresponding record. 
+The result of the script is a JSON with all the records within a folder passted to STDOUT (only one flowfile can be generated per processor call since it is stdout).
+2. we add the content-type as "application/json" to each flowfile, for completness.
+3. we split the list of dictionaries so that we from one flowfile containing X records we will have a flowfile per record (required as for OCR-ing, we can only do one file per request). This step may require additional adjustment, the SplitJson processor has a text char limit (2mil) that it can split. If we go above that we can't split, so adjust the `output_batch_size` parameter of the `ExecuteProcess-getFilesFromDisk` processor, contained within the `Command Arguments` property, at the very end.
+4. we convert the JSON output to AVRO for easier manipulation within the NiFi Jython script, which transfers the record's fields as attributes of a flowfile for future use
+, and the designated binary data column is set as the content of the new flowfile, so that we send binary data to the ocr service.
+5. perform the OCR
+6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!
+
+Prerequisite if you want to test this template for testing, please run the following commands:
+- `cd nifi/user-scripts/tests`
+- `python3 generate_files.py`
+
+The above assumes that you already have the NiFi container running, the script just generates some sample files.
+
+## CogStack Cohort source file creation.
+
+Check the "CogStack_Cohort_create_source_docs" template, you will have to manually upload the xml if it is not already there (presuming you already have a working installation).
+
+This workflow will not work with sample data and annotations because there are not enough patients in the provided dataset.
+
+Prerequisites for this workflow: 
+1. make sure your concepts have been generated using a SNOMED model.
+2. make sure you have enough patients (>1k)
+3. you have the required fields in your patient records: age, ethnicity, date of death, date of birth, patient_id, doc_id, gender.
+4. datetime fields must have the same format.
+
+The script used for this process is located here: `nifi/user-scripts/cogstack_cohort_generate_data.py`. Please read all the info provided in the NiFi template.
+

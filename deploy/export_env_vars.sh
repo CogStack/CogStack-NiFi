@@ -16,7 +16,6 @@ env_files=("nifi.env"
            $security_dir"certificates_nifi.env"
            $security_dir"certificates_general.env"
            $security_dir"certificates_elasticsearch.env"
-           $security_dir"es_cogstack_users.env"
            $security_dir"elasticsearch_users.env"
            $security_dir"database_users.env"
            )

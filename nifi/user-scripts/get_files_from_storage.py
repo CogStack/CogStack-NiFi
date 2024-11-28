@@ -47,8 +47,9 @@ for arg in sys.argv:
         generate_pseudo_doc_id = str(_arg[1])
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
-processed_folder_dump="processed_" + folder_to_ingest
+processed_folder_dump = "processed_" + folder_to_ingest
 processed_folder_dump_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
+processed_folder_dump_path = processed_folder_dump_path.replace("\"", "").replace("\'", "")
 
 # log file name
 ingested_folders_file = processed_folder_dump_path + ".log"
@@ -67,7 +68,7 @@ output_data = []
 
 def get_files_and_metadata():
     '''_summary_
-        This will read the pdf documents and metadata.csv file from one folder and output them as a json,
+        This will read the pdf/docx/txt etc. documents and metadata.csv file from one folder and output them as a json,
         NiFi will handle the conversion of this json to a proper flowfile using the ConvertRecord processor.
 
         It will only ingest one folder of that matches the yyyy/mm/dd pattern, then stop declared in the 'folder_pattern' variable.
@@ -131,7 +132,7 @@ def get_files_and_metadata():
                                 record_counter += 1
                             else:
                                 break
-                        except Exception as e:
+                        except Exception as exception:
                             print("Failed to open file:" + file_path)   
                             traceback.print_exc()
 
@@ -159,16 +160,18 @@ def get_files_and_metadata():
                                     if generate_pseudo_doc_id != False:
                                         _file_id_dict["document_Pseudo_Id"] = str(uuid.uuid4().hex)
 
-                                    folders_ingested[root].append(file_id)
                                     txt_file_df = pandas.concat([txt_file_df,  pandas.DataFrame.from_dict([_file_id_dict], orient="columns")])
+                                    folders_ingested[root].append(file_id)
+
                         else:
                             for i in range(0, len(txt_file_df)):
                                 file_id = txt_file_df.iloc[i][file_id_csv_column_name_match]
 
-                                if file_id not in folders_ingested[root]:
-                                    if file_id in list(doc_files.keys()):
-                                        txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
-                                        txt_file_df.at[i, "text"] = ""
+                                if file_id in list(doc_files.keys()) and file_id not in folders_ingested[root]:
+                                    txt_file_df.at[i, "binarydoc"] = base64.b64encode(doc_files[file_id]).decode()
+                                    txt_file_df.at[i, "text"] = ""
+
+                                    if file_id not in folders_ingested[root]:
                                         folders_ingested[root].append(file_id)
 
                         txt_file_df = txt_file_df.loc[txt_file_df["binarydoc"].notna()]
@@ -179,13 +182,13 @@ def get_files_and_metadata():
                         for i in range(0, len(txt_file_df)):
                             output_data.append(txt_file_df.iloc[i].to_dict())
                     
-                except Exception as e:
+                except Exception as exception:
                     print("failure")
                     traceback.print_exc()
 
-            elif record_counter >= output_batch_size - 1:
+            if record_counter >= output_batch_size - 1:
                 break
-
+        
 get_files_and_metadata()
 
 with open(ingested_folders_file, "w+") as f:

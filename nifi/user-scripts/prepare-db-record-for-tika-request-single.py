@@ -33,7 +33,7 @@ from avro.io import DatumReader, DatumWriter
 """
 
 global flowFile
-global operation_mode
+global OPERATION_MODE
 
 flowFile = session.get()
 
@@ -55,7 +55,7 @@ class PyStreamCallback(StreamCallback):
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
                 
-                if operation_mode == "base64":
+                if OPERATION_MODE == "base64":
                     binary_data = base64.b64decode(binary_data)
 
                 del avro_record[binary_data_property]
@@ -74,7 +74,7 @@ if flowFile != None:
     output_text_property = str(context.getProperty(OUTPUT_TEXT_FIELD_NAME))
 
     # check if this has been set
-    operation_mode = str(context.getProperty("operation_mode"))
+    OPERATION_MODE = str(context.getProperty("operation_mode"))
 
     try:
         flowFile = session.write(flowFile, PyStreamCallback())

@@ -74,7 +74,7 @@ services:
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
     # <host:container> expose the postgres DB to host for debugging purposes
-      - 5555:5432
+      - 5556:5432
     expose:
       - 5432
     networks:
@@ -82,7 +82,7 @@ services:
   
   cogstack-databank-db-mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: cogstack-production-databank-db
+    container_name: cogstack-production-databank-db-mssql
     shm_size: 1024mb
     restart: always
     env_file:
@@ -223,72 +223,6 @@ services:
     networks:
       - cognet
 
-  ocr-service-3:
-    container_name: ocr-service-3
-    image: cogstacksystems/cogstack-ocr-service:0.2.4
-    restart: always
-    # mem_swappiness: 0
-    # cpuset: "0-15"
-    shm_size : 1024mb
-    privileged: true
-    security_opt:
-      - seccomp:unconfined
-    env_file:
-      - ./ocr_service.env
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-
-      # tesseract threading is disabled as the processing will take care of distribution
-      - OMP_THREAD_LIMIT=1
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - "8092:8090"
-    expose: 
-      - "8090"
-    networks:
-      - cognet
-
-  ocr-service-4:
-    container_name: ocr-service-4
-    image: cogstacksystems/cogstack-ocr-service:0.2.4
-    restart: always
-    # mem_swappiness: 0
-    # cpuset: "0-15"
-    shm_size : 1024mb
-    privileged: true
-    security_opt:
-      - seccomp:unconfined
-    env_file:
-      - ./ocr_service.env
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-
-      # tesseract threading is disabled as the processing will take care of distribution
-      - OMP_THREAD_LIMIT=1
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - "8093:8090"
-    expose: 
-      - "8090"
-    networks:
-      - cognet
-
 #---------------------------------------------------------------------------#
 # NLP Services containers                                                   #
 #   * using example free models / resources                                 #
@@ -317,24 +251,29 @@ services:
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
   nlp-medcat-service-production:
-    image: cogstacksystems/medcat-service:0.5.1
-    container_name: cogstack-medcat-production
+    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:0.7.0}
+    container_name: cogstack-medcat-service-production
     restart: always
     env_file:
       - ./nlp_service.env
       - ../services/nlp-services/applications/medcat/config/env_app
       - ../services/nlp-services/applications/medcat/config/env_medcat
-    environment:
-      - APP_MODEL_NAME=production-medmen
-      - RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH=${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}
     volumes:
       - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/cat/models/:rw
     expose:
       - 5000
     ports:
-      - "5555:5000"
+      - "${MEDCAT_SERVICE_SERVER_OUTPUT_PORT:-5555}:5000"
     networks:
       - cognet
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          count: all
+    #          # device_ids: ['0']
+    #          capabilities: ["gpu", "utility", "compute", "video"]
 
   nlp-gate-bioyodie:
     image: cogstacksystems/nlp-rest-service-gate:latest
@@ -359,7 +298,7 @@ services:
 # MedCAT Trainer                                                            #
 #---------------------------------------------------------------------------#
   medcat-trainer-ui:
-    image: cogstacksystems/medcat-trainer:v2.11.0
+    image: cogstacksystems/medcat-trainer:v2.11.2
     container_name: cogstack-medcat-trainer-ui
     restart: always
     # INFO: MedCAT library config provided via env file
@@ -369,7 +308,7 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
-      - MCT_VERSION=v2.11.0
+      - MCT_VERSION=v2.11.2
       - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
       - CONCEPT_SEARCH_SERVICE_PORT=8983
     volumes:
@@ -382,7 +321,7 @@ services:
     command: /home/run.sh
 
   medcat-trainer-nginx:
-    image: cogstacksystems/medcat-trainer-nginx:v2.11.0
+    image: cogstacksystems/medcat-trainer-nginx:v2.11.2
     container_name: cogstack-medcat-trainer-nginx
     restart: always
     environment:
@@ -420,7 +359,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     env_file:
       - ../security/certificates_elasticsearch.env
     environment:
@@ -440,7 +379,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-1
     shm_size : 1024mb
     restart: always
@@ -472,7 +411,7 @@ services:
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
       - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
@@ -532,7 +471,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-2:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-2
     shm_size : 1024mb
     restart: always
@@ -564,7 +503,7 @@ services:
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
       - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
@@ -624,7 +563,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-3:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.6.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
     container_name: elasticsearch-3
     shm_size : 1024mb
     restart: always
@@ -656,7 +595,7 @@ services:
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
       - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
@@ -717,7 +656,7 @@ services:
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
-    image: docker.elastic.co/beats/metricbeat:8.3.3
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -758,7 +697,7 @@ services:
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
-    image: docker.elastic.co/beats/metricbeat:8.3.3
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -797,7 +736,7 @@ services:
 
   filebeat-1:
     container_name: cogstack-filebeat-1
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -839,7 +778,7 @@ services:
 
   filebeat-2:
     container_name: cogstack-filebeat-2
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -881,7 +820,7 @@ services:
 
   filebeat-3:
     container_name: cogstack-filebeat-3
-    image: docker.elastic.co/beats/filebeat:8.3.3
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -924,7 +863,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.6.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.10.0}
     container_name: cogstack-kibana
     restart: always
     env_file:
@@ -971,10 +910,10 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.1
+    image: cogstacksystems/cogstack-nifi:1.2.7
     #build:
     #   context: ../nifi/
-    #   args:      
+    #   args:
     #       HTTP_PROXY: $HTTP_PROXY
     #       HTTPS_PROXY: $HTTPS_PROXY
     #       no_proxy: $no_proxy
@@ -986,6 +925,7 @@ services:
       - ./project.env
       - ./general.env
       - ./network_settings.env
+      - ../security/nifi_users.env
     shm_size: 1024mb
     environment:
       - http_proxy=$HTTP_PROXY
@@ -1015,23 +955,33 @@ services:
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/security:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
-      - ../security/nifi_certificates/localhost/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ../security/nifi_certificates/localhost/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      - ../security/nifi_certificates/nifi/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/nifi/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      # Security credentials scripts
+      - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
       # this is where you should place data to be ingested, under the form of symbolic
       - ${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
-         
+
+      # DB-schemas, from the services folder
+      - ../services/cogstack-db/:/opt/cogstack-db/:rw
+
+      # medcat models
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/opt/models:rw
+
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
       - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
       - nifi-vol-database:/opt/nifi/nifi-current/database_repository
       - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
       - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+      - nifi-vol-state:/opt/nifi/nifi-current/state
+
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
     extra_hosts:
@@ -1063,7 +1013,7 @@ services:
       - cognet
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.1
+    image: cogstacksystems/nifi-nginx:1.2.7
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
@@ -1099,7 +1049,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:latest
+    image: cogstacksystems/jupyter-hub:1.2.7
     #build:
     #  context: ../services/jupyter-hub/
     #  args:
@@ -1154,7 +1104,7 @@ services:
 #---------------------------------------------------------------------------#
   annotation-ingester:
      image: cogstacksystems/annotations-ingester:latest
-     shm_size : 128mb
+     shm_size: 128mb
      restart: always
      environment:
        - http_proxy=$HTTP_PROXY
@@ -1165,14 +1115,36 @@ services:
      command: "/app/run.sh"
      networks:
       - cognet
-    
+
+#---------------------------------------------------------------------------#
+# Cogstack cohort service                                                   #
+#---------------------------------------------------------------------------#
+  cogstack-cohort:
+      container_name: cogstack-cohort
+      image: cogstacksystems/cogstackcohort:latest
+      shm_size: 128mb
+      restart: always
+      environment:
+        - http_proxy=$HTTP_PROXY
+        - https_proxy=$HTTPS_PROXY
+        - no_proxy=$no_proxy
+      volumes:
+        - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
+        - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
+        - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
+      networks:
+        - cognet
+      #command: "ls -la /usr/src/app/server/data/"
+      ports:
+        - "3001:3000"
+
 #---------------------------------------------------------------------------#
 # Version control service                                                   #
 #---------------------------------------------------------------------------#
   gitea:
     container_name: cogstack-gitea
     image:  gitea/gitea:1.20-rootless
-    shm_size : 256mb
+    shm_size: 256mb
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
@@ -1247,6 +1219,9 @@ volumes:
     driver: local
 
   nifi-vol-content:
+    driver: local
+  
+  nifi-vol-state:
     driver: local
 
   nifi-vol-errors:

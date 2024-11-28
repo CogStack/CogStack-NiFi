@@ -15,24 +15,29 @@ CREATE TABLE nlp_models (
 
 CREATE TABLE annotations (
 	id BIGINT PRIMARY KEY,
-	label VARCHAR NOT NULL,
-    label_id VARCHAR,
+    elasticsearch_id VARCHAR NULL,
+	label VARCHAR(255) NOT NULL,
+    label_id VARCHAR(10),
     source_value VARCHAR,
     accuracy DECIMAL,
+    context_similarity DECIMAL,
     star_char INTEGER,
     end_char INTEGER,
-    info VARCHAR,
-    tui VARCHAR,
-    cui VARCHAR,
-    concept_type VARCHAR,
+    medcat_info VARCHAR,
+    tui VARCHAR(20),
+    cui VARCHAR(20),
+    icd10 VARCHAR,
+    ontologies VARCHAR,
+    snomed VARCHAR,
+    "type" VARCHAR(255),
     medcat_version VARCHAR,
     model_id_used INTEGER REFERENCES nlp_models
 );
 
 CREATE TABLE meta_annotations (
-	id INTEGER PRIMARY KEY,
-	annotation_id INTEGER REFERENCES annotations, 
-    tag VARCHAR,
-    meta_attribute_id VARCHAR,
-    meta_annotation_value VARCHAR
+    id BIGINT PRIMARY KEY,
+    annotation_id BIGINT REFERENCES annotations,
+    "value" VARCHAR,
+    confidence DECIMAL,
+    "name" VARCHAR
 );

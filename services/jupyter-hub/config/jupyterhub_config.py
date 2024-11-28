@@ -25,7 +25,7 @@ c = get_config()
 # Spawn containers from this image
 # Either use the CoGstack one from the repo which is huge and contains all the stuff needed or,
 # use the default official one which is clean.
-c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "jupyterhub/singleuser:latest")
+c.DockerSpawner.image = os.getenv("DOCKER_NOTEBOOK_IMAGE", "cogstacksystems:jupyterhub/singleuser:latest")
 
 # JupyterHub requires a single-user instance of the Notebook server, so we
 # default to using the `start-singleuser.sh` script included in the
@@ -148,7 +148,8 @@ class DockerSpawner(dockerspawner.DockerSpawner):
         if self.user.name not in whitelist:
             whitelist.add(self.user.name)
             with open(userlist_path , "a") as f:
-                f.write(self.user.name + "\n")
+                f.write("\n")
+                f.write(self.user.name)
 
         if self.user.name in list(team_map.keys()):
             for team in team_map[self.user.name]:
@@ -158,7 +159,8 @@ class DockerSpawner(dockerspawner.DockerSpawner):
                     "mode": "rw",  # or ro for read-only
                 }
 
-        self.mem_limit = "2.0G"
+        # this is a temporary fix, need to actually check permissions
+        self.mem_limit = resource_allocation_user_ram_limit
         self.post_start_cmd = "chmod -R 777 " + shared_content_dir
 
         return super().start()
@@ -240,10 +242,9 @@ c.JupyterHub.hub_connect_ip = hub_container_ip_or_name
 jupyter_hub_port = int(os.environ.get("JUPYTERHUB_INTERNAL_PORT", 8888))
 jupyter_hub_proxy_api_port = int(os.environ.get("JUPYTERHUB_INTERNAL_PROXY_API_PORT", 8887))
 jupyter_hub_ssl_port = int(os.environ.get("JUPYTERHUB_SSL_PORT", 443))
+jupyter_hub_proxy_url = str(os.environ.get("JUPYTERHUB_PROXY_API_URL", "http://127.0.0.1:"))
 
-c.JupyterHub.hub_port = jupyter_hub_port
-
-c.ConfigurableHTTPProxy.api_url = "http://127.0.0.1:" + str(jupyter_hub_proxy_api_port)
+c.ConfigurableHTTPProxy.api_url = jupyter_hub_proxy_url + str(jupyter_hub_proxy_api_port)
 # ideally a private network address
 # c.JupyterHub.proxy_api_ip = "10.0.1.4"
 c.JupyterHub.proxy_api_port = jupyter_hub_proxy_api_port

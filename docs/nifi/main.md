@@ -213,42 +213,7 @@ This custom image will use embedeed Zookeeper within NiFi service and will use t
 
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
 
-Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
-
-- this step is optional (as you might have done it before from configuring other certificates), run `create_root_ca_cert.sh` to create the ROOT certificates, these will be used by NiFi/OpenSearch/OCR_service/Tika/MedcatService/Jupyterhub etc.
-
-- the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file. 
-- the trust/store keys generated for production will be in the `nifi_certificates/localhost` folder and  the `nifi-cert.pem` + `nifi-key.key` files. in the baes `nifi_certificates` folder.
-
-- as port of the security process the `nifi.sensitive.props.key` should be set to a random string or a password of minimum 12 characters. Once this is set do NOT modify it as all the other sensitive passwords will be hashed with this string. By default this is set to <strong>```cogstackNiFipass```</strong>
-
-Example:
-```
-    nifi.security.keystorePasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
-    nifi.security.keyPasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
-    nifi.security.truststore=./conf/truststore.jks
-    nifi.security.truststoreType=jks
-    nifi.security.truststorePasswd=lzMGadNB1JXQjgQEnFStLiNkJ6Wbbgw0bFdCTICKtKo
-```
-
-### `nifi-nginx service`
-In order to be able to properly access the nifi instance securely, you also need to start the nifi-nginx container as it is configured to provide access from any source to nifi, available at https://localhost:8443/nifi .
-
-### Access via user account
-<strong>This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go.</strong>
-<br>
-Default username : 
-<br>
-```
-username: admin     
-password: admincogstacknifi
-```
-
-- the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
-
-URL: https://localhost:8443/nifi/login
-
-Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume prune`.
+Please use the guide provided in the [SECURITY.md](../security.md#apache-nifi) section to set up accounts and certificates.
 
 ## Drivers
 The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/drivers) directory.

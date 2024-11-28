@@ -46,10 +46,12 @@ RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /
 RUN apt-get update && apt-get upgrade -y && \
     apt-get --force-yes -o Dpkg::Options::="--force-confold" --force-yes -o Dpkg::Options::="--force-confdef" -fuy full-upgrade && \
     apt-get autoremove -y && \
+    apt-get clean -y && \
     apt-get install -y \
     gnupg \
     ssl-cert \ 
     libevent-dev \
+    libsqlite3-dev \
     python3-dev \
     python3.10-dev \
     python3-all-dev \
@@ -87,6 +89,12 @@ RUN apt-get update && apt-get upgrade -y && \
     libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6 \
     r-base
 
+# python 3.11
+RUN apt-get install -y python3.11-full python3.11-dev
+
+# be careful, this conflicts
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
 RUN apt-get update && apt-get upgrade -y 
 
 # Microsoft repos
@@ -101,8 +109,23 @@ RUN ACCEPT_EULA=Y apt-get install -y msodbcsql18
 RUN ACCEPT_EULA=Y apt-get install -y mssql-tools18
 RUN echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
 
+# deps for psycopg2
+RUN apt-get install -y --no-install-recommends postgresql-server-dev-all
+
+# install rust, medcat requirement
+# RUN curl --connect-timeout 3.14 -y --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# needed for rust & cargo
+# RUN bash $HOME/.cargo/env
+
+# clean up apt
+RUN apt-get clean autoclean && apt-get autoremove --purge -y
+
+######################################## Python / PIP SECTION ########################################
 RUN conda update conda
 RUN conda install --quiet --yes \
+    ipykernel \
+    pip \
     elasticsearch \
     psycopg2 \
     pyodbc \
@@ -112,35 +135,41 @@ RUN conda clean --all -f -y
 
 RUN fix-permissions $CONDA_DIR && fix-permissions /home/$NB_USER
 
-# deps for psycopg2
-RUN apt-get install -y postgresql-server-dev-all --no-install-recommends 
-
 # update pip and install basic utilities
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools wheel virtualenv
+RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir setuptools wheel virtualenv
 
 # jupyterhub stuff
-RUN pip3 install ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git dask-labextension importlib_metadata
-RUN pip3 install jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
-RUN pip3 install docker docker-compose dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator 
-RUN pip3 install jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
+RUN pip3 install --no-cache-dir ipywidgets jupyter jupyterhub jupyterlab jupyterlab-git importlib_metadata
+RUN pip3 install --no-cache-dir jupyterlab_widgets jupyter_contrib_core jupyter_contrib_nbextensions jupyter-server-proxy fastbook
+RUN pip3 install --no-cache-dir docker dockerspawner jupyterhub-firstuseauthenticator jupyterhub-systemdspawner jupyterhub-jwtauthenticator jupyterhub-client jupyterhub-kerberosauthenticator
+RUN pip3 install --no-cache-dir jupyterhub-nanowireauthenticator jupyterhub-ldapauthenticator jupyterhub-kubespawner jupyterhub-nativeauthenticator
 
 # extra packages for DB connections & utilities (charts, data formats, and other useful tools such as neo4j)
-RUN pip3 install pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm 
-RUN pip3 install pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2 psycopg2-binary pyodbc openpyxl
-RUN pip3 install dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML 
+RUN pip3 install --no-cache-dir pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect wheel nltk keras bokeh seaborn matplotlib graphviz plotly tqdm
+RUN pip3 install --no-cache-dir pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext psycopg2 psycopg2-binary pyodbc openpyxl
+RUN pip3 install --no-cache-dir dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML 
+RUN pip3 install --no-cache-dir opencv-python torchvision
 
 # XNAT
-RUN pip3 install xnat
+RUN pip3 install --no-cache-dir xnat
 
 # medcat & models
-RUN pip3 install -U spacy click torch thinc
+RUN pip3 install --no-cache-dir -U spacy click torch thinc
 
 # Get the spacy model
 #ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
 #RUN for spacy_model in ${SPACY_MODELS}; do python3 -m spacy download $spacy_model; done
 
-RUN pip3 install medcat
+# install requirements for working with cogstack scripts
+# RUN pip3 isntall --no-cache-dir -r notebooks/demo_working_with_cogstack/requirements.txt
+
+RUN pip3 install --no-cache-dir medcat==1.12.0 eland plotly
+
+# clean up pip
+RUN pip3 cache purge
+
+#######################################################################################################
 
 # install R and other dependencies
 COPY r_kernel_install.sh /etc/jupyterhub/
@@ -157,9 +186,6 @@ COPY config/jupyter_notebook_config.py /home/jovyan/.jupyter/
 
 # copy notebooks
 COPY notebooks /home/jovyan/work/
-
-# clean up
-RUN apt-get autoremove -y
 
 WORKDIR /home/jovyan
 USER jovyan

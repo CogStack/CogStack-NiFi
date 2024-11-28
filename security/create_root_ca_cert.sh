@@ -28,6 +28,13 @@ else
     ROOT_CERTIFICATE_SUBJ_LINE=${ROOT_CERTIFICATE_SUBJ_LINE}
 fi
 
+if [[ -z "${ROOT_CERTIFICATE_SUBJ_ALT_NAMES}" ]]; then
+    ROOT_CERTIFICATE_SUBJ_ALT_NAMES="subjectAltName=DNS:cogstack-net.test"
+    echo "ROOT_CERTIFICATE_SUBJ_ALT_NAMES not set, defaulting to ROOT_CERTIFICATE_SUBJ_ALT_NAMES=subjectAltName=DNS:cogstack-net.test"
+else
+    ROOT_CERTIFICATE_SUBJ_ALT_NAMES=${ROOT_CERTIFICATE_SUBJ_ALT_NAMES}
+fi
+
 if [[ -z "${ROOT_CERTIFICATE_ALIAS_NAME}" ]]; then
     ROOT_CERTIFICATE_ALIAS_NAME=$ROOT_CERTIFICATE_NAME
     echo "ROOT_CERTIFICATE_ALIAS_NAME not set, defaulting to ROOT_CERTIFICATE_ALIAS_NAME=$ROOT_CERTIFICATE_NAME"
@@ -56,7 +63,7 @@ echo "Generating root CA key"
 openssl genrsa -out $CA_ROOT_KEY $ROOT_CERTIFICATE_KEY_SIZE
 
 echo "Generating root CA cert"
-openssl req -x509 -new -key $CA_ROOT_KEY -sha256 -out $CA_ROOT_CERT -days $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -subj $ROOT_CERTIFICATE_SUBJ_LINE
+openssl req -x509 -new -key $CA_ROOT_KEY -sha256 -out $CA_ROOT_CERT -days $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -subj $ROOT_CERTIFICATE_SUBJ_LINE -addext $ROOT_CERTIFICATE_SUBJ_ALT_NAMES 
 
 # create p12 version manually
 echo "Generation pkcs12 keystore"

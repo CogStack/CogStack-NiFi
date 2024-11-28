@@ -31,3 +31,9 @@ SPACY_MODEL=
 #    (the NiFi groovy scripts and annotation ingester are two such services that process the output, and so they might require further customisation)
 # POSSIBLE VALUES: [list, dict], if left empty then "dict" is the default.
 ANNOTATIONS_ENTITY_OUTPUT_MODE=dict
+
+# you will need a De-ID model for this, otherwise there might be unexpected behaviour
+DEID_MODE=False
+
+# replaces the type of the de-id entity e.g  patient name: [Name]  with patient name: [****] 
+DEID_REDACT=True

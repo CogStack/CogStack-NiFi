@@ -4,6 +4,9 @@ Software required on machine:
     - git + git-lfs
     - Docker
 
+You can use the script with `SUDO` rights, located at `/scripts/installation_utils/install_docker_and_utils.sh`, it can be used on Debian/Ubuntu/CentOS/RedHAT RHEL 8 only, run it once and everything should be set up.
+Consult the (`Docker installation steps`)[https://docs.docker.com/engine/install/debian/] if there are issues with the docker setup.
+
 #### <span style="color: red"><strong>IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
 
 # Deployment
@@ -156,6 +159,8 @@ When dealing with contaminated deployments ( containers using volumes from previ
     - `Driver class org.postgresql.Driver is not found` or something similar for other MSSQL/SQL drivers, this is a known issue after NiFi version v1.20+, first, make sure you pull the latest version of the repository, then for the JAR file you are using, please execute the following command in order to verify its integrity `jar -tvf ./nifi/drivers/your_file_version.jar`, if this returns a list of files and NO errors then the files are not corrupted and can be loaded. On the NiFi side make sure to go to the `DBCPConnectionPool` controller service and verify the propertiesit a few times, make sure the file path is correct and in the following format: `file:///opt/nifi/drivers/postgresql-42.6.0.jar` for example. If all this fails stop nifi, delete all the Docker volumes associated with it -> restart NiFi, perform the above steps again. You can try forcefully starting the `GenerateTableFetch` or `QueryDatabaseTable` processors by enabling the `DBCPConnectionPool` even if an error popus up after clicking the verify button.
     <br /><br/>
     - `502 Bad Gateway`, NiFi simply not starting, even after waiting more than 2-3 minutes. This can occur due to a wide variety of issues, you can check the NiFi container log : “docker logs -f --tail 1000 cogstack-nifi > my_log_file.txt” to capture the output easily. The most common cause is running out of memory, increase or decrease the limits in `nifi/conf/bootstrap.conf` according to your machine's spec, please read [bootstrap.conf](../nifi/main.md#bootstrapconf)
+    <br /><br/>
+    - `Unable to connect to ElasticSearch` using the `ElasticSearchClientService` NiFi controller, make sure the settings are correct (username,password,certificates, etc.) and then click `Apply`, disregard the errors and click `Enable` on the controller to forcefully reload the controller, stop it and then validate the settings, start it again after and it should work.
 
 ####  **Elasticsearch Errors**
 <br>

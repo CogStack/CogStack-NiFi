@@ -23,7 +23,7 @@ server.host: "0.0.0.0"
 server.name: ${KIBANA_SERVER_NAME}
 
 # The URLs of the OpenSearch instances to use for all your queries.
-opensearch.hosts: ${ELASTICSEARCH_HOSTS}
+opensearch.hosts: '${ELASTICSEARCH_HOSTS}'
 
 opensearch_security.multitenancy.enabled: true
 opensearch_security.multitenancy.tenants.enable_global: true

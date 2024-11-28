@@ -1,7 +1,9 @@
 conf/*
+user-scripts/db/*
 **devel
 devel
 **flow
 **login
 **conf
 *.jks
+**__pycache__

@@ -16,7 +16,7 @@ then
     sudo apt-get install -y htop iotop sysstat
 
     sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
-    sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip libssl-dev zip unzip tar nano gcc make python3-dev build-essential software-properties-common
+    sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip python3-full libssl-dev zip unzip tar nano gcc make python3-dev build-essential software-properties-common
 
     sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
 
@@ -31,7 +31,7 @@ then
 
     sudo apt -y update 
     sudo apt -y upgrade 
-    sudo apt -y install docker-ce docker-ce-cli containerd.io
+    sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker
     sudo groupadd docker
@@ -73,7 +73,7 @@ then
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum-config-manager --enable docker-ce-stable
     sudo yum-config-manager --enable docker-ce-stable-source
-    sudo yum install -y docker-ce docker-ce-cli containerd.io
+    sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker process
     sudo groupadd docker
@@ -92,11 +92,9 @@ fi;
 echo "Installing require python packages.."
 
 sudo -H pip3 install --upgrade pip
-sudo -H pip3 install wheel docker-compose
-sudo -H pip3 install html2text jsoncsv detect
+sudo -H pip3 install html2text jsoncsv detect --break-system-packages
 
 echo "Finished installing docker and utils.."
-
 
 sudo sysctl -w vm.max_map_count=262144
 
