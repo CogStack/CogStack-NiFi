@@ -6,6 +6,7 @@ current_dir=$(pwd)
 security_dir="../security/"
 
 env_files=("nifi.env"
+           "general.env"
            "elasticsearch.env"
            "database.env"
            "jupyter.env"
