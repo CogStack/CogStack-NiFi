@@ -10,8 +10,10 @@ import dockerspawner
 from jupyterhub.auth import LocalAuthenticator
 from nativeauthenticator import NativeAuthenticator
 
+
 class LocalNativeAuthenticator(NativeAuthenticator, LocalAuthenticator):
-  pass
+    pass
+
 
 def pre_spawn_hook(spawner):
     username = str(spawner.user.name).lower()
@@ -19,6 +21,7 @@ def pre_spawn_hook(spawner):
         pwd.getpwnam(username)
     except KeyError:
         subprocess.check_call(["useradd", "-ms", "/bin/bash", username])
+
 
 c = get_config()
 
@@ -50,7 +53,7 @@ notebook_idle_timeout = os.environ.get("DOCKER_NOTEBOOK_IDLE_TIMEOUT", "7200")
 c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
-c.DockerSpawner.extra_host_config = { "network_mode": network_name }
+c.DockerSpawner.extra_host_config = {"network_mode": network_name}
 
 # Explicitly set notebook directory because we"ll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
@@ -77,12 +80,12 @@ if select_notebook_image_allowed == "true":
     c.DockerSpawner.allowed_images = {
         'minimal': 'jupyterhub/singleuser:latest',
         'cogstack': 'cogstacksystems/jupyter-singleuser:latest',
-        'cogstack-gpu' : 'cogstacksystems/jupyter-singleuser-gpu:latest'
+        'cogstack-gpu': 'cogstacksystems/jupyter-singleuser-gpu:latest'
     }
     # https://github.com/jupyterhub/dockerspawner/issues/423
     c.DockerSpawner.remove = True
 
-run_in_debug_mode = os.environ.get("DOCKER_NOTEBOOK_DEBUG_MODE" , "false")
+run_in_debug_mode = os.environ.get("DOCKER_NOTEBOOK_DEBUG_MODE", "false")
 
 if run_in_debug_mode == "true":
     # For debugging arguments passed to spawned containers
@@ -92,19 +95,36 @@ if run_in_debug_mode == "true":
     c.LocalProcessSpawner.debug = True
 
 ENV_PROXIES = {
-    "HTTP_PROXY" : os.environ.get("HTTP_PROXY", ""),
-    "HTTPS_PROXY" : os.environ.get("HTTPS_PROXY", ""),
-    "NO_PROXY" : ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
-    "http_proxy" : os.environ.get("HTTP_PROXY", os.environ.get("http_proxy", "")),
-    "https_proxy" : os.environ.get("HTTPS_PROXY", os.environ.get("https_proxy", "")),
-    "no_proxy" : ",".join(list(filter(len, os.environ.get("no_proxy", "").split(",") + [hub_container_ip_or_name]))),
+    "HTTP_PROXY": os.environ.get("HTTP_PROXY", ""),
+    "HTTPS_PROXY": os.environ.get("HTTPS_PROXY", ""),
+    "NO_PROXY": ",".join(list(filter(len, os.environ.get("NO_PROXY", "").split(",") + [hub_container_ip_or_name]))),
+    "http_proxy": os.environ.get("HTTP_PROXY", os.environ.get("http_proxy", "")),
+    "https_proxy": os.environ.get("HTTPS_PROXY", os.environ.get("https_proxy", "")),
+    "no_proxy": ",".join(list(filter(len, os.environ.get("no_proxy", "").split(",") + [hub_container_ip_or_name]))),
 }
+
+os.environ['NO_PROXY'] = ''
+os.environ['no_proxy'] = ''
+os.environ['HTTP_PROXY'] = ''
+os.environ['HTTPS_PROXY'] = ''
+os.environ['http_proxy'] = ''
+os.environ['https_proxy'] = ''
+
+
+def post_spawn_hook(spawner):
+    try:
+        with open("/etc/environment", "w+") as f:
+            for key, value in ENV_PROXIES.items():
+                f.write(str(key) + "=" + str(value) + "\n")
+    except KeyError:
+        pass
+
+
+c.Spawner.post_spawn_hook = post_spawn_hook
 
 #c.Spawner.pre_spawn_hook = pre_spawn_hook
 #c.Spawner.ip = "127.0.0.1"
-c.Spawner.environment = ENV_PROXIES
-
-
+#c.Spawner.environment = ENV_PROXIES
 
 # AUTHENTICATION
 #c.Authenticator.allowed_users = {"admin"}
@@ -121,11 +141,11 @@ c.SystemdSpawner.dynamic_users = True
 c.PAMAuthenticator.admin_groups = {"wheel"}
 c.Authenticator.whitelist = whitelist = set()
 
-pwd = os.path.dirname(__file__)
+curr_dir = os.path.dirname(__file__)
 
 # Get active users
-userlist_path = os.path.join(pwd, "userlist")
-teamlist_path = os.path.join(pwd, "teamlist")
+userlist_path = os.path.join(curr_dir, "userlist")
+teamlist_path = os.path.join(curr_dir, "teamlist")
 
 # Resource allocation env vars
 # RAM - GB of ram, CPU - num of cores
@@ -134,10 +154,12 @@ resource_allocation_user_ram_limit = os.environ.get("RESOURCE_ALLOCATION_USER_RA
 resource_allocation_admin_cpu_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_CPU_LIMIT", "2")
 resource_allocation_admin_ram_limit = os.environ.get("RESOURCE_ALLOCATION_ADMIN_RAM_LIMIT", "4.0G")
 
+
 def per_user_limit(role):
-    ram_limits = {"user": (int(resource_allocation_user_cpu_limit), resource_allocation_user_ram_limit ),
-                   "admin": (int(resource_allocation_admin_cpu_limit), resource_allocation_admin_ram_limit )}
+    ram_limits = {"user": (int(resource_allocation_user_cpu_limit), resource_allocation_user_ram_limit),
+                   "admin": (int(resource_allocation_admin_cpu_limit), resource_allocation_admin_ram_limit)}
     return ram_limits.get(role)
+
 
 # Spawn single-user servers as Docker containers
 class DockerSpawner(dockerspawner.DockerSpawner):
@@ -166,7 +188,6 @@ class DockerSpawner(dockerspawner.DockerSpawner):
         return super().start()
 
 
-
 # Spawn single-user servers as Docker containers
 c.JupyterHub.spawner_class = DockerSpawner
 c.DockerSpawner.extra_create_kwargs = {"user": "root"}
@@ -180,7 +201,8 @@ with open(userlist_path) as f:
         if len(parts) >= 1:
             name = str(parts[0]).lower()
             role = "user"
-            if(len(parts) > 1):
+
+            if (len(parts) > 1):
                 role = parts[1]
             whitelist.add(name)
             if len(parts) > 1 and role == "admin":
@@ -231,7 +253,8 @@ c.DockerSpawner.environment.update(ENV_PROXIES)
 #c.JupyterHub.authenticator_class = LocalNativeAuthenticator
 
 c.FirstUseAuthenticator.create_users = True
-c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator" #"nativeauthenticator.NativeAuthenticator"
+c.JupyterHub.authenticator_class = "firstuseauthenticator.FirstUseAuthenticator" 
+# Alternative, use: "nativeauthenticator.NativeAuthenticator"
 
 # User containers will access hub by container name on the Docker network
 c.JupyterHub.ip = "0.0.0.0"
@@ -274,38 +297,38 @@ if int(notebook_idle_timeout) > 0:
 #------------------------------------------------------------------------------
 # Application(SingletonConfigurable) configuration
 #------------------------------------------------------------------------------
-## This is an application.
+# This is an application.
 
 c.JupyterHub.pid_file = "/etc/jupyterhub/jupyter_hub.pid"
 c.ConfigurableHTTPProxy.pid_file = "/etc/jupyterhub/jupyter_hub_proxy.pid"
 
-## The date format used by logging formatters for %(asctime)s
+# The date format used by logging formatters for %(asctime)s
 #  Default: "%Y-%m-%d %H:%M:%S"
 # c.Application.log_datefmt = "%Y-%m-%d %H:%M:%S"   
 
-## The Logging format template
+# The Logging format template
 #  Default: "[%(name)s]%(highlevel)s %(message)s"
 # c.Application.log_format = "[%(name)s]%(highlevel)s %(message)s"
 
 jupyter_log_level = os.environ.get("JUPYTERHUB_LOG_LEVEL", "INFO")
 
-## Set the log level by value or name.
+# Set the log level by value or name.
 #  Choices: any of [0, 10, 20, 30, 40, 50, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
 #  Default: INFO
 c.Application.log_level = jupyter_log_level
 
-## Instead of starting the Application, dump configuration to stdout
+# Instead of starting the Application, dump configuration to stdout
 #  Default: False
 # c.Application.show_config = False
 
-## Instead of starting the Application, dump configuration to stdout (as JSON)
+# Instead of starting the Application, dump configuration to stdout (as JSON)
 #  Default: False
 # c.Application.show_config_json = False
 
 # Let's start with the least privilege, especially on a single host having limited resources
 c.JupyterHub.allow_named_servers = False
 
-## Timeout (in seconds) to wait for spawners to initialize
+# Timeout (in seconds) to wait for spawners to initialize
 # 
 #  Checking if spawners are healthy can take a long time if many spawners are
 #  active at hub start time.
@@ -321,14 +344,14 @@ c.JupyterHub.allow_named_servers = False
 #  Default: 10
 c.JupyterHub.init_spawners_timeout = 720
 
-## Timeout (in seconds) before giving up on a spawned HTTP server
+# Timeout (in seconds) before giving up on a spawned HTTP server
 #  
 #  Once a server has successfully been spawned, this is the amount of time we
 #  wait before assuming that the server is unable to accept connections.
 #  Default: 30
 c.Spawner.http_timeout = 720
 
-## Timeout (in seconds) before giving up on starting of single-user server.
+# Timeout (in seconds) before giving up on starting of single-user server.
 #  
 #  This is the timeout for start to return, not the timeout for the server to
 #  respond. Callers of spawner.start will assume that startup has failed if it
