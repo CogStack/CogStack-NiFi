@@ -79,6 +79,7 @@ jobs:
       - name: Build and push Docker Jupyter singleuser image
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile_singleuser"
           allow: network.host

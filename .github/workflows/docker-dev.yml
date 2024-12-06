@@ -46,6 +46,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context : ./nifi
           file : "./nifi/Dockerfile"
           allow: network.host
@@ -56,6 +57,7 @@ jobs:
       - name: Build and push Docker Jupyter image
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile"
           allow: network.host
@@ -66,6 +68,7 @@ jobs:
       - name: Build and push Docker NiFi-Nginx image
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context : ./services/nginx
           file : "./services/nginx/Dockerfile"
           allow: network.host
@@ -76,6 +79,7 @@ jobs:
       - name: Build and push Docker Jupyter singleuser image
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile_singleuser"
           allow: network.host
@@ -83,5 +87,16 @@ jobs:
           tags: cogstacksystems/jupyter-singleuser:dev-latest
           push: true
           
+      - name: Build and push Docker Jupyter singleuser GPU image
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64,linux/arm64
+          context : ./services/jupyter-hub
+          file : "./services/jupyter-hub/Dockerfile_singleuser_gpu"
+          allow: network.host
+          github-token: ${{ github.token }}
+          tags: cogstacksystems/jupyter-singleuser-gpu:dev-latest
+          push: true
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
