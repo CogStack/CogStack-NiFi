@@ -75,7 +75,7 @@ jobs:
       - name: Build and push Docker Kibana image
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64
+          platforms: linux/arm64
           context : ./services/kibana
           file : "./services/kibana/Dockerfile_native"
           allow: network.host
@@ -86,7 +86,7 @@ jobs:
       - name: Build and push Docker Elasticsearch image
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64
+          platforms: linux/arm64
           context : ./services/elasticsearch
           file : "./services/elasticsearch/Dockerfile_native"
           allow: network.host

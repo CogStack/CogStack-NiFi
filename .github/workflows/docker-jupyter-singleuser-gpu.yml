@@ -79,7 +79,7 @@ jobs:
       - name: Build and push Docker Jupyter singleuser image with GPU support
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile_singleuser_gpu"
           allow: network.host

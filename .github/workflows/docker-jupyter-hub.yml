@@ -70,7 +70,7 @@ jobs:
       - name: Build and push Docker Jupyter image
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           context : ./services/jupyter-hub
           file : "./services/jupyter-hub/Dockerfile"
           allow: network.host
