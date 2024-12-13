@@ -41,6 +41,7 @@ for arg in sys.argv:
     elif _arg[0] == "operation_mode":
         OPERATION_MODE = _arg[1]
 
+
 def main():
     input_stream = sys.stdin.read()
 
@@ -62,6 +63,8 @@ def main():
         if isinstance(records, dict):
             if "content" in json_data_records.keys():
                 records = json_data_records["content"]
+            if len(records) <= 1 and isinstance(records, dict):
+                records = [records]
 
         if OPERATION_MODE == "check":
             output_stream = {}
@@ -97,7 +100,7 @@ def main():
         with open(log_file_path, "a+") as log_file:
             log_file.write("\n" + str(time) + ": " + str(exception))
             log_file.write("\n" + str(time) + ": " + traceback.format_exc())
-  
+
     return output_stream
 
 sys.stdout.write(json.dumps(main()))

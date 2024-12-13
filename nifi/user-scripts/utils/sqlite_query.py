@@ -24,6 +24,7 @@ def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.
             sqlite_connection = sqlite_connection
         else:
             sqlite_connection = create_connection(db_file_path)
+            sqlite_connection.execute('pragma journal_mode=wal')
 
         cursor = sqlite_connection.cursor()
         if not sql_script_mode:
