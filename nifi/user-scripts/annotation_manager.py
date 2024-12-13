@@ -59,6 +59,7 @@ def main():
         records = json_data_records
 
         _sqlite_connection_ro = None
+        _sqlite_connection_rw = None
 
         if isinstance(records, dict):
             if "content" in json_data_records.keys():
@@ -75,6 +76,7 @@ def main():
         if OPERATION_MODE == "insert":
             del output_stream
             output_stream = []
+            _sqlite_connection_rw = create_connection(db_file_path, read_only_mode=False)
 
         for record in records:
             if OPERATION_MODE == "check":
@@ -89,7 +91,7 @@ def main():
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
                 nlp_id = str(record["nlp.id"])
                 query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + ")"
-                result = connect_and_query(query, db_file_path, sql_script_mode=True)
+                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, keep_conn_open=True)
                 output_stream.append(record)
 
         if _sqlite_connection_ro is not None:

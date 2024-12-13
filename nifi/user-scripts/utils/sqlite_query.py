@@ -24,7 +24,6 @@ def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.
             sqlite_connection = sqlite_connection
         else:
             sqlite_connection = create_connection(db_file_path)
-            sqlite_connection.execute('pragma journal_mode=wal')
 
         cursor = sqlite_connection.cursor()
         if not sql_script_mode:
@@ -50,7 +49,10 @@ def create_connection(db_file_path: str, read_only_mode=False) -> sqlite3.Connec
     if read_only_mode:
         connection_str += "?mode=ro"
 
-    return sqlite3.connect(connection_str, uri=True)
+    _tmp_conn = sqlite3.connect(connection_str, uri=True)
+    _tmp_conn.execute('pragma journal_mode=wal')
+
+    return _tmp_conn
 
 
 def query_with_connection(query: str, sqlite_connection: sqlite3.Connection) -> List:
