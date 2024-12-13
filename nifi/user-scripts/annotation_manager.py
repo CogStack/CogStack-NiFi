@@ -96,6 +96,8 @@ def main():
 
         if _sqlite_connection_ro is not None:
             _sqlite_connection_ro.close()
+        if _sqlite_connection_rw is not None:
+            _sqlite_connection_rw.close()
 
     except Exception as exception:
         time = datetime.datetime.now()
