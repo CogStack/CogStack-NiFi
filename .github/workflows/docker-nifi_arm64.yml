@@ -1,4 +1,4 @@
-name: docker-nifi
+name: docker-nifi-arm64
 
 on:
 

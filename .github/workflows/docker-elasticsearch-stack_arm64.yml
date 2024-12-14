@@ -1,4 +1,4 @@
-name: docker-elasticsearch-stack
+name: docker-elasticsearch-stack-arm64
 
 on:
 
