@@ -35,10 +35,11 @@ def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.
     except sqlite3.Error as error:
         raise sqlite3.Error(error)
     finally:
-        if sqlite_connection and not keep_conn_open:
-            sqlite_connection.close()
         if cursor and not keep_conn_open:
             cursor.close()
+        if sqlite_connection and not keep_conn_open:
+            sqlite_connection.close()
+
 
     return result
 
