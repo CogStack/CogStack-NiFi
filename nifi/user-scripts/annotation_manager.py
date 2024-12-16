@@ -78,11 +78,14 @@ def main():
             output_stream = []
             _sqlite_connection_rw = create_connection(db_file_path, read_only_mode=False)
 
+
+        _cursor = _sqlite_connection_ro.cursor() if _sqlite_connection_ro else _sqlite_connection_rw.cursor()
+
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
                 query = "SELECT id, elasticsearch_id FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
-                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro, keep_conn_open=True)
+                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro, cursor=_cursor, keep_conn_open=True)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
@@ -91,14 +94,15 @@ def main():
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
                 nlp_id = str(record["nlp.id"])
                 query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + ")"
-                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, keep_conn_open=True)
+                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, cursor=_cursor, keep_conn_open=True)
                 output_stream.append(record)
 
+        if _cursor is not None:
+            _cursor.close()
         if _sqlite_connection_ro is not None:
             _sqlite_connection_ro.close()
         if _sqlite_connection_rw is not None:
             _sqlite_connection_rw.close()
-
     except Exception as exception:
         time = datetime.datetime.now()
         with open(log_file_path, "a+") as log_file:
@@ -106,5 +110,6 @@ def main():
             log_file.write("\n" + str(time) + ": " + traceback.format_exc())
 
     return output_stream
+
 
 sys.stdout.write(json.dumps(main()))
