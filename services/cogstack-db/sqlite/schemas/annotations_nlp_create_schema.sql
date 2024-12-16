@@ -1,22 +1,21 @@
 CREATE TABLE IF NOT EXISTS documents (
 	id VARCHAR PRIMARY KEY,
-	document_id VARCHAR NOT NULL, 
 	document_text TEXT
 );
 
 CREATE TABLE IF NOT EXISTS annotations (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-    elasticsearch_id VARCHAR NULL,
-	label VARCHAR(255),
-    label_id VARCHAR(10),
+	id VARCHAR PRIMARY KEY,
+    document_id VARCHAR NULL REFERENCES documents(id),
+	label VARCHAR,
+    label_id VARCHAR(100),
     source_value VARCHAR,
     accuracy DECIMAL,
     context_similarity DECIMAL,
     star_char INTEGER,
     end_char INTEGER,
     medcat_info VARCHAR,
-    tui VARCHAR(20),
-    cui VARCHAR(20),
+    tui VARCHAR(30),
+    cui VARCHAR(30),
     icd10 VARCHAR,
     ontologies VARCHAR,
     snomed VARCHAR,
@@ -25,15 +24,17 @@ CREATE TABLE IF NOT EXISTS annotations (
     model_id_used INTEGER REFERENCES nlp_models NULL
 );
 
-CREATE INDEX annotations_elasticsearch_id_index ON annotations (elasticsearch_id);
+CREATE INDEX annotations_document_id_index ON annotations (document_id);
 
 CREATE TABLE IF NOT EXISTS meta_annotations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    annotation_id INTEGER REFERENCES annotations NULL,
+    annotation_id VARCHAR REFERENCES annotations(id) NOT NULL,
     "value" VARCHAR,
     confidence DECIMAL,
     "name" VARCHAR
 );
+
+CREATE INDEX meta_annotations_annotation_id_index ON meta_annotations (annotation_id);
 
 CREATE TABLE IF NOT EXISTS nlp_models (
 	id BIGINT PRIMARY KEY,

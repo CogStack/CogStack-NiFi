@@ -83,7 +83,7 @@ def main():
         for record in records:
             if OPERATION_MODE == "check":
                 document_id = str(record[DOCUMENT_ID_FIELD_NAME])
-                query = "SELECT id, elasticsearch_id FROM annotations WHERE elasticsearch_id LIKE '%" + document_id + "%' LIMIT 1"
+                query = "SELECT id FROM annotations WHERE id LIKE '%" + document_id + "%' LIMIT 1"
                 result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro, cursor=_cursor, keep_conn_open=True)
 
                 if len(result) < 1:
@@ -92,11 +92,11 @@ def main():
             if OPERATION_MODE == "insert":
                 document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
                 nlp_id = str(record["nlp.id"])
-                query = "INSERT OR REPLACE INTO annotations (elasticsearch_id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + ")"
+                query = "INSERT OR REPLACE INTO annotations (id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + ")"
                 result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, cursor=_cursor, keep_conn_open=True)
                 output_stream.append(record)
 
-        if _cursor is not None:
+        if _cursor is not None: 
             _cursor.close()
         if _sqlite_connection_ro is not None:
             _sqlite_connection_ro.close()
