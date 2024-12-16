@@ -78,8 +78,7 @@ def main():
             output_stream = []
             _sqlite_connection_rw = create_connection(db_file_path, read_only_mode=False)
 
-
-        _cursor = _sqlite_connection_ro.cursor() if _sqlite_connection_ro else _sqlite_connection_rw.cursor()
+        _cursor = _sqlite_connection_ro.cursor() if _sqlite_connection_ro is not None else _sqlite_connection_rw.cursor()
 
         for record in records:
             if OPERATION_MODE == "check":
