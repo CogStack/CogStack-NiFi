@@ -52,9 +52,13 @@ def create_connection(db_file_path: str, read_only_mode=False) -> sqlite3.Connec
         connection_str += "?mode=ro"
 
     _tmp_conn = sqlite3.connect(connection_str, uri=True)
-    _tmp_conn.execute("pragma journal_mode = wal")
-    _tmp_conn.execute("pragma synchronous = normal")
-    _tmp_conn.execute("pragma journal_size_limit = 6144000")
+
+    if read_only_mode:
+        _tmp_conn.execute("pragma synchronous = OFF")
+    else:
+        _tmp_conn.execute("pragma journal_mode = wal")
+        _tmp_conn.execute("pragma synchronous = normal")
+        _tmp_conn.execute("pragma journal_size_limit = 6144000")
 
     return _tmp_conn
 
