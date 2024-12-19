@@ -58,7 +58,7 @@ class PyStreamCallback(StreamCallback):
                     out_record["id"] = _record[DOCUMENT_ID_FIELD_NAME]
                     out_record["footer"][DOCUMENT_ID_FIELD_NAME] = _record[DOCUMENT_ID_FIELD_NAME]
 
-            if DOCUMENT_TEXT_FIELD_NAME in _record.keys() :
+            if DOCUMENT_TEXT_FIELD_NAME in _record.keys():
                 if len(_record[DOCUMENT_TEXT_FIELD_NAME]) > 1:
                     out_record["text"] = _record[DOCUMENT_TEXT_FIELD_NAME]
                     out_records.append(out_record)
@@ -66,8 +66,8 @@ class PyStreamCallback(StreamCallback):
                     invalid_record_ids.append(record[DOCUMENT_ID_FIELD_NAME])
                     log.debug("Document id :" + str(record[DOCUMENT_ID_FIELD_NAME]) + ", text field has no content, document will not be added to the queue.")
             else:
-                invalid_record_ids.append(record[DOCUMENT_ID_FIELD_NAME])
-                log.debug("Document id :" + str(record[DOCUMENT_ID_FIELD_NAME]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
+                invalid_record_ids.append(record)
+                log.debug("Document id :" + str(record[""]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 
