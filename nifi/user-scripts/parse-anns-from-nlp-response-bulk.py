@@ -71,7 +71,7 @@ class PyStreamCallback(StreamCallback):
             
             # sometimes there's an empty annotation list
             if len(annotations.keys()) == 0:
-                log.info("Empty annotation list - " + footer[DOCUMENT_ID_FIELD_NAME])
+                log.info("Empty annotation list - " + str(footer[DOCUMENT_ID_FIELD_NAME]))
                 continue
             
             anns_ids=[]
