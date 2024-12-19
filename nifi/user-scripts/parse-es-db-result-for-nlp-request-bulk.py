@@ -71,7 +71,7 @@ class PyStreamCallback(StreamCallback):
                     log.debug("Document id :" + str(record[DOCUMENT_ID_FIELD_NAME]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
             except KeyError:
                 invalid_record_ids.append(record)
-                log.debug(str(record) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
+                log.debug(str(record["_id"]) + " , has no field named " + DOCUMENT_TEXT_FIELD_NAME + ", document will not be added to the queue.")
 
         outputStream.write(json.dumps({"content": out_records}).encode("UTF-8"))
 
