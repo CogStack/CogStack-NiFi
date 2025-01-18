@@ -26,5 +26,6 @@ docs/build/*
 
 # IDE envs and system folders
 .DS_Store
+**/.DS_Store
 .idea
 .vscode
