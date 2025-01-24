@@ -159,7 +159,7 @@ services:
 #---------------------------------------------------------------------------#
   ocr-service-1:
     container_name: ocr-service-1
-    image: cogstacksystems/cogstack-ocr-service:0.2.4
+    image: cogstacksystems/cogstack-ocr-service:0.2.4-${CPU_ARCHITECTURE:-amd64}
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
@@ -191,8 +191,8 @@ services:
       - cognet
 
   ocr-service-2:
-    container_name: ocr-service-2
-    image: cogstacksystems/cogstack-ocr-service:0.2.4
+    container_name: ocr-service-2-text-only-no-ocr
+    image: cogstacksystems/cogstack-ocr-service:0.2.4-${CPU_ARCHITECTURE:-amd64}
     restart: always
     # mem_swappiness: 0
     # cpuset: "0-15"
