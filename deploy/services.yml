@@ -397,6 +397,7 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
+      - bootstrap.system_call_filter=false
       - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
       - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
 
@@ -489,6 +490,7 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
+      - bootstrap.system_call_filter=false
       - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
       - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
 
@@ -1049,7 +1051,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:1.2.7
+    image: cogstacksystems/jupyter-hub:2.0.0-${CPU_ARCHITECTURE:-amd64}
     #build:
     #  context: ../services/jupyter-hub/
     #  args:

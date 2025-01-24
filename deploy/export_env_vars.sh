@@ -5,8 +5,8 @@ set -o allexport
 current_dir=$(pwd)
 security_dir="../security/"
 
-env_files=("nifi.env"
-           "general.env"
+env_files=("general.env"
+           "nifi.env"
            "elasticsearch.env"
            "database.env"
            "jupyter.env"
