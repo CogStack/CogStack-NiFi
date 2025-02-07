@@ -1,4 +1,5 @@
 network.host: ${ELASTICSEARCH_NETWORK_HOST}
+network.publish_host: ${ELASTICSEARCH_NETWORK_PUBLISH_HOST}
 
 ###### CLUSTER CONFIGURATION ######
 
