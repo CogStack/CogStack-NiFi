@@ -1,4 +1,4 @@
-network.host: 0.0.0.0
+network.host: ${ELASTICSEARCH_NETWORK_HOST}
 
 ###### CLUSTER CONFIGURATION ######
 
