@@ -2,6 +2,17 @@ DC_START_CMD := up -d
 DC_STOP_CMD := stop
 DC_DOWN_CMD := down
 
+include general.env
+include nifi.env
+include elasticsearch.env
+include database.env
+include jupyter.env
+include nlp_service.env
+include ocr_service.env
+include network_settings.env
+include project.env
+include ../security/elasticsearch_users.env
+include ../security/database_users.env
 
 # start services
 #
