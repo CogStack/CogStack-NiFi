@@ -16,6 +16,17 @@ OUTPUT_CHARSET = "windows-1252"
 #   - string: output string after decompression 
 OUTPUT_MODE = "binary"
 
+for arg in sys.argv:
+    _arg = arg.split("=", 1)
+    if _arg[0] == "output_mode":
+        OUTPUT_MODE = _arg[1]
+    elif _arg[0] == "input_charset":
+        INPUT_CHARSET = _arg[1]
+    elif _arg[0] == "output_charset":
+        OUTPUT_CHARSET = _arg[1]
+    elif _arg[0] == "log_file_name":
+        LOG_FILE_NAME = _arg[1]
+
 input_cerner_blob = str(sys.stdin.buffer.read(), INPUT_CHARSET).encode(INPUT_CHARSET)
 
 for arg in sys.argv:
