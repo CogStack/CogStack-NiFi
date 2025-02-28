@@ -47,10 +47,6 @@ RUN echo "deb-src [signed-by=/usr/share/keyrings/ppa-deadsnakes.gpg] https://ppa
 RUN apt-get update && apt-get upgrade -y
 
 RUN apt-get install --no-install-recommends -y libsqlite3-dev python3-dev python3-pip python3 python3-dev python3-full python3-venv postgresql-server-dev-all ssl-cert python3-psycopg2 sqlite3 postgresql-server-dev-14
-# RUN apt-get install --no-install-recommends -y libsqlite3-dev postgresql-server-dev-all python3-dev python3-pip python3 python3-full ssl-cert python3-psycopg2 sqlite3 postgresql-server-dev-14
-
-
- # postgresql-server-dev-14 python3.11-full  python3.11 python3.11-dev sqlite3
 
 # timezone setting
 RUN apt-get install --no-install-recommends -y tzdata
