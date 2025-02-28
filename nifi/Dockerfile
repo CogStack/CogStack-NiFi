@@ -1,11 +1,11 @@
-FROM apache/nifi:${NIFI_VERSION:-1.25.0}
+FROM apache/nifi:${NIFI_VERSION:-1.28.1}
 
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
 ARG no_proxy=""
 ARG DEBIAN_FRONTEND=noninteractive
 
-ENV NIFI_VERSION=${NIFI_VERSION:-1.25.0}
+ENV NIFI_VERSION=${NIFI_VERSION:-1.28.1}
 
 ENV NIFI_UID ${NIFI_UID:-1000}
 ENV NIFI_GID ${NIFI_GID:-1000}
@@ -30,13 +30,27 @@ USER root
 
 # run updates and install some base utility packages along with python support
 RUN apt-get update && apt-get upgrade -y && apt-get install -y libssl-dev openssl apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip
-RUN apt-add-repository restricted && \
-    apt-add-repository multiverse && \
-    apt-add-repository universe && \
-    add-apt-repository ppa:graphics-drivers/ppa && \
-    apt-get update && apt-get upgrade -y
 
-RUN apt-get install --no-install-recommends -y libsqlite3-dev postgresql-server-dev-14 postgresql-server-dev-all python3-dev python3-pip python3.10-full ssl-cert python3-psycopg2 python3.11 python3.11-dev sqlite3
+RUN apt-add-repository contrib && \
+    apt-add-repository non-free
+
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg
+
+RUN echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" | tee /etc/apt/sources.list.d/postgresql.list
+
+RUN gpg --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C89F51BA6932366A755776
+RUN gpg --export F23C5A6CF475977595C89F51BA6932366A755776 | tee /usr/share/keyrings/ppa-deadsnakes.gpg > /dev/null
+
+RUN echo "deb [signed-by=/usr/share/keyrings/ppa-deadsnakes.gpg] https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu/ trusty main" > /etc/apt/sources.list.d/ppa-deadsnakes.list
+RUN echo "deb-src [signed-by=/usr/share/keyrings/ppa-deadsnakes.gpg] https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu/ trusty main" >> /etc/apt/sources.list.d/ppa-deadsnakes.list
+
+RUN apt-get update && apt-get upgrade -y
+
+RUN apt-get install --no-install-recommends -y libsqlite3-dev python3-dev python3-pip python3 python3-dev python3-full python3-venv postgresql-server-dev-all ssl-cert python3-psycopg2 sqlite3 postgresql-server-dev-14
+# RUN apt-get install --no-install-recommends -y libsqlite3-dev postgresql-server-dev-all python3-dev python3-pip python3 python3-full ssl-cert python3-psycopg2 sqlite3 postgresql-server-dev-14
+
+
+ # postgresql-server-dev-14 python3.11-full  python3.11 python3.11-dev sqlite3
 
 # timezone setting
 RUN apt-get install --no-install-recommends -y tzdata
@@ -62,7 +76,7 @@ RUN pip3 install --no-cache-dir xnat
 
 # medcat & models
 RUN pip3 install --no-cache-dir -U spacy click torch thinc
-RUN pip3 install --no-cache-dir medcat==1.13.0
+RUN pip3 install --no-cache-dir medcat==1.15.0
 
 # ApacheNifi specific packages
 RUN pip3 install --no-cache-dir nipyapi nifi.flowfile avro
