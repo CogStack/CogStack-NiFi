@@ -24,14 +24,14 @@ class PyStreamCallback(StreamCallback):
     def process(self, inputStream, outputStream):
         bytes_arr = IOUtils.toByteArray(inputStream)
         bytes_io = io.BytesIO(bytes_arr)
-        json_data_records = json.loads(str(bytes_io.read()).encode("UTF-8"))
+        json_data_records = json.loads(str(bytes_io.read()))
 
         if type(json_data_records) == dict:
             json_data_records = [json_data_records]
 
         out_records = []
         for record in json_data_records:
-            out_record = {"footer" : {}}
+            out_record = {"footer": {}}
 
             # if we are pulling from DB we won't have the json fields/_source keys.
             FIELD_TO_CHECK = None
@@ -82,11 +82,11 @@ if flowFile != None:
 
     DOCUMENT_ID_FIELD_NAME = str(context.getProperty(DOCUMENT_ID_PROPERTY_NAME))
     DOCUMENT_TEXT_FIELD_NAME = str(context.getProperty(DOCUMENT_TEXT_PROPERTY_NAME))
-    
+
     # needs to be set to True/False
     LOG_INVALID_RECORDS = bool(str(context.getProperty("log_invalid_records_to_file")))
     LOG_FILE_NAME = str(context.getProperty("log_file_name"))
-    
+
     invalid_record_ids = []
 
     try:

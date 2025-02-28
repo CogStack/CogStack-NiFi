@@ -63,8 +63,9 @@ if os.path.exists(ingested_folders_file):
     contents = _folders_ingested_file.read()
     folders_ingested = json.loads(contents) if len(contents) > 0 else {}
     _folders_ingested_file.close()
-    
+
 output_data = []
+
 
 def get_files_and_metadata():
     '''_summary_
@@ -98,7 +99,7 @@ def get_files_and_metadata():
                 folders_ingested[root] = []
 
             txt_file_df = None
-            
+
             doc_files = {}
             csv_files = []
 
@@ -145,7 +146,7 @@ def get_files_and_metadata():
                         txt_file_df["binarydoc"] = pandas.Series(dtype=str)
                         txt_file_df["document_Fields_text"] = pandas.Series(dtype=str)
 
-                        if generate_pseudo_doc_id != False:
+                        if generate_pseudo_doc_id is not False:
                             txt_file_df["document_Pseudo_Id"] = pandas.Series(dtype=str)
 
                     if txt_file_df is not None:
@@ -153,11 +154,11 @@ def get_files_and_metadata():
                             for file_id in list(doc_files.keys()):
                                 if file_id not in folders_ingested[root]:
                                     _file_id_dict = {
-                                       "document_Id" : str(file_id),
-                                       "binarydoc" : base64.b64encode(doc_files[file_id]).decode(),
-                                       "document_Fields_text" : ""
+                                       "document_Id": str(file_id),
+                                       "binarydoc": base64.b64encode(doc_files[file_id]).decode(),
+                                       "document_Fields_text": ""
                                     } 
-                                    if generate_pseudo_doc_id != False:
+                                    if generate_pseudo_doc_id is not False:
                                         _file_id_dict["document_Pseudo_Id"] = str(uuid.uuid4().hex)
 
                                     txt_file_df = pandas.concat([txt_file_df,  pandas.DataFrame.from_dict([_file_id_dict], orient="columns")])
@@ -181,14 +182,14 @@ def get_files_and_metadata():
 
                         for i in range(0, len(txt_file_df)):
                             output_data.append(txt_file_df.iloc[i].to_dict())
-                    
+
                 except Exception as exception:
                     print("failure")
                     traceback.print_exc()
 
             if record_counter >= output_batch_size - 1:
                 break
-        
+
 get_files_and_metadata()
 
 with open(ingested_folders_file, "w+") as f:
