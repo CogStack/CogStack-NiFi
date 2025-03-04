@@ -4,12 +4,8 @@ on:
 
   push:
     branches: [ master ]
-    tags:
-      - 'v*.*.*'
   pull_request:
     branches: [ master ]
-    tags:
-      - 'v*.*.*'
 
   release:
     types: [published]
@@ -21,7 +17,16 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      matrix:
+        platform: [amd64, arm64]
+        include:
+          - platform: amd64
+            runner: ubuntu-22.04
+          - platform: arm64
+            runner: ubuntu-22.04-arm
     
     env:
       working-directory: ./services/nginx
@@ -44,7 +49,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: cogstacksystems/cogstack-nifi-nginx:latest
+          images: cogstacksystems/nifi-nginx:latest
 
       - uses: actions/checkout@v3
       - name: Get and set release version env var
@@ -73,15 +78,9 @@ jobs:
           echo $RELEASE_VERSION
 
       - name: Build and push Docker NiFi-Nginx image
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          context : ./services/nginx
-          file : "./services/nginx/Dockerfile"
-          allow: network.host
-          github-token: ${{ github.token }}
-          tags: cogstacksystems/nifi-nginx:${{ env.RELEASE_VERSION }}
-          push: true
+        run: |
+          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/nifi-nginx:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./services/nginx/Dockerfile" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
+          docker push cogstacksystems/nifi-nginx:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
