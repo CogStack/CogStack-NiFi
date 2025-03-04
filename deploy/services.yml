@@ -1014,6 +1014,12 @@ services:
 
   nifi-nginx:
     image: cogstacksystems/nifi-nginx:1.2.7
+    #build:
+    #   context: ../nifi/
+    #   args:
+    #       HTTP_PROXY: $HTTP_PROXY
+    #       HTTPS_PROXY: $HTTPS_PROXY
+    #       no_proxy: $no_proxy
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
@@ -1100,23 +1106,6 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
 #---------------------------------------------------------------------------#
-# Annotation ingester service                                               #
-#---------------------------------------------------------------------------#
-  annotation-ingester:
-     image: cogstacksystems/annotations-ingester:latest
-     shm_size: 128mb
-     restart: always
-     environment:
-       - http_proxy=$HTTP_PROXY
-       - https_proxy=$HTTPS_PROXY
-       - no_proxy=$no_proxy
-     volumes:
-       - ../services/annotation_ingester/config/config.yml:/app/config/config.yml:ro
-     command: "/app/run.sh"
-     networks:
-      - cognet
-
-#---------------------------------------------------------------------------#
 # Cogstack cohort service                                                   #
 #---------------------------------------------------------------------------#
   cogstack-cohort:
@@ -1143,7 +1132,7 @@ services:
 #---------------------------------------------------------------------------#
   gitea:
     container_name: cogstack-gitea
-    image:  gitea/gitea:1.20-rootless
+    image:  gitea/gitea:1.23-rootless
     shm_size: 256mb
     restart: always
     environment:
