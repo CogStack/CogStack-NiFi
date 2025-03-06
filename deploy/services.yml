@@ -910,7 +910,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    image: cogstacksystems/cogstack-nifi:1.2.7
+    image: cogstacksystems/cogstack-nifi:2.2.0
     #build:
     #   context: ../nifi/
     #   args:
@@ -926,6 +926,10 @@ services:
       - ./general.env
       - ./network_settings.env
       - ../security/nifi_users.env
+      - ../security/elasticsearch_users.env
+      - ../security/certificates_general.env
+      - ../security/certificates_elasticsearch.env
+      - ../security/certificates_nifi.env
     shm_size: 1024mb
     environment:
       - http_proxy=$HTTP_PROXY
@@ -1012,14 +1016,69 @@ services:
     networks:
       - cognet
 
+  nifi-registry-flow:
+    container_name: cogstack-nifi-registry-flow
+    image: apache/nifi-registry:2.2.0
+    restart: always
+    env_file:
+      - ./general.env
+      - ./network_settings.env
+      - ./nifi.env
+      - ./elasticsearch.env
+      - ./project.env
+      - ../security/nifi_users.env
+      - ../security/elasticsearch_users.env
+      - ../security/certificates_general.env
+      - ../security/certificates_elasticsearch.env
+      - ../security/certificates_nifi.env
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      - KEYSTORE_PATH=${NIFI_KEYSTORE_PATH:-/opt/nifi/nifi-current/conf/keystore.jks}
+      - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
+      - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
+      - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
+      - TRUSTSTORE_PATH=${NIIF_TRUSTSTORE_PATH:-/opt/nifi/nifi-current/conf/truststore.jks}
+      - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
+      #- INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"CN=ADMIN, OU=nifi"}
+      - AUTH=${NIFI_AUTH:-"tls"}
+      - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
+      - NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
+      - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
+    volumes:
+      - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
+     # - ../nifi/nifi-registry.properties:/opt/nifi-registry/nifi-registry-current/conf/nifi-registry.properties:ro
+      - ../security/nifi_certificates/nifi/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ../security/nifi_certificates/nifi/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
+      - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storagee
+    extra_hosts:
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+
+    tty: true
+    ports:
+      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-18080}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18080}" 
+    networks:
+      - cognet
+
+
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:1.2.7
-    #build:
-    #   context: ../nifi/
-    #   args:
-    #       HTTP_PROXY: $HTTP_PROXY
-    #       HTTPS_PROXY: $HTTPS_PROXY
-    #       no_proxy: $no_proxy
+    #image: cogstacksystems/nifi-nginx:1.2.7
+    build:
+       context: ../services/nginx/
+       args:
+           HTTP_PROXY: $HTTP_PROXY
+           HTTPS_PROXY: $HTTPS_PROXY
+           no_proxy: $no_proxy
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
@@ -1214,6 +1273,11 @@ volumes:
     driver: local
 
   nifi-vol-errors:
+    driver: local
+
+  nifi-registry-vol-database:
+    driver: local
+  nifi-registry-vol-flow-storage:
     driver: local
 
   # MedCAT Trainer

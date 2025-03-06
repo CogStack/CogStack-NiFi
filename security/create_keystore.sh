@@ -8,6 +8,8 @@
 
 set -e
 
+# Set the password for the keystore
+# Present in different files, in certificates_elasticsearch.env (ES_KEYSTORE_PASSWORD) and also in nifi.env (NIFI_KEYSTORE_PASSWORD)
 KEYSTORE_PASSWORD="cogstackNifi"
 
 if [ -z "$1" ] || [ -z "$2" ]; then
