@@ -1017,8 +1017,8 @@ services:
       - cognet
 
   nifi-registry-flow:
+    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.2.0}
     container_name: cogstack-nifi-registry-flow
-    image: apache/nifi-registry:2.2.0
     restart: always
     env_file:
       - ./general.env
