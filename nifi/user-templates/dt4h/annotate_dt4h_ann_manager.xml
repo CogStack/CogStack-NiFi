@@ -824,7 +824,7 @@
                     </position>
                     <height>96.0</height>
                     <label>Change the index_db_file_name param, and log_file_name param
-/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="swedish_cardioccc.db";document_id_field="document_Id";log_file_name="swedish_cardioccc.log";
+/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="cardioccc.db";document_id_field="document_Id";log_file_name="cardioccc.log";
 
 coy the above back into the command arguments property</label>
                     <style>
@@ -871,7 +871,7 @@ coy the above back into the command arguments property</label>
                     </position>
                     <height>96.0</height>
                     <label>Change the index_db_file_name param, and log_file_name param
-/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="swedish_cardioccc.db";document_id_field="document_Id";log_file_name="swedish_cardioccc.log";operation_mode="insert";
+/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="cardioccc.db";document_id_field="document_Id";log_file_name="cardioccc.log";operation_mode="insert";
 
 
 
@@ -1720,7 +1720,7 @@ coy the above back into the command arguments property, make sure to double chec
                             </entry>
                             <entry>
 <key>Command Arguments</key>
-<value>/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="swedish_cardioccc.db";document_id_field="document_Id";log_file_name="swedish_cardioccc.log";</value>
+<value>/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="cardioccc.db";document_id_field="document_Id";log_file_name="cardioccc.log";</value>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
@@ -1868,7 +1868,7 @@ coy the above back into the command arguments property, make sure to double chec
                             </entry>
                             <entry>
 <key>Command Arguments</key>
-<value>/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="swedish_cardioccc.db";document_id_field="document_Id";log_file_name="swedish_cardioccc.log";operation_mode="insert";</value>
+<value>/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="cardioccc.db";document_id_field="document_Id";log_file_name="cardioccc.log";operation_mode="insert";</value>
                             </entry>
                             <entry>
 <key>Argument Delimiter</key>
@@ -2120,7 +2120,7 @@ coy the above back into the command arguments property, make sure to double chec
                             </entry>
                             <entry>
 <key>el-rest-fetch-index</key>
-<value>swedish_cardioccc</value>
+<value>cardioccc</value>
                             </entry>
                             <entry>
 <key>el-rest-type</key>

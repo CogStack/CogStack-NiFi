@@ -2567,7 +2567,7 @@ The result of the script is a JSON with all the records within a folder passted 
     </entry>
     <entry>
         <key>Command Arguments</key>
-        <value>/opt/nifi/user-scripts/get_files_from_storage.py;root_project_data_dir=/opt/data/ingestion/clinical_case_corpus_HFCCR/;folder_pattern=.*;folder_to_ingest=SV;file_id_csv_column_name_match=file_name_id_no_ext;operation_mode=files_only;output_batch_size=100;</value>
+        <value>/opt/nifi/user-scripts/get_files_from_storage.py;root_project_data_dir=/opt/data/ingestion/clinical_case_corpus_HFCCR/;folder_pattern=.*;folder_to_ingest=EN;file_id_csv_column_name_match=file_name_id_no_ext;operation_mode=files_only;output_batch_size=100;</value>
     </entry>
     <entry>
         <key>Batch Duration</key>
@@ -5067,7 +5067,7 @@ The result of the script is a JSON with all the records within a folder passted 
     </entry>
     <entry>
         <key>Command Arguments</key>
-        <value>/opt/nifi/user-scripts/get_files_from_storage.py;root_project_data_dir=/opt/data/ingestion/cardioCCC_bundle1/;folder_pattern=.*;folder_to_ingest=SV;file_id_csv_column_name_match=file_name_id_no_ext;operation_mode=files_only;output_batch_size=1000;</value>
+        <value>/opt/nifi/user-scripts/get_files_from_storage.py;root_project_data_dir=/opt/data/ingestion/cardioCCC_bundle1/;folder_pattern=.*;folder_to_ingest=EN;file_id_csv_column_name_match=file_name_id_no_ext;operation_mode=files_only;output_batch_size=1000;</value>
     </entry>
     <entry>
         <key>Batch Duration</key>
@@ -5651,7 +5651,7 @@ The result of the script is a JSON with all the records within a folder passted 
                             </entry>
                             <entry>
 <key>el-rest-fetch-index</key>
-<value>swedish_hfccr</value>
+<value>hfccr</value>
                             </entry>
                             <entry>
 <key>el-rest-type</key>
@@ -5850,7 +5850,7 @@ The result of the script is a JSON with all the records within a folder passted 
                             </entry>
                             <entry>
 <key>el-rest-fetch-index</key>
-<value>swedish_cardioccc</value>
+<value>cardioccc</value>
                             </entry>
                             <entry>
 <key>el-rest-type</key>
