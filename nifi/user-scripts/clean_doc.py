@@ -14,6 +14,9 @@ for arg in sys.argv:
 if isinstance(records, dict):
     records = [records]
 
+
+# removes any PII from the text field
+
 for i in range(len(records)):
     if TEXT_FIELD_NAME in records[i].keys():
         clean_text = records[i][TEXT_FIELD_NAME]
@@ -29,4 +32,4 @@ for i in range(len(records)):
 
         records[i][TEXT_FIELD_NAME] = clean_text
 
-sys.stdout.buffer.write(json.dumps(records))
+sys.stdout.write(json.dumps(records))
