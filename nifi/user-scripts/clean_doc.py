@@ -24,10 +24,10 @@ for i in range(len(records)):
         clean_text = regex.sub(r"\d\d\d?F|M/i", "", clean_text)
         clean_text = regex.sub(r"RFH|CFH|BA|Barnet|BARNET", "", clean_text)
         clean_text = regex.sub(r"IMT|CST|AHP|CNS", "", clean_text)
-        clean_text = regex.sub(r"\bGMC:\s*\d{7}\b", "", clean_text)
-        clean_text = regex.sub(r"\bMCIRL:\s*\d{6}\b", "", clean_text)
-        clean_text = regex.sub(r"\bNHS\s*Number:\s*\d{3}\s*\d{3}\s*\d{4}\b", "", clean_text)
-        clean_text = regex.sub(r"\b(https?:\/\/)?www\.royalfree\.nhs\.uk[^\s]*\b", "", clean_text)
+        clean_text = regex.sub(r"GMC:\s*\d{7}", "", clean_text)
+        clean_text = regex.sub(r"MCIRL:\s*\d{6}", "", clean_text)
+        clean_text = regex.sub(r"NHS\s*Number:\s*\d{3}\s*\d{3}\s*\d{4}", "", clean_text)
+        clean_text = regex.sub(r"(https?:\/\/)?www\.royalfree\.nhs\.uk[^\s]*", "", clean_text)
         clean_text = regex.sub(r"UCLH|UCH|NMUH|BGH|NUH", "", clean_text)
 
         records[i][TEXT_FIELD_NAME] = clean_text
