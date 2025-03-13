@@ -29,4 +29,4 @@ for i in range(len(records)):
 
         records[i][TEXT_FIELD_NAME] = clean_text
 
-sys.stdout.buffer.write(records)
+sys.stdout.buffer.write(json.dumps(records))
