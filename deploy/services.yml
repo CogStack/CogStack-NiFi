@@ -296,7 +296,7 @@ services:
 # MedCAT Trainer                                                            #
 #---------------------------------------------------------------------------#
   medcat-trainer-ui:
-    image: cogstacksystems/medcat-trainer:v2.11.2
+    image: cogstacksystems/medcat-trainer:v2.22.0
     container_name: cogstack-medcat-trainer-ui
     restart: always
     # INFO: MedCAT library config provided via env file
@@ -306,20 +306,21 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy–
-      - MCT_VERSION=v2.11.2
+      - MCT_VERSION=v2.22.0
       - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
       - CONCEPT_SEARCH_SERVICE_PORT=8983
     volumes:
-      - ../services/medcat-trainer/configs:/home/configs
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
       - medcat-api-db:/home/api/db
+      - ../services/medcat-trainer/configs:/home/configs
+      - ../services/medcat-trainer/supervisord.conf:/etc/supervisord.conf
     expose:
       - "8000"
-    command: /home/run.sh
+    command: /home/scripts/run.sh
 
   medcat-trainer-nginx:
-    image: cogstacksystems/medcat-trainer-nginx:v2.11.2
+    image: nginx
     container_name: cogstack-medcat-trainer-nginx
     restart: always
     environment:
@@ -328,15 +329,16 @@ services:
       - no_proxy=$no_proxy
     volumes:
       - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ../services/medcat-trainer/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
     ports:
       - "8001:8000"
     depends_on:
       - medcat-trainer-ui
-      - solr
+      - medcat-trainer-solr
 
-  solr:
+  medcat-trainer-solr:
     container_name: mct_solr
     image: solr:8
     restart: always
