@@ -110,48 +110,6 @@ services:
     networks:
       - cognet
 
-
-#---------------------------------------------------------------------------#
-# Apache Tika documents processing service                                  #
-#---------------------------------------------------------------------------#
-  tika-service:
-    image: cogstacksystems/tika-service:0.5.2
-    container_name: cogstack-tika-service
-    shm_size: 1024mb
-    restart: always
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-      
-      # limit the number of processing threads used by tesseract OCR,
-      # this should be used with care as processing for smaller documents (i.e < 10mb) is faster when limiting threads as
-      # the thread IPC and management does not interfere when using a single thread
-      # leave it to 1 if documents are small ( < 10mb) otherwise leave it as it is, changing to 0 will invalidate the variable
-      #- OMP_THREAD_LIMIT=1
-      #- OMP_NUM_THREADS=1
-      - OMP_DYNAMIC=TRUE
-      - OMP_NESTED=TRUE
-
-      # This option might be necessary on some systems if there's a java related error thrown
-      - JAVA_OPTIONS=-XX:MaxRAMFraction=2 -XX:MinRAMFraction=4
-    volumes:
-      - ../services/tika-service/config/application.yaml:/app/config/application.yaml:ro
-      - ../security/root-ca.p12:/app/config/root-ca.p12:ro
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - 8090:8090
-    expose:
-      - 8090
-    networks:
-      - cognet
-
 #---------------------------------------------------------------------------#
 # OCR service(s)                                                            #
 #---------------------------------------------------------------------------#
