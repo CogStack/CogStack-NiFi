@@ -357,7 +357,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.19.0}
     env_file:
       - ../security/certificates_elasticsearch.env
     environment:
@@ -377,7 +377,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.19.0}
     container_name: elasticsearch-1
     shm_size : 1024mb
     restart: always
@@ -402,6 +402,7 @@ services:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ES_ADMIN_PASS:-admin}
       - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
@@ -470,7 +471,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-2:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.19.0}
     container_name: elasticsearch-2
     shm_size : 1024mb
     restart: always
@@ -495,10 +496,11 @@ services:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ES_ADMIN_PASS:-admin}
       - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
-      - ${ELASTICSEARCH_VERSION:-opensearch}
+      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
       
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
@@ -563,7 +565,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-3:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.10.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:2.19.0}
     container_name: elasticsearch-3
     shm_size : 1024mb
     restart: always
@@ -587,10 +589,11 @@ services:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ES_ADMIN_PASS:-admin}
       - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
 
       # global env vars from elasticsearch.env
-      - ${ELASTICSEARCH_VERSION:-opensearch}
+      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
       
     volumes:
       # INFO: ES configuration mapped via volume, adaptie with env var
@@ -863,7 +866,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.10.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:2.19.0}
     container_name: cogstack-kibana
     restart: always
     env_file:
@@ -875,6 +878,7 @@ services:
       ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${ES_ADMIN_PASS:-admin}
 
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
