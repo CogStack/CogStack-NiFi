@@ -89,9 +89,12 @@ By default, the flowfiles thar are out of the processing queues will be archived
 Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 <br><br>
 
-#### <span style="color: red"><strong>IMPORTANT NOTE about `nifi.properties`</strong></span>
-<span style="color: red"><strong>For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.</strong>
- <br></span>
+#### IMPORTANT NOTE about nifi properties
+
+:::{admonition} IMPORTANT NOTE about `nifi.properties
+:class: warning
+For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.
+:::
  
 <span style="color:orange"><strong>Recommendation:</strong></span> If the account/group creation is not possible, you will need to build your own docker image on NiFi, but before you do this, you need to get hold of your group id and user id  of the account you are logged in with.
 To find out your GID and UID, you must do the following commands in terminal:
