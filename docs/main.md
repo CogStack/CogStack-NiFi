@@ -17,12 +17,12 @@ Feel free to ask questions on the github issue tracker or on our [discourse webs
 
 ## Project organisation
 The project is organised in the following directories:
-- [`nifi`](./nifi) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources.
-- [`security`](./security) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements.
-- [`services`](./services) - available services with their corresponding configuration files and resources.
-- [`deploy`](./deploy) - an example deployment of Apache NiFi with related services.
-- [`scripts`](./scripts) - helper scripts containing setup tools, sample ES ingestion, bash ingestion into DB samples etc.
-- [`data`](./data) - any data that you wish to ingest should be placed here.
+- [`nifi`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources.
+- [`security`](https://github.com/CogStack/CogStack-NiFi/tree/master/security/) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements.
+- [`services`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/) - available services with their corresponding configuration files and resources.
+- [`deploy`](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/) - an example deployment of Apache NiFi with related services.
+- [`scripts`](https://github.com/CogStack/CogStack-NiFi/tree/master/scripts/) - helper scripts containing setup tools, sample ES ingestion, bash ingestion into DB samples etc.
+- [`data`](https://github.com/CogStack/CogStack-NiFi/tree/master/data/) - any data that you wish to ingest should be placed here.
 
 ### Branches
 

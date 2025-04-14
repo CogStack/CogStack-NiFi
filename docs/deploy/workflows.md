@@ -100,7 +100,7 @@ The `DBCConnectionPool` controller service can be configured to operate with mul
     - Database Driver Location(s): /opt/nifi/drivers/mssql-jdbc-11.2.0.jre8.jar
 ```
 
-<b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](../../nifi/drivers/) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
+<b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/drivers) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
 
 <br>
 

@@ -1,10 +1,10 @@
 # Available Services
 This file covers the available services in the example deployment.
 
-Apache NiFi-related files are provided in [`../nifi`](../nifi) directory.
+Apache NiFi-related files are provided in `../nifi` directory.
  
 Please note that all the services are deployed using [Docker](https://docker.io) engine and it needs to be present in the system.
-Please see [example deployment](deploy/main.md) for more details on the used services and their configuration.
+Please see [example deployment](main.md) for more details on the used services and their configuration.
 
 ## Overview
 
@@ -67,6 +67,12 @@ To stop the services, type:
 make stop-data-infra
 ```
 
+## Cleanup
+To tear down all the containers and the data persisted in mounted volumes, type:
+```
+make cleanup
+```
+
 ## Services & definition description
 All the essential details on the services configuration are defined in `services.yml` file.
 
@@ -82,9 +88,6 @@ Please note that `nlp-medcat-service-production` and `nlp-gate-bioyodie` NLP ser
 Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) resources that need to be provided in the `RES_BIOYODIE_UMLS_PATH` directory.
 MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH` directory.
 These paths can be defined in `.env` file in the deployment directory.
-
-For more information on available services resources, please see [README](../services/README.md) in `services` directory.
-
 
 ### Bio-YODIE
 [Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
@@ -147,7 +150,7 @@ For more information on the MedCAT Service configuration and use please refer to
 **Important**
 For the example deployment we provide a simple and publicly available MedCAT model.
 However, custom and more advanced MedCAT models can be used based on license-restricted terminology dictionaries such as [UMLS](https://www.nlm.nih.gov/research/umls/index.html) or [SNOMED CT](http://www.snomed.org/).
-Which model is being used by the deployed MedCAT Service is defined both in the MedCAT Service config file and the deployment configuration file (see: [deploy](deploy/main.md)).
+Which model is being used by the deployed MedCAT Service is defined both in the MedCAT Service config file and the deployment configuration file (see: [deploy](main.md)).
 
 
 To deploy MedCAT application stack, type:
@@ -177,21 +180,15 @@ To stop the services, type:
 ```
 make stop-jupyter
 ```
-#### ENV/CONF files:
+### ENV/CONF files:
 - `/deploy/jupyter.env`
-
-## Cleanup
-To tear down all the containers and the data persisted in mounted volumes, type:
-```
-make cleanup
-```
 
 ## Database Stack
 
-The samples DB uses PgSQL, but we also provide an MSSQL instance (no data on it however), that can be used in prod environments.Please see [the workflows section](./deploy/workflows.md#configuring-db-connector) about how to configure the difference controllers and DB drivers.
+The samples DB uses PgSQL, but we also provide an MSSQL instance (no data on it however), that can be used in prod environments.Please see [the workflows section](workflows.md#configuring-db-connector) about how to configure the difference controllers and DB drivers.
 
 
-## Samples DB
+### Samples DB
 `samples-db` provides a [PostgreSQL](https://www.postgresql.org/) database that contains sample data to play with.
 During start-up the data is loaded from a previously generated DB dump.
 
@@ -222,7 +219,7 @@ The tables used in the deployment example are marked with `(*)`.
 #### ENV/CONF files:
 - `/deploy/database.env` - currently only basic stuff like DB users/passwords are included
 
-## Cogstack-db
+### Cogstack-db
 This is a general database provided for production, it does not have any data in it beyond the defined cogstack_schema (this is not yet present) and annotation_schema.
 Provided for both PGSQL and MSSQL.
 
@@ -248,11 +245,11 @@ Since this is a single-node NiFi instance, it also contains the default, embedde
 The Apache NiFi user interface can be hence accessed by navigating on the host (e.g.`localhost`) machine at `http://localhost:8443`.
 
 In this deployment example, we use a custom build Apache NiFi image with example user scripts and workflow templates.
-For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [nifi](../nifi.md).
+For more information on configuration, user scripts and user templates that are embeded with the custom Apache NiFi image please refer to the [nifi](../nifi/main.md).
 The available example workflows are covered in [workflows](./workflows.md)
 Alternatively, please refer to [the official Apache NiFi documentation](https://nifi.apache.org/) for more details on actual use of Apache NiFi.
 
-#### ENV/CONF files:
+### ENV/CONF files:
 - `/deploy/nifi.env` - most notable settings are related to port mapping and proxy
 - `/security/certificates_nifi.env` - define NiFi certificate settings here
 - `/security/nifi_users.env` - defines the NiFi user credentials for single user auth & others
@@ -272,7 +269,7 @@ The Tika service REST API endpoint for processing documents is available at `htt
 
 For more details on configuration, API definition and example use of Tika Service please refer to [the official documentation](https://github.com/CogStack/tika-service).
 
-#### ENV/CONF files:
+### ENV/CONF files:
 - `/deploy/tika-service/config/application.yaml`
 
 ## OCR Service
@@ -282,7 +279,7 @@ The new `ocr-service` provides a new way to OCR documents at good speed, the equ
 `ocr-service-1` - this container is used for OCR
 `ocr-service-2` - this container is used for NON-OCR, meaning documents will simply have their text extracted if they contain text without images
 
-#### ENV/CONF files:
+### ENV/CONF files:
 - `/deploy/ocr_service.env` - for `ocr-service-1`
 - `/deploy/ocr_service_text_only.env` - for `ocr-service-2`, NON-OCR instance
 
@@ -403,7 +400,7 @@ In essence the configuration is very similar, however, there are a few differenc
 
 **Important**
 Please note that for the demonstration purposes SSL encryption has been disabled in Elasticsearch and Kibana.
-For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [README](../security/README.md) in `security` directory.
+For enabling it and generating self-signed certificates please refer directly to the `services.yml` file and [security.md](../security.md) in `docs` directory.
 The security aspects are covered expensively in [the official OpenSearch for Elasticsearch documentation](https://opensearch.org/).
 
 
@@ -453,7 +450,7 @@ In the example deployment, the default built-in user credentials are used, such 
     - OpenSearch user: `admin` with pass `admin`.
     - ElasticSearch user: `elastic` with pass `kibanaserver`
 
-For more details on setting up the security certificates, users, roles and more in this example deployment please refer to [`security`](security.md).
+For more details on setting up the security certificates, users, roles and more in this example deployment please refer to [`security`](../security.md).
 
 ### Indexing & Ingesting data
 
@@ -533,7 +530,7 @@ If you wish to also setup certificates, check the [security section](../security
 
  <span style="color: red"><strong> IMPORTANT: Make sure to disable any ingestion jobs before doing any of the update steps</strong></span>
 
-##### For ElasticSearch:
+#### For ElasticSearch:
 - please check [this link](https://www.elastic.co/guide/en/elastic-stack/8.9/upgrading-elastic-stack.html) for specific version guides.
 - carefully read [this](https://www.elastic.co/guide/en/elastic-stack/current/upgrading-elasticsearch.html), there are a few steps that need to be completed via the Dev Console in Kibana and/or via `curl` in terminal.
 - take note of which Elastic version you are using and check if there are any extra steps that you might need to do, for example you cant upgrade from v7.1.0 to v8.9.2, you'd need to go v7.1.0->7.9.0 first then v8.1.0 -> v8.9.x, this is a pattern that will likely repeat for future versions
@@ -566,7 +563,7 @@ If you wish to also setup certificates, check the [security section](../security
     '`
     - go to Kibana > System Monitor > Clusters and check the status of all the nodes & shards.
 
-##### For OpenSearch:
+#### For OpenSearch:
 - please check [this link](https://opensearch.org/docs/2.0/install-and-configure/upgrade-opensearch/index/)
 - the follow the steps from the `For Elasticsearch` section above, the only diference is the curl command for disabling the shard allocation:
     - `curl -u your_username -X PUT "localhost:9200/_cluster/settings?pretty" -H 'Content-Type: application/json' -d
