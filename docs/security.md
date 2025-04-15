@@ -148,10 +148,10 @@ The keystore/truststore certificates are also generated when creating the node c
 
 ### For Elasticsearch Native
 
-We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](ttps://www.elastic.co/).
+We also provide as part of our deployment the native Elastisearch version since it is used across many organisations in production environments [documentation](https://www.elastic.co/).
 Please note that the deployment of native ES version requires different settings to be changed from the current repository state.
 
-To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](security/create_es_native_certs.sh).
+To generate the above certificates all that is needed is to run the [`create_es_native_certs.sh`](../security/create_es_native_certs.sh).
 
 <br>
 
@@ -247,7 +247,7 @@ Example new users will be created after running `create_es_users.sh`:
 
 Similarly, as in case of ELK stack, one should obtain certificates for JupyterHub to secure the access to the exposed endpoint.
 The generated certificates (by `create_root_ca_cert.sh`) can be referenced directly in `services.yml` file in the example deployment or directly in the internal JupyterHub configuration file.
-The COOKIE secret is a key used to encrypt browser cookies, please use the `generate_cookie_secret.sh`(./services/jupyter-hub/generate_cookie_secret.sh) script to generate a new key, make sure it is done before starting the container.
+The COOKIE secret is a key used to encrypt browser cookies, please use the [`generate_cookie_secret.sh`](../services/jupyter-hub/scripts/generate_cookie_secret.sh) script to generate a new key, make sure it is done before starting the container.
 
 One should also configure and set up users, since the default user is `admin`, and the password is set the first time the account is logged in to (be careful, if there is a mistake delete the jupyter container and its volumes and restart).
 See example deployment [services](deploy/services.md) for more details.

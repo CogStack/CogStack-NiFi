@@ -46,11 +46,11 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "requirements.txt"]
 
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.txt': 'markdown',
+
     '.md': 'markdown',
 }
 
@@ -74,3 +74,6 @@ html_theme_options = {
     'display_version': True,
 }
 
+myst_heading_anchors = 4
+
+myst_enable_extensions = ["colon_fence"]
