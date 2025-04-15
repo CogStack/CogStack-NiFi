@@ -431,6 +431,7 @@ services:
       - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
 
       # opensearch only
+      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
       - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
       - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
       - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
@@ -525,6 +526,7 @@ services:
       - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
 
       # opensearch only
+      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
       - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
       - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
       - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
@@ -618,6 +620,7 @@ services:
       - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
 
       # opensearch only
+      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
       - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
       - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
       - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
