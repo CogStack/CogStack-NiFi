@@ -317,7 +317,7 @@ services:
       - ../services/medcat-trainer/supervisord.conf:/etc/supervisord.conf
     expose:
       - "8000"
-    command: /home/scripts/run.sh
+    command: /usr/bin/supervisord -c /etc/supervisord.conf
 
   medcat-trainer-nginx:
     image: nginx
