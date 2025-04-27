@@ -397,9 +397,8 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - bootstrap.system_call_filter=false
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
+      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
 
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
@@ -492,9 +491,8 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - bootstrap.system_call_filter=false
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
+      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
 
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
@@ -587,8 +585,8 @@ services:
       - discovery.type=zen
       # OTHER SETTINGS
       - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m}"
+      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
+      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
 
       # User config:
       - ELASTIC_USER=${ELASTIC_USER:-elastic}
@@ -664,7 +662,7 @@ services:
 
   metricbeat-1:
     container_name: cogstack-metricbeat-1
-    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.0}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -705,7 +703,7 @@ services:
 
   metricbeat-2:
     container_name: cogstack-metricbeat-2
-    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.3.3}
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.0}
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
@@ -744,7 +742,7 @@ services:
 
   filebeat-1:
     container_name: cogstack-filebeat-1
-    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.0}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -786,7 +784,7 @@ services:
 
   filebeat-2:
     container_name: cogstack-filebeat-2
-    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.0}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -828,7 +826,7 @@ services:
 
   filebeat-3:
     container_name: cogstack-filebeat-3
-    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.3.3}
+    image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.0}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
@@ -892,12 +890,28 @@ services:
       # Security certificates, general      
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.p12:ro
+
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.crt:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.crt:ro
+
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.key:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.key:ro
+
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.p12:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.p12:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.p12:ro
+
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.csr:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.csr:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.csr:ro
+
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.key:ro
+      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.key:ro
+
       
       # OpenSearch only certs
       - ../security/es_certificates/opensearch/admin.crt:/usr/share/opensearch-dashboards/config/admin.crt:ro

@@ -24,6 +24,8 @@ path.repo: ${ELASTICSEARCH_BACKUPS_PATH_REPO}
 indices.query.bool.max_clause_count: ${ELASTICSEARCH_QUERY_BOOL_MAX_CLAUSE_COUNT}
 indices.memory.index_buffer_size: ${ELASTICSEARCH_INDICES_MEMORY_INDEX_BUFFER_SIZE}
 
+bootstrap.memory_lock: ${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK}
+
 #
 # Enable Cross-Origin Resource Sharing (CORS)
 #
@@ -42,7 +44,7 @@ script.allowed_types: inline,stored
 # X-Pack features
 # disabled by default when using '-oss' images
 # need to be disabled manually when using standard images from elastic
-#----------------------
+#----------------------0
 xpack.license.self_generated.type: ${ELASTICSEARCH_LICENSE_TYPE}
 xpack.security.enabled: true
 
