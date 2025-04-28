@@ -9,6 +9,11 @@
 # Force bash scripts to always use LF line endings so that if a repo is accessed
 # in Unix via a file share from Windows, the scripts will work.
 *.sh text eol=lf
+
+# Binaries, store as-is
+*.class binary
+*.jar binary
+*.nar binary
 # Git Large File System (LFS) #
 # Archives
 #*.7z filter=lfs diff=lfs merge=lfs -text
@@ -30,11 +35,6 @@
 #*.exe filter=lfs diff=lfs merge=lfs -text
 # Doc images
 #docs/_static/img filter=lfs diff=lfs merge=lfs -text
-# Binaries
-*.class binary
-*.jar binary
-*.nar binary
-
 #services/cogstack-cohort/cui_pt2ch.json filter=lfs diff=lfs merge=lfs -text
 #services/cogstack-cohort/snomed_terms.json filter=lfs diff=lfs merge=lfs -text
 *.zip !text !filter !merge !diff
