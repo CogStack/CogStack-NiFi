@@ -11,9 +11,35 @@
 *.sh text eol=lf
 
 # Binaries, store as-is
+
+# Images
 *.class binary
 *.jar binary
 *.nar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.psd binary
+
+# Fonts
+*woff2 -text diff
+
+# Archives
+
+*.7z -text diff
+*.br -text diff
+*.gz -text diff
+*.tar -text diff
+*.zip -text diff
+*.tgz -text diff
+*.tbz2 -text diff
+
+# Win Executable
+*.exe binary
+
+
 # Git Large File System (LFS) #
 # Archives
 #*.7z filter=lfs diff=lfs merge=lfs -text
