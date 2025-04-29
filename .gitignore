@@ -29,3 +29,4 @@ docs/build/*
 **/.DS_Store
 .idea
 .vscode
+.venv

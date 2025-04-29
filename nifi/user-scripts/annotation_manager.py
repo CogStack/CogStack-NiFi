@@ -82,19 +82,40 @@ def main():
 
         for record in records:
             if OPERATION_MODE == "check":
-                document_id = str(record[DOCUMENT_ID_FIELD_NAME])
-                query = "SELECT id FROM annotations WHERE document_id = " + document_id + " LIMIT 1"
+                if "footer" in record.keys():
+                    _document_id = str(record["footer"][DOCUMENT_ID_FIELD_NAME])
+                else:
+                    _document_id = str(record[DOCUMENT_ID_FIELD_NAME])
+                query = "SELECT id FROM annotations WHERE document_id = " + '"' + _document_id + '"' + " LIMIT 1"
                 result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_ro, cursor=_cursor, keep_conn_open=True)
 
                 if len(result) < 1:
                     output_stream["content"].append(record)
 
             if OPERATION_MODE == "insert":
-                document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
-                nlp_id = str(record["nlp.id"])
-                query = "INSERT OR REPLACE INTO annotations (id, document_id) VALUES (" + '"' + document_id + "_" + nlp_id + '"' + "," + '"' + document_id + '"' +")"
-                result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, cursor=_cursor, keep_conn_open=True)
-                output_stream.append(record)
+
+                nlp_id = None
+
+                # dt4h compatibility
+                if "nlp_output" in record.keys():
+                    if "record_metadata" in record["nlp_output"].keys():
+                        _document_id = str(record["nlp_output"]["record_metadata"]["id"])
+                    if "annotations" in record["nlp_output"].keys():
+                        index = 0
+                        for annotation in record["nlp_output"]["annotations"]:
+                            nlp_id = str(index)
+                            query = "INSERT OR REPLACE INTO annotations (id, document_id) VALUES (" + '"' + _document_id + "_" + nlp_id + '"' + "," + '"' + _document_id + '"' +")"
+                            result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, cursor=_cursor, keep_conn_open=True)
+                            index += 1
+
+                        output_stream.append(record)
+                else:
+                    _document_id = str(record["meta." + DOCUMENT_ID_FIELD_NAME])
+                    nlp_id = str(record["nlp.id"])
+
+                    query = "INSERT OR REPLACE INTO annotations (id, document_id) VALUES (" + '"' + _document_id + "_" + nlp_id + '"' + "," + '"' + _document_id + '"' +")"
+                    result = connect_and_query(query, db_file_path, sqlite_connection=_sqlite_connection_rw, sql_script_mode=True, cursor=_cursor, keep_conn_open=True)
+                    output_stream.append(record)
 
         if _cursor is not None: 
             _cursor.close()

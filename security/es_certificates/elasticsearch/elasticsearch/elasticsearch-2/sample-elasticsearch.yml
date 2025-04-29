@@ -3,8 +3,8 @@
 #
 # This is a sample configuration snippet for Elasticsearch that enables and configures SSL for the HTTP (Rest) interface
 #
-# This was automatically generated at: 2022-04-12 21:39:28Z
-# This configuration was intended for Elasticsearch version 8.1.2
+# This was automatically generated at: 2025-04-27 21:41:20Z
+# This configuration was intended for Elasticsearch version 8.18.0
 #
 # You should review these settings, and then update the main configuration file at
 #   /usr/share/elasticsearch/config/elasticsearch.yml

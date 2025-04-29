@@ -11,6 +11,14 @@ admin:
   reserved: true
   backend_roles:
     - "admin"
+  description: "admin user"
+
+anomalyadmin:
+  hash: "$2y$12$TRwAAJgnNo67w3rVUz4FIeLx9Dy/llB79zf9I15CKJ9vkM4ZzAd3."
+  reserved: false
+  opendistro_security_roles:
+  - "anomaly_full_access"
+  description: "Demo anomaly admin user, using internal role"
 
 #password is: logstash
 logstash:
@@ -20,18 +28,26 @@ logstash:
 
 #password is: kibanaserver  
 kibanaserver:
-  reserved: false
+  reserved: true
   hash: $2a$12$4AcgAt3xwOWadA5s5blL6ev39OXDNhmOesEoo33eZtrq2N0YrU3H.
+  description: "OpenSearch Dashboards user"
   backend_roles:
-    - "kibanauser"
-    - "readall"
-  
+    - "admin"
+    - "kibanaserver"
+    - "kibana_server"
+
 #password is: kibanaro
 kibanaro:  
   hash: $2a$12$JJSXNfTowz7Uu5ttXfeYpeYE0arACvcwlPBStB1F.MI7f0U9Z4DGC
+  reserved: false
   backend_roles:
-    - "kibanauser"
-    - "readall"
+  - "kibanauser"
+  - "readall"
+  attributes:
+    attribute1: "value1"
+    attribute2: "value2"
+    attribute3: "value3"
+  description: "OpenSearch Dashboards read only user, using external role mapping"
 
 #password is: readall
 readall:
@@ -39,7 +55,7 @@ readall:
   reserved: false
   backend_roles:
     - "readall"
-  description: "Demo readall user"
+  description: "readall user"
 
 #password is: snapshotrestore
 snapshotrestore:
@@ -47,13 +63,8 @@ snapshotrestore:
   reserved: false
   backend_roles:
     - "snapshotrestore"
-  description: "Demo snapshotrestore user"
+  description: "snapshotrestore user"
 
-manage_snapshots:
-  reserved: true
-  hidden: false
-  backend_roles:
-  - "snapshotrestore"
 
 # Define your internal users here
 new-user:

@@ -23,9 +23,11 @@ elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
 
 elasticsearch.requestTimeout: 300000
 
-server.ssl.enabled: true
+server.ssl.enabled: ${SERVER_SSL_ENABLED}
 server.ssl.certificate: "config/esnode1.crt"
 server.ssl.key: "config/esnode1.key"
+#server.ssl.keystore.path: "config/esnode1.p12"
+server.ssl.keyPassphrase: ${ES_CERTIFICATE_PASSWORD}
 server.ssl.clientAuthentication: optional
 server.ssl.certificateAuthorities: ["config/root-ca.crt"]
 
