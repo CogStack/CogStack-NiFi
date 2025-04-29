@@ -2,7 +2,7 @@
 
 set -e
 
-NIFI_TOOLKIT_VERSION=${NIFI_VERSION:-"2.2.0"}
+NIFI_TOOLKIT_VERSION=${NIFI_VERSION:-"2.3.0"}
 
 if [[ -z "${NIFI_TOOLKIT_VERSION}" ]]; then
     NIFI_TOOLKIT_VERSION=$NIFI_TOOLKIT_VERSION
@@ -38,7 +38,7 @@ PATH_TO_NIFI_PROPERTIES_FILE="./../nifi/conf/nifi.properties"
 KEY_SIZE=4096
 
 # -n, --hostnames <arg> Comma separated list of hostnames i.e "server1,server2,localhost" etc.
-HOSTNAMES="nifi"
+HOSTNAMES="nifi,cogstack-nifi,cogstack,nifi-registry"
 
 OUTPUT_DIRECTORY="./nifi_certificates"
 
@@ -78,18 +78,24 @@ is_os_windows=0
 OLD_JAVA_OPTS=${JAVA_OPTS}
 export JAVA_OPTS="-Xmx2048m -Xms2048m"
 
-for win_os in ${windows_unames[@]}; do
-    if [[ $win_os == *"$os_name"* ]]; then
-        ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEYSTORE_PASSWORD --subjectAlternativeNames $NIFI_SUBJ_ALT_NAMES
-        is_os_windows=1
-    fi
-done
 
-if [[ $is_os_windows == 0 ]]; then
-    bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEYSTORE_PASSWORD
-fi
+##############################################################################################
 
+# for win_os in ${windows_unames[@]}; do
+#     if [[ $win_os == *"$os_name"* ]]; then
+#         ./nifi_toolkit/bin/tls-toolkit.bat standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEYSTORE_PASSWORD --subjectAlternativeNames $NIFI_SUBJ_ALT_NAMES
+#         is_os_windows=1
+#     fi
+# done
+# 
+# if [[ $is_os_windows == 0 ]]; then
+#     bash nifi_toolkit/bin/tls-toolkit.sh standalone -k $KEY_SIZE -n $HOSTNAMES -o $OUTPUT_DIRECTORY -O -f $PATH_TO_NIFI_PROPERTIES_FILE -d $NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -C $NIFI_SUBJ_LINE_CERTIFICATE_CN -K $NIFI_KEYSTORE_PASSWORD
+# fi
+
+##############################################################################################
 # move the new nifi properties files with the updated security configs to the nifi directory
 mv ./$OUTPUT_DIRECTORY/$HOSTNAMES/nifi.properties ../nifi/conf/
+
+##############################################################################################
 
 export JAVA_OPTS=$OLD_JAVA_OPTS
