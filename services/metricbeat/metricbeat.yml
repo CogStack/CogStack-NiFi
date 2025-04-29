@@ -1,0 +1,139 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+processors:
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+# ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+# ---------------------------- Elasticsearch Output ----------------------------
+output.elasticsearch:
+  hosts: ${ELASTICSEARCH_HOSTS}
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
+  ssl.verification_mode: certificate
+  ssl.enabled: true
+  ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
+  ssl.certificate: "/usr/share/metricbeat/esnode.crt"
+  ssl.key: "/usr/share/metricbeat/esnode.key"
+ 
+
+# =================================== Kibana ===================================
+
+# Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
+# This requires a Kibana endpoint configuration.
+setup.kibana:
+  host: "${KIBANA_HOST}"
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
+  protocol: "https"
+  ssl.enabled: true
+  ssl.verification_mode: certificate
+  ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
+  ssl.certificate: "/usr/share/metricbeat/esnode.crt"
+  ssl.key: "/usr/share/metricbeat/esnode.key"
+
+
+#---------------------------- Elasticsearch Module ----------------------------
+metricbeat.modules:
+- module: elasticsearch
+  xpack.enabled: true
+  metricsets:
+    - node
+    - node_stats
+    - index
+    - index_recovery
+    - index_summary
+    - shard
+    - ml_job
+  period: 10s
+  hosts: ${ELASTICSEARCH_HOSTS}
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
+  ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
+
+#-------------------------------- Kibana Module --------------------------------
+- module: kibana
+  metricsets: ["status"]
+  period: 10s
+  hosts: "${KIBANA_HOST}"
+  basepath: ""
+  enabled: true
+  username: "${METRICBEAT_USER}"
+  password: "${METRICBEAT_PASSWORD}"
+  ssl.certificate_authorities: "/usr/share/metricbeat/root-ca.crt"
+  ssl.certificate: "/usr/share/metricbeat/esnode.crt"
+  ssl.key: "/usr/share/metricbeat/esnode.key"
+
+  # Set to true to send data collected by module to X-Pack
+  # Monitoring instead of metricbeat-* indices.
+  #xpack.enabled: true
+
+##------------------------------- System Module -------------------------------
+- module: system
+  metricsets:
+    - cpu             # CPU usage
+    - filesystem      # File system usage for each mountpoint
+    - fsstat          # File system summary metrics
+    - load            # CPU load averages
+    - memory          # Memory usage
+    - network         # Network IO
+    - process         # Per process metrics
+    - process_summary # Process summary
+    - uptime          # System Uptime
+    - core            # Per CPU core usage
+    - diskio          # Disk IO
+    #- raid            # Raid
+    - socket          # Sockets and connection info (linux only)
+  enabled: true
+  period: 30s
+  processes: [".*"]
+
+  # Configure the metric types that are included by these metricsets.
+  cpu.metrics:  ["percentages"]  # The other available options are normalized_percentages and ticks.
+  core.metrics: ["percentages"]  # The other available option is ticks.
+
+
+###-------------------------------- Docker Module --------------------------------
+#- module: docker
+#  metricsets:
+#    - "container"
+#    - "cpu"
+#    - "diskio"
+#    - "event"
+#    - "healthcheck"
+#    - "info"
+#    #- "image"
+#    - "memory"
+#    - "network"
+#    #- "network_summary"
+#  hosts: ["unix:///var/run/docker.sock"]
+#  period: 10s
+#  enabled: true
+#  # If set to true, replace dots in labels with `_`.
+#  #labels.dedot: false
+#
+#  # Skip metrics for certain device major numbers in docker/diskio.
+#  # Necessary on systems with software RAID, device mappers,
+#  # or other configurations where virtual disks will sum metrics from other disks.
+#  # By default, it will skip devices with major numbers 9 or 253.
+#  #skip_major: []
+#
+#  # If set to true, collects metrics per core.
+#  #cpu.cores: true
+#
+#  # To connect to Docker over TLS you must specify a client and CA certificate.
+#  ssl:
+#    certificate_authority: "/usr/share/metricbeat/root-ca.crt"
+#    certificate:           "/usr/share/metricbeat/esnode.crt"
+#    key:                   "/usr/share/metricbeat/esnode.key"
+#
+# adding hint support
+#metricbeat.autodiscover:
+#  providers:
+#    - type: docker
+#      hints.enabled: true

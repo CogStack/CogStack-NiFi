@@ -2,7 +2,7 @@
 
 set -e
 
-MAIN_PATH='/Users/lroguski/devel/projects/github/cogstack/CogStack-Pipeline/examples'
+MAIN_PATH="./"
 
 RAWDATA_PATH="$MAIN_PATH/rawdata"
 

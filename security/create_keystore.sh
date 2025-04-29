@@ -22,16 +22,23 @@ else
 	KEYSTORE_PASSWORD=$3
 fi
 
-if [ ! -e "$1.pem" ] || [ ! -e "$1.key" ]; then
-	echo "Error: $1.pem or $1.key file do not exist"
+if [ ! -e "$1.crt" ] || [ ! -e "$1.key" ]; then
+	echo "Error: $1.crt or $1.key file do not exist"
 	exit 1
 fi
 
-CA_ROOT_CERT="root-ca.pem"
-CA_ROOT_KEY="root-ca.key"
+if [[ -z "${ROOT_CERTIFICATE_NAME}" ]]; then
+    ROOT_CERTIFICATE_NAME="root-ca"
+    echo "ROOT_CERTIFICATE_NAME not set, defaulting to ROOT_CERTIFICATE_NAME=root-ca"
+else
+    ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
+fi
+
+CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
+CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
 
 echo "Converting x509 Cert and Key to a pkcs12 file"
-openssl pkcs12 -export -in "$1.pem" -inkey "$1.key" \
+openssl pkcs12 -export -in "$1.crt" -inkey "$1.key" \
                -out "$1.p12" -name "$1" \
                -CAfile $CA_ROOT_CERT -passout pass:$KEYSTORE_PASSWORD
 
@@ -47,4 +54,4 @@ echo "Checking which certificates are in a Java keystore"
 keytool -list -v -keystore $2".jks" -noprompt -storepass $KEYSTORE_PASSWORD
 
 echo "Creating truststore key"
-keytool -import -file $1.pem -keystore $1-"truststore.key" -storepass $KEYSTORE_PASSWORD -noprompt
+keytool -import -file $1.crt -keystore $1-"truststore.key" -storepass $KEYSTORE_PASSWORD -noprompt

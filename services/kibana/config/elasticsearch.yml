@@ -1,0 +1,68 @@
+# Some of these parameters are provided by the Docker environment variables
+server.name: ${KIBANA_SERVER_NAME}
+server.host: ${KIBANA_SERVER_HOST}
+server.port: 5601
+
+telemetry.optIn: false
+telemetry.enabled: false
+
+elasticsearch.username: ${KIBANA_USER}
+elasticsearch.password: ${KIBANA_PASSWORD}
+#elasticsearch.serviceAccountToken: ${ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN}
+
+# INFO: ES URL provided as docker parameter
+elasticsearch.hosts: ${ELASTICSEARCH_HOSTS}
+elasticsearch.ssl.verificationMode: certificate
+elasticsearch.ssl.certificateAuthorities: ["config/root-ca.crt"]
+elasticsearch.ssl.certificate: "config/esnode1.crt"
+elasticsearch.ssl.key: "config/esnode1.key"
+
+# WARNING: revise all the lines below before you go into production
+
+elasticsearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+
+elasticsearch.requestTimeout: 300000
+
+server.ssl.enabled: ${SERVER_SSL_ENABLED}
+server.ssl.certificate: "config/esnode1.crt"
+server.ssl.key: "config/esnode1.key"
+#server.ssl.keystore.path: "config/esnode1.p12"
+server.ssl.keyPassphrase: ${ES_CERTIFICATE_PASSWORD}
+server.ssl.clientAuthentication: optional
+server.ssl.certificateAuthorities: ["config/root-ca.crt"]
+
+server.publicBaseUrl: ${KIBANA_PUBLIC_BASE_URL}
+
+# --------------------------------------------------------------------------------------------------------------------------------
+# X-Pack features
+# --------------------------------------------------------------------------------------------------------------------------------
+# Note as of ES/Kibana 8 the xpack.security.enabled and other settings are enabled by default, and are removed from the yml file.
+# Some components are still configurable, add them under this section if you wish to manage them.
+xpack.reporting.enabled: true
+
+xpack.encryptedSavedObjects.encryptionKey: ${ELASTICSEARCH_XPACK_SECURITY_SAVED_OBJECTS_ENCRYPTION_KEY}
+xpack.reporting.encryptionKey: ${ELASTICSEARCH_XPACK_SECURITY_REPORTING_ENCRYPTION_KEY}
+xpack.security.encryptionKey: ${ELASTICSEARCH_XPACK_SECURITY_ENCRYPTION_KEY}
+
+# enable PDF exporting via kibana
+xpack.reporting.capture.browser.chromium.disableSandbox: true
+
+xpack.security.session.idleTimeout: "30m"
+xpack.security.session.lifespan: "7d"
+xpack.security.session.cleanupInterval: "1d"
+xpack.reporting.capture.timeouts.renderComplete: 900000
+xpack.reporting.roles.enabled: false
+
+
+# Logging
+
+# logging:
+#   appenders:
+#     json-layout:
+#       type: console
+#       layout:
+#         type: json
+#         fileName: /var/log/kibana.json
+#   root:
+#     appenders: [json-layout]
+#     level: info

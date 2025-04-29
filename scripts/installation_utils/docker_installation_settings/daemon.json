@@ -20,6 +20,7 @@
     "fixed-cidr": "",
     "fixed-cidr-v6": "",
     "graph": "",
+    "data-root": "/var/lib/docker/",
     "group": "",
     "hosts": ["fd://","unix:///var/run/docker.sock","tcp://0.0.0.0:2376"],
     "icc": true,
@@ -33,7 +34,9 @@
     "live-restore": true,
     "log-driver": "",
     "log-level": "",
-    "log-opts": {},
+    "log-opts": {
+      "max-size": "1024m"
+    },
     "max-concurrent-downloads": 3,
     "max-concurrent-uploads": 5,
     "mtu": 0,

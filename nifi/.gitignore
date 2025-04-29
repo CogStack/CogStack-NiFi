@@ -1,5 +1,9 @@
-conf/archive/*
-conf/templates
-nifi-app.log
-flow*
-login*
+conf/*
+user-scripts/db/*
+**devel
+devel
+**flow
+**login
+**conf
+*.jks
+**__pycache__
