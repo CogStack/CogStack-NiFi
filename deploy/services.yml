@@ -874,6 +874,7 @@ services:
     restart: always
     env_file:
          - ../security/elasticsearch_users.env
+         - ../security/certificates_elasticsearch.env
          - ./elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
