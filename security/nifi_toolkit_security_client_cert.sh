@@ -22,11 +22,11 @@ then
 fi
 
 # MORE INFO ON THE TOOLKIT : https://nifi.apache.org/docs/nifi-docs/components/nifi-docs/html/toolkit-guide.html#tls_toolkit
-# The default value is 730 days.
+# The default value is 1460 days.
 
 if [[ -z "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
-    NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730
-    echo "NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=730"
+    NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460
+    echo "NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460"
 else
     NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
 fi
