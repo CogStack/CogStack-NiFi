@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<authorizations>
+    <policies>
+        <policy identifier="287edf48-da72-359b-8f61-da5d4c45a270" resource="/proxy" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="0eaa47b9-e409-304e-8682-30d1b0d86d05" resource="/swagger" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="15e4e0bd-cb28-34fd-8587-f8d15162cba5" resource="/tenants" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="ff96062a-fa99-36dc-9942-0f6442ae7212" resource="/policies" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="01b87cb5-c0b6-342d-b108-d8bc03ab5cde" resource="/policies" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="2f470357-e82c-38ee-8062-ab6388d6ec75" resource="/actuator" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="9d182b11-ebe3-3a7a-8731-98ce6d6e44fd" resource="/buckets" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="dfbf3c51-fdec-3328-b169-3b54eb033147" resource="/buckets" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="cf4d8390-5ac7-3ff0-82ce-a274b5f88b21" resource="/swagger" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="2dbc92a2-b091-3616-8e88-5078b9103b04" resource="/tenants" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="ad99ea98-3af6-3561-ae27-5bf09e1d969d" resource="/policies" action="W">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="3ee4703f-94ca-33c2-8060-17f5d313f560" resource="/actuator" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="6dbdbffd-8a7d-32e1-ba3e-f600e6c69791" resource="/proxy" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="05b96464-9ec8-312a-8459-67812a8b48c1" resource="/buckets" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="d59a54f7-6dd6-34ad-a279-a26ffdb9eef8" resource="/proxy" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="2fd3fcf5-b10f-33fa-8d8e-b262fa34815e" resource="/actuator" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="ac587f43-6e1c-3890-81fd-83b4df2e678e" resource="/swagger" action="D">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+        <policy identifier="627410be-1717-35b4-a06f-e9362b89e0b7" resource="/tenants" action="R">
+            <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b"/>
+        </policy>
+    </policies>
+</authorizations>

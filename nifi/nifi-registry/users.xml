@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tenants>
+    <groups/>
+    <users>
+        <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b" identity="CN=admin, OU=nifi"/>
+    </users>
+</tenants>
