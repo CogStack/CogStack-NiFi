@@ -2,7 +2,7 @@
 
 set -e
 
-NIFI_TOOLKIT_VERSION=${NIFI_VERSION:-"2.2.0"}
+NIFI_TOOLKIT_VERSION=${NIFI_VERSION:-"2.4.0"}
 
 if [[ -z "${NIFI_TOOLKIT_VERSION}" ]]; then
     NIFI_TOOLKIT_VERSION=$NIFI_TOOLKIT_VERSION
@@ -31,14 +31,6 @@ else
     NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
 fi
 
-# -k, --keySize <arg> Number of bits for generated keys (default: 2048)
-KEY_SIZE=4096
-
-# -n, --hostnames <arg> Comma separated list of hostnames i.e "server1,server2,localhost" etc.
-HOSTNAMES="localhost"
-
-OUTPUT_DIRECTORY="./nifi_certificates"
-
 # -C,--clientCertDn <arg> Generate client certificate suitable for use in browser with specified DN (Can be specified multiple times)
 # this should respect whatever is used to generate the other certificate with regards CN=nifi, this needs to match the HOSTNAME of the nifi container(s)
 if [[ -z "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" ]]; then
@@ -47,3 +39,12 @@ if [[ -z "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" ]]; then
 else
     NIFI_SUBJ_LINE_CERTIFICATE_CN=${NIFI_SUBJ_LINE_CERTIFICATE_CN}
 fi
+
+# -k, --keySize <arg> Number of bits for generated keys (default: 2048)
+KEY_SIZE=4096
+
+# -n, --hostnames <arg> Comma separated list of hostnames i.e "server1,server2,localhost" etc.
+HOSTNAMES="localhost"
+
+OUTPUT_DIRECTORY="./nifi_certificates"
+
