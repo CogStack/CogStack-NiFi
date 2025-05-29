@@ -943,8 +943,8 @@ services:
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
-      - ../security/nifi_certificates/nifi/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ../security/nifi_certificates/nifi/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
       # Security credentials scripts
       - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
@@ -999,9 +999,10 @@ services:
       - cognet
 
   nifi-registry-flow:
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.2.0}
+    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.4.0}
     container_name: cogstack-nifi-registry-flow
     restart: always
+    user: root
     env_file:
       - ./general.env
       - ./network_settings.env
@@ -1017,24 +1018,27 @@ services:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
-      - KEYSTORE_PATH=${NIFI_KEYSTORE_PATH:-/opt/nifi/nifi-current/conf/keystore.jks}
+      - USER_ID=${NIFI_UID:-1000}
+      - GROUP_ID=${NIFI_GID:-1000}
+      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-./conf/keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PATH=${NIIF_TRUSTSTORE_PATH:-/opt/nifi/nifi-current/conf/truststore.jks}
+      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-./conf/truststore.jks}
+
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
-      #- INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"CN=ADMIN, OU=nifi"}
+      - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"CN=admin, OU=nifi"}
       - AUTH=${NIFI_AUTH:-"tls"}
       - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
-      - NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
+      #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-     # - ../nifi/nifi-registry.properties:/opt/nifi-registry/nifi-registry-current/conf/nifi-registry.properties:ro
-      - ../security/nifi_certificates/nifi/keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ../security/nifi_certificates/nifi/truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+      #- ../nifi/nifi-registry.properties:/opt/nifi-registry/nifi-registry-current/conf/nifi-registry.properties:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
-      - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storagee
+      - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
     extra_hosts:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
@@ -1048,10 +1052,14 @@ services:
 
     tty: true
     ports:
-      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-18080}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18080}" 
+      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-18443}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
+    
+    entrypoint: bash -c "chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/database && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/flow_storage && \
+      bash /opt/nifi-registry/scripts/start.sh"
+
     networks:
       - cognet
-
 
   nifi-nginx:
     #image: cogstacksystems/nifi-nginx:1.2.7
