@@ -2,6 +2,11 @@
 
 set -e
 
+# required env var files
+source certificates_elasticsearch.env
+source certificates_general.env
+source elasticsearch_users.env
+
 if [[ -z "${ELASTIC_HOST}" ]]; then
     ELASTIC_HOST=localhost
     echo "ELASTIC_HOST not set, defaulting to ELASTIC_HOST=localhost"

@@ -8,6 +8,12 @@
 
 set -e
 
+# required env var files
+source ../deploy/general.env
+source certificates_elasticsearch.env
+source certificates_general.env
+source elasticsearch_users.env
+
 OPENSEARCH_FOLDER="./es_certificates/opensearch/"
 ES_CERTIFICATES_FOLDER=$OPENSEARCH_FOLDER"elasticsearch"
 

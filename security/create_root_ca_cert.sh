@@ -11,7 +11,6 @@ set -e
 source ../deploy/general.env
 source certificates_general.env
 
-
 if [[ -z "${ROOT_CERTIFICATE_NAME}" ]]; then
     ROOT_CERTIFICATE_NAME="root-ca"
     echo "ROOT_CERTIFICATE_NAME not set, defaulting to ROOT_CERTIFICATE_NAME=root-ca"
@@ -90,3 +89,10 @@ keytool -importkeystore -srckeystore $CA_ROOT_KEYSTORE_FILE_NAME -srcstoretype P
 
 echo "Create JKS truststore"
 keytool -importcert -keystore $CA_ROOT_CERT_TRUSTSTORE_FILE_NAME -storetype JKS -alias $ROOT_CERTIFICATE_ALIAS_NAME -file $CA_ROOT_CERT_509_FILE_NAME -srckeypass $ROOT_CERTIFICATE_KEY_PASSWORD -deststorepass $ROOT_CERTIFICATE_KEY_PASSWORD -noprompt
+
+mkdir -p ./root_certificates
+
+mv -v "./${ROOT_CERTIFICATE_NAME}-"* "./root_certificates/"
+mv -v "./${ROOT_CERTIFICATE_NAME}."* "./root_certificates/"
+
+echo "Root CA certificate and key files have been generated and moved to ./root_certificates/"

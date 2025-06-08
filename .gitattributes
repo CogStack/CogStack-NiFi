@@ -23,6 +23,15 @@
 *.webp binary
 *.psd binary
 
+# certificates
+*.jks binary
+*.p12 binary
+*.pfx binary
+*.pem -text -diff
+*.csr -text -diff
+*.key -text -diff
+*.crt -text -diff
+
 # Fonts
 *woff2 -text diff
 

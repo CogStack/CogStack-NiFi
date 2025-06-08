@@ -7,7 +7,6 @@ source ../deploy/general.env
 source certificates_general.env
 source certificates_nifi.env
 
-
 NIFI_TOOLKIT_VERSION=${NIFI_VERSION:-"2.4.0"}
 
 if [[ -z "${NIFI_TOOLKIT_VERSION}" ]]; then
@@ -84,6 +83,9 @@ export JAVA_OPTS="-Xmx2048m -Xms2048m"
 
 ##############################################################################################
 
+echo "Cleaning up any previous nifi certificates in the nifi_certificates directory"
+rm -rf "./nifi_certificates/nifi*"
+
 echo "Creating a keypair for the NiFi Server: nifi.jks ..."
 keytool -genkeypair -alias "nifi" -dname "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" -ext "${NIFI_SUBJ_ALT_NAMES}" -storepass "${NIFI_KEYSTORE_PASSWORD}" -keysize "${KEY_SIZE}" -validity "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" -sigalg "${NIFI_SIGALG}" -keyalg RSA -keystore nifi.jks -noprompt -v
 
@@ -108,8 +110,6 @@ keytool -importcert -keystore nifi-truststore.jks -storetype JKS -alias "nifi" -
 
 
 # move the certificates to the nifi_certificates directory
-mkdir -p ./nifi_certificates/nifi
-
 mv nifi.key ./nifi_certificates/nifi.key
 mv nifi.pem ./nifi_certificates/nifi.pem
 mv nifi.jks ./nifi_certificates/nifi-keystore.jks
@@ -124,9 +124,9 @@ sed -i "" "s|nifi\.security\.keyPasswd=.*|nifi\.security\.keyPasswd=${NIFI_KEYST
 sed -i "" "s|nifi\.security\.truststorePasswd=.*|nifi\.security\.truststorePasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/conf/nifi.properties
 
 # update the nifi-registry.properties file with the new keystore and truststore passwords
-sed -i "" "s|nifi\.registry\.security\.keystorePasswd=.*|nifi\.registry\.security\.keystorePasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/conf/nifi-registry.properties
-sed -i "" "s|nifi\.registry\.security\.keyPasswd=.*|nifi\.registry\.security\.keyPasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/conf/nifi-registry.properties
-sed -i "" "s|nifi\.registry\.security\.truststorePasswd=.*|nifi\.registry\.security\.truststorePasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/conf/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.keystorePasswd=.*|nifi\.registry\.security\.keystorePasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.keyPasswd=.*|nifi\.registry\.security\.keyPasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.truststorePasswd=.*|nifi\.registry\.security\.truststorePasswd=${NIFI_TRUSTSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
 
 ##############################################################################################
 # move the new nifi properties files with the updated security configs to the nifi directory

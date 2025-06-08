@@ -13,7 +13,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/database_users.env
+      - ../security/users_database.env
     environment:
       # PG env vars
       - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
@@ -51,7 +51,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/database_users.env
+      - ../security/users_database.env
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
@@ -85,7 +85,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/database_users.env
+      - ../security/users_database.env
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
@@ -344,7 +344,7 @@ services:
     # mem_limit: 2g
     env_file:
       - ./elasticsearch.env
-      - ../security/elasticsearch_users.env
+      - ../security/users_elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -438,7 +438,7 @@ services:
     # mem_limit: 2g
     env_file:
       - ./elasticsearch.env
-      - ../security/elasticsearch_users.env
+      - ../security/users_elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -532,7 +532,7 @@ services:
     # mem_limit: 2g
     env_file:
       - ./elasticsearch.env
-      - ../security/elasticsearch_users.env
+      - ../security/users_elasticsearch.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -624,7 +624,7 @@ services:
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
-         - ../security/elasticsearch_users.env
+         - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
@@ -665,7 +665,7 @@ services:
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
-         - ../security/elasticsearch_users.env
+         - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
@@ -704,7 +704,7 @@ services:
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
-        - ../security/elasticsearch_users.env
+        - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -746,7 +746,7 @@ services:
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
-        - ../security/elasticsearch_users.env
+        - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -788,7 +788,7 @@ services:
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
         - ./elasticsearch.env
-        - ../security/elasticsearch_users.env
+        - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -831,7 +831,7 @@ services:
     container_name: cogstack-kibana
     restart: always
     env_file:
-         - ../security/elasticsearch_users.env
+         - ../security/users_elasticsearch.env
          - ../security/certificates_elasticsearch.env
          - ./elasticsearch.env
     environment:
@@ -900,6 +900,7 @@ services:
            HTTPS_PROXY: $HTTPS_PROXY
            no_proxy: $no_proxy
     container_name: cogstack-nifi
+    hostname: nifi
     restart: always
     env_file:
       - ./nifi.env
@@ -907,8 +908,8 @@ services:
       - ./project.env
       - ./general.env
       - ./network_settings.env
-      - ../security/nifi_users.env
-      - ../security/elasticsearch_users.env
+      - ../security/users_nifi.env
+      - ../security/users_elasticsearch.env
       - ../security/certificates_general.env
       - ../security/certificates_elasticsearch.env
       - ../security/certificates_nifi.env
@@ -970,12 +971,14 @@ services:
 
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+
     extra_hosts:
       - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
       - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
       - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
       - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+      - ${NIFI_REGISTRY_HOST_NAME:-test-6:0.0.0.0}
 
     # user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
     ulimits:
@@ -1000,6 +1003,7 @@ services:
 
   nifi-registry-flow:
     image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.4.0}
+    hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     restart: always
     user: root
@@ -1007,10 +1011,9 @@ services:
       - ./general.env
       - ./network_settings.env
       - ./nifi.env
-      - ./elasticsearch.env
       - ./project.env
-      - ../security/nifi_users.env
-      - ../security/elasticsearch_users.env
+      - ../security/users_nifi.env
+      - ../security/users_elasticsearch.env
       - ../security/certificates_general.env
       - ../security/certificates_elasticsearch.env
       - ../security/certificates_nifi.env
@@ -1039,8 +1042,11 @@ services:
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
       - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
+      - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
+      - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
     extra_hosts:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+      - ${NIFI_REGISTRY_HOST_NAME:-test-6:0.0.0.0}
 
     ulimits:
       memlock:
@@ -1056,6 +1062,8 @@ services:
     
     entrypoint: bash -c "chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/database && \
       chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/flow_storage && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/work && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/logs && \
       bash /opt/nifi-registry/scripts/start.sh"
 
     networks:
@@ -1086,10 +1094,10 @@ services:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
       - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
-      - ../security/root-ca.pem:/etc/nginx/root-ca.pem:ro
-      - ../security/root-ca.key:/etc/nginx/root-ca.key:ro
-      - ../security/nifi_certificates/nifi-cert.pem:/etc/nginx/nifi-cert.pem:ro
-      - ../security/nifi_certificates/nifi-key.key:/etc/nginx/nifi-key.key:ro
+      - ../security/root_certificates/root-ca.pem:/etc/nginx/root-ca.pem:ro
+      - ../security/root_certificates/root-ca.key:/etc/nginx/root-ca.key:ro
+      - ../security/nifi_certificates/nifi.pem:/etc/nginx/nifi-cert.pem:ro
+      - ../security/nifi_certificates/nifi.key:/etc/nginx/nifi-key.key:ro
 
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/etc/nginx/es_certificates/elastic-stack-ca.crt.pem:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/etc/nginx/es_certificates/elastic-stack-ca.key.pem:ro
@@ -1127,8 +1135,8 @@ services:
       - jupyter-hub-shared-scratch:/home/jovyan/scratch
       - jupyter-hub-vol:/srv/jupyterhub
       # Security configs
-      - ../security/root-ca.key:/srv/jupyterhub/root-ca.key:ro
-      - ../security/root-ca.pem:/srv/jupyterhub/root-ca.pem:ro
+      - ../security/root_certificates/root-ca.key:/srv/jupyterhub/root-ca.key:ro
+      - ../security/root_certificates/root-ca.pem:/srv/jupyterhub/root-ca.pem:ro
       - ../services/jupyter-hub/config/jupyterhub_cookie_secret:/srv/jupyterhub/jupyterhub_cookie_secret:ro
       # User list and jupyter config
       - ../services/jupyter-hub/config/jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
@@ -1193,8 +1201,8 @@ services:
       # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
       # certificates
-      - ../security/root-ca.key:/certificates/root-ca.key:ro
-      - ../security/root-ca.pem:/certificates/root-ca.pem:ro
+      - ../security/root_certificates/root-ca.key:/certificates/root-ca.key:ro
+      - ../security/root_certificates/root-ca.pem:/certificates/root-ca.pem:ro
       # data & conf volumes
       - gitea-config-vol:/etc/gitea:rw
       - gitea-lib-vol:/var/lib/gitea:rw
@@ -1270,6 +1278,11 @@ volumes:
     driver: local
   nifi-registry-vol-flow-storage:
     driver: local
+  nifi-registry-vol-work:
+    driver: local
+  nifi-registry-vol-logs:
+    driver: local
+
 
   # MedCAT Trainer
   medcat-api-media:
