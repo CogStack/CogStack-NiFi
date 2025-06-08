@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <tenants>
     <groups/>
-    <users/>
+    <users>
+        <user identifier="6743d555-1f60-343a-9038-0be6fdcbf33b" identity="CN=admin, OU=nifi"/>
+        <user identifier="6de5a610-9366-32a6-b993-a75e3be61162" identity="C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=nifi"/>
+        <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd" identity="C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack"/>
+    </users>
 </tenants>

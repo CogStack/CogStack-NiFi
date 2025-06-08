@@ -25,6 +25,7 @@
     all Authorizers
     ...
 -->
+
 <authorizers>
 
     <!--
@@ -40,13 +41,14 @@
             NOTE: Any identity mapping rules specified in nifi-registry.properties will also be applied to the user identities,
             so the values should be the unmapped identities (i.e. full DN from a certificate).
     -->
+    <!--
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
         <class>org.apache.nifi.registry.security.authorization.file.FileUserGroupProvider</class>
         <property name="Users File">./conf/users.xml</property>
-        <property name="Initial User Identity 1">CN=admin, OU=nifi</property>
+        <property name="Initial User Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
     </userGroupProvider>
-
+    -->
     <!--
         The DatabaseUserGroupProvider will provide support for managing users and groups in a relational database. The framework
         will provide a database connection to this provider using the same database information from nifi-registry.properties.
@@ -57,7 +59,7 @@
     <userGroupProvider>
         <identifier>database-user-group-provider</identifier>
         <class>org.apache.nifi.registry.security.authorization.database.DatabaseUserGroupProvider</class>
-        <property name="Initial User Identity 1">CN=admin, OU=nifi</property>
+        <property name="Initial User Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
     </userGroupProvider>
     To enable the database-user-group-provider remove 2 lines. This is 2 of 2. -->
 
@@ -251,17 +253,18 @@
             that will have access to this NiFi Registry and will be able to act as a proxy on behalf of a NiFi Registry end user.
             The members of this group will be granted permission to proxy user requests, as well as read any bucket to perform synchronization checks.
     -->
+    <!--
     <accessPolicyProvider>
         <identifier>file-access-policy-provider</identifier>
         <class>org.apache.nifi.registry.security.authorization.file.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./conf/authorizations.xml</property>
-        <property name="Initial Admin Identity">CN=admin, OU=nifi</property>
+        <property name="Initial Admin Identity">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
         <property name="NiFi Group Name"></property>
 
-        <!--<property name="NiFi Identity 1"></property>-->
+        <property name="NiFi Identity 1"></property>
     </accessPolicyProvider>
-
+    -->
     <!--
         The DatabaseAccessPolicyProvider will provide support for managing access policies in a relational database. The
         framework will provide a database connection to this provider using the same database information from nifi-registry.properties.
@@ -279,7 +282,7 @@
         <identifier>database-access-policy-provider</identifier>
         <class>org.apache.nifi.registry.security.authorization.database.DatabaseAccessPolicyProvider</class>
         <property name="User Group Provider">database-user-group-provider</property>
-        <property name="Initial Admin Identity">CN=admin, OU=nifi</property>
+        <property name="Initial Admin Identity">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
         <property name="NiFi Identity 1"></property>
         <property name="NiFi Group Name"></property>
     </accessPolicyProvider>
@@ -293,6 +296,40 @@
 
         - Access Policy Provider - The identifier for an Access Policy Provider defined above.
     -->
+    <!--
+    <authorizer>
+        <identifier>managed-authorizer</identifier>
+        <class>org.apache.nifi.registry.security.authorization.StandardManagedAuthorizer</class>
+        <property name="Access Policy Provider">file-access-policy-provider</property>
+    </authorizer>
+    -->
+
+    <userGroupProvider>
+        <identifier>file-user-group-provider</identifier>
+        <class>org.apache.nifi.registry.security.authorization.file.FileUserGroupProvider</class>
+        <property name="Users File">./conf/users.xml</property>
+        <property name="Legacy Authorized Users File"></property>
+        <!-- Add initial admin user based on your certificate -->
+        <property name="Initial User Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+        <!-- Add your custom NiFi node identity, first from our certificate alternative names -->
+        <property name="Initial User Identity 2">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+        <property name="Initial User Identity 3">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=nifi</property>
+    </userGroupProvider>
+
+    <accessPolicyProvider>
+        <identifier>file-access-policy-provider</identifier>
+        <class>org.apache.nifi.registry.security.authorization.file.FileAccessPolicyProvider</class>
+        <property name="User Group Provider">file-user-group-provider</property>
+        <property name="Authorizations File">./conf/authorizations.xml</property>
+        <!-- <property name="Initial Admin Identity">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property> -->
+        <!-- Grant all bucket management permissions to initial admin -->
+        <property name="Initial Admin Identity">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+        <property name="Initial User Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+         <!-- Add your NiFi node identity for proxy permissions -->
+        <property name="Node Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=nifi</property>
+        <property name="Node Identity 2">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+    </accessPolicyProvider>
+
     <authorizer>
         <identifier>managed-authorizer</identifier>
         <class>org.apache.nifi.registry.security.authorization.StandardManagedAuthorizer</class>

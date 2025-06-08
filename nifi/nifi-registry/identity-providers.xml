@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   ~ Licensed to the Apache Software Foundation (ASF) under one or more
   ~ contributor license agreements.  See the NOTICE file distributed with
@@ -87,13 +86,6 @@
     </provider>
     To enable the ldap-identity-provider remove 2 lines. This is 2 of 2. -->
 
-    <provider>
-        <identifier>single-user-provider</identifier>
-        <class>org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider</class>
-        <property name="Username">admin</property>
-        <property name="Password">$2b$12$lUtr57TKmfD2ahiCMQu/5OfLqwPDKHp4f04i4aMW7Et7p3TeGWzte</property>
-    </provider>
-
     <!--
         Identity Provider for users logging in with username/password against a Kerberos KDC server.
 
@@ -109,5 +101,11 @@
         <property name="Enable Debug">false</property>
     </provider>
     To enable the kerberos-provider remove 2 lines. This is 2 of 2. -->
+
+    <provider>
+        <identifier>file-identity-provider</identifier>
+        <class>org.apache.nifi.registry.security.identity.provider.FileIdentityProvider</class>
+        <property name="Users File">./conf/users.xml</property>
+    </provider>
 
 </identityProviders>

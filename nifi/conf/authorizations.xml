@@ -1,4 +1,41 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <authorizations>
-    <policies/>
+    <policies>
+        <policy identifier="f99bccd1-a30e-3e4a-98a2-dbc708edc67f" resource="/flow" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="93681c49-9b72-3b5c-af45-ce21830e290f" resource="/data/process-groups/ced50d47-0196-1000-2bf8-e6718ce3095b" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="4d238bf2-7808-394e-b144-5000704afe33" resource="/data/process-groups/ced50d47-0196-1000-2bf8-e6718ce3095b" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="ade82d52-13d6-3988-8f67-a4649fbe6bea" resource="/process-groups/ced50d47-0196-1000-2bf8-e6718ce3095b" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="ea925ddd-1a50-3167-bcf9-7c128451b79b" resource="/process-groups/ced50d47-0196-1000-2bf8-e6718ce3095b" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="b8775bd4-704a-34c6-987b-84f2daf7a515" resource="/restricted-components" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="627410be-1717-35b4-a06f-e9362b89e0b7" resource="/tenants" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="15e4e0bd-cb28-34fd-8587-f8d15162cba5" resource="/tenants" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="ff96062a-fa99-36dc-9942-0f6442ae7212" resource="/policies" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="ad99ea98-3af6-3561-ae27-5bf09e1d969d" resource="/policies" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="2e1015cb-0fed-3005-8e0d-722311f21a03" resource="/controller" action="R">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+        <policy identifier="c6322e6c-4cc1-3bcc-91b3-2ed2111674cf" resource="/controller" action="W">
+            <user identifier="dea68ec3-ae9e-3878-ba50-d7e0f1cd74fd"/>
+        </policy>
+    </policies>
 </authorizations>
