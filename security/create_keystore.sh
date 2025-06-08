@@ -36,8 +36,10 @@ else
     ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
 fi
 
-CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
+
+CA_ROOT_CERT="root_certificates/"$ROOT_CERTIFICATE_NAME".pem"
+CA_ROOT_KEY="root_certificates/"$ROOT_CERTIFICATE_NAME".key"
+CA_ROOT_KEYSTORE="root_certificates/"$ROOT_CERTIFICATE_NAME".p12"
 
 # echo "Converting x509 Cert and Key to a pkcs12 file"
 openssl pkcs12 -export -in "$1.crt" -inkey "$1.key" \

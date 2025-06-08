@@ -15,7 +15,7 @@ source certificates_elasticsearch.env
 source certificates_general.env
 # load the internal users passwords
 # IMPORTANT: for production deployments please remember to change the passwords
-source elasticsearch_users.env
+source users_elasticsearch.env
 
 # get the ES hostname
 #

@@ -13,7 +13,7 @@ set -e
 source ../deploy/general.env
 source certificates_elasticsearch.env
 source certificates_general.env
-source elasticsearch_users.env
+source users_elasticsearch.env
 
 # container name to connect to
 if [ -z "$1" ]; then

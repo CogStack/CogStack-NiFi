@@ -12,7 +12,7 @@ set -e
 source ../deploy/general.env
 source certificates_elasticsearch.env
 source certificates_general.env
-source elasticsearch_users.env
+source users_elasticsearch.env
 
 OPENSEARCH_FOLDER="./es_certificates/opensearch/"
 ES_CERTIFICATES_FOLDER=$OPENSEARCH_FOLDER"elasticsearch"
@@ -34,9 +34,9 @@ else
     ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
 fi
 
-CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
-CA_ROOT_KEYSTORE=$ROOT_CERTIFICATE_NAME".p12"
+CA_ROOT_CERT="root_certificates/"$ROOT_CERTIFICATE_NAME".pem"
+CA_ROOT_KEY="root_certificates/"$ROOT_CERTIFICATE_NAME".key"
+CA_ROOT_KEYSTORE="root_certificates/"$ROOT_CERTIFICATE_NAME".p12"
 
 if [ ! -e $CA_ROOT_CERT ]; then
 	echo "Root CA certificate and key does not exist: $CA_ROOT_CERT , $CA_ROOT_KEY"
@@ -105,9 +105,9 @@ if [ -f "$CA_ROOT_KEY" ] || [ -f "$CA_ROOT_CERT"] | [ -f "$CA_ROOT_KEYSTORE"]; t
     echo "$ROOT_CERTIFICATE_NAME files found."
     echo "Copying and renaming root-ca.* certs to elastic-stack-ca"
     ELASTICSEARCH_ROOT_CERTIFICATE_NAME="elastic-stack-ca"
-    cp ./$CA_ROOT_KEY $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_KEY" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.key.pem"
-    cp ./$CA_ROOT_CERT $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_CERT" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.crt.pem"
-    cp ./$CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER && mv $OPENSEARCH_FOLDER"$CA_ROOT_KEYSTORE" $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.p12"
+    cp ./$CA_ROOT_KEY $OPENSEARCH_FOLDER && cp $CA_ROOT_KEY $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.key.pem"
+    cp ./$CA_ROOT_CERT $OPENSEARCH_FOLDER && cp $CA_ROOT_CERT $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.crt.pem"
+    cp ./$CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER && cp $CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.p12"
 else 
     echo "One of the following files: $CA_ROOT_KEY,$CA_ROOT_CERT,$CA_ROOT_KEYSTORE don't exist. Please create them by executing the 'create_root_ca_cert.sh' file from this folder."
 fi
