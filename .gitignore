@@ -15,6 +15,7 @@
 *.env
 security/es_roles/*
 security/es_certificates/*
+security/root_certificates/*
 security/nifi_certificates/*
 security/nifi_toolkit
 
