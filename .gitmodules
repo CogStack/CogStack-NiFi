@@ -1,3 +1,7 @@
 [submodule "services/jupyter-hub"]
 	path = services/jupyter-hub
 	url = https://github.com/CogStack/cogstack-jupyter-hub.git
+[submodule "services/nlp-services/medcat-service"]
+	path = services/nlp-services/medcat-service
+	url = https://github.com/CogStack/MedCATservice.git
+	branch = master
