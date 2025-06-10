@@ -5,3 +5,7 @@
 	path = services/nlp-services/medcat-service
 	url = https://github.com/CogStack/MedCATservice.git
 	branch = master
+[submodule "services/ocr-service"]
+	path = services/ocr-service
+	url = https://github.com/CogStack/ocr-service.git
+	branch = master

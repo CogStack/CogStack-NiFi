@@ -19,7 +19,6 @@ env_files=(
            "database.env"
            "jupyter.env"
            "nlp_service.env"
-           "ocr_service.env"
            "network_settings.env"
            "project.env"
            )
