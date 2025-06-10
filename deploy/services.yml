@@ -181,41 +181,18 @@ services:
 
 #---------------------------------------------------------------------------#
 # NLP Services containers                                                   #
-#   * using example free models / resources                                 #
-#---------------------------------------------------------------------------#
-  nlp-gate-drugapp:
-    image: cogstacksystems/nlp-rest-service-gate:dev-latest
-    #build: ../services/nlp-services/applications/drug-app/
-    container_name: cogstack-gate-drugapp
-    restart: always
-    env_file:
-      - ./nlp_service.env
-    volumes:
-      # INFO: CogStack GATE runner configuration files
-      - ../services/nlp-services/applications/drug-app/config:/app/nlp-service/config:ro
-      - ../services/nlp-services/applications/drug-app/gate:/gate/app/drug-app:ro
-    command: "bash /app/nlp-service/run.sh"
-    #expose:
-    #  - 8095
-    ports:
-      - "8095:8095"
-    networks:
-      - cognet
-
-#---------------------------------------------------------------------------#
-# NLP Services containers                                                   #
 #   * using internal models / resources                                     #
 #---------------------------------------------------------------------------#
   nlp-medcat-service-production:
-    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:0.7.0}
+    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:1.0.0}
     container_name: cogstack-medcat-service-production
     restart: always
     env_file:
       - ./nlp_service.env
-      - ../services/nlp-services/applications/medcat/config/env_app
-      - ../services/nlp-services/applications/medcat/config/env_medcat
+      - ../services/nlp-services/medcat-service/env/app.env
+      - ../services/nlp-services/medcat-service/env/medcat.env
     volumes:
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/cat/models/:rw
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/cat/models/:rw
     expose:
       - 5000
     ports:
@@ -231,24 +208,30 @@ services:
     #          # device_ids: ['0']
     #          capabilities: ["gpu", "utility", "compute", "video"]
 
-  nlp-gate-bioyodie:
-    image: cogstacksystems/nlp-rest-service-gate:latest
-    container_name: cogstack-gate-bioyodie
-    restart: always
-    env_file:
-      - ./nlp_service.env
-    environment:
-      - RES_BIOYODIE_UMLS_PATH="../services/nlp-services/applications/bio-yodie/resources/"
-    volumes:
-      # INFO: CogStack GATE runner configuration files
-      - ../services/nlp-services/applications/bio-yodie/config:/app/nlp-service/config:ro
-      - ./${RES_BIOYODIE_UMLS_PATH:-../services/nlp-services/applications/bio-yodie/resources/}:/gate/app/bioyodie/bio-yodie-resources:ro
-    #command: "bash /app/nlp-service/run.sh"
-    expose:
-      - 8095
-    networks:
-      - cognet
-
+  nlp-medcat-service-production-deid:
+      image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:1.0.0}
+      container_name: cogstack-medcat-service-production-deid
+      restart: always
+      env_file:
+        - ./nlp_service.env
+        - ../services/nlp-services/medcat-service/env/ap_deid.env
+        - ../services/nlp-services/medcat-service/env/medcat_deid.env
+      volumes:
+        - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/cat/models/:rw
+      expose:
+        - 5000
+      ports:
+        - "${MEDCAT_SERVIC_DEID_SERVER_OUTPUT_PORT:-5556}:5000"
+      networks:
+        - cognet
+      #deploy:
+      #  resources:
+      #    reservations:
+      #      devices:
+      #        - driver: nvidia
+      #          count: all
+      #          # device_ids: ['0']
+      #          capabilities: ["gpu", "utility", "compute", "video"]
 
 #---------------------------------------------------------------------------#
 # MedCAT Trainer                                                            #
