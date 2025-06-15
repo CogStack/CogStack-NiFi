@@ -27,9 +27,6 @@ security/root_certificates/*
 security/nifi_certificates/*
 security/nifi_toolkit
 
-# other
-scripts/data_processing/anonymistion_hw_clean/anonymised
-
 # docs
 docs/build/*
 
