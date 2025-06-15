@@ -4,6 +4,4 @@ user-scripts/db/*
 devel
 **flow
 **login
-**conf
-*.jks
-**__pycache__
+nifi-registry/*

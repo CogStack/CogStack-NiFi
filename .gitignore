@@ -1,3 +1,11 @@
+# IDE envs and system folders
+.DS_Store
+**/.DS_Store
+.idea
+.vscode
+.venv
+**__pycache__
+
 # keys and certificates
 *.pem
 *.key
@@ -25,9 +33,3 @@ scripts/data_processing/anonymistion_hw_clean/anonymised
 # docs
 docs/build/*
 
-# IDE envs and system folders
-.DS_Store
-**/.DS_Store
-.idea
-.vscode
-.venv
