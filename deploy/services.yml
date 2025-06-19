@@ -124,12 +124,9 @@ services:
     security_opt:
       - seccomp:unconfined
     env_file:
+      - ./network_settings.env
       - ../services/ocr-service/env/ocr_service.env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-
       # tesseract threading is disabled as the processing will take care of distribution
       - OMP_THREAD_LIMIT=1
     ulimits:
@@ -157,6 +154,7 @@ services:
     security_opt:
       - seccomp:unconfined
     env_file:
+      - ./network_settings.env
       - ../services/ocr-service/env/ocr_service.env
       - ../services/ocr-service/env/ocr_service_text_only.env
     environment:
@@ -245,9 +243,6 @@ services:
     env_file:
       - ../services/medcat-trainer/envs/env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy–
       - MCT_VERSION=v2.22.0
       - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
       - CONCEPT_SEARCH_SERVICE_PORT=8983
@@ -265,10 +260,8 @@ services:
     image: nginx
     container_name: cogstack-medcat-trainer-nginx
     restart: always
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
+    env_file:
+      - ./network_settings.env
     volumes:
       - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/medcat-trainer/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -327,12 +320,10 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
+      - ./network_settings.env
       - ./elasticsearch.env
       - ../security/users_elasticsearch.env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_1_NAME:-es01}
       - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
@@ -421,12 +412,10 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
+      - ./network_settings.env
       - ./elasticsearch.env
       - ../security/users_elasticsearch.env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_2_NAME:-"es02"}
       - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
@@ -515,12 +504,10 @@ services:
     restart: always
     # mem_limit: 2g
     env_file:
+      - ./network_settings.env
       - ./elasticsearch.env
       - ../security/users_elasticsearch.env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_3_NAME:-"es03"}
       - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
@@ -648,6 +635,7 @@ services:
     image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.2}
     command: -e --strict.perms=false
     env_file:
+         - ./network_settings.env
          - ./elasticsearch.env
          - ../security/users_elasticsearch.env
     environment:
@@ -687,8 +675,9 @@ services:
     image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
-        - ./elasticsearch.env
-        - ../security/users_elasticsearch.env
+         - ./network_settings.env
+         - ./elasticsearch.env
+         - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -729,8 +718,9 @@ services:
     image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
-        - ./elasticsearch.env
-        - ../security/users_elasticsearch.env
+         - ./network_settings.env
+         - ./elasticsearch.env
+         - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -771,8 +761,9 @@ services:
     image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
     command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
     env_file:
-        - ./elasticsearch.env
-        - ../security/users_elasticsearch.env
+         - ./network_settings.env
+         - ./elasticsearch.env
+         - ../security/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -815,6 +806,7 @@ services:
     container_name: cogstack-kibana
     restart: always
     env_file:
+         - ./network_settings.env
          - ../security/users_elasticsearch.env
          - ../security/certificates_elasticsearch.env
          - ./elasticsearch.env
@@ -899,9 +891,6 @@ services:
       - ../security/certificates_nifi.env
     shm_size: 1024mb
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
       - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"0.0.0.0:8443,cogstack:8443,nifi:8443"}
@@ -1064,16 +1053,13 @@ services:
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
+      - ./network_settings.env
+      - ./nginx.env
       - ./nifi.env
       - ./elasticsearch.env
       - ./project.env
-      - ./nginx.env
       - ./jupyter.env
       - ./nlp_service.env
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
@@ -1107,11 +1093,9 @@ services:
     restart: always
     env_file:
       - ./general.env
+      - ./network_settings.env
       - ./jupyter.env
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$NO_PROXY
       - JUPYTERHUB_INTERNAL_PORT=${JUPYTERHUB_INTERNAL_PORT:-8888}
       - JUPYTERHUB_INTERNAL_PROXY_API_PORT=${JUPYTERHUB_INTERNAL_PROXY_API_PORT:-8887}
       - JUPYTERHUB_SSL_PORT=${JUPYTERHUB_SSL_PORT:-443}
@@ -1155,10 +1139,9 @@ services:
       image: cogstacksystems/cogstackcohort:latest
       shm_size: 128mb
       restart: always
-      environment:
-        - http_proxy=$HTTP_PROXY
-        - https_proxy=$HTTPS_PROXY
-        - no_proxy=$no_proxy
+      env_file:
+        - ./general.env
+        - ./network_settings.env
       volumes:
         - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
         - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
