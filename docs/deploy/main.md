@@ -12,7 +12,7 @@ IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from 
 :::
 
 # Deployment
-[./deploy](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/) contains an example deployment of the customised NiFi image with related services for document processing, NLP and text analytics.
+[./deploy](https://github.com/CogStack/CogStack-NiFi/tree/main/deploy/) contains an example deployment of the customised NiFi image with related services for document processing, NLP and text analytics.
 
 The key files are:
 - `services.yml` - defines all the available services in docker-compose format. K8s (i.e. multi container service deployments is coming soon...)
@@ -20,9 +20,9 @@ The key files are:
 - `.env` - local environment variables definitions, deployment `.env` files are located in the `/deploy` folder, security `.env` files are located in the `/security` folder, containing users and certificate generation settings.
 The above mentioned files should be the files that you will most likely need to change during a deployment.
 
-Individual service configurations are provided in [`./services`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/).
+Individual service configurations are provided in [`./services`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/).
 
-Apache NiFi-related files are provided in [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/) directory.
+Apache NiFi-related files are provided in [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/) directory.
 
 <br>
 
