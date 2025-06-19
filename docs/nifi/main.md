@@ -219,7 +219,7 @@ In previous nifi versions by default there was no user assigned and authenticati
 Please use the guide provided in the [SECURITY.md](../security.md#apache-nifi) section to set up accounts and certificates.
 
 ## Drivers
-The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/drivers) directory.
+The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/drivers) directory.
 
 The key used ones are: 
 - `mssql-jdbc-9.4.1.jre11.jar` \ `mssql-jdbc-9.4.1.jre8.jar` and `mssql-jdbc-11.2.0.jre11.jar` \ `mssql-jdbc-11.2.0.jre8.jar`  - MS SQL Server JDBC driver, older version of the driver for backwards compatibility across setups.
@@ -234,14 +234,14 @@ Please see [WORKFLOWS.md](../deploy/workflows.md) in the `deploy` directory for 
 
 ## Workflow templates
 Workflow templates define example data workflows that can be tailored and executed by the user.
-The templates are stored in [user-templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) directory.
+The templates are stored in [user-templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) directory.
 
 ## User scripts
 Apache NiFi gives users the ability to execute custom scripts inside the data flow (supported languages: Python, Groovy, Clojure, Ruby, Lua, ECMAScript).
-[`user-scripts`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-scripts) directory contains example scripts, these are mostly used when parsing the data from Flow Files.
+[`user-scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-scripts) directory contains example scripts, these are mostly used when parsing the data from Flow Files.
 
 ## User schemas
-[`user-schemas`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
+[`user-schemas`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
 
 
 ## Performance settings

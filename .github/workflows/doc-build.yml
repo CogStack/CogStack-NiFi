@@ -3,9 +3,9 @@ name: sphinx-doc-build
 on:
 
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
   release:
     types: [published]

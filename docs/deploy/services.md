@@ -33,7 +33,7 @@ All the services are defined in `services.yml` file and these are:
 - `git-ea` - Github-like web service, you can host your own repositories here if your organisation is strict security-wise
 
 **IMPORTANT**
-Please note that some of the necessary configuration parameters, variables and paths are also defined in the [`services.yml`](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/services.yml) file.
+Please note that some of the necessary configuration parameters, variables and paths are also defined in the [`services.yml`](https://github.com/CogStack/CogStack-NiFi/tree/main/deploy/services.yml) file.
 
 ## Optional NLP services
 In addition, there are defined such NLP services:
@@ -92,9 +92,9 @@ These paths can be defined in `.env` file in the deployment directory.
 ### Bio-YODIE
 [Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
 
-The application files are stored in [`nlp-services/applications/bio-yodie/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/bio-yodie) directory.
+The application files are stored in [`nlp-services/applications/bio-yodie/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/bio-yodie) directory.
 
-The Bio-Yodie service configuration is stored in [`nlp-services/applications/bio-yodie/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/bio-yodie/config) directory - the key service configuration properties are defined in `application.properties` file.
+The Bio-Yodie service configuration is stored in [`nlp-services/applications/bio-yodie/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/bio-yodie/config) directory - the key service configuration properties are defined in `application.properties` file.
 
 
 ### GATE
@@ -140,9 +140,9 @@ MedCAT is deployed as a service exposing RESTful API using the implementation fr
 ### MedCAT Service
 
 
-MedCAT Service resources are stored in [`./services/nlp-services/applications/medcat/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat) directory.
-The key configuration properties stored as environment variables are defined in [`./services/nlp-services/applications/medcat/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/config) sub-directory.
-The models used by MedCAT are stored in [`./servies/nlp-services/applications/cat/models/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications/medcat/models).
+MedCAT Service resources are stored in [`./services/nlp-services/applications/medcat/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/medcat) directory.
+The key configuration properties stored as environment variables are defined in [`./services/nlp-services/applications/medcat/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/medcat/config) sub-directory.
+The models used by MedCAT are stored in [`./servies/nlp-services/applications/cat/models/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/medcat/models).
 A default model to play with is provided, called `MedMen` and there is a script `./services/nlp-services/applications/medcat/models/download_medmen.sh` to download it, please make sure you are in the `./services/nlp-services/applications/medcat/models/` before executing the download script.
 
 For more information on the MedCAT Service configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATservice).
@@ -194,7 +194,7 @@ During start-up the data is loaded from a previously generated DB dump.
 
 All the necessary resources, data and scripts are stored in `pgsamples/` directory.
 During the service initialization, the script `init_db.sh` will populate the database with sample data read from a database dump stored in `db_dump` directory.
-The directory [`./services/pgsamples/scripts`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/pgsamples/scripts) contains SQL schemas with scripts that will generate the database dump using sample data.
+The directory [`./services/pgsamples/scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/pgsamples/scripts) contains SQL schemas with scripts that will generate the database dump using sample data.
 
 When deployed the PostgreSQL database is exposed at port `5432` of the `samples-db` container.
 The port is also bound from container to the host machine `5555` port.
@@ -262,7 +262,7 @@ Other `.env` files are mounted but those are only useful for custom scripts wher
 `tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
 [Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
 
-The application data, alongside configuration file, is stored in [`./services/tika-service`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/tika-service) directory.
+The application data, alongside configuration file, is stored in [`./services/tika-service`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/tika-service) directory.
 
 When deployed Tika Service exposes port `8090` at `tika-service` container being available to all services within `cognet` Docker network, most importantly by `nifi` data processing engine.
 The Tika service REST API endpoint for processing documents is available at `http://tika-service:8090/api/process`.
@@ -290,8 +290,8 @@ All settings are decribed [here](https://github.com/CogStack/ocr-service/blob/ma
 ## NLP Services
 
 In the example deployment we use NLP applications running as a service exposing REST API.
-The current version of API specs is specified in [`./services/nlp-services/api-specs/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/api-specs) directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
-The applications are stored in [`./services/nlp-services/applications`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services/applications).
+The current version of API specs is specified in [`./services/nlp-services/api-specs/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/api-specs) directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
+The applications are stored in [`./services/nlp-services/applications`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications).
 
 
 ### NLP API
@@ -359,14 +359,14 @@ As a companion service, `medcat-trainer-nginx` serves as a NGINX reverse-proxy f
 
 When deployed, `medcat-trainer-ui` exposes port `8000` on the container.
 `medcat-trainer-nginx` exposes port `8000` on the container and binds it to port `8001` on the host machine - it proxies all the requests to the MedCAT Trainer web service.
-The NGINX configuration is stored in [`./services/medcat-trainer/nginx`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/medcat-trainer/nginx) directory.
+The NGINX configuration is stored in [`./services/medcat-trainer/nginx`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/medcat-trainer/nginx) directory.
 
 To access the MedCAT Trainer user interface and admin panel, one can use the default built-in credentials: user `admin` with password `admin`.
 
 For more information on the MedCAT Trainer  configuration and use please refer to [the official documentation](https://github.com/CogStack/MedCATtrainer).
 
-MedCAT Trainer resources are stored in [`./services/medcat-trainer`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nlp-services//medcat-trainer) directory.
-The key configuration is stored in [`./services/medcat-trainer/env`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/medcat-trainer/envs/env) file.
+MedCAT Trainer resources are stored in [`./services/medcat-trainer`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services//medcat-trainer) directory.
+The key configuration is stored in [`./services/medcat-trainer/env`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/medcat-trainer/envs/env) file.
 
 
 
@@ -438,7 +438,7 @@ You should not really need to ever modify these files, only the `.env` files sho
 - `/services/kibana/config/opensearch.yml` - Opensearch-Dashboards
 
 
-The used configuration files for ElasticSearch and Kibana are provided in [`./services/elasticsearch/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/config) and [`./services/kibana/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/kibana/config) directories respectively for [`OpenSearch`](https://opensearch.org/docs/latest/install-and-configure/configuration/) and [`OpenSearch Dashboard`](https://opensearch.org/docs/latest/dashboards/index/).
+The used configuration files for ElasticSearch and Kibana are provided in [`./services/elasticsearch/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/elasticsearch/config) and [`./services/kibana/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/kibana/config) directories respectively for [`OpenSearch`](https://opensearch.org/docs/latest/install-and-configure/configuration/) and [`OpenSearch Dashboard`](https://opensearch.org/docs/latest/dashboards/index/).
 
 
 ### Security
@@ -458,7 +458,7 @@ Also note that in some scenarios a manual creation of index mapping may be a goo
  <span style="color: red"><strong> IMPORTANT: not creating the mapping of an index will result in ElasticSearch/OpenSearch automatically map all field datatypes as string, making fields such as date/timestamps not incredibly  !</strong></span>
 
 
-A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/elasticsearch/scripts) directory to help with that.
+A script `es_index_initializer.py` has been provided in [`./services/elasticsearch/scripts/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/elasticsearch/scripts) directory to help with that.
 
 ### Installing and maintaining Elasticsearch/Opensearch
 
@@ -592,7 +592,7 @@ Since `jupyter-hub` is running in the `cognet` Docker network it has access to a
 
 For more information on the use and configuration of Jupyter Hub please refer to [the official Jupyter Hub documentation](https://jupyter.org/hub).
 
-The JupyterHub comes with an example Jupyter notebook that is stored in [`./services/jupyter-hub/notebooks`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/jupyter-hub/notebooks) directory.
+The JupyterHub comes with an example Jupyter notebook that is stored in [`./services/jupyter-hub/notebooks`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/jupyter-hub/notebooks) directory.
 
 ### Access and account control
 To access Jupyter Hub on the host machine (e.g.localhost), one can type in the browser `http://localhost:8888`.
@@ -703,7 +703,7 @@ This service users NiFi's `../../security/root-ca.p12` and  `../../security/root
 Although by default not used in the deployment example, NGINX is primarily used as a reverse proxy, limiting the access to the used services that normally expose endpoint for the end-user.
 For a simple scenario, it can used only for securing access to Apache NiFi webservice endpoint.
 
-All the necessary configuration files and scripts are located in [`./services/nginx/config/`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/nginx/config) directory where the user and password generation script `setup_passwd.sh`.
+All the necessary configuration files and scripts are located in [`./services/nginx/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nginx/config) directory where the user and password generation script `setup_passwd.sh`.
 
 ### NGINX-NiFi
 
