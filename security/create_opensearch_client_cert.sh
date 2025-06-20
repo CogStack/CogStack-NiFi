@@ -31,8 +31,8 @@ else
     ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
 fi
 
-CA_ROOT_CERT=$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY=$ROOT_CERTIFICATE_NAME".key"
+CA_ROOT_CERT="./root_certificates/"$ROOT_CERTIFICATE_NAME".pem"
+CA_ROOT_KEY="./root_certificates/"$ROOT_CERTIFICATE_NAME".key"
 
 if [ ! -e $CA_ROOT_CERT ]; then
 	echo "Root CA certificate and key does not exist: $CA_ROOT_CERT , $CA_ROOT_KEY"

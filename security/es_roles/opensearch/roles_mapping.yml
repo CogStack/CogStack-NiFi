@@ -5,14 +5,30 @@ _meta:
   type: "rolesmapping"
   config_version: 2
 
+admin:
+  reserved: true
+  backend_roles:
+  - admin
+  hosts: []
+  users:
+  - admin
+  and_backend_roles: []
+
+dashboards_system_access:
+  users:
+    - "admin"
+  backend_roles:
+    - "admin"
+    - "all_access"
+
 all_access:
   reserved: true
   hidden: false
   backend_roles:
   - "admin"
   hosts: []
-  users: []
-  and_backend_roles: []
+  users: [ "admin" ]
+  and_backend_roles: [""]
   description: "Maps admin to all_access"
 
 own_index:
@@ -57,7 +73,7 @@ manage_snapshots:
 kibana_server:
   reserved: true
   hidden: false
-  backend_roles: ["read_all", "kibana_user"]
+  backend_roles: []
   hosts: []
   users: ["kibanaserver"]
   and_backend_roles: []

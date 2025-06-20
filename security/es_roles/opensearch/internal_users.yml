@@ -11,6 +11,7 @@ admin:
   reserved: true
   backend_roles:
     - "admin"
+    - "all_access"
   description: "admin user"
 
 anomalyadmin:
@@ -32,9 +33,10 @@ kibanaserver:
   hash: $2a$12$4AcgAt3xwOWadA5s5blL6ev39OXDNhmOesEoo33eZtrq2N0YrU3H.
   description: "OpenSearch Dashboards user"
   backend_roles:
+    - "readall"
     - "admin"
     - "kibanaserver"
-    - "kibana_server"
+    - "kibanauser"
 
 #password is: kibanaro
 kibanaro:  

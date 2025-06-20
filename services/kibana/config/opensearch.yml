@@ -23,7 +23,7 @@ server.host: "0.0.0.0"
 server.name: ${KIBANA_SERVER_NAME}
 
 # The URLs of the OpenSearch instances to use for all your queries.
-opensearch.hosts: '${ELASTICSEARCH_HOSTS}'
+opensearch.hosts: ${ELASTICSEARCH_HOSTS}
 
 opensearch_security.multitenancy.enabled: true
 opensearch_security.multitenancy.tenants.enable_global: true
@@ -35,7 +35,10 @@ opensearch_security.cookie.secure: true
 
 # OpenSearch Dashboards uses an index in OpenSearch to store saved searches, visualizations and
 # dashboards. OpenSearch Dashboards creates a new index if the index doesn't already exist.
-opensearchDashboards.index: ".opensearch_dashboards"
+
+# We changed this from .opensearch_dashboards to .kibana because of a permission bug in OpenSearch Dashboards 2.19.x and 3.0.0
+# report: https://github.com/opensearch-project/security/issues/5360
+opensearchDashboards.index: ".kibana"
 
 # The default application to load.
 #opensearchDashboards.defaultAppId: "home"
@@ -78,18 +81,18 @@ opensearch.ssl.verificationMode: full
 
 # Time in milliseconds to wait for OpenSearch to respond to pings. Defaults to the value of
 # the opensearch.requestTimeout setting.
-# opensearch.pingTimeout: 1500
+opensearch.pingTimeout: 5000
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-# opensearch.requestTimeout: 30000
+opensearch.requestTimeout: 30000
 
 # List of OpenSearch Dashboards client-side headers to send to OpenSearch. To send *no* client-side
 # headers, set this value to [] (an empty list).
-opensearch.requestHeadersWhitelist: ["securitytenant", "Authorization"]
+opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 
 # Header names and values that are sent to OpenSearch. Any custom headers cannot be overwritten
-# by client-side headers, regardless of the opensearch.requestHeadersWhitelist configuration.
+# by client-side headers, regardless of the opensearch.requestHeadersAllowlist configuration.
 # opensearch.customHeaders: {}
 
 # Time in milliseconds for OpenSearch to wait for responses from shards. Set to 0 to disable.

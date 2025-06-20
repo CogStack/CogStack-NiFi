@@ -23,15 +23,11 @@ env_files=(
            "project.env"
            )
 
-set -a
-
 for env_file in ${env_files[@]}; do
   source $env_file
 done
 
 # for nginx vars
 export DOLLAR="$"
-
-set +a
 
 set +o allexport

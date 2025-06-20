@@ -24,27 +24,38 @@ plugins.security.ssl.http.pemkey_filepath: esnode.key
 plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.crt
 plugins.security.allow_unsafe_democertificates: false
 plugins.security.allow_default_init_securityindex: true
+
 plugins.security.authcz.admin_dn:
-  - CN=ADMIN,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK
+  - "CN=admin,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=cogstack,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-1,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-2,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-3,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - CN=admin
   - CN=localhost
   - CN=nifi
+  - CN=cogstack
 
 # IMPORTANT: Make sure you define the CN (Company Name) settings correctly, below you can see they match the server addresses of the containers i.e: elasticsearch-1, elasticsearch-2,
 # and also extra patterns defined, these could also be domain names etc.
 plugins.security.nodes_dn:
+  - "CN=cogstack,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
   - "CN=elasticsearch-1,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
   - "CN=elasticsearch-2,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
+  - "CN=elasticsearch-3,OU=cogstack,O=cogstack,L=UK,ST=UK,C=UK"
   - "CN=nifi"
   - "CN=esnode*"
   - "CN=localhost"
-  - "CN=cogstack*"
-  - "CN=elasticsearch*"
+  - "CN=cogstack"
+  - "CN=elasticsearch"
 
 plugins.security.enable_snapshot_restore_privilege: true
 plugins.security.check_snapshot_restore_write_privileges: true
 cluster.routing.allocation.disk.threshold_enabled: true
 
 plugins.security.ssl.http.clientauth_mode : OPTIONAL
+
+plugins.security.roles_mapping_resolution: MAPPING_ONLY
 
 ############## REST Management API configuration settings ##############
 # Enable or disable role based access to the REST management API
@@ -173,4 +184,4 @@ plugins.security.system_indices.enabled: true
 
 # Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
 # plugins.security.system_indices.indices: ['.opendistro-alerting-config', '.opendistro-ism-*', '.opendistro-reports-*', '.opensearch-notifications-*', '.opensearch-notebooks', '.opensearch-observability', '.opendistro-asynchronous-search-response*', '.replication-metadata-store']
-plugins.security.system_indices.indices: [".opendistro-alerting-config", ".opendistro-alerting-alert*", ".opendistro-anomaly-results*", ".opendistro-anomaly-detector*", ".opendistro-anomaly-checkpoints", ".opendistro-anomaly-detection-state", ".opendistro-reports-*", ".opendistro-notifications-*", ".opendistro-notebooks", ".opendistro-asynchronous-search-response*"]
+#plugins.security.system_indices.indices: [".opendistro-alerting-config", ".opendistro-alerting-alert*", ".opendistro-anomaly-results*", ".opendistro-anomaly-detector*", ".opendistro-anomaly-checkpoints", ".opendistro-anomaly-detection-state", ".opendistro-reports-*", ".opendistro-notifications-*", ".opendistro-notebooks", ".opendistro-asynchronous-search-response*"]
