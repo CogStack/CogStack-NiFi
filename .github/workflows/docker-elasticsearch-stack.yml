@@ -3,9 +3,9 @@ name: docker-elasticsearch-stack
 on:
 
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
   release:
     types: [published]
