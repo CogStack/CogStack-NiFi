@@ -191,7 +191,7 @@ services:
       - ../services/nlp-services/medcat-service/env/app.env
       - ../services/nlp-services/medcat-service/env/medcat.env
     volumes:
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/cat/models/:rw
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
     expose:
       - 5000
     ports:
@@ -216,7 +216,7 @@ services:
         - ../services/nlp-services/medcat-service/env/ap_deid.env
         - ../services/nlp-services/medcat-service/env/medcat_deid.env
       volumes:
-        - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/cat/models/:rw
+        - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
       expose:
         - 5000
       ports:
@@ -932,7 +932,7 @@ services:
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
 
       # medcat models
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/applications/medcat/models/}:/opt/models:rw
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
 
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
