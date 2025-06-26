@@ -91,10 +91,10 @@ RUN pip3 install --no-cache-dir --break-system-packages dvc flask GitPython elas
 RUN pip3 install --no-cache-dir --break-system-packages xnat
 
 # medcat & models
+# spacy not installed
 RUN pip3 install --no-cache-dir --break-system-packages -U thinc click torch
-#spacy click torch 
-#thinc
-RUN pip3 install --no-cache-dir --break-system-packages medcat==1.15.0
+
+RUN pip3 install --no-cache-dir --break-system-packages medcat==1.16.0
 
 # ApacheNifi specific packages
 RUN pip3 install --no-cache-dir --break-system-packages nipyapi nifi.flowfile avro

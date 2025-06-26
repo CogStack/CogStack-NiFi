@@ -913,12 +913,16 @@ services:
       - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
       - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
       - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
+
+      # this is a direct mapping to where we store the NiFi python processors as of NiFi 2.0.x
+      - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
+  
       # Security credentials scripts
       - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
@@ -926,7 +930,7 @@ services:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
       # this is where you should place data to be ingested, under the form of symbolic
-      - ${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
+      - ./${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
 
       # DB-schemas, from the services folder
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
