@@ -213,7 +213,7 @@ services:
       restart: always
       env_file:
         - ./nlp_service.env
-        - ../services/nlp-services/medcat-service/env/ap_deid.env
+        - ../services/nlp-services/medcat-service/env/app_deid.env
         - ../services/nlp-services/medcat-service/env/medcat_deid.env
       volumes:
         - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
