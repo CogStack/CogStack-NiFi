@@ -5,3 +5,4 @@ devel
 **flow
 **login
 nifi-registry/*
+user-scripts/extensions/*

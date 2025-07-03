@@ -16,6 +16,13 @@ ENV HTTP_PROXY ${HTTP_PROXY:-""}
 ENV HTTPS_PROXY ${HTTPS_PROXY:-""}
 ENV no_proxy $no_proxy
 
+ENV MEDCAT_VERSION ${MEDCAT_VERSION:-1.16.0}
+
+
+ENV NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY ${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY:-"/opt/nifi/nifi-current/python/framework"}
+ENV NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT ${NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT:-"/opt/nifi/nifi-current/python_extensions"}
+ENV NIFI_PYTHON_WORKING_DIRECTORY ${NIFI_PYTHON_WORKING_DIRECTORY:-"/opt/nifi/user-scripts"}
+
 # default env vars to prevent NiFi from running on HTTP
 ENV NIFI_WEB_HTTP_PORT ""
 ENV NIFI_WEB_HTTP_HOST ""
@@ -83,28 +90,28 @@ RUN apt-get clean autoclean && apt-get autoremove --purge -y
 RUN pip3 install --no-cache-dir --break-system-packages --upgrade pip setuptools wheel
 RUN pip3 install --no-cache-dir --break-system-packages psycopg2-binary
 
-RUN pip3 install --no-cache-dir --break-system-packages dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
-    pip3 install --no-cache-dir --break-system-packages pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
-    pip3 install --no-cache-dir --break-system-packages pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext python-certifi-win32 certifi pyodbc openpyxl rancoord
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} dvc flask GitPython elasticsearch opensearch-py neo4j eland --ignore-installed PyYAML && \ 
+    pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} pytesseract ipyparallel py7zr cython isort html2text jsoncsv simplejson detect nltk keras bokeh seaborn matplotlib graphviz plotly tqdm && \
+    pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} pymssql mysql-connector-python cx-Oracle dataclasses numpy matplotlib pandas dill jsonpickle jsonext python-certifi-win32 certifi pyodbc openpyxl rancoord
 
 # XNAT
-RUN pip3 install --no-cache-dir --break-system-packages xnat
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} xnat
 
 # medcat & models
 # spacy not installed
-RUN pip3 install --no-cache-dir --break-system-packages -U thinc click torch
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} thinc click torch
 
-RUN pip3 install --no-cache-dir --break-system-packages medcat==1.16.0
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} medcat==${MEDCAT_VERSION}
 
 # ApacheNifi specific packages
-RUN pip3 install --no-cache-dir --break-system-packages nipyapi nifi.flowfile avro
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} nipyapi nifi.flowfile avro
 
 # uther useful packages
-RUN pip3 install --no-cache-dir --break-system-packages jupyter geocoder
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} jupyter geocoder
 
 # clean up pip
 RUN pip3 cache purge
-
+ 
 #######################################################################################################
 
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
