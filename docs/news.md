@@ -11,7 +11,7 @@ A summary of the steps needed to easily upgrade any CogStack components on an ex
 
 For both instances (old and NiFI versions of the pipeline):
 </br>
-- make sure to update Elasticsearch to version 7.16.1+ if you are using the native version, if you are using OpenDistro it will be 1.13.3, and for OpenSearch it would be 1.2.1, all of these versions with their compose config can be found on the master branch of the NiFI repo, all that needs to be done is just a simple version change/increment in the docker-compose file (e.g https://github.com/CogStack/CogStack-NiFi/blob/master/deploy/services.yml , see the kibana/elasticsearch sections), followed by the pulling of the new images.
+- make sure to update Elasticsearch to version 7.16.1+ if you are using the native version, if you are using OpenDistro it will be 1.13.3, and for OpenSearch it would be 1.2.1, all of these versions with their compose config can be found on the main branch of the NiFI repo, all that needs to be done is just a simple version change/increment in the docker-compose file (e.g https://github.com/CogStack/CogStack-NiFi/blob/main/deploy/services.yml , see the kibana/elasticsearch sections), followed by the pulling of the new images.
 
 For the Old pipeline:
       - re-pull the latest docker image (docker pull cogstacksystems/cogstack-pipeline:latest)

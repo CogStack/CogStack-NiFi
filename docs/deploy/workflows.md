@@ -1,6 +1,6 @@
 # Workflows
 
-Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) in `./nifi` directory.
+Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) in `./nifi` directory.
 These are:
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
 2. `OpenSearch_ingest_DB_OCR_service_to_ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using the OCR-service.
@@ -49,7 +49,7 @@ Following, to select an example workflow template to run, drag and drop the **te
 ![template-w1](../_static/img/nifi-templates-w1.png)
 
 
-Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user templates`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/user-templates) directory.
+Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user templates`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) directory.
 During normal work, the user has possibility to create and store own template workflows.
 These workflows are represented as XML files and so can be easily further shared or modified.
 
@@ -100,7 +100,7 @@ The `DBCConnectionPool` controller service can be configured to operate with mul
     - Database Driver Location(s): /opt/nifi/drivers/mssql-jdbc-11.2.0.jre8.jar
 ```
 
-<b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/drivers) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
+<b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/drivers) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
 
 <br>
 

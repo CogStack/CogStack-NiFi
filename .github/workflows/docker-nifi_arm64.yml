@@ -1,16 +1,12 @@
-name: docker-elasticsearch-stack
+name: docker-nifi-arm64
 
 on:
 
   push:
     branches: [ main ]
-    tags:
-      - 'v*.*.*'
   pull_request:
     branches: [ main ]
-    tags:
-      - 'v*.*.*'
-
+    
   release:
     types: [published]
 
@@ -21,19 +17,10 @@ jobs:
 
   build:
 
-    runs-on: ${{ matrix.runner }}
-
-    strategy:
-      matrix:
-        platform: [amd64, arm64]
-        include:
-          - platform: amd64
-            runner: ubuntu-22.04
-          - platform: arm64
-            runner: ubuntu-22.04-arm
+    runs-on: ubuntu-latest
     
     env:
-      working-directory: ./services/elasticsearch
+      working-directory: ./nifi
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -42,6 +29,9 @@ jobs:
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        
+      - name: checkout repo
+        uses: actions/checkout@v3
         
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -53,8 +43,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: cogstacksystems/kibana:latest
-
+          images: cogstacksystems/cogstack-nifi:latest
+      
       - uses: actions/checkout@v3
       - name: Get and set release version env var
         id: release_version
@@ -72,24 +62,22 @@ jobs:
         if: ${{ env.RELEASE_VERSION != 'main' }}
         run: echo "RELEASE_VERSION=${RELEASE_VERSION#?}" >> $GITHUB_ENV
 
-      - name: set docker release tag name
+      - name: set docker tag name latest
         id: set_release_version_latest
         if: ${{ env.RELEASE_VERSION == 'main' }}
         run: echo "RELEASE_VERSION=latest" >> $GITHUB_ENV
-        
-      - name: Output release tag version
-        run: |
-          echo $RELEASE_VERSION
 
-      - name: Build and push Docker Kibana image
-        run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./services/kibana/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
-
-      - name: Build and push Docker Elasticsearch image
-        run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./services/elasticsearch/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
+      - name: Build and push Docker NiFi image
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/arm64
+          context : ./nifi
+          file : "./nifi/Dockerfile"
+          allow: network.host
+          github-token: ${{ github.token }}
+          tags: cogstacksystems/cogstack-nifi:${{ env.RELEASE_VERSION }}
+          push: true
           
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

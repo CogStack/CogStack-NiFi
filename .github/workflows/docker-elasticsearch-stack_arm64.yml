@@ -1,4 +1,4 @@
-name: docker-elasticsearch-stack
+name: docker-elasticsearch-stack-arm64
 
 on:
 
@@ -21,19 +21,10 @@ jobs:
 
   build:
 
-    runs-on: ${{ matrix.runner }}
-
-    strategy:
-      matrix:
-        platform: [amd64, arm64]
-        include:
-          - platform: amd64
-            runner: ubuntu-22.04
-          - platform: arm64
-            runner: ubuntu-22.04-arm
+    runs-on: ubuntu-latest
     
     env:
-      working-directory: ./services/elasticsearch
+      working-directory: ./services/
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -53,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: cogstacksystems/kibana:latest
+          images: cogstacksystems/cogstack-kibana:latest
 
       - uses: actions/checkout@v3
       - name: Get and set release version env var
@@ -82,14 +73,26 @@ jobs:
           echo $RELEASE_VERSION
 
       - name: Build and push Docker Kibana image
-        run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./services/kibana/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
-
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64
+          context : ./services/kibana
+          file : "./services/kibana/Dockerfile_native"
+          allow: network.host
+          github-token: ${{ github.token }}
+          tags: cogstacksystems/cogstack-kibana:${{ env.RELEASE_VERSION }}
+          push: true
+      
       - name: Build and push Docker Elasticsearch image
-        run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./services/elasticsearch/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64
+          context : ./services/elasticsearch
+          file : "./services/elasticsearch/Dockerfile_native"
+          allow: network.host
+          github-token: ${{ github.token }}
+          tags: cogstacksystems/cogstack-elasticsearch:${{ env.RELEASE_VERSION }}
+          push: true
           
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

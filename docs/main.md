@@ -17,16 +17,16 @@ Feel free to ask questions on the github issue tracker or on our [discourse webs
 
 ## Project organisation
 The project is organised in the following directories:
-- [`nifi`](https://github.com/CogStack/CogStack-NiFi/tree/master/nifi/) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources.
-- [`security`](https://github.com/CogStack/CogStack-NiFi/tree/master/security/) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements.
-- [`services`](https://github.com/CogStack/CogStack-NiFi/tree/master/services/) - available services with their corresponding configuration files and resources.
-- [`deploy`](https://github.com/CogStack/CogStack-NiFi/tree/master/deploy/) - an example deployment of Apache NiFi with related services.
-- [`scripts`](https://github.com/CogStack/CogStack-NiFi/tree/master/scripts/) - helper scripts containing setup tools, sample ES ingestion, bash ingestion into DB samples etc.
-- [`data`](https://github.com/CogStack/CogStack-NiFi/tree/master/data/) - any data that you wish to ingest should be placed here.
+- [`nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/) - custom Docker image of Apache NiFi with configuration files, drivers, example workflows and custom user resources.
+- [`security`](https://github.com/CogStack/CogStack-NiFi/tree/main/security/) - scripts to generate SSL keys and certificates for Apache NiFi and related services (when needed) with other security-related requirements.
+- [`services`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/) - available services with their corresponding configuration files and resources.
+- [`deploy`](https://github.com/CogStack/CogStack-NiFi/tree/main/deploy/) - an example deployment of Apache NiFi with related services.
+- [`scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/scripts/) - helper scripts containing setup tools, sample ES ingestion, bash ingestion into DB samples etc.
+- [`data`](https://github.com/CogStack/CogStack-NiFi/tree/main/data/) - any data that you wish to ingest should be placed here.
 
 ### Branches
 
-- master: main branch, production releases.
+- main: main branch, production releases.
 - devel: this branch contains experimental/unstable docker images may cause irregular behaviour or crashes.
 
 ## Documentation and getting started
