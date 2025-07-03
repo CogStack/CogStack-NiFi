@@ -3,9 +3,9 @@ name: docker-nifi
 on:
 
   push:
-    branches: [ main ]
+    branches: [ all ]
   pull_request:
-    branches: [ main ]
+    branches: [ all ]
     
   release:
     types: [published]
