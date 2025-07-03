@@ -1,3 +1,11 @@
+# IDE envs and system folders
+.DS_Store
+**/.DS_Store
+.idea
+.vscode
+.venv
+**__pycache__
+
 # keys and certificates
 *.pem
 *.key
@@ -15,18 +23,10 @@
 *.env
 security/es_roles/*
 security/es_certificates/*
+security/root_certificates/*
 security/nifi_certificates/*
 security/nifi_toolkit
-
-# other
-scripts/data_processing/anonymistion_hw_clean/anonymised
 
 # docs
 docs/build/*
 
-# IDE envs and system folders
-.DS_Store
-**/.DS_Store
-.idea
-.vscode
-.venv

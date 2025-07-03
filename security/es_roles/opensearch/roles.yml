@@ -471,6 +471,24 @@ ltr_full_access:
     cluster_permissions:
       - cluster:admin/ltr/*
 
+# Custom dashboard role to make the all_access role work
+dashboards_system_access:
+  cluster_permissions:
+    - "cluster:monitor/*"
+  index_permissions:
+    - index_patterns:
+        - ".opensearch_dashboards*"
+      allowed_actions:
+        - "indices:admin/*"
+        - "indices:data/read/*"
+        - "indices:data/write/*"
+        - "indices:admin/create"
+  tenant_permissions:
+    - tenant_patterns:
+        - "*"
+      allowed_actions:
+        - "kibana_all_read"
+        - "kibana_all_write"
 
 ########################################################################################################################################################################
 ########################################################################################################################################################################

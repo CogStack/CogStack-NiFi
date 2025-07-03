@@ -9,6 +9,14 @@
 
 set -e
 
+# required env var files
+source ../deploy/general.env
+source certificates_elasticsearch.env
+source certificates_general.env
+# load the internal users passwords
+# IMPORTANT: for production deployments please remember to change the passwords
+source users_elasticsearch.env
+
 # get the ES hostname
 #
 if [ -z "$1" ]; then
@@ -35,16 +43,6 @@ fi
 ES_PORT=9200
 ES_ADMIN_USER=admin
 
-
-# load the internal users passwords
-# IMPORTANT: for production deployments please remember to change the passwords
-#
-source elasticsearch_users.env
-
-
-# load the custom users passwords
-# IMPORTANT: for production deployments please remember to change the passwords
-#
 
 echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
 

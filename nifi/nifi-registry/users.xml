@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tenants>
+    <groups/>
+    <users>
+        <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c" identity="cogstack"/>
+        <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b" identity="admin"/>
+        <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864" identity="nifi"/>
+        <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14" identity="CN=cogstack, OU=nifi, O=nifi, L=UK, ST=UK, C=UK"/>
+    </users>
+</tenants>

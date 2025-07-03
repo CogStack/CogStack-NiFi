@@ -23,7 +23,7 @@ DATA_DIR="/data"
 ANNOTATIONS_NLP_DB_SCHEMA_FILE="annotations_nlp_create_schema.sql"
 
 # database schemas that you wish to be created
-DB_SCHEMA_PREFIX="cogstack_db"
+POSTGRES_DB_SCHEMA_PREFIX="cogstack_db"
 
 # create the user, the database and set up the access
 #
@@ -39,7 +39,7 @@ GO
 
 # custom db schema
 echo "Creating custom databank DB schemas..."
-file_paths=$(find $DATA_DIR/ -name "$DB_SCHEMA_PREFIX*")
+file_paths=$(find $DATA_DIR/ -name "$POSTGRES_DB_SCHEMA_PREFIX*")
 
 for file_path in $file_paths; do
     echo "importing : "$file_path;

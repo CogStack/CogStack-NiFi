@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<authorizations>
+    <policies>
+        <policy identifier="2f470357-e82c-38ee-8062-ab6388d6ec75" resource="/actuator" action="W">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="01b87cb5-c0b6-342d-b108-d8bc03ab5cde" resource="/policies" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="dfbf3c51-fdec-3328-b169-3b54eb033147" resource="/buckets" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="05b96464-9ec8-312a-8459-67812a8b48c1" resource="/buckets" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="627410be-1717-35b4-a06f-e9362b89e0b7" resource="/tenants" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="ff96062a-fa99-36dc-9942-0f6442ae7212" resource="/policies" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="2fd3fcf5-b10f-33fa-8d8e-b262fa34815e" resource="/actuator" action="R">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="0eaa47b9-e409-304e-8682-30d1b0d86d05" resource="/swagger" action="R">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="2dbc92a2-b091-3616-8e88-5078b9103b04" resource="/tenants" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="287edf48-da72-359b-8f61-da5d4c45a270" resource="/proxy" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="15e4e0bd-cb28-34fd-8587-f8d15162cba5" resource="/tenants" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="ac587f43-6e1c-3890-81fd-83b4df2e678e" resource="/swagger" action="D">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="cf4d8390-5ac7-3ff0-82ce-a274b5f88b21" resource="/swagger" action="W">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="6dbdbffd-8a7d-32e1-ba3e-f600e6c69791" resource="/proxy" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="d59a54f7-6dd6-34ad-a279-a26ffdb9eef8" resource="/proxy" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="9d182b11-ebe3-3a7a-8731-98ce6d6e44fd" resource="/buckets" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="ad99ea98-3af6-3561-ae27-5bf09e1d969d" resource="/policies" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="3ee4703f-94ca-33c2-8060-17f5d313f560" resource="/actuator" action="D">
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="bfffed92-8256-4dda-8691-abfedd2ae8e6" resource="/buckets/ba690d8f-5c33-4185-bb41-4eed4f2a4aee" action="R">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="74980a36-9ffe-4968-9493-fe8ff0d9afd9" resource="/buckets/ba690d8f-5c33-4185-bb41-4eed4f2a4aee" action="W">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="575548ad-cc69-4d6d-b347-8ca27afa8313" resource="/buckets/ba690d8f-5c33-4185-bb41-4eed4f2a4aee" action="D">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="c243b4c3-5187-48bb-8783-fdf4fb6e441a" resource="/buckets/1f0b8c7b-d868-45bf-aa83-02700537069a" action="R">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="2cfc2b7e-ec71-47ba-b746-cd6f115aca82" resource="/buckets/1f0b8c7b-d868-45bf-aa83-02700537069a" action="W">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="0133a251-700d-4e48-b87a-8d7a4f21bfa2" resource="/buckets/1f0b8c7b-d868-45bf-aa83-02700537069a" action="D">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="8bc8bb14-b617-4ce1-8a1f-586d5017c297" resource="/buckets/9ea1c6fc-3e88-49ca-8772-270596f79456" action="D">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="47b98a32-3b19-489c-a7cb-4b13a2e85fd7" resource="/buckets/9ea1c6fc-3e88-49ca-8772-270596f79456" action="R">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="6bcb84c5-967a-413d-ad67-eddd4ddce6c3" resource="/buckets/9ea1c6fc-3e88-49ca-8772-270596f79456" action="W">
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="b4d5226f-7746-4d43-a818-45e4f2b37d9e" resource="/buckets/277b21ff-940e-478b-ae8f-9cadf0b153f4" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="516a1efa-7ef9-4aa4-8117-c46a1cf6fb97" resource="/buckets/277b21ff-940e-478b-ae8f-9cadf0b153f4" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="b410555a-d454-4235-aaef-0ff483623efa" resource="/buckets/277b21ff-940e-478b-ae8f-9cadf0b153f4" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="2dfc2835-9b9e-40b0-98bf-f4375ba52abc" resource="/buckets/9490ab5b-fc0a-4b3a-b249-21bd031bf57a" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="82c6b6d1-4c67-4908-9306-39e21401d47e" resource="/buckets/9490ab5b-fc0a-4b3a-b249-21bd031bf57a" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="275b14cd-3db8-44b9-997e-c2d3b27e94b5" resource="/buckets/9490ab5b-fc0a-4b3a-b249-21bd031bf57a" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="e8f3b212-751f-4e79-836a-827184c60a4b" resource="/buckets/7f27dd14-69db-48a8-bd3c-5866c362c040" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="29bf779c-c79a-43e7-92b0-20b43c827cdc" resource="/buckets/7f27dd14-69db-48a8-bd3c-5866c362c040" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="9e4bf0e4-fd39-4424-8f1e-60cfa38925a1" resource="/buckets/7f27dd14-69db-48a8-bd3c-5866c362c040" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="ccb57430-8f6c-4234-a9bd-843c34dfe0f3" resource="/buckets/73d89408-f4d9-4ee7-8352-cce54fa82766" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="4aa6fed8-3909-41e8-85fe-5bdb7124c0ec" resource="/buckets/73d89408-f4d9-4ee7-8352-cce54fa82766" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="c833da1d-2874-4849-bcd0-07c03c7f1a37" resource="/buckets/73d89408-f4d9-4ee7-8352-cce54fa82766" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="3924edd1-468f-4937-9ce5-4ea50d169104" resource="/buckets/31f340f2-3b43-4d32-b9ba-51769d7edae2" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="6dc4111a-b9e9-471b-b736-419c49e8fc37" resource="/buckets/31f340f2-3b43-4d32-b9ba-51769d7edae2" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="e171f69b-36d2-4d76-a3c4-c03f917e556d" resource="/buckets/31f340f2-3b43-4d32-b9ba-51769d7edae2" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="cb9b40f7-d47f-4f7d-8b6f-2d88fb4f7773" resource="/buckets/88e2c4fe-df36-4441-b53e-bde1d6d874e5" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="f9bfddb1-169c-4c8d-bc4a-1019d34166eb" resource="/buckets/88e2c4fe-df36-4441-b53e-bde1d6d874e5" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="d7f04ccf-345f-4de2-8dd4-0de6330d02ee" resource="/buckets/88e2c4fe-df36-4441-b53e-bde1d6d874e5" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="d99f4e62-3d64-4544-9296-3e34bea9fb1a" resource="/buckets/655ca7cd-f296-4d0e-a1aa-18e2959ebb07" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="e9155161-3999-4791-8a2e-2eccccd7d142" resource="/buckets/655ca7cd-f296-4d0e-a1aa-18e2959ebb07" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="826f7689-dc45-487d-b0db-16625fc085ce" resource="/buckets/655ca7cd-f296-4d0e-a1aa-18e2959ebb07" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+        </policy>
+        <policy identifier="0f0432e8-8bd4-4932-8a3a-4b101ba09317" resource="/buckets/6945d79c-6e8e-44f1-b08d-f9d510a90aa7" action="D">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="b4b1779f-3738-4fa1-96a5-e0168656ed64" resource="/buckets/6945d79c-6e8e-44f1-b08d-f9d510a90aa7" action="R">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+        <policy identifier="19cf7179-500d-4c48-89be-284af6bb99c0" resource="/buckets/6945d79c-6e8e-44f1-b08d-f9d510a90aa7" action="W">
+            <user identifier="9f6adb29-f772-4f4a-be21-7dfdbcef2b14"/>
+            <user identifier="b1441ba7-e042-41f5-ad49-02f001447c2b"/>
+            <user identifier="52b23cab-b179-4a3f-b90f-ffd0934b7864"/>
+            <user identifier="96288446-9948-30f2-9970-aa45d39a3f2c"/>
+        </policy>
+    </policies>
+</authorizations>

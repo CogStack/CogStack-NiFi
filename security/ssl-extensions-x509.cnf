@@ -1,4 +1,4 @@
 [v3_ca]
 basicConstraints = CA:FALSE
 keyUsage = digitalSignature, keyEncipherment
-subjectAltName = DNS:elasticsearch-1, DNS:elasticsearch-2, DNS:elasticsearch-3, DNS:nifi, DNS:cogstack, DNS:medcat, DNS:tika-service
+subjectAltName = DNS:elasticsearch-1, DNS:elasticsearch-2, DNS:elasticsearch-3, DNS:nifi, DNS:ocr-service-*, DNS:tika-service-*, DNS:nifi-registry, DNS:cogstack*, DNS:medcat*

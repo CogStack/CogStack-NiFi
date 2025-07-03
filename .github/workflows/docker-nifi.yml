@@ -17,7 +17,16 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      matrix:
+        platform: [amd64, arm64]
+        include:
+          - platform: amd64
+            runner: ubuntu-22.04
+          - platform: arm64
+            runner: ubuntu-22.04-arm
     
     env:
       working-directory: ./nifi
@@ -68,16 +77,9 @@ jobs:
         run: echo "RELEASE_VERSION=latest" >> $GITHUB_ENV
 
       - name: Build and push Docker NiFi image
-        id: docker_build
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          context : ./nifi
-          file : "./nifi/Dockerfile"
-          allow: network.host
-          github-token: ${{ github.token }}
-          tags: cogstacksystems/cogstack-nifi:${{ env.RELEASE_VERSION }}
-          push: true
-          
+        run: |
+          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/cogstack-nifi:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} -f "./nifi/Dockerfile" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
+          docker push cogstacksystems/cogstack-nifi:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
