@@ -3,6 +3,9 @@ FROM docker.elastic.co/kibana/kibana:8.18.2
 ARG KIBANA_HOME
 ENV KIBANA_HOME=/usr/share/kibana
 
+ARG CPU_ARCHITECTURE
+ENV CPU_ARCHITECTURE=${CPU_ARCHITECTURE}
+
 # Node version must match the realease's version: https://github.com/elastic/kibana/blob/main/.node-version
 ENV NODE_VERSION=20.18.2
 ENV NODEJS_HOME=/usr/local/lib/node/nodejs
@@ -24,14 +27,30 @@ RUN apt-add-repository multiverse && \
     apt-get update && apt-get upgrade -y 
 
 # Add latest ubuntu repos to sources.list
-RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list
-RUN echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list
-RUN echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list
+# add arch
+RUN if [ "${CPU_ARCHITECTURE}" = "amd64" ]; then \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+    elif [ "${CPU_ARCHITECTURE}" = "arm64" ]; then \
+        echo "deb [arch=arm64] http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+    else \
+        echo "No valid CPU_ARCHITECTURE specified"; \
+    fi
 
 # Add latest ubuntu repos to sources.list
 
