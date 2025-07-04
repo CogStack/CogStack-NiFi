@@ -868,7 +868,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    #image: cogstacksystems/cogstack-nifi:2.2.0
+    #image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
     build:
        context: ../nifi/
        args:
@@ -1047,7 +1047,7 @@ services:
       - cognet
 
   nifi-nginx:
-    #image: cogstacksystems/nifi-nginx:1.2.7
+    #image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
     build:
        context: ../services/nginx/
        args:
@@ -1086,7 +1086,7 @@ services:
 # Jupyter Hub                                                               #
 #---------------------------------------------------------------------------#
   jupyter-hub:
-    image: cogstacksystems/jupyter-hub:2.0.0-${CPU_ARCHITECTURE:-amd64}
+    image: cogstacksystems/jupyter-hub:2.0.1-${CPU_ARCHITECTURE:-amd64}
     #build:
     #  context: ../services/jupyter-hub/
     #  args:
@@ -1098,7 +1098,7 @@ services:
     env_file:
       - ./general.env
       - ./network_settings.env
-      - ./jupyter.env
+      - ../services/jupyter-hub/env/jupyter.env
     environment:
       - JUPYTERHUB_INTERNAL_PORT=${JUPYTERHUB_INTERNAL_PORT:-8888}
       - JUPYTERHUB_INTERNAL_PROXY_API_PORT=${JUPYTERHUB_INTERNAL_PROXY_API_PORT:-8887}
