@@ -156,9 +156,9 @@ RUN $JYTHON_HOME/bin/jython -m pip install avro pysqlite3
 # copy configuration files
 WORKDIR /opt/nifi/nifi-current/conf/
 
-COPY ./conf/bootstrap.conf ./
-COPY ./conf/nifi.properties ./
-COPY ./conf/zookeeper.properties ./
+#COPY ./conf/bootstrap.conf ./
+#COPY ./conf/nifi.properties ./
+#COPY ./conf/zookeeper.properties ./
 
 # COPY ./conf/login-identity-providers.xml ./
 
