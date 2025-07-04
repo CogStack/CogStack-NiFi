@@ -160,7 +160,7 @@ COPY ./conf/bootstrap.conf ./
 COPY ./conf/nifi.properties ./
 COPY ./conf/zookeeper.properties ./
 
-COPY ./conf/login-identity-providers.xml ./
+# COPY ./conf/login-identity-providers.xml ./
 
 # finalize
 WORKDIR /opt/nifi/nifi-current/
