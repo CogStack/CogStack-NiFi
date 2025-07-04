@@ -17,7 +17,6 @@ env_files=(
            "nifi.env"
            "elasticsearch.env"
            "database.env"
-           "jupyter.env"
            "nlp_service.env"
            "network_settings.env"
            "project.env"
