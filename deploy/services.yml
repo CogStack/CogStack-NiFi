@@ -918,7 +918,7 @@ services:
       - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi-current/nifi_certificates:ro
+      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
@@ -1062,7 +1062,6 @@ services:
       - ./nifi.env
       - ./elasticsearch.env
       - ./project.env
-      - ./jupyter.env
       - ./nlp_service.env
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
