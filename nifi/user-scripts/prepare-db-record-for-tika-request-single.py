@@ -45,7 +45,7 @@ class PyStreamCallback(StreamCallback):
         bytes_arr = IOUtils.toByteArray(inputStream)
         bytes_io = io.BytesIO(bytes_arr)
         reader = DataFileReader(bytes_io, DatumReader())
-       
+
         global avro_record
         avro_record = reader.next() # Get first Avro record. Also can be iterated in loop
 
@@ -54,13 +54,13 @@ class PyStreamCallback(StreamCallback):
             if binary_data_property == record_attr_name:
                 # remove the binary content, no need to have a duplicate
                 binary_data = avro_record[binary_data_property]
-                
+
                 if OPERATION_MODE == "base64":
-                    binary_data = base64.b64decode(binary_data)
+                    binary_data = base64.b64decode(binary_data).decode()
 
                 del avro_record[binary_data_property]
                 break
-        
+
         # write the binary directly to the flow file
         outputStream.write(binary_data)
 

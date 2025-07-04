@@ -7,8 +7,8 @@ from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
 
 # default values from /deploy/nifi.env
-USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
-USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR")
+NIFI_USER_SCRIPT_DB_DIR = os.getenv("NIFI_USER_SCRIPT_DB_DIR")
+NIFI_USER_SCRIPT_LOGS_DIR = os.getenv("NIFI_USER_SCRIPT_LOGS_DIR")
 
 for arg in sys.argv:
     _arg = arg.split("=", 1)
@@ -22,8 +22,8 @@ def main():
     input_stream = sys.stdin.read()
 
     try:
-        log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
-        db_file_path = os.path.join(USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
+        log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
+        db_file_path = os.path.join(NIFI_USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
 
         json_data_records = json.loads(input_stream)
 

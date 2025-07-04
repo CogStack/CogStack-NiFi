@@ -99,7 +99,7 @@ if flowFile != None:
         session.transfer(flowFile, REL_FAILURE)
     finally:
         if LOG_INVALID_RECORDS:
-            log_file_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), str(LOG_FILE_NAME))
+            log_file_path = os.path.join(str(os.environ.get("NIFI_USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), str(LOG_FILE_NAME))
             _out_list = ','.join(str(x) for x in invalid_record_ids)
             if os.path.exists(log_file_path) and len(invalid_record_ids) > 0:
                 with open(log_file_path, "a+") as log_file:

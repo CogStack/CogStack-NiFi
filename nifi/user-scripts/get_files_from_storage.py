@@ -48,7 +48,7 @@ for arg in sys.argv:
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
 processed_folder_dump = "processed_" + folder_to_ingest
-processed_folder_dump_path = os.path.join(str(os.environ.get("USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
+processed_folder_dump_path = os.path.join(str(os.environ.get("NIFI_USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
 processed_folder_dump_path = processed_folder_dump_path.replace("\"", "").replace("\'", "")
 
 # log file name

@@ -6,7 +6,7 @@ import traceback
 from random import randrange
 
 global LOCATIONS
-global USER_SCRIPT_LOGS_DIR
+global NIFI_USER_SCRIPT_LOGS_DIR
 global SUBJECT_ID_FIELD_NAME
 global LOCATION_NAME_FIELD
 
@@ -20,7 +20,7 @@ for arg in sys.argv:
     if _arg[0] == "locations":
         LOCATIONS = _arg[1] 
     elif _arg[0] == "user_script_logs_dir":
-        USER_SCRIPT_LOGS_DIR = _arg[1]
+        NIFI_USER_SCRIPT_LOGS_DIR = _arg[1]
     elif _arg[0] == "subject_id_field":
         SUBJECT_ID_FIELD_NAME = _arg[1]
     elif _arg[0] == "location_name_field":
@@ -36,7 +36,7 @@ def main():
     input_stream = sys.stdin.read()
 
     try:
-        log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
+        log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
         patients = json.loads(input_stream)
 
         locations = [poly_creator(location) for location in LOCATIONS.split(",")]

@@ -11,10 +11,10 @@ from utils.ethnicity_map import ethnicity_map
 from utils.generic import chunk, dict2jsonl_file, dict2json_file
 
 # default values from /deploy/nifi.env
-USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR", "")
+NIFI_USER_SCRIPT_LOGS_DIR = os.getenv("NIFI_USER_SCRIPT_LOGS_DIR", "")
 
 LOG_FILE_NAME = "cohort_export.log"
-log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
+log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
 
 
 ANNOTATION_DOCUMENT_ID_FIELD_NAME = "meta.docid"

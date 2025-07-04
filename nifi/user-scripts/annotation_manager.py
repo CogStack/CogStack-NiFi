@@ -7,7 +7,7 @@ from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_
 
 global DOCUMENT_ID_FIELD_NAME
 global DOCUMENT_TEXT_FIELD_NAME
-global USER_SCRIPT_DB_DIR
+global NIFI_USER_SCRIPT_DB_DIR
 global DB_FILE_NAME
 global LOG_FILE_NAME
 global OPERATION_MODE
@@ -15,8 +15,8 @@ global OPERATION_MODE
 ANNOTATION_DB_SQL_FILE_PATH = "/opt/cogstack-db/sqlite/schemas/annotations_nlp_create_schema.sql"
 
 # default values from /deploy/nifi.env
-USER_SCRIPT_DB_DIR = os.getenv("USER_SCRIPT_DB_DIR")
-USER_SCRIPT_LOGS_DIR = os.getenv("USER_SCRIPT_LOGS_DIR")
+NIFI_USER_SCRIPT_DB_DIR = os.getenv("NIFI_USER_SCRIPT_DB_DIR")
+NIFI_USER_SCRIPT_LOGS_DIR = os.getenv("NIFI_USER_SCRIPT_LOGS_DIR")
 
 # possible values:
 #   - check - check if a document ID has already been annotated
@@ -35,7 +35,7 @@ for arg in sys.argv:
     elif _arg[0] == "document_text_field":
         DOCUMENT_TEXT_FIELD_NAME = _arg[1]
     elif _arg[0] == "user_script_db_dir":
-        USER_SCRIPT_DB_DIR = _arg[1]
+        NIFI_USER_SCRIPT_DB_DIR = _arg[1]
     elif _arg[0] == "log_file_name":
         LOG_FILE_NAME = _arg[1]
     elif _arg[0] == "operation_mode":
@@ -48,8 +48,8 @@ def main():
     output_stream = {}
 
     try:
-        log_file_path = os.path.join(USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
-        db_file_path = os.path.join(USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
+        log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
+        db_file_path = os.path.join(NIFI_USER_SCRIPT_DB_DIR, INDEX_DB_FILE_NAME)
 
         json_data_records = json.loads(input_stream)
 
