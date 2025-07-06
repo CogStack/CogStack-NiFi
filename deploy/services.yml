@@ -1035,7 +1035,7 @@ services:
 
     tty: true
     ports:
-      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-18443}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
+      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-8083}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
     
     entrypoint: bash -c "chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/database && \
       chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/flow_storage && \
@@ -1067,16 +1067,15 @@ services:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
       - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
-      - ../security/root_certificates/root-ca.pem:/etc/nginx/root-ca.pem:ro
-      - ../security/root_certificates/root-ca.key:/etc/nginx/root-ca.key:ro
-      - ../security/nifi_certificates/nifi.pem:/etc/nginx/nifi-cert.pem:ro
-      - ../security/nifi_certificates/nifi.key:/etc/nginx/nifi-key.key:ro
+      - ../security/root_certificates:/etc/nginx/root_certificates:ro
+      - ../security/nifi_certificates:/etc/nginx/nifi_certificates:ro
 
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/etc/nginx/es_certificates/elastic-stack-ca.crt.pem:ro
       - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/etc/nginx/es_certificates/elastic-stack-ca.key.pem:ro
       # - ../security/es_certificates/:/etc/nginx/es_certificates/:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
+      - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
     networks:
       - cognet
     command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
