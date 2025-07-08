@@ -40,7 +40,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
         self._properties = [
             PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
             PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
-            PropertyDescriptor(name="record_id_field_name", description="Field name containing document ID", default_value="not_set"),
+            PropertyDescriptor(name="record_id_field_name", description="Field name containing document ID", default_value="not_set")
         ]
 
     def getPropertyDescriptors(self):
@@ -73,21 +73,22 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             schema: Schema | None = reader.datum_reader.writers_schema
 
-
             # change the datatype of the binary field from bytes to string (avoids headaches later on when converting avro to json)
+            output_schema = None
             if schema is not None and isinstance(schema, RecordSchema):
                 schema_dict = copy.deepcopy(schema.to_json())
-                for field in schema.fields: # type: ignore
-                    if field.name == self.binary_field_name:
-                        field.type = PrimitiveSchema("string")
+                for field in schema_dict["fields"]: # type: ignore
+                    self.logger.info(str(field))
+                    if field["name"] == self.binary_field_name:
+                        field["type"] = ["null", "string"]
                         break
                 output_schema = parse(json.dumps(schema_dict))
-            else:
-                output_schema = schema
 
             # Write them to a binary avro stream
             output_byte_buffer = io.BytesIO()
             writer = DataFileWriter(output_byte_buffer, DatumWriter(), output_schema)
+
+            self.logger.info(str(type(reader)))
 
             for record in reader:
                 if type(record) is dict:
@@ -112,9 +113,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             input_byte_buffer.close()
             reader.close()
-
             writer.flush()
-
             output_byte_buffer.seek(0)
 
             # add properties to flowfile attributes
