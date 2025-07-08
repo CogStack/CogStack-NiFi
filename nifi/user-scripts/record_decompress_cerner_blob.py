@@ -24,9 +24,9 @@ INPUT_CHARSET = "iso-8859-1"
 OUTPUT_CHARSET = "windows-1252"
 
 # possible values:
-#   - binary: output binary code
+#   - base64: output base64 code
 #   - string: output string after decompression 
-OUTPUT_MODE = "binary"
+OUTPUT_MODE = "base64"
 
 BINARY_FIELD_NAME = "binary_data"
 
@@ -75,22 +75,21 @@ del records
 
 concatenated_blob_sequence_order = sorted(concatenated_blob_sequence_order.items())
 
-output_merged_record[BINARY_FIELD_NAME] = ""
+output_merged_record[BINARY_FIELD_NAME] = bytearray()
 for i in concatenated_blob_sequence_order:
-    output_merged_record[BINARY_FIELD_NAME] += i[1]
+    try:
+        output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(output_merged_record[BINARY_FIELD_NAME])
+        input_cerner_blob = str(output_merged_record[BINARY_FIELD_NAME], INPUT_CHARSET).encode(INPUT_CHARSET)
+
+        decompress_blob = DecompressLzwCernerBlob()
+        decompress_blob.decompress(input_cerner_blob) # type: ignore
+        output_merged_record[BINARY_FIELD_NAME].extend(bytes(decompress_blob.output_stream))
+    except Exception as exception:
+        pass
 
 del concatenated_blob_sequence_order
 
-output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(output_merged_record[BINARY_FIELD_NAME])
+if OUTPUT_MODE == "base64":
+    output_merged_record[BINARY_FIELD_NAME] = base64.b64encode(output_merged_record[BINARY_FIELD_NAME]).decode()
 
-
-input_cerner_blob = str(output_merged_record[BINARY_FIELD_NAME], INPUT_CHARSET).encode(INPUT_CHARSET)
-
-decompress_blob = DecompressLzwCernerBlob()
-decompress_blob.decompress(input_cerner_blob) # type: ignore
-
-
-if OUTPUT_MODE == "binary":
-    sys.stdout.buffer.write(bytes(decompress_blob.output_stream))
-else:
-    sys.stdout.write(decompress_blob.output_stream.decode(OUTPUT_CHARSET))
+sys.stdout.write(json.dumps(output_merged_record))
