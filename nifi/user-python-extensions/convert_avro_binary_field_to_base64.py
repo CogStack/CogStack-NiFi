@@ -1,11 +1,13 @@
 import io
 import base64
+import json
 import traceback
+import copy
 from logging import Logger
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
-from avro.schema import RecordSchema, Schema, PrimitiveSchema
+from avro.schema import RecordSchema, Schema, PrimitiveSchema, parse
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
@@ -71,15 +73,21 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             schema: Schema | None = reader.datum_reader.writers_schema
 
+
             # change the datatype of the binary field from bytes to string (avoids headaches later on when converting avro to json)
             if schema is not None and isinstance(schema, RecordSchema):
+                schema_dict = copy.deepcopy(schema.to_json())
                 for field in schema.fields: # type: ignore
                     if field.name == self.binary_field_name:
                         field.type = PrimitiveSchema("string")
+                        break
+                output_schema = parse(json.dumps(schema_dict))
+            else:
+                output_schema = schema
 
             # Write them to a binary avro stream
             output_byte_buffer = io.BytesIO()
-            writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
+            writer = DataFileWriter(output_byte_buffer, DatumWriter(), output_schema)
 
             for record in reader:
                 if type(record) is dict:
