@@ -74,6 +74,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             schema: Schema | None = reader.datum_reader.writers_schema
 
             # change the datatype of the binary field from bytes to string (avoids headaches later on when converting avro to json)
+            # because if we dont change the schema the native NiFi converter will convert bytes to an array of integers.
             output_schema = None
             if schema is not None and isinstance(schema, RecordSchema):
                 schema_dict = copy.deepcopy(schema.to_json())
