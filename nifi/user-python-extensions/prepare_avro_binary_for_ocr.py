@@ -97,6 +97,7 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)
+            attributes["mime.type"] = "application/json"
 
             return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
         except Exception as exception:

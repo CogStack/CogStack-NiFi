@@ -5,7 +5,7 @@ from logging import Logger
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
-from avro.schema import Schema
+from avro.schema import RecordSchema, Schema, PrimitiveSchema
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
@@ -71,6 +71,12 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             schema: Schema | None = reader.datum_reader.writers_schema
 
+            # change the datatype of the binary field from bytes to string (avoids headaches later on when converting avro to json)
+            if schema is not None and isinstance(schema, RecordSchema):
+                for field in schema.fields: # type: ignore
+                    if field.name == self.binary_field_name:
+                        field.type = PrimitiveSchema("string")
+
             # Write them to a binary avro stream
             output_byte_buffer = io.BytesIO()
             writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
@@ -100,7 +106,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             reader.close()
 
             writer.flush()
-            writer.close()
+
             output_byte_buffer.seek(0)
 
             # add properties to flowfile attributes
@@ -108,6 +114,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             attributes["record_id_field_name"] = str(self.record_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["operation_mode"] = str(self.operation_mode)
+            attributes["mime.type"] = "application/avro-binary"
 
             return FlowFileTransformResult(relationship="success", attributes=attributes, contents=output_byte_buffer.getvalue())
         except Exception as exception:
