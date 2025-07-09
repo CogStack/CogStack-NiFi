@@ -78,7 +78,7 @@ concatenated_blob_sequence_order = sorted(concatenated_blob_sequence_order.items
 output_merged_record[BINARY_FIELD_NAME] = bytearray()
 for i in concatenated_blob_sequence_order:
     try:
-        output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(output_merged_record[BINARY_FIELD_NAME])
+        output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(i[1])
         input_cerner_blob = str(output_merged_record[BINARY_FIELD_NAME], INPUT_CHARSET).encode(INPUT_CHARSET)
 
         decompress_blob = DecompressLzwCernerBlob()
