@@ -77,6 +77,8 @@ concatenated_blob_sequence_order = sorted(concatenated_blob_sequence_order.items
 
 output_merged_record[BINARY_FIELD_NAME] = bytearray()
 for i in concatenated_blob_sequence_order:
+
+    test = "fawfa"
     try:
         output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(i[1])
         input_cerner_blob = str(output_merged_record[BINARY_FIELD_NAME], INPUT_CHARSET).encode(INPUT_CHARSET)
@@ -90,6 +92,6 @@ for i in concatenated_blob_sequence_order:
 del concatenated_blob_sequence_order
 
 if OUTPUT_MODE == "base64":
-    output_merged_record[BINARY_FIELD_NAME] = base64.b64encode(output_merged_record[BINARY_FIELD_NAME]).decode()
+    output_merged_record[BINARY_FIELD_NAME] = base64.b64encode(output_merged_record[BINARY_FIELD_NAME]).decode(OUTPUT_CHARSET)
 
 sys.stdout.write(json.dumps(output_merged_record))
