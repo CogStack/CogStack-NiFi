@@ -89,8 +89,6 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             output_byte_buffer = io.BytesIO()
             writer = DataFileWriter(output_byte_buffer, DatumWriter(), output_schema)
 
-            self.logger.info(str(type(reader)))
-
             for record in reader:
                 if type(record) is dict:
                     record_document_binary_data = record.get(str(self.binary_field_name), None)

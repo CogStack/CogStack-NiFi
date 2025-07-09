@@ -3,6 +3,7 @@ import base64
 import traceback
 import json
 from logging import Logger
+from typing import Any, Dict, Union, List
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -33,7 +34,8 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
         self.operation_mode = None
         self.binary_field_name = None
         self.output_text_field_name = None
-        self.document_id_field_name = None   
+        self.document_id_field_name = None
+        self.process_flow_file_type = None
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -41,6 +43,7 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
             PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
             PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
             PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
+            PropertyDescriptor(name="process_flow_file_type", description="Type of flowfile input: avro | json", default_value="avro"),
         ]
 
     def getPropertyDescriptors(self):
@@ -67,10 +70,19 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
             self.process_context = context
             self.set_properties(context.getProperties())
 
+            self.process_flow_file_type = str(self.process_flow_file_type).lower()
+
             # read avro record
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
-            reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
+
+            reader: Union[DataFileReader, List[Dict[str, Any]] | List[Any]]
+
+            if self.process_flow_file_type == "avro":
+                reader = DataFileReader(input_byte_buffer, DatumReader())
+            else:
+                json_obj = json.loads(input_byte_buffer.read().decode("utf-8"))
+                reader = [json_obj] if isinstance(json_obj, dict) else json_obj if isinstance(json_obj, list) else []
 
             for record in reader:
                 if type(record) is dict:
@@ -90,7 +102,9 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
                 })
 
             input_byte_buffer.close()
-            reader.close()
+
+            if isinstance(reader, DataFileReader):
+                reader.close()
 
             # add properties to flowfile attributes
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
@@ -101,5 +115,5 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
 
             return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
         except Exception as exception:
-            self.logger.error("Exception during Avro processing: " + traceback.format_exc())
+            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception
