@@ -62,7 +62,7 @@ output_merged_record = {}
 
 for record in records:
     if BLOB_SEQUENCE_ORDER_FIELD_NAME in record.keys():
-        concatenated_blob_sequence_order[int(record[BLOB_SEQUENCE_ORDER_FIELD_NAME])] = record[BLOB_SEQUENCE_ORDER_FIELD_NAME]
+        concatenated_blob_sequence_order[int(record[BLOB_SEQUENCE_ORDER_FIELD_NAME])] = record[BINARY_FIELD_NAME]
 
 
 # take fields from the first record, doesn't matter which one,
