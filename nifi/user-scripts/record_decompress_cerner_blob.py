@@ -86,7 +86,9 @@ for i in concatenated_blob_sequence_order:
         decompress_blob.decompress(temporary_blob) # type: ignore
         output_merged_record[BINARY_FIELD_NAME].extend(bytes(decompress_blob.output_stream))
     except Exception as exception:
-        pass
+        sys.stderr.write(f"Error decompressing blob with sequence order {i[0]}: {str(exception)}\n")
+        sys.stderr.flush()
+        raise exception
 
 del concatenated_blob_sequence_order
 
