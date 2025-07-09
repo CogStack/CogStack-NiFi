@@ -77,14 +77,13 @@ concatenated_blob_sequence_order = sorted(concatenated_blob_sequence_order.items
 
 output_merged_record[BINARY_FIELD_NAME] = bytearray()
 for i in concatenated_blob_sequence_order:
-
-    test = "fawfa"
     try:
-        output_merged_record[BINARY_FIELD_NAME] = base64.b64decode(i[1])
-        input_cerner_blob = str(output_merged_record[BINARY_FIELD_NAME], INPUT_CHARSET).encode(INPUT_CHARSET)
+        temporary_blob = i[1]
+        if BINARY_FIELD_SOURCE_ENCODING == "base64":
+            temporary_blob: bytes = base64.b64decode(temporary_blob)
 
         decompress_blob = DecompressLzwCernerBlob()
-        decompress_blob.decompress(input_cerner_blob) # type: ignore
+        decompress_blob.decompress(temporary_blob) # type: ignore
         output_merged_record[BINARY_FIELD_NAME].extend(bytes(decompress_blob.output_stream))
     except Exception as exception:
         pass
