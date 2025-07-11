@@ -868,21 +868,15 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    #image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
-    build:
-       context: ../nifi/
-       args:
-           HTTP_PROXY: $HTTP_PROXY
-           HTTPS_PROXY: $HTTPS_PROXY
-           no_proxy: $no_proxy
+    image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
     container_name: cogstack-nifi
     hostname: nifi
     restart: always
     env_file:
+      - ./general.env
+      - ./project.env
       - ./nifi.env
       - ./elasticsearch.env
-      - ./project.env
-      - ./general.env
       - ./network_settings.env
       - ../security/users_nifi.env
       - ../security/users_elasticsearch.env
@@ -1014,7 +1008,6 @@ services:
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-      #- ../nifi/nifi-registry.properties:/opt/nifi-registry/nifi-registry-current/conf/nifi-registry.properties:ro
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
@@ -1047,13 +1040,7 @@ services:
       - cognet
 
   nifi-nginx:
-    #image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
-    build:
-       context: ../services/nginx/
-       args:
-           HTTP_PROXY: $HTTP_PROXY
-           HTTPS_PROXY: $HTTPS_PROXY
-           no_proxy: $no_proxy
+    image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
     container_name: cogstack-nifi-nginx
     restart: always
     env_file:
