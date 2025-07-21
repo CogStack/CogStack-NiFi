@@ -84,8 +84,6 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             self.process_context = context
             self.set_properties(context.getProperties())
 
-            self.process_flow_file_type = str(self.process_flow_file_type).lower()
-
             # read avro record
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
