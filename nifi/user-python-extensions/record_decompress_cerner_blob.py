@@ -112,18 +112,24 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
                 if k not in output_merged_record.keys() and k != self.binary_field_name:
                     output_merged_record[k] = v
 
-            output_merged_record[self.binary_field_name] = bytearray()
+            output_merged_record[self.binary_field_name] = b""
+            full_compressed_blob = bytearray()
+
             for i in concatenated_blob_sequence_order:
                 try:
                     temporary_blob = concatenated_blob_sequence_order[i]
                     if self.binary_field_source_encoding == "base64":
                         temporary_blob: bytes = base64.b64decode(temporary_blob)
+                    full_compressed_blob.extend(temporary_blob)
+                except Exception as e:
+                    self.logger.error(f"Error decoding blob part {i}: {str(e)}")
 
-                    decompress_blob = DecompressLzwCernerBlob()
-                    decompress_blob.decompress(temporary_blob) # type: ignore
-                    output_merged_record[self.binary_field_name].extend(bytes(decompress_blob.output_stream))
-                except Exception as exception:
-                    self.logger.error(f"Error decompressing blob with sequence order {i[0]}: {str(exception)}\n")
+            try:
+                decompress_blob = DecompressLzwCernerBlob()
+                decompress_blob.decompress(full_compressed_blob) # type: ignore
+                output_merged_record[self.binary_field_name] = decompress_blob.output_stream
+            except Exception as exception:
+                self.logger.error(f"Error decompressing blob with sequence order {i[0]}: {str(exception)}\n")
 
 
             if self.output_mode == "base64":
