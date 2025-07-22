@@ -88,7 +88,11 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
-            records = json.loads(input_byte_buffer.read().decode("utf-8"))
+            try:
+                records = json.loads(input_byte_buffer.read())
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Error decoding JSON: {str(e)}" + "\nAttempting to decode as UTF-8.")
+                records = json.loads(input_byte_buffer.read().decode("utf-8"))
 
             if not isinstance(records, list):
                 records = [records]
@@ -111,11 +115,9 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             output_merged_record[self.binary_field_name] = bytearray()
             for i in concatenated_blob_sequence_order:
                 try:
-                    temporary_blob = i[1]
+                    temporary_blob = concatenated_blob_sequence_order[i]
                     if self.binary_field_source_encoding == "base64":
                         temporary_blob: bytes = base64.b64decode(temporary_blob)
-
-                    temporary_blob = temporary_blob.decode(self.input_charset).encode(self.input_charset)
 
                     decompress_blob = DecompressLzwCernerBlob()
                     decompress_blob.decompress(temporary_blob) # type: ignore

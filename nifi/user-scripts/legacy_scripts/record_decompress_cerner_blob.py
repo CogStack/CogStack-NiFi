@@ -88,7 +88,7 @@ for i in concatenated_blob_sequence_order:
     except Exception as exception:
         sys.stderr.write(f"Error decompressing blob with sequence order {i[0]}: {str(exception)}\n")
         sys.stderr.flush()
-        raise exception
+        raise
 
 del concatenated_blob_sequence_order
 
