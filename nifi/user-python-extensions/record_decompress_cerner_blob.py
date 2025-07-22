@@ -57,7 +57,6 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             PropertyDescriptor(name="output_mode", description="", default_value="base64"),
             PropertyDescriptor(name="binary_field_source_encoding", description="", default_value="base64"),
             PropertyDescriptor(name="blob_sequence_order_field_name", description="", default_value="blob_sequence_num"),
-
         ]
 
     def getPropertyDescriptors(self):
@@ -86,18 +85,25 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
 
             # read avro record
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
-            input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
+
+            records = []
 
             try:
-                records = json.loads(input_byte_buffer.read())
+                records = json.loads(input_raw_bytes.decode())
             except json.JSONDecodeError as e:
-                self.logger.error(f"Error decoding JSON: {str(e)}" + "\nAttempting to decode as UTF-8.")
-                records = json.loads(input_byte_buffer.read().decode("utf-8"))
+                self.logger.error(f"Error decoding JSON: {str(e)} \nAttempting to decode as {self.input_charset}")
+                try:
+                    records = json.loads(input_raw_bytes.decode(self.input_charset))
+                except json.JSONDecodeError as e:
+                    self.logger.error(f"Error decoding JSON: {str(e)} \nAttempting to decode as windows-1252")
+                    try:
+                        records = json.loads(input_raw_bytes.decode("windows-1252"))
+                    except json.JSONDecodeError as e:
+                        self.logger.error(f"Error decoding JSON: {str(e)} \n with windows-1252")
+                        raise
 
             if not isinstance(records, list):
                 records = [records]
-
-            input_byte_buffer.close()
 
             concatenated_blob_sequence_order = {}
             output_merged_record = {}
@@ -122,14 +128,14 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
                         temporary_blob: bytes = base64.b64decode(temporary_blob)
                     full_compressed_blob.extend(temporary_blob)
                 except Exception as e:
-                    self.logger.error(f"Error decoding blob part {k}: {str(e)}")
+                    self.logger.error(f"Error decoding b64 blob part {k}: {str(e)}")
 
             try:
                 decompress_blob = DecompressLzwCernerBlob()
                 decompress_blob.decompress(full_compressed_blob) # type: ignore
                 output_merged_record[self.binary_field_name] = decompress_blob.output_stream
             except Exception as exception:
-                self.logger.error(f"Error decompressing blob: {str(exception)} \n")
+                self.logger.error(f"Error decompressing cerner blob: {str(exception)} \n")
 
 
             if self.output_mode == "base64":
