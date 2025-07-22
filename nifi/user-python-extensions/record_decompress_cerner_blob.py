@@ -52,8 +52,8 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
             PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
             PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
-            PropertyDescriptor(name="input_charset", description="", default_value="windows-1252"),
-            PropertyDescriptor(name="output_charset", description="", default_value="windows-1252"),
+            PropertyDescriptor(name="input_charset", description="", default_value="utf-8"),
+            PropertyDescriptor(name="output_charset", description="", default_value="utf-8"),
             PropertyDescriptor(name="output_mode", description="", default_value="base64"),
             PropertyDescriptor(name="binary_field_source_encoding", description="", default_value="base64"),
             PropertyDescriptor(name="blob_sequence_order_field_name", description="", default_value="blob_sequence_num"),
@@ -115,21 +115,21 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             output_merged_record[self.binary_field_name] = b""
             full_compressed_blob = bytearray()
 
-            for i in concatenated_blob_sequence_order:
+            for k, v in concatenated_blob_sequence_order.items():
                 try:
                     temporary_blob = concatenated_blob_sequence_order[i]
                     if self.binary_field_source_encoding == "base64":
                         temporary_blob: bytes = base64.b64decode(temporary_blob)
                     full_compressed_blob.extend(temporary_blob)
                 except Exception as e:
-                    self.logger.error(f"Error decoding blob part {i}: {str(e)}")
+                    self.logger.error(f"Error decoding blob part {k}: {str(e)}")
 
             try:
                 decompress_blob = DecompressLzwCernerBlob()
                 decompress_blob.decompress(full_compressed_blob) # type: ignore
                 output_merged_record[self.binary_field_name] = decompress_blob.output_stream
             except Exception as exception:
-                self.logger.error(f"Error decompressing blob with sequence order {i[0]}: {str(exception)}\n")
+                self.logger.error(f"Error decompressing blob: {str(exception)} \n")
 
 
             if self.output_mode == "base64":
