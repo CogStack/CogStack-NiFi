@@ -117,7 +117,7 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
 
             for k, v in concatenated_blob_sequence_order.items():
                 try:
-                    temporary_blob = concatenated_blob_sequence_order[i]
+                    temporary_blob = v
                     if self.binary_field_source_encoding == "base64":
                         temporary_blob: bytes = base64.b64decode(temporary_blob)
                     full_compressed_blob.extend(temporary_blob)
