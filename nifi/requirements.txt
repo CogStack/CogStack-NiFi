@@ -1,2 +1,3 @@
 py4j==0.10.9.9
 medcat==1.16.0
+rancoord=0.0.6
