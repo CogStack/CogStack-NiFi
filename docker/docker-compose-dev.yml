@@ -1,0 +1,57 @@
+services:
+  cogstack-jupyter-hub-dev:
+    build:
+      context: ../
+      dockerfile: "Dockerfile_hub"
+    container_name: cogstack-jupyter-hub-dev
+    restart: always
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$NO_PROXY
+      - JUPYTERHUB_INTERNAL_PORT=${JUPYTERHUB_INTERNAL_PORT:-8888}
+      - JUPYTERHUB_INTERNAL_PROXY_API_PORT=${JUPYTERHUB_INTERNAL_PROXY_API_PORT:-8887}
+      - JUPYTERHUB_SSL_PORT=${JUPYTERHUB_SSL_PORT:-443}
+    env_file:
+      - ../env/general.env
+      - ../env/jupyter.env
+    volumes:
+      - jupyter-hub-shared-scratch:/home/jovyan/scratch
+      - jupyter-hub-vol:/srv/jupyterhub
+      # Security configs
+      - ./${DEFAULT_SECURITY_DIR:-../security/}root-ca.key:/srv/jupyterhub/root-ca.key:ro
+      - ./${DEFAULT_SECURITY_DIR:-../security/}root-ca.pem:/srv/jupyterhub/root-ca.pem:ro
+      - ../config/jupyterhub_cookie_secret:/srv/jupyterhub/jupyterhub_cookie_secret:ro
+      # User list and jupyter config
+      - ../config/jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
+      - ../config/userlist:/srv/jupyterhub/userlist:ro
+      - ../config/teamlist:/srv/jupyterhub/teamlist:ro
+      # Give access to Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    ports:
+      - "${JUPYTERHUB_INTERNAL_PORT:-8888}:${JUPYTERHUB_SSL_PORT:-443}"
+    networks:
+      - cognet
+    extra_hosts:
+      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
+volumes:
+  jupyter-hub-vol:
+    driver: local
+  jupyter-hub-shared-scratch:
+    driver: local
+
+networks:
+  cognet:
+    name: cogstack-net
