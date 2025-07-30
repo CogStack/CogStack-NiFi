@@ -3,9 +3,9 @@ name: submodules-sync
 on:
 
   push:
-    branches: [main, devel]
+    branches: [ "*" ]
   pull_request:
-    branches: [main, devel]
+    branches: [ "*" ]
   
   release:
     types: [published]
