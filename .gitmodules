@@ -1,0 +1,12 @@
+[submodule "services/jupyter-hub"]
+	path = services/jupyter-hub
+	url = https://github.com/CogStack/cogstack-jupyter-hub.git
+[submodule "services/cogstack-cohort"]
+	path = services/cogstack-cohort
+	url = https://github.com/CogStack/CogStackCohort.git
+[submodule "services/medcat-trainer"]
+	path = services/medcat-trainer
+	url = https://github.com/CogStack/MedCATtrainer.git
+[submodule "services/cogstack-nlp"]
+	path = services/cogstack-nlp
+	url = https://github.com/CogStack/cogstack-nlp.git
