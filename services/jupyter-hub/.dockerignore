@@ -1,9 +1,0 @@
-.DS_Store
-.idea
-__pycache__
-venv
-venv-test
-# skip the custom envs
-#envs
-# skip the models directory
-models

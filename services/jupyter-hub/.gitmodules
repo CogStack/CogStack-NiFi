@@ -1,5 +1,0 @@
-
-[submodule "notebooks/demo_working_with_cogstack"]
-	path = notebooks/demo_working_with_cogstack
-	url = https://github.com/CogStack/working_with_cogstack.git
-	branch = main
