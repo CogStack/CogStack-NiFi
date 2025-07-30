@@ -68,9 +68,6 @@ RUN mv ./node-v${NODE_VERSION}-linux-x64 /usr/local/lib/node/nodejs
 
 RUN . ~/.profile
 
-# confirm installation
-RUN node -v
-RUN npm -v
 
 
 RUN npm install --global yarn node-gyp require-in-the-middle
