@@ -1,0 +1,199 @@
+FROM jupyterhub/singleuser:5
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+
+ENV HTTP_PROXY=$HTTP_PROXY
+ENV HTTPS_PROXY=$HTTPS_PROXY
+ENV NO_PROXY=$NO_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV no_proxy=$NO_PROXY
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_PRIORITY=critical
+
+ARG CPU_ARCHITECTURE
+ENV CPU_ARCHITECTURE=${CPU_ARCHITECTURE}
+
+USER root
+
+RUN apt-get update && apt-get upgrade -y && \
+     apt-get install -y software-properties-common
+
+# add extra repos
+RUN apt-add-repository multiverse && \
+    apt-add-repository universe && \
+    add-apt-repository ppa:graphics-drivers/ppa && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && apt-get upgrade -y && \
+    apt-get --force-yes -o Dpkg::Options::="--force-confold" --force-yes -o Dpkg::Options::="--force-confdef" -fuy full-upgrade && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    apt-get install -y \
+    wget \
+    curl \
+    ca-certificates \
+    apt-transport-https
+
+# Microsoft repos
+RUN wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/packages.microsoft.gpg
+RUN echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | tee -a /etc/apt/sources.list
+
+# Add latest ubuntu repos to sources.list
+# add arch
+RUN if [ "${CPU_ARCHITECTURE}" = "amd64" ]; then \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.ubuntu.com/ubuntu/ jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+    elif [ "${CPU_ARCHITECTURE}" = "arm64" ]; then \
+        echo "deb [arch=arm64] http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://archive.canonical.com/ubuntu/ jammy partner" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+        echo "deb-src [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | tee -a /etc/apt/sources.list ; \
+    else \
+        echo "No valid CPU_ARCHITECTURE specified"; \
+    fi
+
+# python 3.11 repo 
+RUN apt-get update -y && apt-get upgrade -y
+
+# run updates
+RUN apt-get update && apt-get upgrade -y && dpkg --configure -a && \
+    apt-get --force-yes -o Dpkg::Options::="--force-confold" --force-yes -o Dpkg::Options::="--force-confdef" -fuy full-upgrade && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    apt-get install -y \
+    gnupg \
+    ssl-cert \ 
+    libevent-dev \
+    libsqlite3-dev \
+    libxml2-dev \
+    libbz2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libssl-dev \
+    wget \
+    curl \
+    gnupg-agent \
+    dirmngr \
+    ca-certificates \
+    apt-transport-https \
+    apt-utils \
+    fonts-dejavu \
+    nano \
+    iputils-ping \
+    cmake \
+    make \
+    build-essential \
+    unixodbc \
+    unixodbc-dev \
+    r-cran-rodbc \
+    gfortran \
+    gcc \
+    g++ \
+    git \
+    ssh \
+    jq \
+    htop \
+    libglx-mesa0 libegl1 libxrandr2 libxrandr2 libxss1 \
+    libxcursor1 libxcomposite1 libasound2-dev libxi6 libxtst6 \
+    r-base
+
+# remove newer python version, freeze other versions for max compatibility before updates
+RUN apt --fix-missing purge $(dpkg -l | grep 'python3\.1[01]' | awk '{print $2}')
+RUN apt --fix-broken install
+RUN apt-get purge --auto-remove python3.10
+
+# python 3.11
+RUN apt-get install -y python3.11-full python3.11-dev python3-pip python3-venv
+
+# be careful, this conflicts
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+# install remaining packages
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get -y --no-install-recommends install unixodbc unixodbc-dev odbcinst
+RUN ACCEPT_EULA=Y apt-get install -y msodbcsql18
+RUN ACCEPT_EULA=Y apt-get install -y mssql-tools18
+RUN echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+
+# deps for psycopg2
+RUN apt-get install -y --no-install-recommends postgresql-server-dev-all
+
+# clean up apt
+RUN apt-get clean autoclean && apt-get autoremove --purge -y
+
+######################################## Python / PIP SECTION ########################################
+RUN conda update conda
+RUN conda install --quiet --yes \
+    ipykernel \
+    pip \
+    elasticsearch \
+    opensearch-py \
+    psycopg2 \
+    pyodbc
+
+RUN conda clean --all -f -y
+
+RUN fix-permissions $CONDA_DIR && fix-permissions /home/$NB_USER
+
+# update pip and install basic utilities
+RUN pip3 install --no-cache-dir --upgrade pip
+
+# install the rest of the packages including medcat
+COPY ./requirements.txt /srv/jupyterhub/
+RUN pip3 install --no-cache-dir -r /srv/jupyterhub/requirements.txt
+
+# install requirements for working with cogstack scripts
+#RUN pip3 install --no-cache-dir -r notebooks/demo_working_with_cogstack/requirements.txt
+
+# Get the spacy model
+#ARG SPACY_MODELS="en_core_web_sm en_core_web_md en_core_web_lg"
+#RUN for spacy_model in ${SPACY_MODELS}; do python3 -m spacy download $spacy_model; done
+
+# clean up pip
+RUN pip3 cache purge
+
+#######################################################################################################
+
+# install R and other dependencies
+COPY ./scripts/r_kernel_install.sh /srv/jupyterhub/
+RUN Rscript /srv/jupyterhub/r_kernel_install.sh
+
+# create jupyterhub shared folder
+RUN mkdir -p /home/jovyan/scratch
+RUN chmod -R 777 /home/jovyan/scratch
+RUN chmod g+s /home/jovyan/scratch
+RUN chmod 0777 /home/jovyan/scratch
+
+# copy scripts and config files
+COPY config/jupyter_notebook_config.py /home/jovyan/.jupyter/
+
+# copy notebooks
+COPY notebooks /home/jovyan/work/
+
+WORKDIR /home/jovyan
+USER jovyan
+
+RUN echo "cd /home/jovyan/work" >> /home/jovyan/.bashrc
+
+# Configure container startup
+ENTRYPOINT ["tini", "-g", "--"]
+
+CMD ["jupyterhub-singleuser"]
