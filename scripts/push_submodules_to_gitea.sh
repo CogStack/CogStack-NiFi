@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 # Adjust this to match your Git-EA org
-GITEA_BASE=${GITEA_BASE:-"git@localhost:cogstack/deployment-nifi.git"}
+GITEA_BASE=${GITEA_BASE:-"git@localhost:2222/cogstack/deployment-nifi.git"}
 SUBMODULE_DIR="services"
 
 # Loop through each submodule
