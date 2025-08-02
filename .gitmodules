@@ -10,3 +10,6 @@
 [submodule "services/cogstack-nlp"]
 	path = services/cogstack-nlp
 	url = https://github.com/CogStack/cogstack-nlp.git
+[submodule "services/ocr-service"]
+	path = services/ocr-service
+	url = https://github.com/CogStack/ocr-service.git
