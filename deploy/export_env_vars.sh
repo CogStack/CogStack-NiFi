@@ -17,9 +17,9 @@ env_files=(
            "nifi.env"
            "elasticsearch.env"
            "database.env"
-           "nlp_service.env"
            "network_settings.env"
            "project.env"
+           "gitea.env"
            )
 
 for env_file in ${env_files[@]}; do

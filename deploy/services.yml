@@ -294,7 +294,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.0.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.1.0}
     env_file:
       - ../security/certificates_elasticsearch.env
     environment:
@@ -314,7 +314,7 @@ services:
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.0.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.1.0}
     container_name: elasticsearch-1
     shm_size : 1024mb
     restart: always
@@ -406,7 +406,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-2:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.0.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.1.0}
     container_name: elasticsearch-2
     shm_size : 1024mb
     restart: always
@@ -498,7 +498,7 @@ services:
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
   elasticsearch-3:
-    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.0.0}
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.1.0}
     container_name: elasticsearch-3
     shm_size : 1024mb
     restart: always
@@ -802,7 +802,7 @@ services:
 # Kibana webapp                                                             #
 #---------------------------------------------------------------------------#
   kibana:
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.0.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.1.0}
     container_name: cogstack-kibana
     restart: always
     env_file:
@@ -1049,7 +1049,6 @@ services:
       - ./nifi.env
       - ./elasticsearch.env
       - ./project.env
-      - ./nlp_service.env
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
