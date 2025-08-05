@@ -2,6 +2,7 @@ import io
 import base64
 import traceback
 import json
+import sys
 from logging import Logger
 from typing import Any, Dict, Union, List
 
@@ -12,8 +13,13 @@ from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
 
+# we need to add it to the sys imports
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
-class PrepareAvroBinaryForOcr(FlowFileTransform):
+from utils.avro_json_encoder import AvroJSONEncoder  # noqa: E402, F401
+
+
+class PrepareRecordForOcr(FlowFileTransform):
     identifier = None
     logger: Logger = Logger(__qualname__)
 
@@ -31,11 +37,11 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.operation_mode = None
+        self.operation_mode = "base64"
         self.binary_field_name = None
         self.output_text_field_name = None
         self.document_id_field_name = None
-        self.process_flow_file_type = None
+        self.process_flow_file_type = "none"
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -112,7 +118,11 @@ class PrepareAvroBinaryForOcr(FlowFileTransform):
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
+            if self.process_flow_file_type == "avro":
+                return FlowFileTransformResult(relationship="success", attributes=attributes,
+                                                contents=json.dumps(output_contents, cls=AvroJSONEncoder))
+            else:
+                return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

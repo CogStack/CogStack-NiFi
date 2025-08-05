@@ -1,5 +1,4 @@
 import io
-import base64
 import traceback
 import json
 from logging import Logger
@@ -31,15 +30,15 @@ class PrepareRecordForNlp(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.document_text_field_name = None
-        self.document_id_field_name = None
-        self.process_flow_file_type = None
+        self.document_text_field_name = "text"
+        self.document_id_field_name = "_id"
+        self.process_flow_file_type = "json"
 
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="document_text_field_name", description="Field to store Tika output text", default_value="not_set"),
-            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
+            PropertyDescriptor(name="document_text_field_name", description="Field to store Tika output text", default_value="text"),
+            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="_id"),
             PropertyDescriptor(name="process_flow_file_type", description="Type of flowfile input: avro | json", default_value="json")
         ]
 
@@ -84,13 +83,11 @@ class PrepareRecordForNlp(FlowFileTransform):
             for record in reader:
                 if type(record) is dict:
                     record_document_text = record.get(str(self.document_text_field_name), "")
-                    record_document_id = record.get(str(self.document_id_field_name), "")
                 else:
                     raise TypeError("Expected record to be a dictionary, but got: " + str(type(record)))
 
                 output_contents.append({
                     "text": record_document_text,
-                    "id": record_document_id,
                     "footer": {k: v for k, v in record.items() if k != str(self.document_text_field_name)}
                 })
 
@@ -104,7 +101,8 @@ class PrepareRecordForNlp(FlowFileTransform):
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
+            output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
+            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps({"content": output_contents}).encode("utf-8"))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

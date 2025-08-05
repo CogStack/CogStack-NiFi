@@ -25,13 +25,26 @@ class ParseCogStackServiceResult(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.binary_field_name = None
-        self.output_text_field_name = None
+        self.output_text_field_name = "text"
+        self.service_message_type = "ocr"
+        self.document_text_field_name = "text"
+        self.document_id_field_name = "_id"
+        self.medcat_output_mode = "not_set"
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
-            PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
+            PropertyDescriptor(name="output_text_field_name",
+                               description="field to store OCR output text, this can also be used in MedCAT output in DE_ID mode", default_value="text"),
+            PropertyDescriptor(name="service_message_type", description="the type of service message form this script processes"
+                                ", possible values: medcat | ocr", default_value="not_set"),
+            PropertyDescriptor(name="document_id_field_name",
+                               description="id field name of the document, this will be taken from the 'footer' usually", default_value="_id"),
+            PropertyDescriptor(name="document_text_field_name",
+                               description="text field name of the document", default_value="text"),
+            PropertyDescriptor(name="medcat_output_mode",
+                               description="service_message_type is set to 'medcat' for this to work, only used for deid processing,"
+                               " if the output is for deid, then we can customise the name of the text field, possible values: deid",
+                               default_value="not_set")
         ]
 
     def getPropertyDescriptors(self):
@@ -53,7 +66,7 @@ class ParseCogStackServiceResult(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
-        output_contents = {}
+        output_contents = []
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -61,21 +74,70 @@ class ParseCogStackServiceResult(FlowFileTransform):
             # read avro record
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
 
-            input_json = json.loads(input_raw_bytes.decode("utf-8"))
-            result = input_json.get("result", input_json)
+            records = json.loads(input_raw_bytes.decode("utf-8"))
 
-            output_contents["metadata"] = result.get("metadata", {})
-            output_contents["text"] = result.get("text", "")
-            output_contents["success"] = result.get("success", False)
-            output_contents["timestamp"] = result.get("timestamp", None)
+            if isinstance(records, dict):
+                records = [records]
 
-            if "footer" in result.keys():
-                for k, v in result["footer"].items():
-                    output_contents[k] = v
+            if self.service_message_type == "ocr":
+                for record in records:
+                    result = record.get("result", {})
+
+                    _record = {}
+                    _record["metadata"] = result.get("metadata", {})
+                    _record["text"] = result.get("text", "")
+                    _record["success"] = result.get("success", False)
+                    _record["timestamp"] = result.get("timestamp", None)
+
+                    if "footer" in result.keys():
+                        for k, v in result["footer"].items():
+                            _record[k] = v
+
+                    output_contents.append(_record)
+
+            elif self.service_message_type == "medcat":
+                if "result" in records[0].keys():
+                    result = records[0].get("result", [])
+                    medcat_info = records[0].get("medcat_info", {})
+
+                    if isinstance(result, dict):
+                        result = [result]
+
+                    for annotated_record in result:
+                        annotations = annotated_record.get("annotations", [])
+                        annotations = annotations[0] if len(annotations) > 0 else annotations
+                        footer = annotated_record.get("footer", {})
+
+                        if self.medcat_output_mode == "deid":
+                            _output_annotated_record = {}
+                            _output_annotated_record["service_model"] = medcat_info
+                            _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)   
+                            _output_annotated_record[self.output_text_field_name] = annotated_record.get("text", "") 
+
+                            for k, v in footer.items():
+                                _output_annotated_record[k] = v
+                            output_contents.append(_output_annotated_record)
+
+                        else:
+                            for annotation_id, annotation_data in annotations:
+                                _output_annotated_record = {}
+                                _output_annotated_record["service_model"] = medcat_info
+                                _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
+
+                                for k, v in annotation_data.items():
+                                    _output_annotated_record[k] = v
+
+                                for k, v in footer.items():
+                                    _output_annotated_record[k] = v
+
+                                if self.document_id_field_name in footer.keys():
+                                    _output_annotated_record["annotation_id"] = \
+                                        str(footer[self.document_id_field_name]) + "_" + str(annotation_id)
+
+                                output_contents.append(_output_annotated_record)
 
             # add properties to flowfile attributes
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
-            attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
 
