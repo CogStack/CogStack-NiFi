@@ -57,7 +57,6 @@ class PyStreamCallback(StreamCallback):
             medcat_info = json_data_records[0]["nlp_service_info"]
 
         for annotated_text_record in result:
-
             doc_id = ""
             if ANNOTATION_OUTPUT_TYPE != "medcat":
                 annotated_text_record = annotated_text_record["nlp_output"]
