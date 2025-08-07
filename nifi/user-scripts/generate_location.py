@@ -26,11 +26,13 @@ for arg in sys.argv:
     elif _arg[0] == "location_name_field":
         LOCATION_NAME_FIELD = _arg[1]
 
+
 # generates a map polygon based on city names given
 def poly_creator(city: str):
     box = rc.nominatim_geocoder(city)
     poly = rc.polygon_from_boundingbox(box)
     return poly
+
 
 def main():
     input_stream = sys.stdin.read()
@@ -61,5 +63,6 @@ def main():
                 log_file.write("\n" + str(traceback.print_exc()))
     finally:
         return output_stream
+
 
 sys.stdout.write(json.dumps(main()))

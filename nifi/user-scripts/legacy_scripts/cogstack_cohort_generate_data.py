@@ -4,8 +4,8 @@ import logging
 from datetime import datetime, timezone
 import os
 import traceback
-import multiprocess
-from multiprocess import Pool, Queue
+import multiprocessing
+from multiprocessing import Pool, Queue
 from collections import defaultdict, Counter
 from utils.ethnicity_map import ethnicity_map
 from utils.generic import chunk, dict2jsonl_file, dict2json_file
@@ -37,7 +37,7 @@ DATE_TIME_FORMAT = "%Y-%m-%d"
 
 TIMEOUT = 360
 
-CPU_THREADS = int(os.getenv("CPU_THREADS", int(multiprocess.cpu_count() / 2)))
+CPU_THREADS = int(os.getenv("CPU_THREADS", int(multiprocessing.cpu_count() / 2)))
 
 INPUT_FOLDER_PATH = ""
 
@@ -200,7 +200,7 @@ def _process_annotation_records(annotation_records: list):
     return _cui2ptt_pos, _cui2ptt_tsp
 
 
-def multiprocess_patient_records(input_patient_record_data: dict):
+def multiprocessing_patient_records(input_patient_record_data: dict):
 
     # ptt2sex.json a dictionary for gender of each patient {<patient_id>:<gender>, ...}
     ptt2sex = {}
@@ -250,7 +250,7 @@ def multiprocess_patient_records(input_patient_record_data: dict):
     return doc2ptt, ptt2dod, ptt2age, ptt2dob, ptt2eth, ptt2sex
 
 
-def multiprocess_annotation_records(input_annotations: dict):
+def multiprocessing_annotation_records(input_annotations: dict):
 
     # cui2ptt_pos.jsonl each line is a dictionary of cui and the value is a dictionary of patients with a count {<cui>: {<patient_id>:<count>, ...}}\n...
     cui2ptt_pos = defaultdict(Counter) # store the count of a SNOMED term for a patient
@@ -333,7 +333,7 @@ if INPUT_PATIENT_RECORD_FILE_NAME_PATTERN:
 
                 with open(f_path, mode="r+") as f:
                     contents = json.loads(f.read())
-                    _doc2ptt, _ptt2dod, _ptt2age, _ptt2dob, _ptt2eth, _ptt2sex = multiprocess_patient_records(contents)
+                    _doc2ptt, _ptt2dod, _ptt2age, _ptt2dob, _ptt2eth, _ptt2sex = multiprocessing_patient_records(contents)
 
                     if _ptt2sex != {}:
                         ptt2sex.update(_ptt2sex)
@@ -385,7 +385,7 @@ if INPUT_ANNOTATIONS_RECORDS_FILE_NAME_PATTERN:
                 with open(f_path, mode="r+") as f:
                     contents = json.loads(f.read())
 
-                    cui2ptt_pos, cui2ptt_tsp = multiprocess_annotation_records(contents)
+                    cui2ptt_pos, cui2ptt_tsp = multiprocessing_annotation_records(contents)
                     dict2jsonl_file(cui2ptt_pos, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_pos.jsonl"))
                     dict2jsonl_file(cui2ptt_tsp, os.path.join(OUTPUT_FOLDER_PATH, "cui2ptt_tsp.jsonl"))
 
