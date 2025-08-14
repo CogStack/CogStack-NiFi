@@ -7,3 +7,6 @@
 [submodule "services/ocr-service"]
 	path = services/ocr-service
 	url = https://github.com/CogStack/ocr-service.git
+[submodule "services/cogstack-jupyter-hub"]
+	path = services/cogstack-jupyter-hub
+	url = https://github.com/CogStack/cogstack-jupyter-hub.git
