@@ -30,6 +30,7 @@ class ParseCogStackServiceResult(FlowFileTransform):
         self.document_text_field_name = "text"
         self.document_id_field_name = "_id"
         self.medcat_output_mode = "not_set"
+        self.medcat_deid_keep_annotations = True
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -44,7 +45,9 @@ class ParseCogStackServiceResult(FlowFileTransform):
             PropertyDescriptor(name="medcat_output_mode",
                                description="service_message_type is set to 'medcat' for this to work, only used for deid processing,"
                                " if the output is for deid, then we can customise the name of the text field, possible values: deid",
-                               default_value="not_set")
+                               default_value="not_set"),
+            PropertyDescriptor(name="medcat_deid_keep_annotations",
+                               description="if set to true, then the annotations will be kept in the output with the text field")
         ]
 
     def getPropertyDescriptors(self):
@@ -113,6 +116,9 @@ class ParseCogStackServiceResult(FlowFileTransform):
                             _output_annotated_record["service_model"] = medcat_info
                             _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)   
                             _output_annotated_record[self.output_text_field_name] = annotated_record.get("text", "") 
+
+                            if self.medcat_deid_keep_annotations:
+                                _output_annotated_record["annotations"] = annotations
 
                             for k, v in footer.items():
                                 _output_annotated_record[k] = v
