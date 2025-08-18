@@ -111,128 +111,6 @@ services:
       - cognet
 
 #---------------------------------------------------------------------------#
-# OCR service(s)                                                            #
-#---------------------------------------------------------------------------#
-  ocr-service-1:
-    container_name: ocr-service-1
-    image: cogstacksystems/cogstack-ocr-service:latest-${CPU_ARCHITECTURE:-amd64}
-    restart: always
-    # mem_swappiness: 0
-    # cpuset: "0-15"
-    shm_size : 1024mb
-    privileged: true
-    security_opt:
-      - seccomp:unconfined
-    env_file:
-      - ./network_settings.env
-      - ../services/ocr-service/env/ocr_service.env
-    environment:
-      # tesseract threading is disabled as the processing will take care of distribution
-      - OMP_THREAD_LIMIT=1
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - "8090:8090"
-    expose: 
-      - "8090"
-    networks:
-      - cognet
-
-  ocr-service-2:
-    container_name: ocr-service-2-text-only-no-ocr
-    image: cogstacksystems/cogstack-ocr-service:latest-${CPU_ARCHITECTURE:-amd64}
-    restart: always
-    # mem_swappiness: 0
-    # cpuset: "0-15"
-    shm_size : 1024mb
-    privileged: true
-    security_opt:
-      - seccomp:unconfined
-    env_file:
-      - ./network_settings.env
-      - ../services/ocr-service/env/ocr_service.env
-      - ../services/ocr-service/env/ocr_service_text_only.env
-    environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-
-      # tesseract threading is disabled as the processing will take care of distribution
-      - OMP_THREAD_LIMIT=1
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - "8091:8090"
-    expose: 
-      - "8090"
-    networks:
-      - cognet
-
-#---------------------------------------------------------------------------#
-# NLP Services containers                                                   #
-#   * using internal models / resources                                     #
-#---------------------------------------------------------------------------#
-  nlp-medcat-service-production:
-    image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:1.0.0}
-    container_name: cogstack-medcat-service-production
-    restart: always
-    env_file:
-      - ./nlp_service.env
-      - ../services/nlp-services/medcat-service/env/app.env
-      - ../services/nlp-services/medcat-service/env/medcat.env
-    volumes:
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
-    expose:
-      - 5000
-    ports:
-      - "${MEDCAT_SERVICE_SERVER_OUTPUT_PORT:-5555}:5000"
-    networks:
-      - cognet
-    #deploy:
-    #  resources:
-    #    reservations:
-    #      devices:
-    #        - driver: nvidia
-    #          count: all
-    #          # device_ids: ['0']
-    #          capabilities: ["gpu", "utility", "compute", "video"]
-
-  nlp-medcat-service-production-deid:
-      image: ${MEDCAT_SERVICE_IMAGE_VERSION:-cogstacksystems/medcat-service:1.0.0}
-      container_name: cogstack-medcat-service-production-deid
-      restart: always
-      env_file:
-        - ./nlp_service.env
-        - ../services/nlp-services/medcat-service/env/app_deid.env
-        - ../services/nlp-services/medcat-service/env/medcat_deid.env
-      volumes:
-        - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
-      expose:
-        - 5000
-      ports:
-        - "${MEDCAT_SERVIC_DEID_SERVER_OUTPUT_PORT:-5556}:5000"
-      networks:
-        - cognet
-      #deploy:
-      #  resources:
-      #    reservations:
-      #      devices:
-      #        - driver: nvidia
-      #          count: all
-      #          # device_ids: ['0']
-      #          capabilities: ["gpu", "utility", "compute", "video"]
-
-#---------------------------------------------------------------------------#
 # MedCAT Trainer                                                            #
 #---------------------------------------------------------------------------#
   medcat-trainer-ui:
@@ -670,6 +548,46 @@ services:
       - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
       - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
 
+  metricbeat-3:
+    container_name: cogstack-metricbeat-3
+    image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.2}
+    command: -e --strict.perms=false
+    env_file:
+         - ./network_settings.env
+         - ./elasticsearch.env
+         - ../security/users_elasticsearch.env
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
+      - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
+      - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
+      - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+    volumes:
+      - metricbeat-data-2:/usr/share/metricbeat/data
+
+      - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      # ES NATIVE NODE CERTS
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 262144
+    networks:
+      - cognet
+    extra_hosts:
+      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+
   filebeat-1:
     container_name: cogstack-filebeat-1
     image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
@@ -1067,59 +985,6 @@ services:
     command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
 
 #---------------------------------------------------------------------------#
-# Jupyter Hub                                                               #
-#---------------------------------------------------------------------------#
-  jupyter-hub:
-    image: cogstacksystems/jupyter-hub:2.0.2-${CPU_ARCHITECTURE:-amd64}
-    #build:
-    #  context: ../services/jupyter-hub/
-    #  args:
-    #    - http_proxy=$HTTP_PROXY
-    #    - https_proxy=$HTTPS_PROXY
-    #    - no_proxy=$no_proxy
-    container_name: cogstack-jupyter-hub
-    restart: always
-    env_file:
-      - ./general.env
-      - ./network_settings.env
-      - ../services/jupyter-hub/env/jupyter.env
-    environment:
-      - JUPYTERHUB_INTERNAL_PORT=${JUPYTERHUB_INTERNAL_PORT:-8888}
-      - JUPYTERHUB_INTERNAL_PROXY_API_PORT=${JUPYTERHUB_INTERNAL_PROXY_API_PORT:-8887}
-      - JUPYTERHUB_SSL_PORT=${JUPYTERHUB_SSL_PORT:-443}
-    volumes:
-      - jupyter-hub-shared-scratch:/home/jovyan/scratch
-      - jupyter-hub-vol:/srv/jupyterhub
-      # Security configs
-      - ../security/root_certificates/root-ca.key:/srv/jupyterhub/root-ca.key:ro
-      - ../security/root_certificates/root-ca.pem:/srv/jupyterhub/root-ca.pem:ro
-      - ../services/jupyter-hub/config/jupyterhub_cookie_secret:/srv/jupyterhub/jupyterhub_cookie_secret:ro
-      # User list and jupyter config
-      - ../services/jupyter-hub/config/jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
-      - ../services/jupyter-hub/config/userlist:/srv/jupyterhub/userlist:rw
-      - ../services/jupyter-hub/config/teamlist:/srv/jupyterhub/teamlist:rw
-      # Give access to Docker socket
-      - /var/run/docker.sock:/var/run/docker.sock
-    #command: sh -c "jupyterhub -f /etc/jupyterhub/jupyterhub_config.py"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 262144
-    ports:
-      - "${JUPYTERHUB_INTERNAL_PORT:-8888}:${JUPYTERHUB_SSL_PORT:-443}"
-    networks:
-      - cognet
-    extra_hosts:
-      - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
-      - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
-      - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
-      - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
-      - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
-
-#---------------------------------------------------------------------------#
 # Cogstack cohort service                                                   #
 #---------------------------------------------------------------------------#
   cogstack-cohort:
@@ -1247,12 +1112,6 @@ volumes:
   medcat-api-db:
     driver: local
   solr-data:
-    driver: local
-
-  # Jupyter Hub
-  jupyter-hub-vol:
-    driver: local
-  jupyter-hub-shared-scratch:
     driver: local
 
   # Gitea
