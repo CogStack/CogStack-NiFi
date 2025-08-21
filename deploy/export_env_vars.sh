@@ -4,35 +4,41 @@
 set -uo pipefail
 
 
-echo "🔧 Running $(basename "$0")..."
+echo "🔧 Running $(basename "${BASH_SOURCE[0]}")..."
 
 set -a
 
 current_dir=$(pwd)
-security_dir="../security/"
-services_dir="../services/"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEPLOY_DIR="$SCRIPT_DIR"
+SECURITY_DIR="$SCRIPT_DIR/../security"
+SERVICES_DIR="$SCRIPT_DIR/../services"
+
 
 env_files=(
-          "${security_dir}certificates_nifi.env"
-          "${security_dir}certificates_general.env"
-          "${security_dir}certificates_elasticsearch.env"
-          "${security_dir}users_elasticsearch.env"
-          "${security_dir}users_database.env"
-          "${security_dir}users_nifi.env"
-          "${security_dir}users_nginx.env"
-          "general.env"
-          "nifi.env"
-          "elasticsearch.env"
-          "database.env"
-          "network_settings.env"
-          "project.env"
-          "gitea.env"
-          "nginx.env"
-          "${services_dir}cogstack-jupyter-hub/env/jupyter.env"
-          "${services_dir}ocr-service/env/ocr_service.env"
-          "${services_dir}cogstack-nlp/medcat_service/app.env"
-          "${services_dir}cogstack-nlp/medcat_service/medcat.env"
-          )
+  "$SECURITY_DIR/certificates_nifi.env"
+  "$SECURITY_DIR/certificates_general.env"
+  "$SECURITY_DIR/certificates_elasticsearch.env"
+  "$SECURITY_DIR/users_elasticsearch.env"
+  "$SECURITY_DIR/users_database.env"
+  "$SECURITY_DIR/users_nifi.env"
+  "$SECURITY_DIR/users_nginx.env"
+
+  "$DEPLOY_DIR/general.env"
+  "$DEPLOY_DIR/nifi.env"
+  "$DEPLOY_DIR/elasticsearch.env"
+  "$DEPLOY_DIR/database.env"
+  "$DEPLOY_DIR/network_settings.env"
+  "$DEPLOY_DIR/project.env"
+  "$DEPLOY_DIR/gitea.env"
+  "$DEPLOY_DIR/nginx.env"
+
+  "$SERVICES_DIR/cogstack-jupyter-hub/env/jupyter.env"
+  "$SERVICES_DIR/ocr-service/env/ocr_service.env"
+  "$SERVICES_DIR/cogstack-nlp/medcat_service/app.env"
+  "$SERVICES_DIR/cogstack-nlp/medcat_service/medcat.env"
+)
 
 for env_file in "${env_files[@]}"; do
   if [ -f "$env_file" ]; then

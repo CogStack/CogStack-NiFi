@@ -1,3 +1,6 @@
+SHELL := /usr/bin/env bash
+.SHELLFLAGS := -o pipefail -c
+
 DC_START_CMD := up -d
 DC_STOP_CMD := stop
 DC_DOWN_CMD := down
@@ -54,7 +57,9 @@ start-jupyter:
 	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_START_CMD) cogstack-jupyter-hub
 
 start-medcat-service:
-	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nlp-medcat-service-production
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production
+start-medcat-service-deid:
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production-deid
 
 start-medcat-trainer:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) medcat-trainer-ui medcat-trainer-nginx
