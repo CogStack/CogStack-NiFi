@@ -10,6 +10,7 @@ set -a
 
 current_dir=$(pwd)
 security_dir="../security/"
+services_dir="../services/"
 
 env_files=(
           "${security_dir}certificates_nifi.env"
@@ -27,6 +28,10 @@ env_files=(
           "project.env"
           "gitea.env"
           "nginx.env"
+          "${services_dir}cogstack-jupyter-hub/env/jupyter.env"
+          "${services_dir}ocr-service/env/ocr_service.env"
+          "${services_dir}cogstack-nlp/medcat_service/app.env"
+          "${services_dir}cogstack-nlp/medcat_service/medcat.env"
           )
 
 for env_file in "${env_files[@]}"; do
