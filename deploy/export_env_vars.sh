@@ -36,8 +36,8 @@ env_files=(
 
   "$SERVICES_DIR/cogstack-jupyter-hub/env/jupyter.env"
   "$SERVICES_DIR/ocr-service/env/ocr_service.env"
-  "$SERVICES_DIR/cogstack-nlp/medcat_service/app.env"
-  "$SERVICES_DIR/cogstack-nlp/medcat_service/medcat.env"
+  "$SERVICES_DIR/cogstack-nlp/medcat-service/app.env"
+  "$SERVICES_DIR/cogstack-nlp/medcat-service/medcat.env"
 )
 
 for env_file in "${env_files[@]}"; do
