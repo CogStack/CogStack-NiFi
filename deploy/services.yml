@@ -128,8 +128,8 @@ services:
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
       - medcat-api-db:/home/api/db
-      - ../services/medcat-trainer/configs:/home/configs
-      - ../services/medcat-trainer/supervisord.conf:/etc/supervisord.conf
+      - ../services/cogstack-nlp/medcat-trainer/configs:/home/configs
+      - ../services/cogstack-nlp/medcat-trainer/supervisord.conf:/etc/supervisord.conf
     expose:
       - "8000"
     command: /usr/bin/supervisord -c /etc/supervisord.conf
@@ -141,8 +141,8 @@ services:
     env_file:
       - ./network_settings.env
     volumes:
-      - ../services/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/medcat-trainer/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../services/cogstack-nlp/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ../services/cogstack-nlp/medcat-trainer/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - medcat-api-media:/home/api/media
       - medcat-api-static:/home/api/static
     ports:
