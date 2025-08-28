@@ -70,15 +70,24 @@ jobs:
 
       - name: Build and push Docker Kibana image
         run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/kibana:$RELEASE_VERSION-${{ matrix.platform }} -f "./services/kibana/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/kibana:$RELEASE_VERSION-${{ matrix.platform }}
+          docker build \
+            --platform linux/${{ matrix.platform }} \
+            -t cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} \
+            -f services/kibana/Dockerfile_native \
+            services/kibana
+          docker push cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
 
       - name: Build and push Docker Elasticsearch image
         id: docker_build
         run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/elasticsearch:$RELEASE_VERSION-${{ matrix.platform }} -f "./services/elasticsearch/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/elasticsearch:$RELEASE_VERSION-${{ matrix.platform }}
-          echo "::set-output name=digest::$(docker images --digests --format '{{.Digest}}' cogstacksystems/elasticsearch | head -n 1)"
+          docker build \
+            --platform linux/${{ matrix.platform }} \
+            -t cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} \
+            -f services/elasticsearch/Dockerfile_native \
+            --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} \
+            services/elasticsearch
+          docker push cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
+          echo "digest=$(docker images --digests --format '{{.Digest}}' cogstacksystems/elasticsearch | head -n 1)" >> $GITHUB_OUTPUT
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
