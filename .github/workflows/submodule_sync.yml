@@ -15,7 +15,7 @@ jobs:
   sync:
     name: 'Submodules Sync'
     runs-on: ubuntu-latest
-
+    
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
@@ -24,7 +24,7 @@ jobs:
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v5
       with:
         token: ${{ github.token }}
         submodules: true
