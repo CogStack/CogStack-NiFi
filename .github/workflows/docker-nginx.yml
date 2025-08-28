@@ -11,7 +11,6 @@ on:
   release:
     types: [published]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -32,7 +31,6 @@ jobs:
     env:
       working-directory: ./services/nginx
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
