@@ -29,7 +29,7 @@ jobs:
             runner: ubuntu-22.04-arm
     
     env:
-      working-directory: ./services/elasticsearch
+      working-directory: ./
 
     steps:
       - name: Checkout repo
@@ -78,7 +78,7 @@ jobs:
         run: |
           docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/elasticsearch:$RELEASE_VERSION-${{ matrix.platform }} -f "./services/elasticsearch/Dockerfile_native" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
           docker push cogstacksystems/elasticsearch:$RELEASE_VERSION-${{ matrix.platform }}
-          echo "::set-output name=digest::$(docker images --digests --format '{{.Digest}}' cogstacksystems/nifi-nginx | head -n 1)"
+          echo "::set-output name=digest::$(docker images --digests --format '{{.Digest}}' cogstacksystems/elasticsearch | head -n 1)"
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
