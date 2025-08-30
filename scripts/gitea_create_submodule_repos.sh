@@ -4,7 +4,7 @@ set -e
 GITEA_ENV_FILE="./deploy/gitea.env"
 
 if [ -f "$GITEA_ENV_FILE" ]; then
-  echo "📦 Loading environment from $GITEA_ENV_FILE"f
+  echo "📦 Loading environment from $GITEA_ENV_FILE"
   set -a
   source "$GITEA_ENV_FILE"
   set +a
@@ -118,16 +118,24 @@ eval "$paths_cmd" | while IFS= read -r path; do
       git remote set-url --add --push origin "$gitea_url"
     fi
 
-    # mirror once IF local has refs AND Gitea is empty
     if git show-ref --quiet; then
-      if ! git ls-remote --exit-code $GITEA_DEFAULT_MAIN_REMOTE_NAME >/dev/null 2>&1; then
-        echo "↗️ mirroring $name to $GITEA_DEFAULT_MAIN_REMOTE_NAME…"
-        git push --mirror $GITEA_DEFAULT_MAIN_REMOTE_NAME
+      # unshallow if needed so server accepts updates
+      if git rev-parse --is-shallow-repository | grep -q true; then
+        git fetch --unshallow --tags || git fetch --depth=2147483647 --tags
       else
-        echo "ℹ️ $GITEA_DEFAULT_MAIN_REMOTE_NAME already has refs; skip mirror"
+        git fetch --tags
       fi
+
+      # avoid mirror pushes (which include refs/remotes/origin/*)
+      git config --get-all remote.$GITEA_DEFAULT_MAIN_REMOTE_NAME.mirror >/dev/null 2>&1 && \
+        git config --unset-all remote.$GITEA_DEFAULT_MAIN_REMOTE_NAME.mirror || true
+
+      # push only local branches + tags
+      echo "↗️ pushing branches & tags to $GITEA_DEFAULT_MAIN_REMOTE_NAME…"
+      git push $GITEA_DEFAULT_MAIN_REMOTE_NAME --all
+      git push $GITEA_DEFAULT_MAIN_REMOTE_NAME --tags
     else
-      echo "ℹ️ no local refs; skip mirror"
+      echo "ℹ️ no local refs; skip push"
     fi
   )
 done

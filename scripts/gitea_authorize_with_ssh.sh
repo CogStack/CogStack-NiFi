@@ -19,6 +19,10 @@ fi
 echo "================================================================================================================================================="
 echo "# 1. Generate SSH key if it doesn't exist"
 
+# Clean up stale host fingerprints for Gitea SSH
+ssh-keygen -R "[127.0.0.1]:2222" >/dev/null 2>&1 || true
+ssh-keygen -R "[localhost]:2222" >/dev/null 2>&1 || true
+
 if [ ! -f "$GITEA_LOCAL_KEY_PATH" ]; then
   echo "🔐 Generating SSH key..."
   ssh-keygen -t rsa -b 4096 -C "$GITEA_USER@localhost" -f "$GITEA_LOCAL_KEY_PATH" -N ""
