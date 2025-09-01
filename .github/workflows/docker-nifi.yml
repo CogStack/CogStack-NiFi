@@ -72,7 +72,7 @@ jobs:
       - name: Build and push Docker NiFi image
         id: docker_build
         run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/cogstack-nifi:$RELEASE_VERSION-${{ matrix.platform }} -f "./nifi/Dockerfile" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
+          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/cogstack-nifi:$RELEASE_VERSION-${{ matrix.platform }} -f "./Dockerfile" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
           docker push cogstacksystems/cogstack-nifi:$RELEASE_VERSION-${{ matrix.platform }}
           echo "::set-output name=digest::$(docker images --digests --format '{{.Digest}}' cogstacksystems/nifi-nginx | head -n 1)"
 
