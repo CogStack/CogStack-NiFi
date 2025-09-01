@@ -3,10 +3,15 @@ import json
 from logging import Logger
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
 
-from nifiapi.properties import StandardValidators
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+    ExpressionLanguageScope,
+)
+
 
 class ParseCogStackServiceResult(FlowFileTransform):
     identifier = None
@@ -26,29 +31,49 @@ class ParseCogStackServiceResult(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.output_text_field_name = "text"
-        self.service_message_type = "ocr"
-        self.document_text_field_name = "text"
-        self.document_id_field_name = "_id"
-        self.medcat_output_mode = "not_set"
+        self.output_text_field_name: str = "text"
+        self.service_message_type: str = "ocr"
+        self.document_text_field_name:str = "text"
+        self.document_id_field_name: str = "_id"
+        self.medcat_output_mode: str = "not_set"
         self.medcat_deid_keep_annotations: bool = True
 
         # this is directly mirrored to the UI
         self._properties = [
             PropertyDescriptor(name="output_text_field_name",
-                               description="field to store OCR output text, this can also be used in MedCAT output in DE_ID mode", default_value="text"),
-            PropertyDescriptor(name="service_message_type", description="the type of service message form this script processes"
-                                ", possible values: medcat | ocr", default_value="not_set"),
+                               description="field to store OCR output text, this can also be used in MedCAT output in DE_ID mode",
+                               default_value="text",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="service_message_type",
+                               description="the type of service message form this script processes, possible values: not_set | medcat | ocr",
+                               default_value="not_set",
+                               required=True,
+                               allowable_values=["ocr", "medcat", "not_set"]),
             PropertyDescriptor(name="document_id_field_name",
-                               description="id field name of the document, this will be taken from the 'footer' usually", default_value="_id"),
+                               description="id field name of the document, this will be taken from the 'footer' usually",
+                               default_value="_id",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
             PropertyDescriptor(name="document_text_field_name",
-                               description="text field name of the document", default_value="text"),
+                               description="text field name of the document",
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR],
+                               required=True,
+                               default_value="text"),
             PropertyDescriptor(name="medcat_output_mode",
                                description="service_message_type is set to 'medcat' for this to work, only used for deid processing,"
-                               " if the output is for deid, then we can customise the name of the text field, possible values: deid",
-                               default_value="not_set"),
+                               " if the output is for deid, then we can customise the name of the text field, possible values: deid | not_set",
+                               default_value="not_set",
+                               required=True,
+                               allowable_values=["deid", "not_set"],
+                               ),
             PropertyDescriptor(name="medcat_deid_keep_annotations",
-                               description="if set to true, then the annotations will be kept in the output with the text field", validators=StandardValidators.BOOLEAN_VALIDATOR)
+                               description="if set to true, then the annotations will be kept in the output with the text field",
+                               required=True,
+                               default_value="true",
+                               allowable_values=["true", "false"],
+                               validators=[StandardValidators.BOOLEAN_VALIDATOR],
+                               )
         ]
 
     def getPropertyDescriptors(self):
@@ -72,13 +97,13 @@ class ParseCogStackServiceResult(FlowFileTransform):
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         output_contents = []
         try:
-            self.process_context = context
+            self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
 
             # read avro record
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
 
-            records = json.loads(input_raw_bytes.decode("utf-8"))
+            records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
             if isinstance(records, dict):
                 records = [records]
