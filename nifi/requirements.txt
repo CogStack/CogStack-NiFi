@@ -1,3 +1,33 @@
+# data science pkgs
+seaborn==0.13.2
+matplotlib==3.10.6
+graphviz==0.21
+plotly==6.3.0
+keras==3.11.3
+nltk==3.9.1
+numpy>=1.26.0,<2.0.0
+pandas==1.5.3
+dill>=0.3.6,<1.0.0
+
+# MEDCAT
+medcat==1.16.5
+
+# used in NiFi scripts: geolocation, avro conversion etc.
 py4j==0.10.9.9
-medcat==1.16.0
-rancoord=0.0.6
+rancoord==0.0.6
+geocoder==1.38.1
+avro==1.12.0
+nipyapi==0.22.0
+# other utils
+xnat==0.7.2
+
+# ElasticSearch/OpenSearch packages
+opensearch-py==3.0.0
+elasticsearch9==9.1.0
+neo4j==5.28.2
+eland==9.0.1
+
+# git utils
+dvc==3.62.0
+GitPython==3.1.45
+PyYAML==6.0.2
