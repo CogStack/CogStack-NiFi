@@ -6,6 +6,7 @@ from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
 
+from nifiapi.properties import StandardValidators
 
 class ParseCogStackServiceResult(FlowFileTransform):
     identifier = None
@@ -30,7 +31,7 @@ class ParseCogStackServiceResult(FlowFileTransform):
         self.document_text_field_name = "text"
         self.document_id_field_name = "_id"
         self.medcat_output_mode = "not_set"
-        self.medcat_deid_keep_annotations = True
+        self.medcat_deid_keep_annotations: bool = True
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -47,7 +48,7 @@ class ParseCogStackServiceResult(FlowFileTransform):
                                " if the output is for deid, then we can customise the name of the text field, possible values: deid",
                                default_value="not_set"),
             PropertyDescriptor(name="medcat_deid_keep_annotations",
-                               description="if set to true, then the annotations will be kept in the output with the text field")
+                               description="if set to true, then the annotations will be kept in the output with the text field", validators=StandardValidators.BOOLEAN_VALIDATOR)
         ]
 
     def getPropertyDescriptors(self):
@@ -117,8 +118,10 @@ class ParseCogStackServiceResult(FlowFileTransform):
                             _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)   
                             _output_annotated_record[self.output_text_field_name] = annotated_record.get("text", "") 
 
-                            if self.medcat_deid_keep_annotations:
+                            if self.medcat_deid_keep_annotations is True:
                                 _output_annotated_record["annotations"] = annotations
+                            else:
+                                _output_annotated_record["annotations"] = {}
 
                             for k, v in footer.items():
                                 _output_annotated_record[k] = v
