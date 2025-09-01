@@ -27,10 +27,11 @@ jobs:
             runner: ubuntu-22.04
           - platform: arm64
             runner: ubuntu-22.04-arm
-    
     env:
-      working-directory: ./nifi
-
+      working-directory: ./nifi/
+    defaults:
+      run:
+        working-directory: ./nifi/
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5

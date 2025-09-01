@@ -130,6 +130,9 @@ stop-medcat-trainer:
 stop-medcat-service:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production
 
+stop-medcat-service-deid:
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production-deid
+
 stop-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea
 
