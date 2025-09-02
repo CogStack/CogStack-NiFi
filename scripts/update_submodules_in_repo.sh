@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-git submodule update --init --recursive --depth 1 --filter=blob:none
+git submodule update --init --recursive --depth 1
 
 echo "🔄 Updating submodules to latest release tag on origin/main (fallback: HEAD of main)…"
 
@@ -13,9 +13,9 @@ git submodule foreach '
   git fetch --no-recurse-submodules --force --tags --depth=1 origin
 
   # pick newest tag that’s reachable from main; fallback to main head
-  latest=$(git tag --merged origin/main --sort=-v:refname | head -n1)
+  latest=$(git tag --merged origin/main --sort=-v:refname | head -n1 || true)
 
-  if [ -n "$latest" ]; then
+  if [ -n "${latest:-}" ]; then
     echo "→ $name: checkout tag $latest"
     git checkout -q --detach "tags/$latest"
   else
@@ -25,5 +25,5 @@ git submodule foreach '
 '
 
 #git submodule foreach git pull origin main
-git add .gitmodules $(git submodule foreach --quiet "echo \$path") || true
+git add $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}') || true
 git commit -m "Update submodules to latest release tags (or main)" || echo "ℹ️ No changes to commit."
