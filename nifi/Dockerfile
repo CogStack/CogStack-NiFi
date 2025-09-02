@@ -71,9 +71,6 @@ RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_F
 
 # install MedCAT from the working with cogstack repo (as it is assumed to be stable and the latest version)
 RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
-
-# clean up pip
-RUN pip3 cache purge
  
 #######################################################################################################
 
