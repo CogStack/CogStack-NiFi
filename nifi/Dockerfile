@@ -23,6 +23,10 @@ ENV NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECT
 ENV NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT=${NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT}
 ENV NIFI_PYTHON_WORKING_DIRECTORY=${NIFI_PYTHON_WORKING_DIRECTORY}
 
+# python stuff
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_CACHE_DIR=1
+
 # default env vars to prevent NiFi from running on HTTP
 ENV NIFI_WEB_HTTP_PORT=""
 ENV NIFI_WEB_HTTP_HOST=""
@@ -33,7 +37,7 @@ RUN echo "UID=${UID}"
 USER root
 
 # run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get install -y --no-install-recommends iputils-ping libssl-dev openssl apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip tzdata
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && apt-get install -y --no-install-recommends iputils-ping libssl-dev openssl apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip tzdata jq
 
 RUN echo "deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
 RUN echo "deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
@@ -60,14 +64,13 @@ RUN apt-get clean autoclean && apt-get autoremove --purge -y
 ######################################## Python / PIP SECTION ########################################
 
 RUN pip3 install --no-cache-dir --break-system-packages --upgrade pip setuptools wheel
-RUN pip3 install --no-cache-dir --break-system-packages psycopg2-binary
-
-RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} ipyparallel py7zr cython isort html2text jsoncsv simplejson detect bokeh tqdm && \
-    pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} pymssql mysql-connector-python cx-Oracle jsonpickle jsonext python-certifi-win32 certifi pyodbc openpyxl
 
 # install util packages used in NiFi scripts (such as MedCAT, avro, nifyapi, etc.)
-COPY ./requirements.txt ./
-RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
+COPY ./requirements.txt ./requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt"
+
+# install MedCAT from the working with cogstack repo (as it is assumed to be stable and the latest version)
+RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
 
 # clean up pip
 RUN pip3 cache purge
