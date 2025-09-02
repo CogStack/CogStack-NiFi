@@ -119,7 +119,7 @@ services:
     restart: always
     # INFO: MedCAT library config provided via env file
     env_file:
-      - ../services/medcat-trainer/envs/env
+      - ../services/cogstack-nlp/medcat-trainer/envs/env
     environment:
       - MCT_VERSION=v2.22.0
       - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
