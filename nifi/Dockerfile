@@ -54,7 +54,7 @@ RUN echo "deb-src http://security.debian.org/debian-security/ bookworm-security 
 RUN wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/packages.microsoft.gpg
 RUN echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | tee -a /etc/apt/sources.list
 
-RUN apt-get update && apt-get install --no-install-recommends -y ssl-cert libsqlite3-dev python3-dev python3-pip python3.11 python3.11-dev python3.11-full python3-venv sqlite3 postgresql-server-dev-all
+RUN apt-get update && apt-get install --no-install-recommends -y ssl-cert libsqlite3-dev python3-dev python3-pip python3.11 python3.11-dev python3-venv sqlite3 postgresql-server-dev-all
 
 # install rust, medcat requirement
 RUN curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
