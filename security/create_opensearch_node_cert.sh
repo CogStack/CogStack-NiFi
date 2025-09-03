@@ -1,116 +1,121 @@
 #!/bin/bash
 
-################################################################
-# 
-# This script creates client keys and certificates that can 
-#  be used by client's applications
+# ==============================================================================
+# 🔐 Generate OpenSearch node certificate signed by Root CA
 #
+# Usage:
+#     ./create_opensearch_node_cert.sh <cert_name>
+#
+# Requires:
+#     - certificates_general.env
+#     - certificates_elasticsearch.env
+#     - users_elasticsearch.env
+#
+# Produces:
+#     - <cert_name>.key            → Private key (PKCS#8)
+#     - <cert_name>.csr            → Certificate Signing Request
+#     - <cert_name>.crt            → Signed X.509 certificate
+#     - <cert_name>-keystore.jks   → Java Keystore for NiFi etc.
+#     - <cert_name>-truststore.key → Truststore with CA cert
+#     - Copies CA root certs into ./es_certificates/opensearch/
+#     - Final path: ./es_certificates/opensearch/elasticsearch/<cert_name>/
+# ==============================================================================
 
-set -e
+set -euo pipefail
 
 # required env var files
-source ../deploy/general.env
-source certificates_elasticsearch.env
 source certificates_general.env
+source certificates_elasticsearch.env
 source users_elasticsearch.env
 
+# === Required Input ===
+CERT_NAME="${1:-}"
+if [[ -z "$CERT_NAME" ]]; then
+  echo "❌ Usage: $0 <cert_name>"
+  exit 1
+fi
+
+# === Required ENV Vars ===
+: "${ROOT_CERTIFICATE_NAME:?ROOT_CERTIFICATE_NAME must be set in certificates_general.env}"
+: "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:?Must be set in certificates_elasticsearch.env}"
+: "${ES_NODE_SUBJ_LINE:?Must be set in certificates_elasticsearch.env}"
+: "${ES_NODE_SUBJ_ALT_NAMES:?Must be set in certificates_elasticsearch.env}"
+: "${ES_CERTIFICATE_PASSWORD:?Must be set in certificates_elasticsearch.env}"
+: "${ES_KEY_SIZE:?Must be set in certificates_elasticsearch.env}"
+
+echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
+echo "ES_NODE_CERT_NAME: $ES_NODE_CERT_NAME"
+echo "ES_SUBJECT_LINE: $ES_SUBJECT_LINE"
+echo "ES_SUBJECT_ALT_NAMES: $ES_SUBJECT_ALT_NAMES"
+echo "ES_KEY_SIZE: $ES_KEY_SIZE"
+echo "ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS: $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS"
+echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
+echo "=================================================================================================="
+
+# === Paths ===
 OPENSEARCH_FOLDER="./es_certificates/opensearch/"
-ES_CERTIFICATES_FOLDER=$OPENSEARCH_FOLDER"elasticsearch"
+ES_CERTIFICATES_FOLDER="${OPENSEARCH_FOLDER}elasticsearch"
+CA_ROOT_CERT="root_certificates/${ROOT_CERTIFICATE_NAME}.pem"
+CA_ROOT_KEY="root_certificates/${ROOT_CERTIFICATE_NAME}.key"
+CA_ROOT_KEYSTORE="root_certificates/${ROOT_CERTIFICATE_NAME}.p12"
 
-if [[ -z "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
-    ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460
-    echo "ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460"
+# === Validate Root CA Files ===
+if [[ ! -f "$CA_ROOT_CERT" || ! -f "$CA_ROOT_KEY" ]]; then
+  echo "❌ Missing Root CA certificate or key: $CA_ROOT_CERT / $CA_ROOT_KEY"
+  exit 1
 fi
 
-if [ -z "$1" ]; then
-	echo "Usage: $0 <cert_name>"
-	exit 1
-fi
+# === Update Subject lines with CN & SAN ===
+SUBJECT_LINE="${ES_NODE_SUBJ_LINE}/CN=${CERT_NAME}"
+SUBJECT_ALT_NAME="subjectAltName=DNS:${CERT_NAME},${ES_NODE_SUBJ_ALT_NAMES}"
 
-if [[ -z "${ROOT_CERTIFICATE_NAME}" ]]; then
-    ROOT_CERTIFICATE_NAME="root-ca"
-    echo "ROOT_CERTIFICATE_NAME not set, defaulting to ROOT_CERTIFICATE_NAME=root-ca"
-else
-    ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
-fi
+# === Logging ===
+echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
+echo "CERT_NAME: $CERT_NAME"
+echo "SUBJECT_LINE: $SUBJECT_LINE"
+echo "SUBJECT_ALT_NAME: $SUBJECT_ALT_NAME"
+echo "CA_ROOT_CERT: $CA_ROOT_CERT"
+echo "--------------------------------------------------------------------------------------------------"
 
-CA_ROOT_CERT="root_certificates/"$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY="root_certificates/"$ROOT_CERTIFICATE_NAME".key"
-CA_ROOT_KEYSTORE="root_certificates/"$ROOT_CERTIFICATE_NAME".p12"
+# === Generate Private Key ===
+echo "🔑 Generating private RSA key..."
+openssl genrsa -out "${CERT_NAME}.raw.key" "$ES_KEY_SIZE"
 
-if [ ! -e $CA_ROOT_CERT ]; then
-	echo "Root CA certificate and key does not exist: $CA_ROOT_CERT , $CA_ROOT_KEY"
-	exit 1
-fi
+echo "🔄 Converting key to PKCS#8 format..."
+openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "${CERT_NAME}.raw.key" -topk8 -out "${CERT_NAME}.key" -nocrypt
 
-# The SUBJECT LINE is important, the CN (Company Name) should be the docker service container name, this is used for host VERIFICATION afterwards (see kibana/config/kibana_*.yml)
-if [[ -z "${ES_NODE_SUBJ_LINE}" ]]; then
-    ES_NODE_SUBJ_LINE="/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
-    echo "ES_NODE_SUBJ_LINE not set, defaulting to ES_NODE_SUBJ_LINE=/C=UK/ST=UK/L=UK/O=cogstack/OU=cogstack/CN=$1"
-	echo "The CN at the end must always contain CN=$1"
-else
-    ES_NODE_SUBJ_LINE=${ES_NODE_SUBJ_LINE}"/CN=$1"
-fi
+# === Generate CSR ===
+echo "📨 Generating Certificate Signing Request (CSR)..."
+openssl req -new -key "${CERT_NAME}.key" -out "${CERT_NAME}.csr" -subj "$SUBJECT_LINE" -addext "$SUBJECT_ALT_NAME"
 
-if [[ -z "${ES_NODE_SUBJ_ALT_NAMES}" ]]; then
-    ES_NODE_SUBJ_ALT_NAMES="subjectAltName=DNS:$1,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
-    echo "ES_NODE_SUBJ_ALT_NAMES not set, defaulting to ES_NODE_SUBJ_ALT_NAMES=subjectAltName=DNS:$1,DNS:elasticsearch-cogstack-node-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:nifi,DNS:cogstack"
-	echo "The DNS end must always contain DNS:$1"
-else
-    ES_NODE_SUBJ_ALT_NAMES="subjectAltName=DNS:$1,"${ES_NODE_SUBJ_ALT_NAMES}
-fi
+# === Sign CSR ===
+echo "✅ Signing certificate with Root CA..."
+openssl x509 -req \
+  -days "$ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS" \
+  -in "${CERT_NAME}.csr" \
+  -CA "$CA_ROOT_CERT" \
+  -CAkey "$CA_ROOT_KEY" \
+  -CAcreateserial \
+  -out "${CERT_NAME}.crt" \
+  -extensions v3_ca \
+  -extfile ./ssl-extensions-x509.cnf
 
-# IMPRTANT: this is used in StandardSSLContextService controllers on the NiFi side, trusted keystore password field.
-if [[ -z "${ES_CERTIFICATE_PASSWORD}" ]]; then
-    ES_CERTIFICATE_PASSWORD="cogstackNifi"
-    echo "ES_CERTIFICATE_PASSWORD not set, defaulting to ES_CERTIFICATE_PASSWORD=cogstackNifi"
-else
-    ES_CERTIFICATE_PASSWORD=${ES_CERTIFICATE_PASSWORD}
-fi
+# === Create Java Keystore ===
+echo "🔐 Creating Java Keystore (.jks)..."
+./create_keystore.sh "$CERT_NAME" "${CERT_NAME}-keystore" "$ES_CERTIFICATE_PASSWORD"
 
-if [[ -z "${ES_KEY_SIZE}" ]]; then
-    ES_KEY_SIZE=4096
-    echo "ES_KEY_SIZE not set, defaulting to ES_KEY_SIZE=4096"
-else
-    ES_KEY_SIZE=${ES_KEY_SIZE}
-fi
+# === Move Files to Target Folder ===
+mkdir -p "${ES_CERTIFICATES_FOLDER}/${CERT_NAME}"
+mv "${CERT_NAME}.crt" "${CERT_NAME}.key" "${CERT_NAME}.csr" \
+   "${CERT_NAME}-keystore.jks" "${CERT_NAME}-truststore.key" \
+   "${ES_CERTIFICATES_FOLDER}/${CERT_NAME}/"
 
-echo "Generating a key for: $1"
-openssl genrsa -out "$1.p12" $ES_KEY_SIZE
+rm -f "${CERT_NAME}.raw.key"
 
-echo "Converting the key to PKCS 12"
-openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "$1.p12" -topk8 -out "$1.key" -nocrypt 
+# === Copy Root CA files to opensearch folder ===
+ELASTIC_CA_PREFIX="elastic-stack-ca"
+cp "$CA_ROOT_KEY" "$OPENSEARCH_FOLDER/${ELASTIC_CA_PREFIX}.key.pem"
+cp "$CA_ROOT_CERT" "$OPENSEARCH_FOLDER/${ELASTIC_CA_PREFIX}.crt.pem"
+cp "$CA_ROOT_KEYSTORE" "$OPENSEARCH_FOLDER/${ELASTIC_CA_PREFIX}.p12"
 
-echo "Generating the certificate ..."
-openssl req -new -key "$1.key" -out "$1.csr" -subj $ES_NODE_SUBJ_LINE -addext $ES_NODE_SUBJ_ALT_NAMES  #-new -newkey rsa:$ES_KEY_SIZE -key "$1.key" -out "$1.csr" -subj $ES_NODE_SUBJ_LINE -addext $ES_NODE_SUBJ_ALT_NAMES 
-
-#openssl req -new -key "$1.key" -out "$1.csr" -subj $SUBJ_LINE -addext $SUBJ_ALT_NAMES
-
-echo "Signing the certificate ..."
-openssl x509 -req -days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS -in "$1.csr" -out "$1.crt" -CA $CA_ROOT_CERT -CAkey $CA_ROOT_KEY -CAcreateserial  -extensions v3_ca -extfile ./ssl-extensions-x509.cnf
-
-#-extfile <(printf "\nsubjectAltName=DNS:esnode-1,DNS:esnode-2,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-node-1,DNS:elasticsearch-node-2,DNS:elasticsearch-cogstack-node-2,DNS:elasticsearch-cogstack-node-1,DNS:localhost") 
-
-echo "Creating keystore"
-bash create_keystore.sh $1 $1"-keystore"
-
-mkdir -p $ES_CERTIFICATES_FOLDER/$1
-
-mv $1* $ES_CERTIFICATES_FOLDER/$1
-
-# copy the original root-ca certificates and rename them to match the ES native naming convention
-output_file_name="elastic-stack-ca"
-
-if [ -f "$CA_ROOT_KEY" ] || [ -f "$CA_ROOT_CERT"] | [ -f "$CA_ROOT_KEYSTORE"]; then
-    echo "$ROOT_CERTIFICATE_NAME files found."
-    echo "Copying and renaming root-ca.* certs to elastic-stack-ca"
-    ELASTICSEARCH_ROOT_CERTIFICATE_NAME="elastic-stack-ca"
-    cp ./$CA_ROOT_KEY $OPENSEARCH_FOLDER && cp $CA_ROOT_KEY $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.key.pem"
-    cp ./$CA_ROOT_CERT $OPENSEARCH_FOLDER && cp $CA_ROOT_CERT $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.crt.pem"
-    cp ./$CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER && cp $CA_ROOT_KEYSTORE $OPENSEARCH_FOLDER"$ELASTICSEARCH_ROOT_CERTIFICATE_NAME.p12"
-else 
-    echo "One of the following files: $CA_ROOT_KEY,$CA_ROOT_CERT,$CA_ROOT_KEYSTORE don't exist. Please create them by executing the 'create_root_ca_cert.sh' file from this folder."
-fi
-
-
-chmod -R 755 "./$ES_CERTIFICATES_FOLDER"
+echo "✅ Finished generating certificate for node: $CERT_NAME"

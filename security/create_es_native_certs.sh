@@ -1,15 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
-
-################################################################
-# 
-# This script creates client keys and certificates that can 
-#  be used by client's applications
+# ================================================================================
+# 🛡️ Create client keys and certificates for Elasticsearch Native mode
 #
-# This script should only be used for ELASTICSEARCH NATIVE 
+# This script:
+#   - Spins up a temporary container (`es_native_create_certs`) to generate certs
+#   - Automatically skips if certs already exist at expected path
+#   - Cleans up temporary container and volume after cert generation
+#
+# Usage:
+#     ./create_es_native_certs.sh
+#
+# Output:
+#     ./es_certificates/es_native/elasticsearch/ 
+#         ├── elastic-certificates.p12
+#         ├── elasticsearch.key
+#         ├── elasticsearch.crt
+#         └── ...
+#
+# Notes:
+#     - To force regeneration, manually delete the folder:
+#       rm -rf ./es_certificates/es_native
+# ================================================================================
 
-# spin up the container that creates the certs 
+set -euo pipefail
 
 if [ ! -d "es_certificates/es_native/elasticsearch" ]; then
 

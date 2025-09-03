@@ -1,4 +1,20 @@
 [v3_ca]
 basicConstraints = CA:FALSE
 keyUsage = digitalSignature, keyEncipherment
-subjectAltName = DNS:elasticsearch-1, DNS:elasticsearch-2, DNS:elasticsearch-3, DNS:nifi, DNS:ocr-service-*, DNS:tika-service-*, DNS:nifi-registry, DNS:cogstack*, DNS:medcat*
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = cogstack-nifi
+DNS.2 = cogstack-nifi-registry-flow
+DNS.3 = cogstack-nifi-nginx
+DNS.4 = elasticsearch-1
+DNS.5 = elasticsearch-2
+DNS.6 = elasticsearch-3
+DNS.7 = ocr-service
+DNS.8 = ocr-service-text-only
+DNS.9 = medcat-trainer-nginx
+DNS.10 = medcat-trainer-ui 
+DNS.11 = nlp-medcat-service-production
+DNS.12 = nlp-medcat-service-production-deid
+DNS.13 = cogstack-kibana
+DNS.14 = cogstack-cohort
