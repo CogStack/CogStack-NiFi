@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ==============================================================================
 # 🔐 Initialize NiFi Single-User Authentication (from host)

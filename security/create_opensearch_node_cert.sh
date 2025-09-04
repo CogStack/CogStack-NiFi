@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ==============================================================================
 # 🔐 Generate OpenSearch node certificate signed by Root CA
@@ -37,16 +37,16 @@ fi
 
 # === Required ENV Vars ===
 : "${ROOT_CERTIFICATE_NAME:?ROOT_CERTIFICATE_NAME must be set in certificates_general.env}"
-: "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:?Must be set in certificates_elasticsearch.env}"
+: "${ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS:?Must be set in certificates_elasticsearch.env}"
 : "${ES_NODE_SUBJ_LINE:?Must be set in certificates_elasticsearch.env}"
 : "${ES_NODE_SUBJ_ALT_NAMES:?Must be set in certificates_elasticsearch.env}"
 : "${ES_CERTIFICATE_PASSWORD:?Must be set in certificates_elasticsearch.env}"
 : "${ES_KEY_SIZE:?Must be set in certificates_elasticsearch.env}"
 
 echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
-echo "ES_NODE_CERT_NAME: $ES_NODE_CERT_NAME"
-echo "ES_SUBJECT_LINE: $ES_SUBJECT_LINE"
-echo "ES_SUBJECT_ALT_NAMES: $ES_SUBJECT_ALT_NAMES"
+echo "CERT_NAME: $CERT_NAME"
+echo "ES_NODE_SUBJ_LINE: $ES_NODE_SUBJ_LINE"
+echo "ES_NODE_SUBJ_ALT_NAMES: $ES_NODE_SUBJ_ALT_NAMES"
 echo "ES_KEY_SIZE: $ES_KEY_SIZE"
 echo "ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS: $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS"
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
@@ -91,7 +91,7 @@ openssl req -new -key "${CERT_NAME}.key" -out "${CERT_NAME}.csr" -subj "$SUBJECT
 # === Sign CSR ===
 echo "✅ Signing certificate with Root CA..."
 openssl x509 -req \
-  -days "$ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS" \
+  -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
   -in "${CERT_NAME}.csr" \
   -CA "$CA_ROOT_CERT" \
   -CAkey "$CA_ROOT_KEY" \
@@ -106,7 +106,7 @@ echo "🔐 Creating Java Keystore (.jks)..."
 
 # === Move Files to Target Folder ===
 mkdir -p "${ES_CERTIFICATES_FOLDER}/${CERT_NAME}"
-mv "${CERT_NAME}.crt" "${CERT_NAME}.key" "${CERT_NAME}.csr" \
+mv "${CERT_NAME}.crt" "${CERT_NAME}.key" "${CERT_NAME}.csr" "${CERT_NAME}.p12" \
    "${CERT_NAME}-keystore.jks" "${CERT_NAME}-truststore.key" \
    "${ES_CERTIFICATES_FOLDER}/${CERT_NAME}/"
 

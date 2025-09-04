@@ -1,12 +1,25 @@
+# =========================================================================================
+# 📜 OpenSSL X.509 v3 Extensions Configuration
+# For: Root CA and Node/Client Certificates
+# =========================================================================================
+
 [v3_ca]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true
+keyUsage = critical, keyCertSign, cRLSign
+
+[v3_leaf]
 basicConstraints = CA:FALSE
 keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+authorityKeyIdentifier = keyid:always,issuer
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = cogstack-nifi
-DNS.2 = cogstack-nifi-registry-flow
-DNS.3 = cogstack-nifi-nginx
+DNS.1 = nifi
+DNS.2 = nifi-registry-flow
+DNS.3 = nifi-nginx
 DNS.4 = elasticsearch-1
 DNS.5 = elasticsearch-2
 DNS.6 = elasticsearch-3
@@ -18,3 +31,10 @@ DNS.11 = nlp-medcat-service-production
 DNS.12 = nlp-medcat-service-production-deid
 DNS.13 = cogstack-kibana
 DNS.14 = cogstack-cohort
+DNS.15 = cogstack-elasticsearch-1
+DNS.16 = cogstack-elasticsearch-2
+DNS.17 = cogstack-elasticsearch-3
+DNS.18 = cogstack-nifi
+DNS.19 = cogstack-nifi-nginx
+DNS.20 = cogstack-nifi-registry-flow
+DNS.21 = cogstack-auth-service
