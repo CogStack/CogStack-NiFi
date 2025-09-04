@@ -10,11 +10,11 @@ set -a && source ./export_env_vars.sh;
 endef
 
 # utility commands
-freeze-certs:
-	@../scripts/freeze_certs.sh
+freeze-security:
+	@../scripts/git_freeze_security.sh
 
-unfreeze-certs:
-	@../scripts/unfreeze_certs.sh
+unfreeze-security:
+	@../scripts/git_unfreeze_security.sh
 
 update-submodules:
 	@../scripts/update_submodules_in_repo.sh
