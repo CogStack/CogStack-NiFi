@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Enable strict mode (without -e to avoid exit-on-error)
 set -uo pipefail
