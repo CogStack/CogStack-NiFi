@@ -30,3 +30,8 @@ security/nifi_toolkit
 # docs
 docs/build/*
 
+# Ignore all .env files at any level
+.env
+*.env
+**/.env
+**/*.env
