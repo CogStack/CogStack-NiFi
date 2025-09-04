@@ -1,9 +1,10 @@
-import rancoord as rc
-import os
 import json
+import os
 import sys
 import traceback
 from random import randrange
+
+import rancoord as rc
 
 global LOCATIONS
 global NIFI_USER_SCRIPT_LOGS_DIR
@@ -54,7 +55,7 @@ def main():
             to_append[SUBJECT_ID_FIELD_NAME] = id
             to_append[LOCATION_NAME_FIELD] = "POINT (" + str(lon[0]) + " " + str(lat[0]) + ")"
             output_stream.append(to_append)
-    except Exception as exception:
+    except Exception:
         if os.path.exists(log_file_path):
             with open(log_file_path, "a+") as log_file:
                 log_file.write("\n" + str(traceback.print_exc()))

@@ -1,9 +1,7 @@
-import sys
 import os
-import uuid
 import random
+import uuid
 
-from pathlib import Path
 from reportlab.pdfgen import canvas
 
 path = "../../../data/ingestion/2022/"

@@ -11,14 +11,12 @@ ARG NIFI_UID=1000
 ARG NIFI_GID=1000
 ARG UID=${NIFI_UID:-1000}
 ARG GID=${NIFI_GID:-1000}
-ARG MEDCAT_VERSION="1.16.0"
 ARG TZ="Europe/London"
 ARG NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY="/opt/nifi/nifi-current/python/framework"
 ARG NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT="/opt/nifi/nifi-current/python_extensions"
 ARG NIFI_PYTHON_WORKING_DIRECTORY="/opt/nifi/user-scripts"
 
 ENV TZ=${TZ}
-ENV MEDCAT_VERSION=${MEDCAT_VERSION}
 ENV NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY}
 ENV NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT=${NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT}
 ENV NIFI_PYTHON_WORKING_DIRECTORY=${NIFI_PYTHON_WORKING_DIRECTORY}
@@ -56,22 +54,37 @@ RUN echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.
 
 RUN apt-get update && apt-get install --no-install-recommends -y ssl-cert libsqlite3-dev python3-dev python3-pip python3.11 python3.11-dev python3-venv sqlite3 postgresql-server-dev-all
 
-# install rust, medcat requirement
-RUN curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# bust cache
+ENV UV_VERSION=latest
+
+# install rust, medcat requirement, install UV
+ENV HOME=/root
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN curl -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh \
+ && chmod +x /tmp/rustup-init.sh \
+ && /tmp/rustup-init.sh -y \
+ && rm /tmp/rustup-init.sh
+
+RUN curl -Ls https://astral.sh/uv/install.sh -o /tmp/install_uv.sh \
+ && bash /tmp/install_uv.sh
+
+RUN UV_PATH=$(find / -name uv -type f | head -n1) && \
+    ln -s "$UV_PATH" /usr/local/bin/uv
 
 # clean up apt
 RUN apt-get clean autoclean && apt-get autoremove --purge -y
 
 ######################################## Python / PIP SECTION ########################################
 
-RUN pip3 install --no-cache-dir --break-system-packages --upgrade pip setuptools wheel
+RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip setuptools wheel
 
 # install util packages used in NiFi scripts (such as MedCAT, avro, nifyapi, etc.)
 COPY ./requirements.txt ./requirements.txt
-RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt"
+RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt"
 
 # install MedCAT from the working with cogstack repo (as it is assumed to be stable and the latest version)
-RUN pip3 install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
+RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
  
 #######################################################################################################
 

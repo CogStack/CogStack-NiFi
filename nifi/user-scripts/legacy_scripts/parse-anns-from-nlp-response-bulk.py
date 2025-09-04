@@ -1,12 +1,11 @@
-import traceback
 import io
 import json
 import sys
+import traceback
 
 # jython packages
 from org.apache.commons.io import IOUtils
-from org.apache.nifi.processor.io import StreamCallback, OutputStreamCallback
-import org.apache.nifi.logging.ComponentLog
+from org.apache.nifi.processor.io import OutputStreamCallback, StreamCallback
 from org.python.core.util import StringUtil
 
 global flowFile
@@ -159,7 +158,7 @@ if flowFile is not None:
         flowFile = session.write(flowFile, PyStreamCallback())
         session.transfer(flowFiles, REL_SUCCESS)
         session.remove(flowFile)
-    except Exception as exception:
+    except Exception:
         log.error(traceback.format_exc())
         session.transfer(flowFile, REL_FAILURE)
 

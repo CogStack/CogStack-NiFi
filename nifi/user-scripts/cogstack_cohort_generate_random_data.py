@@ -1,12 +1,11 @@
-import json
-import sys
 import datetime
+import json
 import os
-import regex
-
-from collections import defaultdict, Counter
+import sys
+from collections import Counter, defaultdict
 from datetime import datetime
-from utils.ethnicity_map import ethnicity_map, ethnicity_map_detail
+
+from utils.ethnicity_map import ethnicity_map
 
 ANNOTATION_DOCUMENT_ID_FIELD_NAME = "meta.docid"
 

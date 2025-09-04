@@ -1,12 +1,11 @@
-import traceback
 import io
 import json
 import os
+import traceback
 
 # jython packages
 from org.apache.commons.io import IOUtils
 from org.apache.nifi.processor.io import StreamCallback
-import org.apache.nifi.logging.ComponentLog
 
 global flowFile
 
@@ -93,7 +92,7 @@ if flowFile != None:
         flowFile = session.write(flowFile, PyStreamCallback())
         flowFile = session.putAttribute(flowFile, "invalid_record_ids", str(invalid_record_ids))
         session.transfer(flowFile, REL_SUCCESS)
-    except Exception as exception:
+    except Exception:
         log.error(traceback.format_exc())
         flowFile = session.putAttribute(flowFile, "invalid_record_ids", str(invalid_record_ids))
         session.transfer(flowFile, REL_FAILURE)

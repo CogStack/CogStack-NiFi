@@ -1,14 +1,15 @@
 import json
-import sys
 import logging
-from datetime import datetime, timezone
-import os
-import traceback
 import multiprocessing
+import os
+import sys
+import traceback
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from multiprocessing import Pool, Queue
-from collections import defaultdict, Counter
+
 from utils.ethnicity_map import ethnicity_map
-from utils.generic import chunk, dict2jsonl_file, dict2json_file
+from utils.generic import chunk, dict2json_file, dict2jsonl_file
 
 # default values from /deploy/nifi.env
 NIFI_USER_SCRIPT_LOGS_DIR = os.getenv("NIFI_USER_SCRIPT_LOGS_DIR", "")

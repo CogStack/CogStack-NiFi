@@ -1,6 +1,6 @@
-import sys
 import json
 import re
+import sys
 
 records = json.loads(sys.stdin.read())
 

@@ -1,18 +1,12 @@
-import traceback
-from io import BytesIO
-import sys
-import os
-import uuid
 import json
-import avro
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
-
-from avro.schema import Schema
-
-from pydoc import locate
-
+import os
+import sys
+import uuid
 from datetime import datetime as time
+
+import avro
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 
 log_file_path = "/opt/nifi/user-scripts/logs/parse_json/parse-json-to-avro_file_"
 
@@ -23,7 +17,7 @@ records_stream = None
 
 try:
     records_stream = json.loads(input_stream)
-except Exception as e:
+except Exception:
     _log_file_path = log_file_path + time + ".log"
     with open(_log_file_path, "a+") as log_file:
         log_file.write(input_stream)

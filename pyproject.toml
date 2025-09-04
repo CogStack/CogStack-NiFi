@@ -1,0 +1,10 @@
+# pyproject.toml
+
+[tool.ruff]
+line-length = 120
+exclude = ["nifi/user-python-extensions", "tests/resources"]
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]  # E=pycodestyle, F=pyflakes, B=bugbear, I=isort
+fixable = ["ALL"]

@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
-import os
-import json
-import traceback
-import pandas
-import re
-import numpy
 import base64
+import json
+import os
+import re
 import sys
+import traceback
 import uuid
+
+import numpy
+import pandas
 
 # get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
 # example args: ['/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/', 'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 'file_id_csv_column_name_match=file_name_id_no_ext']
@@ -133,7 +134,7 @@ def get_files_and_metadata():
                                 record_counter += 1
                             else:
                                 break
-                        except Exception as exception:
+                        except Exception:
                             print("Failed to open file:" + file_path)   
                             traceback.print_exc()
 
@@ -183,7 +184,7 @@ def get_files_and_metadata():
                         for i in range(0, len(txt_file_df)):
                             output_data.append(txt_file_df.iloc[i].to_dict())
 
-                except Exception as exception:
+                except Exception:
                     print("failure")
                     traceback.print_exc()
 

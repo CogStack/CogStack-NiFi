@@ -1,5 +1,5 @@
-from ast import List
 import sqlite3
+from ast import List
 
 
 def connect_and_query(query: str, db_file_path: str, sqlite_connection: sqlite3.Connection = None, cursor: sqlite3.Cursor = None, sql_script_mode: bool = False, keep_conn_open=False) -> List:

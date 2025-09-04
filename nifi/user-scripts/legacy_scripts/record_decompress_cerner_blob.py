@@ -1,8 +1,8 @@
-import sys
-import json
 import base64
-from utils.cerner_blob import DecompressLzwCernerBlob
+import json
+import sys
 
+from utils.cerner_blob import DecompressLzwCernerBlob
 
 """ This script decompresses Cerner LZW compressed blobs from a JSON input stream.
     It expects a JSON array of records, each containing a field with the binary data.

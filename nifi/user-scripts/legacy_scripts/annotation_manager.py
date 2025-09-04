@@ -1,9 +1,10 @@
-import os
-import json
-import traceback
 import datetime
+import json
+import os
 import sys
-from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file,create_connection
+import traceback
+
+from utils.sqlite_query import check_db_exists, connect_and_query, create_connection, create_db_from_file
 
 global DOCUMENT_ID_FIELD_NAME
 global DOCUMENT_TEXT_FIELD_NAME

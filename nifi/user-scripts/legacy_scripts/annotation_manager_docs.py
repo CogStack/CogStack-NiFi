@@ -1,8 +1,9 @@
-import os
 import json
-import traceback
+import os
 import sys
-from utils.sqlite_query import connect_and_query,check_db_exists,create_db_from_file
+import traceback
+
+from utils.sqlite_query import check_db_exists, connect_and_query, create_db_from_file
 
 global DOCUMENT_ID_FIELD_NAME
 global DOCUMENT_TEXT_FIELD_NAME
@@ -56,7 +57,7 @@ def main():
             result = connect_and_query(query, db_file_path, sql_script_mode=True)
             output_stream["result"].append(record)
 
-    except Exception as exception:
+    except Exception:
         if os.path.exists(log_file_path):
             with open(log_file_path, "a+") as log_file:
                 log_file.write("\n" + str(traceback.print_exc()))

@@ -1,6 +1,6 @@
-from collections import defaultdict
 import json
 import os
+from collections import defaultdict
 from typing import Union
 
 

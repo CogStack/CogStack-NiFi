@@ -1,15 +1,12 @@
-import traceback
-import io
-import sys
-import os
 import base64
+import io
+import os
+import sys
+import traceback
 
 # jython packages
-import java.io
 from org.apache.commons.io import IOUtils
-from java.nio.charset import StandardCharsets
-from org.apache.nifi.processor.io import StreamCallback,InputStreamCallback
-import org.apache.nifi.logging.ComponentLog
+from org.apache.nifi.processor.io import StreamCallback
 
 """
     We add this because we have extra pip packages installed in our separate version of Jython
@@ -20,8 +17,8 @@ JYTHON_HOME = os.environ.get("JYTHON_HOME", "")
 sys.path.append(JYTHON_HOME + "/Lib/site-packages")
 
 # other packages, normally available to python 2.7
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
+from avro.datafile import DataFileReader
+from avro.io import DatumReader
 
 """
     Below are the object descriptions, these are used throughout NiFi jython/groovy scripts

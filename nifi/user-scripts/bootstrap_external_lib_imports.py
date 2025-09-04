@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 
 def running_in_docker() -> bool:

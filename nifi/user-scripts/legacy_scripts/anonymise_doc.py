@@ -1,12 +1,12 @@
 # tested with medcat==1.5.3
 
-from medcat.utils.ner import deid_text
-import sys
-import os
-import json
 import ast
+import json
+import os
+import sys
 
 from medcat.cat import CAT
+from medcat.utils.ner import deid_text
 
 input_text = sys.stdin.read()
 

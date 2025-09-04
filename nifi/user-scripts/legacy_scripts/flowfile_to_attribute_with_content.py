@@ -1,19 +1,15 @@
-import traceback
+import copy
 import io
 import json
-import copy
+import traceback
 
 # jython packages
-import java.io
-from org.apache.commons.io import IOUtils
-from java.nio.charset import StandardCharsets
-from org.apache.nifi.processor.io import StreamCallback, OutputStreamCallback
-import org.apache.nifi.logging.ComponentLog
-from org.python.core.util import StringUtil
-
 # other packages, normally available to python 2.7
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
+from avro.datafile import DataFileReader
+from avro.io import DatumReader
+from org.apache.commons.io import IOUtils
+from org.apache.nifi.processor.io import OutputStreamCallback, StreamCallback
+from org.python.core.util import StringUtil
 
 """
     This script converts a flow file with avro/json content with all the record's fields that has to flow file attributes.
@@ -64,7 +60,7 @@ class PyStreamCallback(StreamCallback):
             for k, v in record.iteritems():
                 if k != FIELD_NAMES_TO_KEEP_AS_CONTENT:
                     new_flow_file = session.putAttribute(new_flow_file, k, str(v))
-                if FIELD_NAMES_TO_KEEP_AS_CONTENT is not "" and k == FIELD_NAMES_TO_KEEP_AS_CONTENT:
+                if FIELD_NAMES_TO_KEEP_AS_CONTENT != "" and k == FIELD_NAMES_TO_KEEP_AS_CONTENT:
                     new_flow_file = session.write(new_flow_file, WriteContentCallback(str(v).encode("UTF-8")))
             output_flowFiles.append(new_flow_file)
 
@@ -95,7 +91,7 @@ if flowFile != None:
 
         session.transfer(output_flowFiles, REL_SUCCESS)
         session.remove(flowFile)
-    except Exception as exception:
+    except Exception:
         log.error(traceback.format_exc())
         session.transfer(flowFile, REL_FAILURE)
 

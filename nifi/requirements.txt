@@ -40,3 +40,6 @@ eland==9.0.1
 dvc==3.62.0
 GitPython==3.1.45
 PyYAML==6.0.2
+
+# code utils
+ruff==0.12.12

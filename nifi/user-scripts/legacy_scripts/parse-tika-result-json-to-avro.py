@@ -1,16 +1,13 @@
-import traceback
-import io
-import sys
-import os
-import json
 import ast
+import io
+import json
+import os
+import sys
+import traceback
 
 # jython packages
-import java.io
 from org.apache.commons.io import IOUtils
-from java.nio.charset import StandardCharsets
-from org.apache.nifi.processor.io import StreamCallback,InputStreamCallback
-import org.apache.nifi.logging.ComponentLog
+from org.apache.nifi.processor.io import StreamCallback
 
 """
     We add this because we have extra pip packages installed in our separate version of Jython
