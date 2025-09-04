@@ -4,6 +4,7 @@
 .idea
 .vscode
 .venv
+.ruff_cache
 **__pycache__
 
 # keys and certificates
