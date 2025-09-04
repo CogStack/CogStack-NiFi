@@ -1001,7 +1001,6 @@ services:
         - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
       networks:
         - cognet
-      #command: "ls -la /usr/src/app/server/data/"
       ports:
         - "3001:3000"
 
