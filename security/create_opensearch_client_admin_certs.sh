@@ -43,7 +43,6 @@ echo "ES_CLIENT_SUBJ_ALT_NAMES: $ES_CLIENT_SUBJ_ALT_NAMES"
 echo "ES_KEY_SIZE: $ES_KEY_SIZE"
 echo "ES_CLIENT_CERT_NAME: $ES_CLIENT_CERT_NAME"
 echo "ES_ADMIN_SUBJ_LINE: $ES_ADMIN_SUBJ_LINE"
-echo "ES_ADMIN_KEY_SIZE: $ES_ADMIN_KEY_SIZE"
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
 echo "=================================================================================================="
 
@@ -71,7 +70,7 @@ mv "$ES_CLIENT_CERT_NAME"* "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
 
 # === Admin cert ===
 echo "Generating admin key"
-openssl genrsa -out admin-key-temp.pem "$ES_ADMIN_KEY_SIZE"
+openssl genrsa -out admin-key-temp.pem "$ES_KEY_SIZE"
 
 echo "Converting to PKCS #8 key"
 openssl pkcs8 -inform PEM -outform PEM -in admin-key-temp.pem -topk8 -nocrypt -v1 PBE-SHA1-3DES -out admin.key.pem

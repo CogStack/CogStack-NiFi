@@ -9,6 +9,16 @@ define WITH_ENV
 set -a && source ./export_env_vars.sh;
 endef
 
+# utility commands
+freeze-certs:
+	@../scripts/freeze_certs.sh
+
+unfreeze-certs:
+	@../scripts/unfreeze_certs.sh
+
+update-submodules:
+	@../scripts/update_submodules_in_repo.sh
+
 # start services
 #
 start-nifi:
@@ -58,6 +68,7 @@ start-jupyter:
 
 start-medcat-service:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production
+
 start-medcat-service-deid:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production-deid
 
@@ -128,10 +139,10 @@ stop-medcat-trainer:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) medcat-trainer-ui medcat-trainer-nginx
 
 stop-medcat-service:
-	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production
 
 stop-medcat-service-deid:
-	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nlp-medcat-service-production-deid
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production-deid
 
 stop-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea

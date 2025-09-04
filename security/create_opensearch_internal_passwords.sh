@@ -20,7 +20,7 @@
 set -euo pipefail
 
 # required env var files
-source ../elasticsearch.env
+source ../deploy/elasticsearch.env
 source certificates_elasticsearch.env
 source users_elasticsearch.env
 
