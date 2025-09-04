@@ -28,14 +28,14 @@ set -euo pipefail
 if [ ! -d "es_certificates/es_native/elasticsearch" ]; then
 
     echo "Removing previous cert container and volume if existent...."
-    docker container rm -f $(docker ps -a -q --filter name="deploy_es_native_create_certs_run_*") || true
+    docker container rm -f $(docker ps -a -q --filter name="deploy-es_native_create_certs-run-*") || true
     docker volume rm $(docker volume ls --filter name=deploy_elasticsearch-certs- -q) -f || true
 
     echo "Certificates for es_native not present, creating them now ..."
-    docker-compose -f ../deploy/services.yml run es_native_create_certs
+    docker compose -f ../deploy/services.yml run es_native_create_certs
 
     echo "Removing cert container and volume...."
-    docker container rm -f $(docker ps -a -q --filter name="deploy_es_native_create_certs_run_*")
+    docker container rm -f $(docker ps -a -q --filter name="deploy-es_native_create_certs-run-*")
     docker volume rm $(docker volume ls --filter name=deploy_elasticsearch-certs- -q) -f
 else
     echo "Certificates found, skipping creating, if you want to recreate delete the ./es_certificates/es_native folder"
