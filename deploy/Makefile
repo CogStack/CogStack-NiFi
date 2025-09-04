@@ -10,14 +10,14 @@ set -a && source ./export_env_vars.sh;
 endef
 
 # utility commands
-freeze-security:
+git-freeze-security:
 	@../scripts/git_freeze_security.sh
 
-unfreeze-security:
+git-unfreeze-security:
 	@../scripts/git_unfreeze_security.sh
 
-update-submodules:
-	@../scripts/update_submodules_in_repo.sh
+git-update-submodules:
+	@../scripts/git_update_submodules_in_repo.sh
 
 # start services
 #
