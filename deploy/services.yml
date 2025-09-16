@@ -47,7 +47,7 @@ services:
   cogstack-databank-db:
     image: postgres:17.5-alpine
     container_name: cogstack-production-databank-db
-    shm_size: 1024mb
+    shm_size: 1g
     restart: always
     env_file:
       - ./database.env
@@ -81,7 +81,7 @@ services:
   cogstack-databank-db-mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: cogstack-production-databank-db-mssql
-    shm_size: 1024mb
+    shm_size: 1g
     restart: always
     env_file:
       - ./database.env
@@ -111,63 +111,6 @@ services:
       - cognet
 
 #---------------------------------------------------------------------------#
-# MedCAT Trainer                                                            #
-#---------------------------------------------------------------------------#
-  medcat-trainer-ui:
-    image: cogstacksystems/medcat-trainer:v2.22.0
-    container_name: cogstack-medcat-trainer-ui
-    restart: always
-    # INFO: MedCAT library config provided via env file
-    env_file:
-      - ../services/cogstack-nlp/medcat-trainer/envs/env
-    environment:
-      - MCT_VERSION=v2.22.0
-      - CONCEPT_SEARCH_SERVICE_HOST=mct_solr
-      - CONCEPT_SEARCH_SERVICE_PORT=8983
-    volumes:
-      - medcat-api-media:/home/api/media
-      - medcat-api-static:/home/api/static
-      - medcat-api-db:/home/api/db
-      - ../services/cogstack-nlp/medcat-trainer/configs:/home/configs
-      - ../services/cogstack-nlp/medcat-trainer/supervisord.conf:/etc/supervisord.conf
-    expose:
-      - "8000"
-    command: /usr/bin/supervisord -c /etc/supervisord.conf
-
-  medcat-trainer-nginx:
-    image: nginx
-    container_name: cogstack-medcat-trainer-nginx
-    restart: always
-    env_file:
-      - ./network_settings.env
-    volumes:
-      - ../services/cogstack-nlp/medcat-trainer/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/cogstack-nlp/medcat-trainer/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - medcat-api-media:/home/api/media
-      - medcat-api-static:/home/api/static
-    ports:
-      - "8001:8000"
-    depends_on:
-      - medcat-trainer-ui
-      - medcat-trainer-solr
-
-  medcat-trainer-solr:
-    container_name: mct_solr
-    image: solr:8
-    restart: always
-    environment:
-      - CONCEPT_SEARCH_SERVICE_HOST=localhost
-      - CONCEPT_SEARCH_SERVICE_PORT=8983
-    expose:
-      - "8983"
-    ports:
-      - 8983:8983
-    volumes:
-      - solr-data:/var/solr
-    command:
-      - -cloud
-
-#---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   es_native_create_certs:
@@ -194,9 +137,8 @@ services:
   elasticsearch-1:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
     container_name: elasticsearch-1
-    shm_size : 1024mb
+    shm_size : 1g
     restart: always
-    # mem_limit: 2g
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
@@ -286,9 +228,8 @@ services:
   elasticsearch-2:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
     container_name: elasticsearch-2
-    shm_size : 1024mb
+    shm_size : 1g
     restart: always
-    # mem_limit: 2g
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
@@ -378,9 +319,8 @@ services:
   elasticsearch-3:
     image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
     container_name: elasticsearch-3
-    shm_size : 1024mb
+    shm_size : 1g
     restart: always
-    # mem_limit: 2g
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
@@ -801,7 +741,7 @@ services:
       - ../security/certificates_general.env
       - ../security/certificates_elasticsearch.env
       - ../security/certificates_nifi.env
-    shm_size: 1024mb
+    shm_size: 1g
     environment:
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
@@ -832,8 +772,6 @@ services:
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/nifi-current/nifi_certificates:ro
       - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi/nifi-current/conf/keystore.jks
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks:/opt/nifi/nifi-current/conf/truststore.jks
   
       # Security credentials scripts
       - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
@@ -1100,17 +1038,6 @@ volumes:
   nifi-registry-vol-work:
     driver: local
   nifi-registry-vol-logs:
-    driver: local
-
-
-  # MedCAT Trainer
-  medcat-api-media:
-    driver: local
-  medcat-api-static:
-    driver: local
-  medcat-api-db:
-    driver: local
-  solr-data:
     driver: local
 
   # Gitea

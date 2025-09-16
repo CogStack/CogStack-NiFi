@@ -2,9 +2,10 @@
 
 [tool.ruff]
 line-length = 120
-exclude = ["nifi/user-python-extensions", "tests/resources"]
+exclude = ["nifi/user-scripts/legacy_scripts"]
 target-version = "py38"
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I"]  # E=pycodestyle, F=pyflakes, B=bugbear, I=isort
+# E=pycodestyle, F=pyflakes, B=bugbear, I=isort
+select = ["E", "F", "B", "I"]
 fixable = ["ALL"]
