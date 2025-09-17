@@ -13,6 +13,13 @@ from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
 
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+    ExpressionLanguageScope,
+)
+
 
 class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
     identifier = None
@@ -32,15 +39,27 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.operation_mode = None
-        self.binary_field_name = None
-        self.record_id_field_name = None
+        self.operation_mode: str = "base64"
+        self.binary_field_name: str = "binarydoc"
+        self.document_id_field_name: str = "id"
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
-            PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
-            PropertyDescriptor(name="record_id_field_name", description="Field name containing document ID", default_value="not_set")
+            PropertyDescriptor(name="binary_field_name",
+                               description="Avro field containing binary data",
+                               default_value="binarydoc",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="operation_mode",
+                               description="Decoding mode (e.g. base64 or raw)",
+                               default_value="base64",
+                               required=True,
+                               allowable_values=["base64", "raw"]),
+            PropertyDescriptor(name="document_id_field_name",
+                               description="Field name containing document ID",
+                               default_value="id",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
         ]
 
     def getPropertyDescriptors(self):
@@ -117,7 +136,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             # add properties to flowfile attributes
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
-            attributes["record_id_field_name"] = str(self.record_id_field_name)
+            attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["operation_mode"] = str(self.operation_mode)
             attributes["mime.type"] = "application/avro-binary"

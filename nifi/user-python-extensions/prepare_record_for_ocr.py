@@ -12,11 +12,17 @@ from avro.io import DatumReader
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+    ExpressionLanguageScope,
+)
 
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
-from utils.avro_json_encoder import AvroJSONEncoder  # noqa: E402, F401
+from utils.avro_json_encoder import AvroJSONEncoder
 
 
 class PrepareRecordForOcr(FlowFileTransform):
@@ -37,19 +43,37 @@ class PrepareRecordForOcr(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.operation_mode = "base64"
-        self.binary_field_name = None
-        self.output_text_field_name = None
-        self.document_id_field_name = None
-        self.process_flow_file_type = "none"
+        self.operation_mode: str = "base64"
+        self.binary_field_name: str = "binarydoc"
+        self.output_text_field_name: str = "text"
+        self.document_id_field_name : str = "id"
+        self.process_flow_file_type: str = "json"
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
-            PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
-            PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
-            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
-            PropertyDescriptor(name="process_flow_file_type", description="Type of flowfile input: avro | json", default_value="avro")
+            PropertyDescriptor(name="binary_field_name",
+                               description="Avro field containing binary data",
+                               default_value="binarydoc",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="output_text_field_name",
+                               description="Field to store Tika output text",
+                               default_value="text"),
+            PropertyDescriptor(name="operation_mode",
+                               description="Decoding mode (e.g. base64 or raw)",
+                               default_value="base64",
+                               required=True,
+                               allowable_values=["base64", "raw"]),
+            PropertyDescriptor(name="document_id_field_name",
+                               description="id field name of the document, this will be taken from the 'footer' usually",
+                               default_value="_id",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="process_flow_file_type",
+                               description="Type of flowfile input: avro | json",
+                               default_value="json",
+                               required=True,
+                               allowable_values=["avro", "json"]),
         ]
 
     def getPropertyDescriptors(self):

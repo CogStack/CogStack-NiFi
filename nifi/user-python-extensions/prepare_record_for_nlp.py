@@ -11,6 +11,13 @@ from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
 from py4j.java_gateway import JVMView, JavaObject
 
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+    ExpressionLanguageScope,
+)
+
 
 class PrepareRecordForNlp(FlowFileTransform):
     identifier = None
@@ -30,16 +37,29 @@ class PrepareRecordForNlp(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.document_text_field_name = "text"
-        self.document_id_field_name = "_id"
-        self.process_flow_file_type = "json"
+        self.document_text_field_name: str = "text"
+        self.document_id_field_name : str = "id"
+        self.process_flow_file_type : str = "json"
 
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="document_text_field_name", description="Field to store Tika output text", default_value="text"),
-            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="_id"),
-            PropertyDescriptor(name="process_flow_file_type", description="Type of flowfile input: avro | json", default_value="json")
+            PropertyDescriptor(name="document_id_field_name",
+                               description="id field name of the document, this will be taken from the 'footer' usually",
+                               default_value="_id",
+                               required=True,
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="document_text_field_name",
+                               description="text field name of the document",
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR],
+                               required=True,
+                               default_value="text"),
+            PropertyDescriptor(name="process_flow_file_type",
+                               description="Type of flowfile input: avro | json",
+                               default_value="json",
+                               required=True,
+                               allowable_values=["avro", "json"]),
+
         ]
 
     def getPropertyDescriptors(self):
