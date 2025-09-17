@@ -76,7 +76,8 @@ ethnicity_map = {'algerian': 'black',
  'croatian': 'white',
  'hispanic': 'other',
  'black and asian': 'mixed',
- 'black and white': 'mixed'}
+ 'black and white': 'mixed'
+ }
 
 # Mapped on bottom-level of 2001 NHS Data Dictionary; https://datadictionary.nhs.uk/data_elements/ethnic_category.html 
 ethnicity_map_detail = {'algerian': 'black or black british - african',
@@ -148,4 +149,5 @@ ethnicity_map_detail = {'algerian': 'black or black british - african',
  'middle east': 'other ethnic groups - any other ethnic group',
  'croatian': 'white - any other white background',
  'black and asian': 'mixed - white and asian',
- 'black and white': 'mixed - any other mixed background'}
+ 'black and white': 'mixed - any other mixed background'
+ }

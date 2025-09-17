@@ -1,61 +1,100 @@
 #!/usr/bin/env bash
 
-################################################################
-# 
-# This script creates JAVA keystore with previously generated
-#  keys and certificates
+# ===========================================================================================================================
+# 🧰 Create a Java keystore (.jks) and truststore from existing cert + key
 #
+# Usage:
+#     ./create_keystore.sh <cert_base_name> <output_jks_base_name> [password]
+#
+# Arguments:
+#     <cert_base_name>:          Prefix of the .crt and .key input files (e.g., myservice → myservice.crt + myservice.key)
+#     <output_jks_base_name>:    Desired name (no extension) for the output keystore
+#     [password]:                Optional password (defaults to $ROOT_CERTIFICATE_KEYSTORE_PASSWORD)
+#
+# Required ENV:
+#     ROOT_CERTIFICATE_NAME                 (e.g., root-ca)
+#     ROOT_CERTIFICATE_KEYSTORE_PASSWORD    (used as password for keystore + truststore)
+#
+# Produces:
+#     - ${cert_base_name}.p12                (PKCS#12 bundle of key + cert)
+#     - ${output_jks_base_name}.jks          (Java keystore with private key + cert + root)
+#     - ${cert_base_name}-truststore.key     (Truststore with public cert only)
+# ===========================================================================================================================
 
-set -e
+set -euo pipefail
 
-# Set the password for the keystore
-# Present in different files, in certificates_elasticsearch.env (ES_KEYSTORE_PASSWORD) and also in nifi.env (NIFI_KEYSTORE_PASSWORD)
+source certificates_general.env
 
-if [ -z "$1" ] || [ -z "$2" ]; then
-	echo "Usage: $0 <cert_name> <jks_store> <password> | the password is optional"
-	exit 1
+# Validate required variables
+: "${ROOT_CERTIFICATE_NAME:?ROOT_CERTIFICATE_NAME must be set in certificates_general.env}"
+: "${ROOT_CERTIFICATE_KEYSTORE_PASSWORD:?ROOT_CERTIFICATE_KEYSTORE_PASSWORD must be set in certificates_general.env}"
+
+echo "====================================== CREATE_KEYSTORE =============================="
+echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
+echo "ROOT_CERTIFICATE_KEYSTORE_PASSWORD: $ROOT_CERTIFICATE_KEYSTORE_PASSWORD"
+echo "=================================================================================================="
+
+CERT_NAME="${1:-}"
+JKS_NAME="${2:-}"
+KEYSTORE_PASSWORD="${3:-$ROOT_CERTIFICATE_KEYSTORE_PASSWORD}"
+
+# Root cert defaults
+CA_ROOT_CERT="root_certificates/${ROOT_CERTIFICATE_NAME}.pem"
+CA_ROOT_KEY="root_certificates/${ROOT_CERTIFICATE_NAME}.key"
+CA_ROOT_KEYSTORE="root_certificates/${ROOT_CERTIFICATE_NAME}.p12"
+
+CERT_FILE="${CERT_NAME}.crt"
+KEY_FILE="${CERT_NAME}.key"
+PKCS12_FILE="${CERT_NAME}.p12"
+
+# Validate required inputs
+if [[ -z "$CERT_NAME" || -z "$JKS_NAME" ]]; then
+  echo "❌ Usage: $0 <cert_name> <jks_store_name> [password]"
+  exit 1
 fi
 
-if [ -z "$3" ]; 
-then
-	echo "Password argument not set, setting it to ${ROOT_CERTIFICATE_KEYSTORE_PASSWORD:-"cogstackNifi"} by default."
-    ROOT_CERTIFICATE_KEYSTORE_PASSWORD=${ROOT_CERTIFICATE_KEYSTORE_PASSWORD:-"cogstackNifi"}
-else
-	ROOT_CERTIFICATE_KEYSTORE_PASSWORD=$3
+if [[ ! -f "$CERT_FILE" || ! -f "$KEY_FILE" ]]; then
+  echo "❌ Error: Missing ${CERT_FILE} or ${KEY_FILE}"
+  exit 1
 fi
 
-if [ ! -e "$1.crt" ] || [ ! -e "$1.key" ]; then
-	echo "Error: $1.crt or $1.key file do not exist"
-	exit 1
-fi
+echo "📦 Converting ${CERT_FILE} + ${KEY_FILE} to PKCS#12: ${PKCS12_FILE}"
+openssl pkcs12 -export \
+  -in "$CERT_FILE" \
+  -inkey "$KEY_FILE" \
+  -out "$PKCS12_FILE" \
+  -name "$CERT_NAME" \
+  -CAfile "$CA_ROOT_CERT" \
+  -passout pass:"$KEYSTORE_PASSWORD"
 
-if [[ -z "${ROOT_CERTIFICATE_NAME}" ]]; then
-    ROOT_CERTIFICATE_NAME="root-ca"
-    echo "ROOT_CERTIFICATE_NAME not set, defaulting to ROOT_CERTIFICATE_NAME=root-ca"
-else
-    ROOT_CERTIFICATE_NAME=${ROOT_CERTIFICATE_NAME}
-fi
+echo "🔐 Importing ${PKCS12_FILE} into Java Keystore: ${JKS_NAME}.jks"
+keytool -importkeystore \
+  -destkeystore "${JKS_NAME}.jks" \
+  -srckeystore "$PKCS12_FILE" \
+  -srcstoretype PKCS12 \
+  -alias "$CERT_NAME" \
+  -srcstorepass "$KEYSTORE_PASSWORD" \
+  -deststorepass "$KEYSTORE_PASSWORD"
 
+echo "✅ Adding Root CA to truststore in ${JKS_NAME}.jks"
+keytool -importcert \
+  -file "$CA_ROOT_CERT" \
+  -alias "root-ca" \
+  -keystore "${JKS_NAME}.jks" \
+  -storepass "$KEYSTORE_PASSWORD" \
+  -noprompt
 
-CA_ROOT_CERT="root_certificates/"$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY="root_certificates/"$ROOT_CERTIFICATE_NAME".key"
-CA_ROOT_KEYSTORE="root_certificates/"$ROOT_CERTIFICATE_NAME".p12"
+echo "📋 Listing keystore contents:"
+keytool -list -v \
+  -keystore "${JKS_NAME}.jks" \
+  -storepass "$KEYSTORE_PASSWORD" \
+  -noprompt
 
-# echo "Converting x509 Cert and Key to a pkcs12 file"
-openssl pkcs12 -export -in "$1.crt" -inkey "$1.key" \
-                -out "$1.p12" -name "$1" \
-                -CAfile $CA_ROOT_CERT -passout pass:$ROOT_CERTIFICATE_KEYSTORE_PASSWORD
- 
-echo "Importing the pkcs12 file to a java keystore"
-
-keytool -importkeystore -destkeystore "$2.jks" \
-        -srckeystore "$1.p12" -srcstoretype PKCS12 -alias "$1" -srcstorepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD -deststorepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD -storepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD
-
-echo "Importing TrustedCertEntry"
-keytool -importcert -file $CA_ROOT_CERT -keystore "$2.jks" -deststorepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD -noprompt -storepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD 
-
-echo "Checking which certificates are in a Java keystore"
-keytool -list -v -keystore $2".jks" -noprompt -storepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD
-
-echo "Creating truststore key"
-keytool -import -file $1.crt -keystore $1-"truststore.key" -storepass $ROOT_CERTIFICATE_KEYSTORE_PASSWORD -noprompt
+echo "🧱 Creating separate truststore file: ${CERT_NAME}-truststore.key"
+keytool -import \
+  -file "$CERT_FILE" \
+  -alias "$CERT_NAME" \
+  -keystore "${CERT_NAME}-truststore.key" \
+  -storepass "$KEYSTORE_PASSWORD" \
+  -noprompt
+  

@@ -1,0 +1,11 @@
+# pyproject.toml
+
+[tool.ruff]
+line-length = 120
+exclude = ["nifi/user-scripts/legacy_scripts"]
+target-version = "py38"
+
+[tool.ruff.lint]
+# E=pycodestyle, F=pyflakes, B=bugbear, I=isort
+select = ["E", "F", "B", "I"]
+fixable = ["ALL"]

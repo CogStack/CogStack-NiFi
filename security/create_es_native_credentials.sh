@@ -1,77 +1,112 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+# ==============================================================================
+# 🔐 Create users and service account tokens for Elasticsearch Native
+#
+# This script:
+#   - Waits until Elasticsearch is available
+#   - Sets a password for built-in `kibana_system` user
+#   - Creates custom users for:
+#       • Kibana dashboard access
+#       • NiFi / ingestion service
+#   - Creates a Fleet Server service token (used by Elastic Agent / Fleet)
+#
+# Usage:
+#     ./create_es_native_credentials.sh
+#
+# Requirements:
+#   • `certificates_elasticsearch.env` must define:
+#       - ELASTIC_HOST, ELASTIC_PASSWORD
+#       - KIBANA_USER, KIBANA_PASSWORD
+#       - INGEST_SERVICE_USER, INGEST_SERVICE_PASSWORD
+#       - ES_ADMIN_EMAIL
+#   • `certificates_general.env` must define:
+#       - CA root path used for HTTPS verification
+#
+# Output (to Elasticsearch security API):
+#   • Password for `kibana_system` set
+#   • Users `$KIBANA_USER` and `$INGEST_SERVICE_USER` created
+#   • Fleet Server token generated
+# ==============================================================================
 
-# required env var files
+set -euo pipefail
+
+# Load required env vars
 source certificates_elasticsearch.env
 source certificates_general.env
-source elasticsearch_users.env
+source users_elasticsearch.env
 
-if [[ -z "${ELASTIC_HOST}" ]]; then
-    ELASTIC_HOST=localhost
-    echo "ELASTIC_HOST not set, defaulting to ELASTIC_HOST=localhost"
-fi
+ES_CERTIFICATES_FOLDER="./es_certificates/elasticsearch"
 
-if [[ -z "${ELASTIC_PASSWORD}" ]]; then
-    ELASTIC_PASSWORD=kibanaserver
-    echo "ELASTIC_PASSWORD not set, defaulting to ELASTIC_PASSWORD=kibanaserver"
-fi
+ES_CA_CERT="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.crt.pem"
+ES_CA_KEY="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.key.pem"
 
-if [[ -z "${ELASTIC_USER}" ]]; then
-    ELASTIC_USER=elastic
-    echo "ELASTIC_USER not set, defaulting to ELASTIC_USER=elastic"
-fi
+# Validate required variables
+: "${ELASTIC_HOST:?Must set ELASTIC_HOST in certificates_elasticsearch.env}"
+: "${ELASTIC_PASSWORD:?Must set ELASTIC_PASSWORD in certificates_elasticsearch.env}"
+: "${KIBANA_USER:?Must set KIBANA_USER in certificates_elasticsearch.env}"
+: "${KIBANA_PASSWORD:?Must set KIBANA_PASSWORD in certificates_elasticsearch.env}"
+: "${INGEST_SERVICE_USER:?Must set INGEST_SERVICE_USER in certificates_elasticsearch.env}"
+: "${INGEST_SERVICE_PASSWORD:?Must set INGEST_SERVICE_PASSWORD in certificates_elasticsearch.env}"
+: "${ES_ADMIN_EMAIL:?Must set ES_ADMIN_EMAIL in certificates_elasticsearch.env}"
 
-if [[ -z "${KIBANA_USER}" ]]; then
-    KIBANA_USER=kibanaserver
-    echo "KIBANA_USER not set, defaulting to KIBANA_USER=kibanaserver"
-fi
+echo "====================================== CREATE_ES_NATIVE_CREDENTIALS =============================="
+echo "ELASTIC_HOST: $ELASTIC_HOST"
+echo "ELASTIC_PASSWORD: $ELASTIC_PASSWORD"
+echo "ELASTIC_USER: $ELASTIC_USER"
+echo "KIBANA_USER: $KIBANA_USER"
+echo "KIBANA_PASSWORD: $KIBANA_PASSWORD"
+echo "INGEST_SERVICE_USER: $INGEST_SERVICE_USER"
+echo "INGEST_SERVICE_PASSWORD: $INGEST_SERVICE_PASSWORD"
+echo "ES_ADMIN_EMAIL: $ES_ADMIN_EMAIL"
+echo "=================================================================================================="
 
-if [[ -z "${KIBANA_PASSWORD}" ]]; then
-    KIBANA_PASSWORD=kibanaserver
-    echo "KIBANA_PASSWORD not set, defaulting to KIBANA_PASSWORD=kibanaserver"
-fi
+# Wait for Elasticsearch to be available
+echo "⏳ Waiting for Elasticsearch to become available..."
+until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" "https://$ELASTIC_HOST:9200" >/dev/null; do
+  echo "  🔁 Still waiting on https://$ELASTIC_HOST:9200..."
+  sleep 5
+done
+echo "✅ Elasticsearch is reachable"
 
-if [[ -z "${INGEST_SERVICE_USER}" ]]; then
-    INGEST_SERVICE_USER=ingest_service
-    echo "INGEST_SERVICE_USER not set, defaulting to INGEST_SERVICE_USER=ingest_service"
-fi
+# Set kibana_system password
+echo "🔧 Setting password for built-in kibana_system user..."
+curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+  -H "Content-Type: application/json" \
+  "https://$ELASTIC_HOST:9200/_security/user/kibana_system/_password" \
+  -d "{\"password\": \"$KIBANA_PASSWORD\"}"
 
-if [[ -z "${INGEST_SERVICE_PASSWORD}" ]]; then
-    INGEST_SERVICE_PASSWORD=ingest_service
-    echo "INGEST_SERVICE_PASSWORD not set, defaulting to INGEST_SERVICE_PASSWORD=ingest_service"
-fi
-
-if [[ -z "${ES_ADMIN_EMAIL}" ]]; then
-    ES_ADMIN_EMAIL="cogstack@admin.net"
-    echo "ES_ADMIN_EMAIL not set, defaulting to ES_ADMIN_EMAIL=cogstack@admin.net"
-fi
-
-echo "Waiting for Elasticsearch availability"
-curl -k --cacert ./es_certificates/elasticsearch/elastic-stack-ca.crt.pem -key ./es_certificates/elasticsearch/elastic-stack-ca.key.pem -u elastic:$ELASTIC_PASSWORD https://$ELASTIC_HOST:9200
-echo "Setting kibana_system password"
-curl -k -X POST --cacert ./es_certificates/elasticsearch/elastic-stack-ca.crt.pem -u elastic:$ELASTIC_PASSWORD -H "Content-Type:application/json" https://$ELASTIC_HOST:9200/_security/user/kibana_system/_password -d "{\"password\":\"$KIBANA_PASSWORD\"}"
-
-echo "Creating users"
-# Create the actual kibanaserver user
-curl -k -X POST -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/elasticsearch/elastic-stack-ca.crt.pem "https://$ELASTIC_HOST:9200/_security/user/$KIBANA_USER?pretty" -H 'Content-Type:application/json' -d'
+# Create custom Kibana user
+echo "👤 Creating user: $KIBANA_USER..."
+curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+  -H "Content-Type: application/json" \
+  "https://$ELASTIC_HOST:9200/_security/user/$KIBANA_USER?pretty" \
+  -d @- <<EOF
 {
-  "password" :"'$KIBANA_PASSWORD'",
-  "roles" : ["kibana_system", "kibana_admin", "ingest_admin"],
-  "full_name" : "kibanaserver",
-  "email" : "'${ES_ADMIN_EMAIL}'"
+  "password": "$KIBANA_PASSWORD",
+  "roles": ["kibana_system", "kibana_admin", "ingest_admin"],
+  "full_name": "kibanaserver",
+  "email": "$ES_ADMIN_EMAIL"
 }
-'
+EOF
 
-# Create the actual kibanaserver user
-curl -k -X POST -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/elasticsearch/elastic-stack-ca.crt.pem "https://$ELASTIC_HOST:9200/_security/user/$INGEST_SERVICE_USER?pretty" -H 'Content-Type:application/json' -d'
+# Create ingest service user
+echo "👤 Creating user: $INGEST_SERVICE_USER..."
+curl -ks -X POST --cacert "$CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+  -H "Content-Type: application/json" \
+  "https://$ELASTIC_HOST:9200/_security/user/$INGEST_SERVICE_USER?pretty" \
+  -d @- <<EOF
 {
-  "password" :"'$INGEST_SERVICE_PASSWORD'",
-  "roles" : ["ingest_admin"],
-  "full_name" : "ingestion service",
-  "email" : "'${ES_ADMIN_EMAIL}'"
+  "password": "$INGEST_SERVICE_PASSWORD",
+  "roles": ["ingest_admin"],
+  "full_name": "ingestion service",
+  "email": "$ES_ADMIN_EMAIL"
 }
-'
+EOF
 
-# create service account token
-curl -k -X POST  -u elastic:$ELASTIC_PASSWORD --cacert ./es_certificates/elasticsearch/elastic-stack-ca.crt.pem "https://localhost:9200/_security/service/elastic/fleet-server/credential/token?pretty"
+# Create Fleet server service account token
+echo "🔑 Creating Fleet server service account token..."
+curl -ks -X POST --cacert "$CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+  "https://$ELASTIC_HOST:9200/_security/service/elastic/fleet-server/credential/token?pretty"
+
+echo "✅ All Elasticsearch native credentials have been created."

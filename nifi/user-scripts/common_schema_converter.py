@@ -1,18 +1,13 @@
-import traceback
 import io
 import json
+import traceback
+
 import avro.schema
 
 # jython packages
-import java.io
-from org.apache.commons.io import IOUtils
-from java.nio.charset import StandardCharsets
-from org.apache.nifi.processor.io import StreamCallback,InputStreamCallback
-import org.apache.nifi.logging.ComponentLog
-
 # other packages, normally available to python 2.7
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
+from org.apache.commons.io import IOUtils
+from org.apache.nifi.processor.io import StreamCallback
 
 """
     Avro schemas: https://avro.apache.org/docs/current/api/java/org/apache/avro/Schema.Field.html
@@ -36,7 +31,7 @@ class PyStreamCallback(StreamCallback):
         json_data_records = json.loads(bytes_io.read())
         available_mapping_keys = {}
         for k,v in json_mapper_schema.iteritems():
-            if v is not "":
+            if v != "":
                 available_mapping_keys[k] = v
       
         new_json = []
@@ -76,7 +71,7 @@ if flowFile != None:
         flowFile = session.write(flowFile, PyStreamCallback())
 
         session.transfer(flowFile, REL_SUCCESS)
-    except Exception as exception:
+    except Exception:
         log.error(traceback.format_exc())
         session.transfer(flowFile, REL_FAILURE)
 

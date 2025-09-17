@@ -1,6 +1,6 @@
-import regex
-import sys
 import json
+import re
+import sys
 
 records = json.loads(sys.stdin.read())
 
@@ -14,22 +14,26 @@ for arg in sys.argv:
 if isinstance(records, dict):
     records = [records]
 
+# List of substitutions as (pattern, replacement)
+PII_PATTERNS = [
+    (r"PEf", "ABCD100"),
+    (r"\d\d\d?F|M", ""),  # case-insensitive matching below
+    (r"RFH|CFH|BA|Barnet|BARNET", ""),
+    (r"IMT|CST|AHP|CNS", ""),
+    (r"GMC:\s*\d{7}", ""),
+    (r"MCIRL:\s*\d{6}", ""),
+    (r"NHS\s*Number:\s*\d{3}\s*\d{3}\s*\d{4}", ""),
+    (r"(https?:\/\/)?www\.royalfree\.nhs\.uk[^\s]*", ""),
+    (r"UCLH|UCH|NMUH|BGH|NUH", "")
+]
 
 # removes any PII from the text field
-
 for i in range(len(records)):
     if TEXT_FIELD_NAME in records[i].keys():
         clean_text = records[i][TEXT_FIELD_NAME]
-        clean_text = regex.sub(r"Age:\s?\d\d?y?(?:ears)?/i", "", clean_text)
-        clean_text = regex.sub(r"\d\d\d?F|M/i", "", clean_text)
-        clean_text = regex.sub(r"RFH|CFH|BA|Barnet|BARNET", "", clean_text)
-        clean_text = regex.sub(r"IMT|CST|AHP|CNS", "", clean_text)
-        clean_text = regex.sub(r"GMC:\s*\d{7}", "", clean_text)
-        clean_text = regex.sub(r"MCIRL:\s*\d{6}", "", clean_text)
-        clean_text = regex.sub(r"NHS\s*Number:\s*\d{3}\s*\d{3}\s*\d{4}", "", clean_text)
-        clean_text = regex.sub(r"(https?:\/\/)?www\.royalfree\.nhs\.uk[^\s]*", "", clean_text)
-        clean_text = regex.sub(r"UCLH|UCH|NMUH|BGH|NUH", "", clean_text)
-
+        for pattern, repl in PII_PATTERNS:
+            clean_text = re.sub(pattern, repl, clean_text, flags=re.IGNORECASE)
         records[i][TEXT_FIELD_NAME] = clean_text
 
-sys.stdout.write(json.dumps(records))
+# Output cleaned JSON as UTF-8
+sys.stdout.buffer.write(json.dumps(records, ensure_ascii=False).encode("utf-8"))

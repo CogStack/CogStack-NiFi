@@ -33,7 +33,7 @@ class DecompressLzwCernerBlob:
         for i in reversed(list(range(self.tmp_buffer_index + 1))):
             self.output_stream.append(self.tmp_decompression_buffer[i])
 
-    def decompress(self, input_stream=bytearray()):
+    def decompress(self, input_stream: bytearray = bytearray()):
 
         byte_buffer_index: int = 0
 

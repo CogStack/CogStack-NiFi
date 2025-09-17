@@ -1,13 +1,9 @@
-import traceback
 import io
-import sys
-import os
 import json
-import avro
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
 
-from pydoc import locate
+import avro
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 
 """
     Use this script to test avro schemas etc with python3
