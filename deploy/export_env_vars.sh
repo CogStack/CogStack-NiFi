@@ -12,7 +12,7 @@ current_dir=$(pwd)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$SCRIPT_DIR"
-SECURITY_DIR="$SCRIPT_DIR/../security"
+SECURITY_DIR="$SCRIPT_DIR/../security/env"
 SERVICES_DIR="$SCRIPT_DIR/../services"
 
 

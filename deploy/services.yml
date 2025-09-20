@@ -51,7 +51,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/users_database.env
+      - ../security/env/users_database.env
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
@@ -85,7 +85,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/users_database.env
+      - ../security/env/users_database.env
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
@@ -117,7 +117,7 @@ services:
     container_name: es_create_certs
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
     env_file:
-      - ../security/certificates_elasticsearch.env
+      - ../security/env/certificates_elasticsearch.env
     environment:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER}
@@ -130,8 +130,8 @@ services:
     user: "0"
     working_dir: /usr/share/elasticsearch
     volumes:
-      - ../security/es_native_cert_generator.sh:/usr/share/elasticsearch/es_native_cert_generator.sh:ro
-      - ../security/es_certificates/elasticsearch:/usr/share/elasticsearch/config/certificates:rw
+      - ../security/scripts/es_native_cert_generator.sh:/usr/share/elasticsearch/es_native_cert_generator.sh:ro
+      - ../security/certificates/elastic/elasticsearch:/usr/share/elasticsearch/config/certificates:rw
       - elasticsearch-certs-vol:/certs
 
   elasticsearch-1:
@@ -142,7 +142,7 @@ services:
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
-      - ../security/users_elasticsearch.env
+      - ../security/env/users_elasticsearch.env
     environment:
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_1_NAME:-es01}
@@ -168,15 +168,15 @@ services:
       - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
 
       # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/es_certificates/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
 
       # ES native roles
       - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
@@ -233,7 +233,7 @@ services:
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
-      - ../security/users_elasticsearch.env
+      - ../security/env/users_elasticsearch.env
     environment:
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_2_NAME:-"es02"}
@@ -259,15 +259,15 @@ services:
       - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
 
       # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/es_certificates/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
 
       # ES native roles
       - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
@@ -324,7 +324,7 @@ services:
     env_file:
       - ./network_settings.env
       - ./elasticsearch.env
-      - ../security/users_elasticsearch.env
+      - ../security/env/users_elasticsearch.env
     environment:
       # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_3_NAME:-"es03"}
@@ -350,15 +350,15 @@ services:
       - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
 
       # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
 
       # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/es_certificates/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
 
       # ES native roles
       - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
@@ -413,7 +413,7 @@ services:
     command: -e --strict.perms=false
     env_file:
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
@@ -424,11 +424,11 @@ services:
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro 
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro 
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/metricbeat/esnode.key:ro
 
     ulimits:
       memlock:
@@ -455,7 +455,7 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
@@ -466,11 +466,11 @@ services:
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/metricbeat/esnode.key:ro
 
     ulimits:
       memlock:
@@ -495,7 +495,7 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
@@ -506,11 +506,11 @@ services:
 
       - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/usr/share/metricbeat/root-ca.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
 
     ulimits:
       memlock:
@@ -535,7 +535,7 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -546,11 +546,11 @@ services:
 
       - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/etc/pki/client/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/etc/pki/client/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/etc/pki/client/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/etc/pki/client/esnode.key:ro
 
     # ES logs
       - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
@@ -578,7 +578,7 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -589,11 +589,11 @@ services:
 
       - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/etc/pki/client/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/etc/pki/client/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/etc/pki/client/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/etc/pki/client/esnode.key:ro
 
     # ES logs
       - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
@@ -621,7 +621,7 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
     environment:
       - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200", "https://elasticsearch-2:9200"]}
       - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
@@ -632,11 +632,11 @@ services:
 
       - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
       # ES NATIVE NODE CERTS
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
-      - ../security/es_certificates/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/etc/pki/client/esnode.p12:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/etc/pki/client/esnode.crt:ro
-      - ../security/es_certificates/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/etc/pki/client/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.key.pem:/etc/pki/root/root-ca.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/etc/pki/client/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/etc/pki/client/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/etc/pki/client/esnode.key:ro
 
     # ES logs
       - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
@@ -666,8 +666,8 @@ services:
     env_file:
          - ./network_settings.env
          - ./elasticsearch.env
-         - ../security/users_elasticsearch.env
-         - ../security/certificates_elasticsearch.env
+         - ../security/env/users_elasticsearch.env
+         - ../security/env/certificates_elasticsearch.env
     environment:
       # INFO: use HTTPS instead of HTTP when enabled SSL
       OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
@@ -681,36 +681,36 @@ services:
       - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
 
       # Security certificates, general      
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.p12:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.crt:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.crt:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.key:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.p12:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.p12:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode2.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode3.p12:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.csr:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.csr:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.csr:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.csr:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.csr:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.csr:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.key:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/http-${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode2.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/http-${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode3.key:ro
 
       
       # OpenSearch only certs
-      - ../security/es_certificates/opensearch/admin.crt:/usr/share/opensearch-dashboards/config/admin.crt:ro
-      - ../security/es_certificates/opensearch/admin.key.pem:/usr/share/opensearch-dashboards/config/admin.key.pem:ro
-      - ../security/es_certificates/opensearch/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
-      - ../security/es_certificates/opensearch/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
+      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/opensearch-dashboards/config/admin.crt:ro
+      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/opensearch-dashboards/config/admin.key.pem:ro
+      - ../security/certificates/elastic/opensearch/es_kibana_client.pem:/usr/share/opensearch-dashboards/config/kibana.pem:ro
+      - ../security/certificates/elastic/opensearch/es_kibana_client.key:/usr/share/opensearch-dashboards/config/kibana.key:ro
     ports:
       - "${KIBANA_SERVER_OUTPUT_PORT:-5601}:5601"
     networks:
@@ -736,11 +736,11 @@ services:
       - ./nifi.env
       - ./elasticsearch.env
       - ./network_settings.env
-      - ../security/users_nifi.env
-      - ../security/users_elasticsearch.env
-      - ../security/certificates_general.env
-      - ../security/certificates_elasticsearch.env
-      - ../security/certificates_nifi.env
+      - ../security/env/users_nifi.env
+      - ../security/env/users_elasticsearch.env
+      - ../security/env/certificates_general.env
+      - ../security/env/certificates_elasticsearch.env
+      - ../security/env/certificates_nifi.env
     shm_size: 1g
     environment:
       - USER_ID=${NIFI_UID:-1000}
@@ -750,8 +750,8 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
-      - NIFI_SECURITY_DIR=${NIFI_SECURITY_DIR:-../security/nifi_certificates/}
-      - ELASTICSEARCH_SECURITY_DIR=${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}
+      - NIFI_SECURITY_DIR=${NIFI_SECURITY_DIR:-../security/certificates/nifi/}
+      - ELASTICSEARCH_SECURITY_DIR=${ELASTICSEARCH_SECURITY_DIR:-../security/certificates/elastic/}
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -770,11 +770,11 @@ services:
       - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}:/opt/nifi/nifi-current/nifi_certificates:ro
-      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}:/opt/nifi/nifi-current/es_certificates:ro
+      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}:/opt/nifi/nifi-current/nifi_certificates:ro
+      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/certificates/elastic/}:/opt/nifi/nifi-current/es_certificates:ro
   
       # Security credentials scripts
-      - ../security/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
+      - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
       # # Nifi properties file:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
@@ -839,11 +839,11 @@ services:
       - ./network_settings.env
       - ./nifi.env
       - ./project.env
-      - ../security/users_nifi.env
-      - ../security/users_elasticsearch.env
-      - ../security/certificates_general.env
-      - ../security/certificates_elasticsearch.env
-      - ../security/certificates_nifi.env
+      - ../security/env/users_nifi.env
+      - ../security/env/users_elasticsearch.env
+      - ../security/env/certificates_general.env
+      - ../security/env/certificates_elasticsearch.env
+      - ../security/env/certificates_nifi.env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -864,8 +864,8 @@ services:
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
-      - ./${NIFI_SECURITY_DIR:-../security/nifi_certificates/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
+      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
+      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
       - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
       - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
@@ -909,12 +909,12 @@ services:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
       - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
-      - ../security/root_certificates:/etc/nginx/root_certificates:ro
-      - ../security/nifi_certificates:/etc/nginx/nifi_certificates:ro
+      - ../security/certificates/root:/etc/nginx/root_certificates:ro
+      - ../security/certificates/nifi:/etc/nginx/nifi_certificates:ro
 
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/etc/nginx/es_certificates/elastic-stack-ca.crt.pem:ro
-      - ../security/es_certificates/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/etc/nginx/es_certificates/elastic-stack-ca.key.pem:ro
-      # - ../security/es_certificates/:/etc/nginx/es_certificates/:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/etc/nginx/elastic/elastic-stack-ca.crt.pem:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/etc/nginx/elastic/elastic-stack-ca.key.pem:ro
+      # - ../security/certificates/elastic/:/etc/nginx/elastic/:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
       - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
@@ -958,8 +958,8 @@ services:
       # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
       # certificates
-      - ../security/root_certificates/root-ca.key:/certificates/root-ca.key:ro
-      - ../security/root_certificates/root-ca.pem:/certificates/root-ca.pem:ro
+      - ../security/certificates/root/root-ca.key:/certificates/root-ca.key:ro
+      - ../security/certificates/root/root-ca.pem:/certificates/root-ca.pem:ro
       # data & conf volumes
       - gitea-config-vol:/etc/gitea:rw
       - gitea-lib-vol:/var/lib/gitea:rw
