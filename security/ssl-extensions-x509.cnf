@@ -38,3 +38,5 @@ DNS.18 = cogstack-nifi
 DNS.19 = cogstack-nifi-nginx
 DNS.20 = cogstack-nifi-registry-flow
 DNS.21 = cogstack-auth-service
+DNS.22 = cogstack
+DNS.23 = *.cogstack
