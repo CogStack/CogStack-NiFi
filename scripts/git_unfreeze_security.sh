@@ -15,9 +15,9 @@ set -euo pipefail
 echo "🔓 Unfreezing certificates and OpenSearch roles/internal_users configs..."
 
 CERT_AND_CONFIG_PATHS=(
-  "./security/root_certificates"
-  "./security/es_certificates"
-  "./security/nifi_certificates"
+  "./security/certificates/root"
+  "./security/certificates/elastic"
+  "./security/certificates/nifi"
   "./security/es_roles"
 )
 

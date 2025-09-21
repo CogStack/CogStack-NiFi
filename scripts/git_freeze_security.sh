@@ -7,9 +7,9 @@
 #     ./freeze_certs.sh
 #
 # Prevents Git from showing diffs, pull conflicts, or accidental commits for:
-#   - Root CA certs (./security/root_certificates)
-#   - NiFi certs (./security/nifi_certificates)
-#   - OpenSearch/Elastic certs (./security/es_certificates)
+#   - Root CA certs (./security/root)
+#   - NiFi certs (./security/nifi)
+#   - OpenSearch/Elastic certs (./security/elastic)
 #   - OpenSearch/Elastic internal roles/users (./security/es_roles)
 #
 # This is meant for local or per-deployment certs/configs that should not interfere
@@ -21,9 +21,9 @@ set -euo pipefail
 echo "🧊 Freezing certificates and Elastic/OpenSearch roles/internal_users configs from Git tracking..."
 
 CERT_AND_CONFIG_PATHS=(
-  "./security/root_certificates"
-  "./security/es_certificates"
-  "./security/nifi_certificates"
+  "./security/certificates/root"
+  "./security/certificates/elastic"
+  "./security/certificates/nifi"
   "./security/es_roles"
 )
 
