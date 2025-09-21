@@ -7,12 +7,12 @@
 #   - `nifi.key` (private key)
 #   - `nifi.pem` (PEM-formatted cert)
 #   - `nifi.crt` (X.509 DER cert)
-#   - `nifi.jks` / `nifi.p12` (Java Keystore)
+#   - `nifi-keystore.jks` / `nifi.p12` (Java Keystore)
 #   - `nifi-truststore.jks` (Truststore)
 #   - `nifi.csr` (Certificate Signing Request)
 #
 # Output directory:
-#     ./nifi_certificates/
+#     ../certificates/nifi/
 #
 # ⚠️ This script is NOT used by default — OpenSSL-based flows have replaced it.
 #     Kept here for backwards compatibility or future fallback.
@@ -42,7 +42,7 @@ NIFI_SUBJ_ALT_NAMES="${NIFI_SUBJ_ALT_NAMES:-subjectAltName=IP:127.0.0.1,DNS:cogs
 NIFI_KEYSTORE_PASSWORD="${NIFI_KEYSTORE_PASSWORD:-cogstackNifi}"
 KEY_SIZE=4096
 HOSTNAMES="nifi,cogstack-nifi,cogstack,nifi-registry"
-OUTPUT_DIRECTORY="../certificates/nifi/nifi_certificates"
+OUTPUT_DIRECTORY="../certificates/nifi/"
 PATH_TO_NIFI_PROPERTIES_FILE="./../../../nifi/conf/nifi.properties"
 
 # === NiFi Toolkit Download
@@ -62,7 +62,7 @@ export JAVA_OPTS="-Xmx2048m -Xms2048m"
 echo "🧹 Cleaning up any previous certs in ${OUTPUT_DIRECTORY}/"
 rm -rf "${OUTPUT_DIRECTORY}/nifi*"
 
-echo "🔑 Creating NiFi keypair (nifi.jks)..."
+echo "🔑 Creating NiFi keypair ( nifi-keystore.jks)..."
 keytool -genkeypair -alias "nifi" \
   -dname "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" \
   -ext "${NIFI_SUBJ_ALT_NAMES}" \
@@ -71,11 +71,11 @@ keytool -genkeypair -alias "nifi" \
   -validity "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" \
   -sigalg "SHA256withRSA" \
   -keyalg RSA \
-  -keystore nifi.jks \
+  -keystore nifi-keystore.jks\
   -noprompt -v
 
 echo "📨 Creating CSR (nifi.csr)..."
-keytool -certreq -alias "nifi" -keystore nifi.jks \
+keytool -certreq -alias "nifi" -keystore  nifi-keystore.jks \
   -file nifi.csr \
   -storepass "${NIFI_KEYSTORE_PASSWORD}" \
   -ext "${NIFI_SUBJ_ALT_NAMES}" \
@@ -83,7 +83,7 @@ keytool -certreq -alias "nifi" -keystore nifi.jks \
 
 echo "📦 Converting to PKCS#12 (nifi.p12)..."
 keytool -importkeystore \
-  -srckeystore nifi.jks \
+  -srckeystore nifi-keystore.jks \
   -destkeystore nifi.p12 \
   -deststoretype PKCS12 \
   -srcalias nifi -destalias nifi \
@@ -92,11 +92,11 @@ keytool -importkeystore \
   -noprompt
 
 echo "🔏 Exporting certificate (.crt)"
-keytool -exportcert -alias nifi -keystore nifi.jks \
+keytool -exportcert -alias nifi -keystore  nifi-keystore.jks \
   -file nifi.crt -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
 
 echo "📜 Exporting PEM (.pem)"
-keytool -exportcert -keystore nifi.jks \
+keytool -exportcert -keystore  nifi-keystore.jks \
   -alias nifi -rfc -file nifi.pem \
   -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
 
@@ -113,7 +113,7 @@ keytool -importcert -keystore nifi-truststore.jks \
 
 # === Move files to output dir
 mkdir -p "$OUTPUT_DIRECTORY"
-mv nifi.key nifi.pem nifi.jks nifi-truststore.jks nifi.crt nifi.csr nifi.p12 "$OUTPUT_DIRECTORY"
+mv nifi.key nifi.pem nifi-keystore.jks nifi-truststore.jks nifi.crt nifi.csr nifi.p12 "$OUTPUT_DIRECTORY"
 
 # === Patch NiFi props
 sed -i "" "s|nifi\.security\.keystorePasswd=.*|nifi.security.keystorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/conf/nifi.properties
