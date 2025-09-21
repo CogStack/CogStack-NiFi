@@ -13,7 +13,7 @@ services:
     restart: always
     env_file:
       - ./database.env
-      - ../security/users_database.env
+      - ../security/env/users_database.env
     environment:
       # PG env vars
       - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}

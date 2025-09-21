@@ -24,11 +24,15 @@
 
 set -euo pipefail
 
+SECURITY_TEMPLATES_FOLDER="../templates/"
+SECURITY_CERTIFICATES_FOLDER="../certificates/"
+SECURITY_ENV_FOLDER="../env/"
+
 # === Load environment variables
-source ../deploy/general.env
-source ../deploy/nifi.env
-source certificates_general.env
-source certificates_nifi.env
+source ../../deploy/general.env
+source ../../deploy/nifi.env
+source "${SECURITY_ENV_FOLDER}certificates_general.env"
+source "${SECURITY_ENV_FOLDER}certificates_nifi.env"
 
 # === Defaults
 NIFI_TOOLKIT_VERSION="${NIFI_TOOLKIT_VERSION:-${NIFI_TOOLKIT_VERSION}}"
@@ -112,14 +116,14 @@ mkdir -p "$OUTPUT_DIRECTORY"
 mv nifi.key nifi.pem nifi.jks nifi-truststore.jks nifi.crt nifi.csr nifi.p12 "$OUTPUT_DIRECTORY"
 
 # === Patch NiFi props
-sed -i "" "s|nifi\.security\.keystorePasswd=.*|nifi.security.keystorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/conf/nifi.properties
-sed -i "" "s|nifi\.security\.keyPasswd=.*|nifi.security.keyPasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/conf/nifi.properties
-sed -i "" "s|nifi\.security\.truststorePasswd=.*|nifi.security.truststorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/conf/nifi.properties
+sed -i "" "s|nifi\.security\.keystorePasswd=.*|nifi.security.keystorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/conf/nifi.properties
+sed -i "" "s|nifi\.security\.keyPasswd=.*|nifi.security.keyPasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/conf/nifi.properties
+sed -i "" "s|nifi\.security\.truststorePasswd=.*|nifi.security.truststorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/conf/nifi.properties
 
 # === Patch NiFi Registry props
-sed -i "" "s|nifi\.registry\.security\.keystorePasswd=.*|nifi.registry.security.keystorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
-sed -i "" "s|nifi\.registry\.security\.keyPasswd=.*|nifi.registry.security.keyPasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
-sed -i "" "s|nifi\.registry\.security\.truststorePasswd=.*|nifi.registry.security.truststorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../nifi/nifi-registry/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.keystorePasswd=.*|nifi.registry.security.keystorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/nifi-registry/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.keyPasswd=.*|nifi.registry.security.keyPasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/nifi-registry/nifi-registry.properties
+sed -i "" "s|nifi\.registry\.security\.truststorePasswd=.*|nifi.registry.security.truststorePasswd=${NIFI_KEYSTORE_PASSWORD}|" ../../nifi/nifi-registry/nifi-registry.properties
 
 # === Reset Java opts
 export JAVA_OPTS=$OLD_JAVA_OPTS
