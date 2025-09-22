@@ -42,7 +42,7 @@ NIFI_SUBJ_ALT_NAMES="${NIFI_SUBJ_ALT_NAMES:-subjectAltName=IP:127.0.0.1,DNS:cogs
 NIFI_KEYSTORE_PASSWORD="${NIFI_KEYSTORE_PASSWORD:-cogstackNifi}"
 KEY_SIZE=4096
 HOSTNAMES="nifi,cogstack-nifi,cogstack,nifi-registry"
-OUTPUT_DIRECTORY="../certificates/nifi/"
+OUTPUT_DIRECTORY="${SECURITY_CERTIFICATES_FOLDER}nifi/"
 PATH_TO_NIFI_PROPERTIES_FILE="./../../../nifi/conf/nifi.properties"
 
 # === NiFi Toolkit Download
@@ -59,8 +59,9 @@ fi
 OLD_JAVA_OPTS=${JAVA_OPTS:-}
 export JAVA_OPTS="-Xmx2048m -Xms2048m"
 
-echo "🧹 Cleaning up any previous certs in ${OUTPUT_DIRECTORY}/"
-rm -rf "${OUTPUT_DIRECTORY}/nifi*"
+echo "🧹 Cleaning up any previous certs in ${OUTPUT_DIRECTORY}"
+rm -rf "${OUTPUT_DIRECTORY}nifi*"
+
 
 echo "🔑 Creating NiFi keypair ( nifi-keystore.jks)..."
 keytool -genkeypair -alias "nifi" \
@@ -75,10 +76,9 @@ keytool -genkeypair -alias "nifi" \
   -noprompt -v
 
 echo "📨 Creating CSR (nifi.csr)..."
-keytool -certreq -alias "nifi" -keystore  nifi-keystore.jks \
+keytool -certreq -alias "nifi" -keystore nifi-keystore.jks \
   -file nifi.csr \
   -storepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -ext "${NIFI_SUBJ_ALT_NAMES}" \
   -sigalg "SHA256withRSA"
 
 echo "📦 Converting to PKCS#12 (nifi.p12)..."
@@ -91,10 +91,6 @@ keytool -importkeystore \
   -srcstorepass "${NIFI_KEYSTORE_PASSWORD}" \
   -noprompt
 
-echo "🔏 Exporting certificate (.crt)"
-keytool -exportcert -alias nifi -keystore  nifi-keystore.jks \
-  -file nifi.crt -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
-
 echo "📜 Exporting PEM (.pem)"
 keytool -exportcert -keystore  nifi-keystore.jks \
   -alias nifi -rfc -file nifi.pem \
@@ -102,6 +98,23 @@ keytool -exportcert -keystore  nifi-keystore.jks \
 
 echo "🔐 Extracting private key from PKCS#12"
 openssl pkcs12 -in nifi.p12 -out nifi.key -nodes -passin pass:${NIFI_KEYSTORE_PASSWORD}
+
+echo "✅ Signing CSR with self key using OpenSSL and v3_leaf extensions..."
+openssl x509 -req \
+  -in nifi.csr \
+  -signkey nifi.key \
+  -out nifi.crt \
+  -days "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" \
+  -sha256 \
+  -extfile "${SECURITY_TEMPLATES_FOLDER}/ssl-extensions-x509.cnf" \
+  -extensions v3_leaf
+
+echo "📥 Importing signed certificate back into keystore"
+keytool -importcert -keystore nifi-keystore.jks \
+  -storepass "${NIFI_KEYSTORE_PASSWORD}" \
+  -alias nifi \
+  -file nifi.crt \
+  -noprompt
 
 echo "🔐 Creating truststore (nifi-truststore.jks)..."
 keytool -importcert -keystore nifi-truststore.jks \

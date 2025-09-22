@@ -41,6 +41,8 @@ DNS.20 = cogstack-nifi-registry-flow
 DNS.21 = cogstack-auth-service
 DNS.22 = cogstack
 DNS.23 = *.cogstack
+IP.1 = 127.0.0.1
+email = admin@cogstack.net
 
 [ req ]
 default_bits       = 4096
