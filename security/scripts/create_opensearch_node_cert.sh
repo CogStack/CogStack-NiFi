@@ -105,7 +105,7 @@ openssl x509 -req \
   -CAkey "$CA_ROOT_KEY" \
   -CAcreateserial \
   -out "${CERT_NAME}.crt" \
-  -extensions v3_ca \
+  -extensions v3_leaf \
   -extfile "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 # === Create Java Keystore ===

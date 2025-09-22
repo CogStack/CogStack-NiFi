@@ -26,8 +26,8 @@ security/certificates/
 security/certificates/**
 security/env/
 security/env/**
-security/nifi_toolkit/
-security/nifi_toolkit/**
+security/scripts/nifi_toolkit/
+security/scripts/nifi_toolkit/**
 security/templates/
 security/templates/**
 

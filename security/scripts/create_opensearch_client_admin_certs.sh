@@ -66,7 +66,7 @@ openssl x509 -req -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
   -in "$ES_CLIENT_CERT_NAME.csr" \
   -CA "$CA_ROOT_CERT" -CAkey "$CA_ROOT_KEY" -CAcreateserial \
   -out "$ES_CLIENT_CERT_NAME.pem" \
-  -extensions v3_ca -extfile "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
+  -extensions v3_leaf -extfile "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 mv "$ES_CLIENT_CERT_NAME"* "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
 

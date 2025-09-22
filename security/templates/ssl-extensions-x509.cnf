@@ -10,10 +10,11 @@ basicConstraints = critical, CA:true
 keyUsage = critical, keyCertSign, cRLSign
 
 [v3_leaf]
-basicConstraints = CA:FALSE
-keyUsage = digitalSignature, keyEncipherment
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
-authorityKeyIdentifier = keyid:always,issuer
+authorityKeyIdentifier = keyid,issuer
+subjectKeyIdentifier = hash
 subjectAltName = @alt_names
 
 [alt_names]
@@ -40,3 +41,7 @@ DNS.20 = cogstack-nifi-registry-flow
 DNS.21 = cogstack-auth-service
 DNS.22 = cogstack
 DNS.23 = *.cogstack
+
+[ req ]
+default_bits       = 4096
+string_mask        = utf8only
