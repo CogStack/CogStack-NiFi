@@ -91,11 +91,6 @@ keytool -importkeystore \
   -srcstorepass "${NIFI_KEYSTORE_PASSWORD}" \
   -noprompt
 
-echo "📜 Exporting PEM (.pem)"
-keytool -exportcert -keystore  nifi-keystore.jks \
-  -alias nifi -rfc -file nifi.pem \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
-
 echo "🔐 Extracting private key from PKCS#12"
 openssl pkcs12 -in nifi.p12 -out nifi.key -nodes -passin pass:${NIFI_KEYSTORE_PASSWORD}
 
@@ -115,6 +110,11 @@ keytool -importcert -keystore nifi-keystore.jks \
   -alias nifi \
   -file nifi.crt \
   -noprompt
+
+echo "📜 Exporting PEM (.pem)"
+keytool -exportcert -keystore  nifi-keystore.jks \
+  -alias nifi -rfc -file nifi.pem \
+  -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
 
 echo "🔐 Creating truststore (nifi-truststore.jks)..."
 keytool -importcert -keystore nifi-truststore.jks \
