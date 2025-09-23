@@ -37,13 +37,24 @@ source "${SECURITY_ENV_FOLDER}certificates_nifi.env"
 # === Defaults
 NIFI_TOOLKIT_VERSION="${NIFI_TOOLKIT_VERSION:-${NIFI_TOOLKIT_VERSION}}"
 NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS="${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:-1460}"
-NIFI_SUBJ_LINE_CERTIFICATE_CN="${NIFI_SUBJ_LINE_CERTIFICATE_CN:-CN=cogstack,OU=NIFI,C=UK,ST=UK,L=UK,O=cogstack}"
-NIFI_SUBJ_ALT_NAMES="${NIFI_SUBJ_ALT_NAMES:-subjectAltName=IP:127.0.0.1,DNS:cogstack,DNS:nifi,DNS:localhost,EMAIL:${COGSTACK_ADMIN_EMAIL:-admin@cogstack.net}}"
 NIFI_KEYSTORE_PASSWORD="${NIFI_KEYSTORE_PASSWORD:-cogstackNifi}"
-KEY_SIZE=4096
-HOSTNAMES="nifi,cogstack-nifi,cogstack,nifi-registry"
 OUTPUT_DIRECTORY="${SECURITY_CERTIFICATES_FOLDER}nifi/"
+SECURITY_ROOT_CA_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
 PATH_TO_NIFI_PROPERTIES_FILE="./../../../nifi/conf/nifi.properties"
+EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
+
+NIFI_CERTIFICATE_NAME="nifi"
+NIFI_KEY_FILE="${NIFI_CERTIFICATE_NAME}.key"
+NIFI_CSR_FILE="${NIFI_CERTIFICATE_NAME}.csr"
+NIFI_CRT_FILE="${NIFI_CERTIFICATE_NAME}.crt"
+NIFI_PEM_FILE="${NIFI_CERTIFICATE_NAME}.pem"
+NIFI_P12_FILE="${NIFI_CERTIFICATE_NAME}.p12"
+NIFI_JKS_FILE="${NIFI_CERTIFICATE_NAME}-keystore.jks"
+NIFI_TRUSTSTORE_FILE="${NIFI_CERTIFICATE_NAME}-truststore.jks"
+
+ROOT_CA_PEM="${SECURITY_ROOT_CA_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
+ROOT_CA_KEY="${SECURITY_ROOT_CA_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
+
 
 # === NiFi Toolkit Download
 if [ ! -d "./nifi_toolkit" ]; then
@@ -63,66 +74,58 @@ echo "🧹 Cleaning up any previous certs in ${OUTPUT_DIRECTORY}"
 rm -rf "${OUTPUT_DIRECTORY}nifi*"
 
 
-echo "🔑 Creating NiFi keypair ( nifi-keystore.jks)..."
-keytool -genkeypair -alias "nifi" \
-  -dname "${NIFI_SUBJ_LINE_CERTIFICATE_CN}" \
-  -ext "${NIFI_SUBJ_ALT_NAMES}" \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -keysize "${KEY_SIZE}" \
-  -validity "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" \
-  -sigalg "SHA256withRSA" \
-  -keyalg RSA \
-  -keystore nifi-keystore.jks\
-  -noprompt -v
+echo "🔑 Generating NiFi private key"
+openssl genrsa -out "$NIFI_KEY_FILE" 4096
 
-echo "📨 Creating CSR (nifi.csr)..."
-keytool -certreq -alias "nifi" -keystore nifi-keystore.jks \
-  -file nifi.csr \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -sigalg "SHA256withRSA"
+echo "📄 Generating Certificate Signing Request (CSR)"
+openssl req -new \
+  -key "$NIFI_KEY_FILE" \
+  -out "$NIFI_CSR_FILE" \
+  -config "$EXT_FILE"
 
-echo "📦 Converting to PKCS#12 (nifi.p12)..."
-keytool -importkeystore \
-  -srckeystore nifi-keystore.jks \
-  -destkeystore nifi.p12 \
-  -deststoretype PKCS12 \
-  -srcalias nifi -destalias nifi \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -srcstorepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -noprompt
-
-echo "🔐 Extracting private key from PKCS#12"
-openssl pkcs12 -in nifi.p12 -out nifi.key -nodes -passin pass:${NIFI_KEYSTORE_PASSWORD}
-
-echo "✅ Signing CSR with self key using OpenSSL and v3_leaf extensions..."
+echo "✅ Signing CSR using Root CA with SAN + extensions"
 openssl x509 -req \
-  -in nifi.csr \
-  -signkey nifi.key \
-  -out nifi.crt \
-  -days "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" \
+  -in "$NIFI_CSR_FILE" \
+  -CA "$ROOT_CA_PEM" \
+  -CAkey "$ROOT_CA_KEY" \
+  -CAcreateserial \
+  -out "$NIFI_PEM_FILE" \
+  -days "$NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS" \
   -sha256 \
-  -extfile "${SECURITY_TEMPLATES_FOLDER}/ssl-extensions-x509.cnf" \
+  -extfile "$EXT_FILE" \
   -extensions v3_leaf
 
-echo "📥 Importing signed certificate back into keystore"
-keytool -importcert -keystore nifi-keystore.jks \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" \
-  -alias nifi \
-  -file nifi.crt \
+echo "📎 Converting PEM to DER format (.crt)"
+openssl x509 -in "$NIFI_PEM_FILE" -outform DER -out "$NIFI_CRT_FILE"
+
+echo "📦 Creating PKCS#12 Bundle"
+openssl pkcs12 -export \
+  -in "$NIFI_PEM_FILE" \
+  -inkey "$NIFI_KEY_FILE" \
+  -out "$NIFI_P12_FILE" \
+  -name "$NIFI_CERTIFICATE_NAME" \
+  -passout pass:"$NIFI_KEYSTORE_PASSWORD"
+
+echo "☕ Creating Java Keystore (.jks)"
+keytool -importkeystore \
+  -destkeystore "$NIFI_JKS_FILE" \
+  -srckeystore "$NIFI_P12_FILE" \
+  -srcstoretype PKCS12 \
+  -alias "$NIFI_CERTIFICATE_NAME" \
+  -srcstorepass "$NIFI_KEYSTORE_PASSWORD" \
+  -deststorepass "$NIFI_KEYSTORE_PASSWORD" \
   -noprompt
 
-echo "📜 Exporting PEM (.pem)"
-keytool -exportcert -keystore  nifi-keystore.jks \
-  -alias nifi -rfc -file nifi.pem \
-  -storepass "${NIFI_KEYSTORE_PASSWORD}" -noprompt
-
-echo "🔐 Creating truststore (nifi-truststore.jks)..."
-keytool -importcert -keystore nifi-truststore.jks \
-  -storetype JKS \
-  -alias "nifi" \
-  -file nifi.crt \
-  -deststorepass "${NIFI_KEYSTORE_PASSWORD}" \
+echo "🔐 Creating Truststore (.jks)"
+keytool -importcert \
+  -file "$NIFI_PEM_FILE" \
+  -alias "$NIFI_CERTIFICATE_NAME" \
+  -keystore "$NIFI_TRUSTSTORE_FILE" \
+  -storepass "$NIFI_KEYSTORE_PASSWORD" \
   -noprompt
+
+
+echo "✅ All NiFi TLS artifacts created successfully in: $SECURITY_CERTIFICATES_FOLDER"
 
 # === Move files to output dir
 mkdir -p "$OUTPUT_DIRECTORY"

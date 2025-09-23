@@ -45,12 +45,9 @@
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
         <property name="Users File">./conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
-        <property name="Initial User Identity 1"></property>
-        <!-- Add initial admin user based on your certificate -->
-        <property name="Initial User Identity 2">CN=admin, OU=nifi</property>
-        <!-- Add your custom NiFi node identity, first from our certificate alternative names -->
-        <property name="Initial User Identity 3">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
-        <property name="Initial User Identity 4">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=nifi</property>
+        <property name="Initial User Identity 1">admin</property>
+        <property name="Initial User Identity 2">cogstack</property>
+        <property name="Initial User Identity 3">C=UK, ST=London, L=UK, O=cogstack, OU=cogstack, CN=cogstack</property>
     </userGroupProvider>
 
     <!--
@@ -318,11 +315,9 @@
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./conf/authorizations.xml</property>
-        <property name="Initial Admin Identity">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
-        <property name="Initial User Identity 1">CN=admin, OU=nifi</property>
-         <!-- Add your NiFi node identity for proxy permissions -->
-        <property name="Node Identity 1">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=nifi</property>
-        <property name="Node Identity 2">C=UK, ST=UK, L=UK, O=nifi, OU=nifi, CN=cogstack</property>
+        <property name="Initial Admin Identity">admin</property>
+        <property name="Initial User Identity 1">C=UK, ST=London, L=UK, O=cogstack, OU=cogstack, CN=cogstack</property>
+        <property name="Initial User Identity 2">cogstack</property>
         <property name="Node Group"></property>
     </accessPolicyProvider>
 

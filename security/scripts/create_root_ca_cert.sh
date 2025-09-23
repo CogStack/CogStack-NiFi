@@ -33,7 +33,6 @@ source "${SECURITY_ENV_FOLDER}certificates_general.env"
 # === Validate required env vars
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
 : "${ROOT_CERTIFICATE_KEYSTORE_PASSWORD:?Must be set in certificates_general.env}"
-: "${ROOT_CERTIFICATE_SUBJ_LINE:?Must be set in certificates_general.env}"
 : "${ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:?Must be set in certificates_general.env}"
 : "${ROOT_CERTIFICATE_KEY_SIZE:?Must be set in certificates_general.env}"
 
@@ -44,13 +43,15 @@ EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 echo "====================================== CREATE_ROOT_CA_CERT ==============================="
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
 echo "ROOT_CERTIFICATE_KEYSTORE_PASSWORD: $ROOT_CERTIFICATE_KEYSTORE_PASSWORD"
-echo "ROOT_CERTIFICATE_SUBJ_LINE: $ROOT_CERTIFICATE_SUBJ_LINE"
-echo "ROOT_CERTIFICATE_KEY_SIZE: $ROOT_CERTIFICATE_KEY_SIZE"
+echo "ROOT_CERTIFICATE_KEY_SIZE: $ROOT_CERTIFICATE_KEY_SIZE"f
 echo "ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS: $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS"
 echo "ROOT_CERTIFICATES_FOLDER: $ROOT_CERTIFICATES_FOLDER"
 echo "=========================================================================================="
 
 mkdir -p "${ROOT_CERTIFICATES_FOLDER}"
+
+# remove any existing files to avoid confusion
+rm -f "${ROOT_CERTIFICATES_FOLDER}*"
 
 KEY_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
 CSR_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.csr"
@@ -67,22 +68,23 @@ openssl genrsa -out "$KEY_FILE" "$ROOT_CERTIFICATE_KEY_SIZE"
 
 # === Generate CSR
 echo "📜 Generating self-signed certificate: $CRT_FILE"
-openssl req -x509 -new \
-  -key "$KEY_FILE" \
+openssl req -x509 \
+  -newkey rsa:${ROOT_CERTIFICATE_KEY_SIZE} \
+  -keyout "$KEY_FILE" \
   -sha256 \
+  -nodes \
   -days $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS \
-  -subj "$ROOT_CERTIFICATE_SUBJ_LINE" \
   -out "$CRT_FILE" \
   -extensions v3_ca \
   -config "$EXT_FILE" \
-  -outform DER
+  -outform DER \
 
 # === Convert to PEM format (text-based)
 openssl x509 -inform DER -in "$CRT_FILE" -out "$PEM_FILE" -outform PEM
 
 # === Generate dummy CSR (optional, for parity)
 echo "🧾 Generating dummy CSR: $CSR_FILE"
-openssl req -new -key "$KEY_FILE" -out "$CSR_FILE" -subj "$ROOT_CERTIFICATE_SUBJ_LINE"
+openssl req -new -key "$KEY_FILE" -out "$CSR_FILE" -config "$EXT_FILE"
 
 # === Convert to PKCS#12 bundle
 echo "📦 Converting to PKCS#12: $P12_FILE"

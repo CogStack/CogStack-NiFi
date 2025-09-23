@@ -6,44 +6,61 @@
 [v3_ca]
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = critical, CA:true
+basicConstraints = critical, CA:TRUE
 keyUsage = critical, keyCertSign, cRLSign
+subjectAltName=DNS:nifi,DNS:elasticsearch-1,DNS:elasticsearch-2,DNS:elasticsearch-3,DNS:cogstack,DNS:*.cogstack
 
 [v3_leaf]
 basicConstraints = critical, CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
-authorityKeyIdentifier = keyid,issuer
-subjectKeyIdentifier = hash
 subjectAltName = @alt_names
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
 
 [alt_names]
 DNS.1 = nifi
 DNS.2 = nifi-registry-flow
-DNS.3 = nifi-nginx
-DNS.4 = elasticsearch-1
-DNS.5 = elasticsearch-2
-DNS.6 = elasticsearch-3
-DNS.7 = ocr-service
-DNS.8 = ocr-service-text-only
-DNS.9 = medcat-trainer-nginx
-DNS.10 = medcat-trainer-ui 
-DNS.11 = nlp-medcat-service-production
-DNS.12 = nlp-medcat-service-production-deid
-DNS.13 = cogstack-kibana
-DNS.14 = cogstack-cohort
-DNS.15 = cogstack-elasticsearch-1
-DNS.16 = cogstack-elasticsearch-2
-DNS.17 = cogstack-elasticsearch-3
-DNS.18 = cogstack-nifi
-DNS.19 = cogstack-nifi-nginx
-DNS.20 = cogstack-nifi-registry-flow
-DNS.21 = cogstack-auth-service
-DNS.22 = cogstack
-DNS.23 = *.cogstack
+DNS.3 = nifi-registry
+
+DNS.4 = nifi-nginx
+DNS.5 = elasticsearch-1
+DNS.6 = elasticsearch-2
+DNS.7 = elasticsearch-3
+DNS.8 = ocr-service
+DNS.9 = ocr-service-text-only
+DNS.10 = medcat-trainer-nginx
+DNS.11 = medcat-trainer-ui 
+DNS.12 = nlp-medcat-service-production
+DNS.13 = nlp-medcat-service-production-deid
+DNS.14 = cogstack-kibana
+DNS.15 = cogstack-cohort
+DNS.16 = cogstack-elasticsearch-1
+DNS.17 = cogstack-elasticsearch-2
+DNS.18 = cogstack-elasticsearch-3
+DNS.19 = cogstack-nifi
+DNS.20 = cogstack-nifi-nginx
+DNS.21 = cogstack-nifi-registry-flow
+DNS.22 = cogstack-auth-service
+DNS.23 = cogstack
+DNS.24 = *.cogstack
+DNS.25 = localhost
 IP.1 = 127.0.0.1
 email.1 = admin@cogstack.net
 
-[ req ]
+[req]
 default_bits       = 4096
 string_mask        = utf8only
+prompt = no
+distinguished_name = req_distinguished_name
+x509_extensions    = v3_leaf
+default_md         = sha256
+
+[req_distinguished_name]
+CN = cogstack
+C  = UK
+ST = London
+L  = UK
+O  = cogstack
+OU = cogstack
+CN = cogstack
