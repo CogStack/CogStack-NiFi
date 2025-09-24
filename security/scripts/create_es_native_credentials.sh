@@ -29,7 +29,7 @@
 #   • Fleet Server token generated
 # ==============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 
 SECURITY_ENV_FOLDER="../env/"
@@ -40,8 +40,6 @@ ES_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}elastic/elasticsearch"
 source "${SECURITY_ENV_FOLDER}"certificates_elasticsearch.env
 source "${SECURITY_ENV_FOLDER}"certificates_general.env
 source "${SECURITY_ENV_FOLDER}"users_elasticsearch.env
-
-
 
 ES_CA_CERT="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.crt.pem"
 ES_CA_KEY="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.key.pem"
@@ -66,52 +64,59 @@ echo "INGEST_SERVICE_PASSWORD: $INGEST_SERVICE_PASSWORD"
 echo "ES_ADMIN_EMAIL: $ES_ADMIN_EMAIL"
 echo "=================================================================================================="
 
+ES_URL="https://$ELASTIC_HOST:9200"
+
 # Wait for Elasticsearch to be available
 echo "⏳ Waiting for Elasticsearch to become available..."
-until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" "https://$ELASTIC_HOST:9200" >/dev/null; do
-  echo "  🔁 Still waiting on https://$ELASTIC_HOST:9200..."
-  sleep 5
+until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" $ES_URL >/dev/null; do
+  echo "  🔁 Still waiting on $ELASTIC_HOST..."
+  sleep 10
 done
 echo "✅ Elasticsearch is reachable"
 
-# Set kibana_system password
-echo "🔧 Setting password for built-in kibana_system user..."
-curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
-  -H "Content-Type: application/json" \
-  "https://$ELASTIC_HOST:9200/_security/user/kibana_system/_password" \
-  -d "{\"password\": \"$KIBANA_PASSWORD\"}"
+create_user() {
+  local username=$1
+  local password=$2
+  local roles=$3
 
-# Create custom Kibana user
-echo "👤 Creating user: $KIBANA_USER..."
-curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
-  -H "Content-Type: application/json" \
-  "https://$ELASTIC_HOST:9200/_security/user/$KIBANA_USER?pretty" \
-  -d @- <<EOF
-{
-  "password": "$KIBANA_PASSWORD",
-  "roles": ["kibana_system", "kibana_admin", "ingest_admin"],
-  "full_name": "kibanaserver",
-  "email": "$ES_ADMIN_EMAIL"
-}
-EOF
+  echo "🔐 Creating user: $username with role: $roles"
 
-# Create ingest service user
-echo "👤 Creating user: $INGEST_SERVICE_USER..."
-curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
-  -H "Content-Type: application/json" \
-  "https://$ELASTIC_HOST:9200/_security/user/$INGEST_SERVICE_USER?pretty" \
-  -d @- <<EOF
-{
-  "password": "$INGEST_SERVICE_PASSWORD",
-  "roles": ["ingest_admin"],
-  "full_name": "ingestion service",
-  "email": "$ES_ADMIN_EMAIL"
+  response=$(curl -ks -w "\n%{http_code}" --cacert "$ES_CA_CERT" \
+    -u "elastic:$ELASTIC_PASSWORD" \
+    -X POST "$ES_URL/_security/user/$username?pretty" \
+    -H 'Content-Type: application/json' \
+    -d "
+    {
+      \"password\": \"$password\",
+      \"roles\": [ $roles ],
+      \"full_name\": \"$username\",
+      \"enabled\": true
+    }")
+
+  # Split body and status code
+  body=$(echo "$response" | sed '$d')
+  status=$(echo "$response" | tail -n1)
+
+  if [[ "$status" -eq 200 || "$status" -eq 201 ]]; then
+    echo "✅ User $username created successfully"
+  elif [[ "$status" -eq 409 ]]; then
+    echo "⚠️  User $username already exists (HTTP 409 Conflict)"
+  else
+    echo "❌ Failed to create user $username (HTTP $status)"
+    echo "Response: $body"
+  fi
 }
-EOF
+
+echo "🔑 Connecting to Elasticsearch at $ES_URL"
+
+create_user "$FILEBEAT_USER" "$FILEBEAT_PASSWORD" "\"beats_system\""
+create_user "$METRICBEAT_USER" "$METRICBEAT_PASSWORD" "\"beats_system\""
+create_user "$INGEST_SERVICE_USER" "$INGEST_SERVICE_PASSWORD" "\"ingest_admin\""
+create_user "$KIBANA_USER" "$KIBANA_PASSWORD" "\"kibana_system\", \"kibana_admin\", \"ingest_admin\""
 
 # Create Fleet server service account token
 echo "🔑 Creating Fleet server service account token..."
 curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
-  "https://$ELASTIC_HOST:9200/_security/service/elastic/fleet-server/credential/token?pretty"
+  "$ES_URL/_security/service/elastic/fleet-server/credential/token?pretty"
 
 echo "✅ All Elasticsearch native credentials have been created."

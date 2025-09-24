@@ -2,19 +2,9 @@
 
 set -e
 
-if [[ -z "${ES_CERTIFICATE_PASSWORD}" ]]; then
-    ES_CERTIFICATE_PASSWORD="cogstackNifi"
-    echo "ES_CERTIFICATE_PASSWORD not set, defaulting to ES_CERTIFICATE_PASSWORD=cogstackNifi"
-else
-    ES_CERTIFICATE_PASSWORD=${ES_CERTIFICATE_PASSWORD}
-fi
-
-if [[ -z "${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}" ]]; then
-    ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460
-    echo "ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS not set, defaulting to ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=1460"
-else
-    ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
-fi
+# Validate required variables
+: "${ES_CERTIFICATE_PASSWORD:?Must set ES_CERTIFICATE_PASSWORD in certificates_elasticsearch.env}"
+: "${ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS:?Must set ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS in certificates_elasticsearch.env}"
 
 # Set this variable in order to add more ES_HOSTNAMES to the dns approved instances
 # the syntax must be : export ES_HOSTNAMES="- example1.com
@@ -23,12 +13,7 @@ fi
 #"
 # EXACTLY IN THIS FORMAT(no extra chars at the start of the line), otherwise you will get parse errors.
 
-if [[ -z "${ES_HOSTNAMES}" ]]; then
-	echo "ES_HOSTNAMES env var not set, defaulting to ''"
-  ES_HOSTNAMES=""
-else
-  ES_HOSTNAMES=$(printf '%s %s \\n      ' ${ES_HOSTNAMES})
-fi
+: "${ES_HOSTNAMES:?Must set ES_HOSTNAMES in certificates_elasticsearch.env}"
 
 # es instances names, domain names of the servers (if ES servers are separate) or docker containers names (if run locally on the same machine)
 # Example: 
@@ -39,49 +24,20 @@ fi
 #     ES_INSTANCE_NAME_1=elasticsearch-1
 #     ES_INSTANCE_NAME_2=elasticsearch-2
 
-if [[ -z "${ES_INSTANCE_NAME_1}" ]]; then
-	echo "ES_INSTANCE_NAME_1 env var not set, defaulting to elasticsearch-1"
-  ES_INSTANCE_NAME_1=elasticsearch-1
-else
-  ES_INSTANCE_NAME_1=${ES_INSTANCE_NAME_1}
-fi
+: "${ES_INSTANCE_NAME_1:?Must set ES_INSTANCE_NAME_1 in certificates_elasticsearch.env}"
+: "${ES_INSTANCE_NAME_2:?Must set ES_INSTANCE_NAME_2 in certificates_elasticsearch.env}"
+: "${ES_INSTANCE_NAME_3:?Must set ES_INSTANCE_NAME_3 in certificates_elasticsearch.env}"
+: "${ES_INSTANCE_ALTERNATIVE_1_NAME:?Must set ES_INSTANCE_ALTERNATIVE_1_NAME in certificates_elasticsearch.env}"
+: "${ES_INSTANCE_ALTERNATIVE_2_NAME:?Must set ES_INSTANCE_ALTERNATIVE_2_NAME in certificates_elasticsearch.env}"
+: "${ES_INSTANCE_ALTERNATIVE_3_NAME:?Must set ES_INSTANCE_ALTERNATIVE_3_NAME in certificates_elasticsearch.env}"
 
-if [[ -z "${ES_INSTANCE_NAME_2}" ]]; then
-	echo "ES_INSTANCE_NAME_2 env var not set, defaulting to elasticsearch-2"
-  ES_INSTANCE_NAME_2=elasticsearch-2
-else
-  ES_INSTANCE_NAME_2=${ES_INSTANCE_NAME_2}
-fi
+_ES_HOSTNAMES=""
+for host in $ES_HOSTNAMES; do
+  _ES_HOSTNAMES+="      - $host"$'\n'
+done
+ES_HOSTNAMES=$_ES_HOSTNAMES
 
-if [[ -z "${ES_INSTANCE_NAME_3}" ]]; then
-	echo "ES_INSTANCE_NAME_3 env var not set, defaulting to elasticsearch-3"
-  ES_INSTANCE_NAME_3=elasticsearch-3
-else
-  ES_INSTANCE_NAME_3=${ES_INSTANCE_NAME_3}
-fi
-
-if [[ -z "${ES_INSTANCE_ALTERNATIVE_1_NAME}" ]]; then
-	echo "ES_INSTANCE_ALTERNATIVE_1_NAME env var not set, defaulting to elasticsearch-1-dev"
-  ES_INSTANCE_ALTERNATIVE_1_NAME=elasticsearch-1-dev
-else
-  ES_INSTANCE_ALTERNATIVE_1_NAME=${ES_INSTANCE_ALTERNATIVE_1_NAME}
-fi
-
-if [[ -z "${ES_INSTANCE_ALTERNATIVE_2_NAME}" ]]; then
-	echo "ES_INSTANCE_ALTERNATIVE_2_NAME env var not set, defaulting to elasticsearch-2-dev"
-  ES_INSTANCE_ALTERNATIVE_2_NAME=elasticsearch-2-dev
-else
-  ES_INSTANCE_ALTERNATIVE_2_NAME=${ES_INSTANCE_ALTERNATIVE_2_NAME}
-fi
-
-if [[ -z "${ES_INSTANCE_ALTERNATIVE_3_NAME}" ]]; then
-	echo "ES_INSTANCE_ALTERNATIVE_3_NAME env var not set, defaulting to elasticsearch-3-dev"
-  ES_INSTANCE_ALTERNATIVE_3_NAME=elasticsearch-3-dev
-else
-  ES_INSTANCE_ALTERNATIVE_3_NAME=${ES_INSTANCE_ALTERNATIVE_3_NAME}
-fi
-
-echo -ne "
+cat > config/certificates/instances.yml <<EOF
 instances:
   - name: $ES_INSTANCE_NAME_1
     dns:
@@ -131,11 +87,11 @@ instances:
       $ES_HOSTNAMES
     ip:
       - 127.0.0.1
-" > config/certificates/instances.yml
+EOF
  
 if [[ ! -f /certs/es_native_ca_bundle.zip ]]; then
   echo "Generating root-ca certificates for native ES"
-  bin/elasticsearch-certutil ca --silent --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --out /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<$ES_CERTIFICATE_PASSWORD
+  bin/elasticsearch-certutil ca --silent --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --out /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<$ES_CERTIFICATE_PASSWORD
   bin/elasticsearch-certutil cert --silent --ca /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<""$ES_CERTIFICATE_PASSWORD"
   
   "
@@ -144,7 +100,7 @@ fi;
 
 if [[ ! -f /certs/es_native_certs_bundle.zip ]]; then
   echo "Generating CSR certficates for ES clusters"
-  bin/elasticsearch-certutil cert --silent --out /certs/es_native_certs_bundle.zip --in config/certificates/instances.yml --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
+  bin/elasticsearch-certutil cert --silent --out /certs/es_native_certs_bundle.zip --in config/certificates/instances.yml --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
@@ -157,7 +113,7 @@ fi;
 
 if [[ ! -f /certs/es_native_certs_bundle_pem.zip ]]; then
   echo "Generating PEM certficates for ES clusters"
-  bin/elasticsearch-certutil cert --pem --silent --out /certs/es_native_certs_bundle_pem.zip --in config/certificates/instances.yml  --days $ES_CERTIFICATE_TIME_VAILIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
+  bin/elasticsearch-certutil cert --pem --silent --out /certs/es_native_certs_bundle_pem.zip --in config/certificates/instances.yml  --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
 $ES_CERTIFICATE_PASSWORD
