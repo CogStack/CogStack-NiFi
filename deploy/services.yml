@@ -122,8 +122,6 @@ services:
       # User config:
       - ELASTIC_USER=${ELASTIC_USER}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - CERTIFICATE_TIME_VAILIDITY_IN_DAYS=${CERTIFICATE_TIME_VAILIDITY_IN_DAYS}
-      - ES_HOSTNAMES=${ES_HOSTNAMES}
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
     stdin_open: true 
     tty: true

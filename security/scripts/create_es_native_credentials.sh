@@ -97,7 +97,7 @@ EOF
 
 # Create ingest service user
 echo "👤 Creating user: $INGEST_SERVICE_USER..."
-curl -ks -X POST --cacert "$CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
   -H "Content-Type: application/json" \
   "https://$ELASTIC_HOST:9200/_security/user/$INGEST_SERVICE_USER?pretty" \
   -d @- <<EOF
@@ -111,7 +111,7 @@ EOF
 
 # Create Fleet server service account token
 echo "🔑 Creating Fleet server service account token..."
-curl -ks -X POST --cacert "$CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
+curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
   "https://$ELASTIC_HOST:9200/_security/service/elastic/fleet-server/credential/token?pretty"
 
 echo "✅ All Elasticsearch native credentials have been created."
