@@ -1,23 +1,20 @@
-import io
 import base64
-import traceback
+import io
 import json
 import sys
+import traceback
 from logging import Logger
-from typing import Any, Dict, Union, List
+from typing import Any, Dict, List, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
-
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
-from py4j.java_gateway import JVMView, JavaObject
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
-    ExpressionLanguageScope,
 )
+from py4j.java_gateway import JavaObject, JVMView
 
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
@@ -143,10 +140,13 @@ class PrepareRecordForOcr(FlowFileTransform):
             attributes["mime.type"] = "application/json"
 
             if self.process_flow_file_type == "avro":
-                return FlowFileTransformResult(relationship="success", attributes=attributes,
-                                                contents=json.dumps(output_contents, cls=AvroJSONEncoder))
+                return FlowFileTransformResult(relationship="success",
+                                               attributes=attributes,
+                                               contents=json.dumps(output_contents, cls=AvroJSONEncoder))
             else:
-                return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
+                return FlowFileTransformResult(relationship="success",
+                                               attributes=attributes,
+                                               contents=json.dumps(output_contents))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

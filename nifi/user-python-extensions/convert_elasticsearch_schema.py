@@ -1,16 +1,14 @@
-import traceback
 import json
+import traceback
 from logging import Logger
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from py4j.java_gateway import JVMView, JavaObject
-
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
-    ExpressionLanguageScope,
 )
+from py4j.java_gateway import JavaObject, JVMView
 
 
 class ConvertElasticSearchRecordSchema(FlowFileTransform):
@@ -32,14 +30,21 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
         self.jvm = jvm
 
         self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/cogstack_common_schema_mapping.json"
+        self.preserve_non_mapped_fields: bool = True
 
         # this is directly mirrored to the UI
         self._properties = [
             PropertyDescriptor(name="json_mapper_schema_path",
-                               description="The path to the json schema mapping file",
+                               description="The path to the json schema mapping file, the schema directory is mounted as a volume in the nifi container in the /opt/nifi/user-schemas/ folder",
                                default_value="/opt/nifi/user-schemas/cogstack_common_schema_mapping.json",
                                required=True,
-                               validators=[StandardValidators.NON_EMPTY_VALIDATOR])
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
+            PropertyDescriptor(name="preserve_non_mapped_fields",
+                               description="Whether to preserve fields that are not mapped in the schema",
+                               default_value="true",
+                               required=True,
+                               allowable_values=["true", "false"],
+                               validators=[StandardValidators.BOOLEAN_VALIDATOR])
         ]
 
     def getPropertyDescriptors(self):
@@ -84,7 +89,11 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
                     new_record.update({curr_field_name: {}})
                     for nested_field_name, nested_field_value in curr_field_value.items():
                         if nested_field_name in json_mapper_schema[curr_field_name].keys():
-                            new_record[curr_field_name].update({json_mapper_schema[curr_field_name][nested_field_name]: nested_field_value})
+                            new_record[curr_field_name].update({ \
+                                json_mapper_schema[curr_field_name][nested_field_name]: nested_field_value})
+                            
+            elif self.preserve_non_mapped_fields:
+                new_record.update({curr_field_name: curr_field_value})
 
         return new_record
 
@@ -114,7 +123,9 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
             attributes["json_mapper_schema_path"] = str(self.json_mapper_schema_path)
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents).encode('utf-8'))
+            return FlowFileTransformResult(relationship="success",
+                                           attributes=attributes,
+                                           contents=json.dumps(output_contents).encode('utf-8'))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

@@ -1,24 +1,20 @@
-import io
 import base64
+import copy
+import io
 import json
 import traceback
-import copy
 from logging import Logger
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
 from avro.schema import RecordSchema, Schema, parse
-
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
-from py4j.java_gateway import JVMView, JavaObject
-
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
-    ExpressionLanguageScope,
 )
+from py4j.java_gateway import JavaObject, JVMView
 
 
 class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
@@ -81,6 +77,20 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+        """
+        Transforms an Avro flow file by converting a specified binary field to a base64-encoded string.
+
+        Args:
+            context (ProcessContext): The process context containing processor properties.
+            flowFile (JavaObject): The flow file to be transformed.
+
+        Raises:
+            TypeError: If the Avro record is not a dictionary.
+            Exception: For any other errors during Avro processing.
+
+        Returns:
+            FlowFileTransformResult: The result containing the transformed flow file, updated attributes, and relationship.
+        """
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -92,7 +102,8 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
             schema: Schema | None = reader.datum_reader.writers_schema
 
-            # change the datatype of the binary field from bytes to string (avoids headaches later on when converting avro to json)
+            # change the datatype of the binary field from bytes to string 
+            # (avoids headaches later on when converting avro to json)
             # because if we dont change the schema the native NiFi converter will convert bytes to an array of integers.
             output_schema = None
             if schema is not None and isinstance(schema, RecordSchema):
@@ -141,7 +152,9 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             attributes["operation_mode"] = str(self.operation_mode)
             attributes["mime.type"] = "application/avro-binary"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=output_byte_buffer.getvalue())
+            return FlowFileTransformResult(relationship="success",
+                                           attributes=attributes,
+                                           contents=output_byte_buffer.getvalue())
         except Exception as exception:
             self.logger.error("Exception during Avro processing: " + traceback.format_exc())
             raise exception

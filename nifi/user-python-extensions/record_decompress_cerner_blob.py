@@ -1,20 +1,23 @@
 import base64
-import traceback
 import json
 import sys
+import traceback
 from logging import Logger
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
-from py4j.java_gateway import JVMView, JavaObject
-
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+)
+from py4j.java_gateway import JavaObject, JVMView
 
 # this script is using a custom utility for decompressing Cerner blobs
 # from nifi/user-python-extensions/record_decompress_cerner_blob.py
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
-from utils.cerner_blob import DecompressLzwCernerBlob # type: ignore
+from utils.cerner_blob import DecompressLzwCernerBlob # # noqa: I001
 
 
 class JsonRecordDecompressCernerBlob(FlowFileTransform):
@@ -35,27 +38,58 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.operation_mode = None
-        self.binary_field_name = None
-        self.output_text_field_name = None
-        self.document_id_field_name = None
-        self.input_charset = "windows-1252"
-        self.output_charset = "windows-1252"
+        self.operation_mode: str = "base64"
+        self.binary_field_name: str = "binarydoc"
+        self.output_text_field_name: str = "text"
+        self.document_id_field_name: str = "id"
+        self.input_charset = "utf-8"
+        self.output_charset = "utf-8"
         self.output_mode = "base64"
         self.binary_field_source_encoding = "base64"
         self.blob_sequence_order_field_name = "blob_sequence_num"
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
-            PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
-            PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
-            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
-            PropertyDescriptor(name="input_charset", description="", default_value="utf-8"),
-            PropertyDescriptor(name="output_charset", description="", default_value="utf-8"),
-            PropertyDescriptor(name="output_mode", description="", default_value="base64"),
-            PropertyDescriptor(name="binary_field_source_encoding", description="", default_value="base64"),
-            PropertyDescriptor(name="blob_sequence_order_field_name", description="", default_value="blob_sequence_num"),
+            PropertyDescriptor(name="binary_field_name",
+                               description="Avro field containing binary data",
+                               default_value="binarydoc",
+                               required=True,
+                               validators=StandardValidators.NON_EMPTY_VALIDATOR),
+            PropertyDescriptor(name="output_text_field_name",
+                               description="Field to store  output text",
+                               default_value="text",
+                               required=True),
+            PropertyDescriptor(name="operation_mode",
+                               description="Decoding mode (e.g. base64 or raw)",
+                               default_value="base64",
+                               allowable_values=["base64", "raw"],
+                               required=True),
+            PropertyDescriptor(name="document_id_field_name",
+                               description="Field name containing document ID",
+                               default_value="id",),
+            PropertyDescriptor(name="input_charset",
+                               description="Input character set encoding",
+                               default_value="utf-8",
+                               required=True),
+            PropertyDescriptor(name="output_charset",
+                               description="Output character set encoding",
+                               default_value="utf-8",
+                               required=True),
+            PropertyDescriptor(name="output_mode",
+                               description="Output encoding mode (e.g. base64 or raw)",
+                               default_value="base64",
+                               required=True,
+                               allowable_values=["base64", "raw"]),
+            PropertyDescriptor(name="binary_field_source_encoding",
+                               description="Binary field source encoding (e.g. base64 or raw)",
+                               default_value="base64",
+                               required=True,
+                               allowable_values=["base64", "raw"]),
+            PropertyDescriptor(name="blob_sequence_order_field_name",
+                               description="Blob sequence order field name, \
+                                  if the blob is split across multiple records",
+                               required=False,
+                               default_value="blob_sequence_num"),
         ]
 
     def getPropertyDescriptors(self):
@@ -77,6 +111,19 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+        """
+        Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
+
+        Args:
+            context (ProcessContext): The process context containing processor properties.
+            flowFile (JavaObject): The incoming FlowFile containing JSON records.
+
+        Returns:
+            FlowFileTransformResult: The result of the transformation, including updated attributes and contents.
+
+        Raises:
+            Exception: If any error occurs during processing or decompression.
+        """
         output_contents = []
         try:
             self.process_context = context
@@ -150,7 +197,9 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
+            return FlowFileTransformResult(relationship="success",
+                                           attributes=attributes,
+                                           contents=json.dumps(output_contents))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

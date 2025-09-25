@@ -1,22 +1,18 @@
 import io
-import traceback
 import json
+import traceback
 from logging import Logger
-from typing import Any, Dict, Union, List
+from typing import Any, Dict, List, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
-
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
-from py4j.java_gateway import JVMView, JavaObject
-
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
-    ExpressionLanguageScope,
 )
+from py4j.java_gateway import JavaObject, JVMView
 
 
 class PrepareRecordForNlp(FlowFileTransform):
@@ -81,6 +77,19 @@ class PrepareRecordForNlp(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+        """_summary_
+
+        Args:
+            context (ProcessContext): _description_
+            flowFile (JavaObject): _description_
+
+        Raises:
+            TypeError: _description_
+            exception: _description_
+
+        Returns:
+            FlowFileTransformResult: _description_
+        """
         output_contents = []
         try:
             self.process_context = context
@@ -122,7 +131,9 @@ class PrepareRecordForNlp(FlowFileTransform):
             attributes["mime.type"] = "application/json"
 
             output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps({"content": output_contents}).encode("utf-8"))
+            return FlowFileTransformResult(relationship="success", 
+                                           attributes=attributes,
+                                           contents=json.dumps({"content": output_contents}).encode("utf-8"))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

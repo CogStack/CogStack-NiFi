@@ -1,16 +1,14 @@
-import traceback
 import json
+import traceback
 from logging import Logger
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from py4j.java_gateway import JVMView, JavaObject
-
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
-    ExpressionLanguageScope,
 )
+from py4j.java_gateway import JavaObject, JVMView
 
 
 class ParseCogStackServiceResult(FlowFileTransform):
@@ -95,6 +93,19 @@ class ParseCogStackServiceResult(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+        """
+        Transforms the input FlowFile by parsing the service response and extracting relevant fields.
+
+        Args:
+            context (ProcessContext): The process context containing processor properties.
+            flowFile (JavaObject): The FlowFile object containing the input data.
+
+        Raises:
+            Exception: If any error occurs during processing.
+
+        Returns:
+            FlowFileTransformResult: The result containing the transformed contents and updated attributes.
+        """
         output_contents = []
         try:
             self.process_context: ProcessContext = context
@@ -175,7 +186,9 @@ class ParseCogStackServiceResult(FlowFileTransform):
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents).encode('utf-8'))
+            return FlowFileTransformResult(relationship="success",
+                                           attributes=attributes,
+                                           contents=json.dumps(output_contents).encode('utf-8'))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

@@ -1,19 +1,20 @@
 import io
-import base64
-import traceback
 import json
+import traceback
 from logging import Logger
 
-from avro.datafile import DataFileReader, DataFileWriter
-from avro.io import DatumReader, DatumWriter
-from avro.schema import Schema
-
+from avro.datafile import DataFileReader
+from avro.io import DatumReader
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
-from nifiapi.properties import ProcessContext, PropertyDescriptor
-from py4j.java_gateway import JVMView, JavaObject
+from nifiapi.properties import (
+    ProcessContext,
+    PropertyDescriptor,
+    StandardValidators,
+)
+from py4j.java_gateway import JavaObject, JVMView
 
 
-class TestProc(FlowFileTransform):
+class SampleTestProcessor(FlowFileTransform):
     identifier = None
     logger: Logger = Logger(__qualname__)
 
@@ -31,17 +32,27 @@ class TestProc(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.operation_mode = None
-        self.binary_field_name = None
-        self.output_text_field_name = None
-        self.document_id_field_name = None   
+        self.sample_property_one: bool = True
+        self.sample_property_two: str = ""
+        self.sample_property_three: str = "default_value_one"
 
         # this is directly mirrored to the UI
         self._properties = [
-            PropertyDescriptor(name="binary_field_name", description="Avro field containing binary data", default_value="not_set"),
-            PropertyDescriptor(name="output_text_field_name", description="Field to store Tika output text", default_value="not_set"),
-            PropertyDescriptor(name="operation_mode", description="Decoding mode (e.g. base64 or raw)", default_value="base64"),
-            PropertyDescriptor(name="document_id_field_name", description="Field name containing document ID", default_value="not_set"),
+            PropertyDescriptor(name="sample_property_one",
+                               description="sample property one description",
+                               default_value="true",
+                               required=True, 
+                               validators=StandardValidators.BOOLEAN_VALIDATOR),
+            PropertyDescriptor(name="sample_property_two",
+                               description="sample property two description",
+                               required=False,
+                               default_value="some_value"),
+            PropertyDescriptor(name="sample_property_three",
+                               required=True,
+                               description="sample property three description",
+                               default_value="default_value_one",
+                               allowable_values=["default_value_one", "default_value_two", "default_value_three"],
+                               validators=StandardValidators.NON_EMPTY_VALIDATOR)
         ]
 
     def getPropertyDescriptors(self):
@@ -63,6 +74,11 @@ class TestProc(FlowFileTransform):
                 setattr(self, k.name, v)
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+        """ Main processor logic. This example reads Avro records from the incoming flowfile,
+            and writes them back out to a new flowfile. It also adds the processor properties
+            to the flowfile attributes. IT IS A SAMPLE ONLY,
+            you are meant to use this as a starting point for other processors
+        """
         output_contents = []
         try:
             self.process_context = context
@@ -74,29 +90,34 @@ class TestProc(FlowFileTransform):
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
             reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
 
+            # below is an example of how to handle avro records, each records
             # schema: Schema | None = reader.datum_reader.writers_schema
-
-            # Write them to a binary avro stream
-            #  output_byte_buffer = io.BytesIO()
-            # writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
-
-            #for record in reader:
+            #   for record in reader:
+            #   do stuff
   
             input_byte_buffer.close()
             reader.close()
+
+            # Write them to a binary avro stream
+            # output_byte_buffer = io.BytesIO()
+            # writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
+
             #  writer.flush()
             #  writer.close()
             # output_byte_buffer.seek(0)
 
+
             # add properties to flowfile attributes
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
-            attributes["document_id_field_name"] = str(self.document_id_field_name)
-            attributes["binary_field"] = str(self.binary_field_name)
-            attributes["output_text_field_name"] = str(self.output_text_field_name)
+            attributes["sample_property_one"] = str(self.sample_property_one)
+            attributes["sample_property_two"] = str(self.sample_property_two)
+            attributes["sample_property_three"] = str(self.sample_property_three)
 
             self.logger.info("Successfully transformed Avro content for OCR")
 
-            return FlowFileTransformResult(relationship="success", attributes=attributes, contents=json.dumps(output_contents))
+            return FlowFileTransformResult(relationship="success", 
+                                           attributes=attributes,
+                                           contents=json.dumps(output_contents))
         except Exception as exception:
             self.logger.error("Exception during Avro processing: " + traceback.format_exc())
             raise exception
