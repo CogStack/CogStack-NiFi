@@ -40,8 +40,8 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 # Validate required passwords
-: "${ES_ADMIN_PASS:?Must be set in elasticsearch_users.env}"
-: "${ES_KIBANA_PASS:?Must be set in elasticsearch_users.env}"
+: "${ELASTIC_PASSWORD:?Must be set in elasticsearch_users.env}"
+: "${KIBANA_PASSWORD:?Must be set in elasticsearch_users.env}"
 
 ES_CONTAINER_NAME="$1"
 
@@ -54,17 +54,17 @@ BACKUP_YML="${INTERNAL_USERS_YML}.bak"
 echo "🔐 Generating password hashes from container: $ES_CONTAINER_NAME"
 
 # connect to the container and generate hashes
-ES_ADMIN_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$ES_ADMIN_PASS" )
-ES_KIBANA_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$ES_KIBANA_PASS" )
+ES_ADMIN_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$ELASTIC_PASSWORD" )
+ES_KIBANA_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$KIBANA_PASSWORD" )
 
 echo ""
 echo "--------------------------------"
 echo "user:     \"admin\""
-echo "password: \"$ES_ADMIN_PASS\""
+echo "password: \"$ELASTIC_PASSWORD\""
 echo "hash:     \"$ES_ADMIN_HASH\""
 echo "--------------------------------"
-echo "user:     \"kibanaserver\""
-echo "password: \"$ES_KIBANA_PASS\""
+echo "user:     \"${KIBANA_USER}\""
+echo "password: \"$KIBANA_PASSWORD\""
 echo "hash:     \"$ES_KIBANA_HASH\""
 echo "--------------------------------"
 echo "✅ Now apply these hashes manually in 'internal_users.yml'"
@@ -79,7 +79,7 @@ if [[ "$APPLY" == "--apply" ]]; then
   tmpfile=$(mktemp)
   sed \
     -e "/^admin:/,/^ *roles:/ s|^\( *hash: \).*|  hash: \"$ES_ADMIN_HASH\"|" \
-    -e "/^kibanaserver:/,/^ *roles:/ s|^\( *hash: \).*|  hash: \"$ES_KIBANA_HASH\"|" \
+    -e "/^${KIBANA_USER}:/,/^ *roles:/ s|^\( *hash: \).*|  hash: \"$ES_KIBANA_HASH\"|" \
     "$BACKUP_YML" > "$tmpfile"
 
   mv "$tmpfile" "$INTERNAL_USERS_YML"
