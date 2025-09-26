@@ -41,6 +41,14 @@ x-common-ulimits: &common-ulimits
       soft: -1
       hard: -1
 
+x-nifi-common: &nifi-common
+  <<: *common-ulimits
+  restart: always
+  env_file: *all-env
+  extra_hosts: *common-hosts
+  networks:
+    - cognet
+
 x-es-common: &es-common
   <<: *common-ulimits
   image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
@@ -50,6 +58,43 @@ x-es-common: &es-common
   networks:
     - cognet
   extra_hosts: *common-hosts
+  environment:
+    - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-elasticsearch-cogstack-cluster}
+    - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true}
+    - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
+    - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
+    - ELASTIC_USER=${ELASTIC_USER:-elastic}
+    - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+    - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
+    - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
+    - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
+  volumes:
+    # Shared configs
+    - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
+    - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+
+    # Shared root CA
+    - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+    - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
+
+    # OPENSEARCH specific (always mounted even if unused)
+    - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
+    - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+
+    # ES roles
+    - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
+    - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
+    - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
+    - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
+    - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
+    - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
+
+    # VM settings
+    - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
+
+    # Snapshot backups
+    - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
+    - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
@@ -209,61 +254,15 @@ services:
     <<: *es-common
     container_name: elasticsearch-1
     environment:
-      # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_1_NAME:-es01}
-      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
-      # OTHER SETTINGS
-      - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-
-      # User config:
-      - ELASTIC_USER=${ELASTIC_USER:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
-
-      # global env vars from elasticsearch.env
-      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
-
     volumes:
-      # INFO: ES configuration mapped via volume, adaptie with env var
-      - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
-
-      # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
-
-      # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
-
-      # ES native roles
-      - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-      - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
-
-      # opensearch only
-      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
-      - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
-      - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
-      - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
-
-      # VM settings
-      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
-     
       # ES data persistence
       - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
-
       # ES logs
       - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-
-      # ES snapshot backups
-      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
-      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
@@ -273,61 +272,15 @@ services:
     <<: *es-common
     container_name: elasticsearch-2
     environment:
-      # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_2_NAME:-"es02"}
-      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
-      # OTHER SETTINGS
-      - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-
-      # User config:
-      - ELASTIC_USER=${ELASTIC_USER:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
-
-      # global env vars from elasticsearch.env
-      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
-      
     volumes:
-      # INFO: ES configuration mapped via volume, adaptie with env var
-      - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
-
-      # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
-
-      # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
-
-      # ES native roles
-      - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-      - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
-
-      # opensearch only
-      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
-      - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
-      - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
-      - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
-
-      # VM settings
-      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
-     
       # ES data persistence
       - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
-
       # ES logs
       - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-
-      # ES snapshot backups
-      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
-      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
@@ -337,61 +290,15 @@ services:
     <<: *es-common
     container_name: elasticsearch-3
     environment:
-      # CLUSTER CONFIGS
       - node.name=${ELASTICSEARCH_NODE_3_NAME:-"es03"}
-      - cluster.name=${ELASTICSEARCH_CLUSTER_NAME:-"elasticsearch-cogstack-cluster"}
-      # OTHER SETTINGS
-      - bootstrap.memory_lock=${ELASTICSEARCH_BOOTSTRAP_MEMORY_LOCK:-true} 
-      - "ES_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-      - "OPENSEARCH_JAVA_OPTS=${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}"
-
-      # User config:
-      - ELASTIC_USER=${ELASTIC_USER:-elastic}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD:-kibanaserver}
-      - logger.level=${ELASTICSEARCH_LOG_LEVEL:-INFO}
-
-      # global env vars from elasticsearch.env
-      - ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-opensearch}
-      
     volumes:
-      # INFO: ES configuration mapped via volume, adaptie with env var
-      - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-      - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
-
-      # certificate file mapping, depends on ${ELASTICSEARCH_VERSION:-opensearch} env var
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
-
-      # OPENSEARCH specific certificates, these are not used in native ES deployments, but they are mounted anyways
-      - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-      - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
-
-      # ES native roles
-      - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-      - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
-
-      # opensearch only
-      - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
-      - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
-      - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
-      - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
-
-      # VM settings
-      - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro 
-     
       # ES data persistence
       - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
-
       # ES logs
       - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-
-      # ES snapshot backups
-      - ${ELASTICSEARCH_BACKUP_PARTITION_FULL:-../data/es_snapshot_backups/full_backup}:/mnt/es_data_backups:rw
-      - ${ELASTICSEARCH_BACKUP_PARTITION_CONFIG:-../data/es_snapshot_backups/config_backup}:/mnt/es_config_backups:rw
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
@@ -476,7 +383,7 @@ services:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
       - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
 
-      # Security certificates, general      
+      # Security certificates, general
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.key.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.p12:ro
@@ -499,12 +406,10 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    <<: *common-ulimits
+    <<: *nifi-common
     image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
     container_name: cogstack-nifi
     hostname: nifi
-    restart: always
-    env_file: *all-env
     shm_size: ${NIFI_SHM_SIZE:-"1g"}
     environment:
       - USER_ID=${NIFI_UID:-1000}
@@ -550,7 +455,7 @@ services:
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
 
       # medcat models
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/nlp-services/medcat-service/models/}:/opt/models:rw
+      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
       # rest of volumes to persist the state
       - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -562,8 +467,6 @@ services:
 
       # errors generated during data processing
       - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-    extra_hosts: *common-hosts
-    # user: "${NIFI_UID:-1000}:${NIFI_GID:-1000}"
 
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
@@ -573,18 +476,14 @@ services:
     ports:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
-    networks:
-      - cognet
-    
+ 
   nifi-registry-flow:
-    <<: *common-ulimits
+    <<: *nifi-common
     image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.5.0}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     shm_size: ${NIFI_REGISTRY_SHM_SIZE:-"1g"}
-    restart: always
     user: root
-    env_file: *all-env
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
@@ -622,9 +521,6 @@ services:
       chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/logs && \
       bash /opt/nifi-registry/scripts/start.sh"
 
-    networks:
-      - cognet
-
   nifi-nginx:
     image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
     container_name: cogstack-nifi-nginx
@@ -635,7 +531,7 @@ services:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
       - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
-      - ../security/certificates:/etc/nginx/certificates:ro
+      - ../security/certificates:/certificates:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
       - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
@@ -679,7 +575,7 @@ services:
       # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
       # certificates
-      - ../security/certificates/root:/certificates/root:ro
+      - ../security/certificates:/certificates:ro
       # data & conf volumes
       - gitea-config-vol:/etc/gitea:rw
       - gitea-lib-vol:/var/lib/gitea:rw
