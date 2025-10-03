@@ -1,6 +1,24 @@
 #---------------------------------------------------------------------------#
 # Common snippets / anchors                                                 #
 #---------------------------------------------------------------------------#
+x-es-logging-common: &es-logging-common
+  driver: "json-file"
+  options:
+    max-size: ${ELASTICSEARCH_DOCKER_LOG_SIZE_PER_FILE:-1000m}
+    max-file: ${ELASTICSEARCH_DOCKER_LOG_NUM_FILES:-10}
+
+x-nifi-logging-common: &nifi-logging-common
+  driver: "json-file"
+  options:
+    max-size: ${NIFI_DOCKER_LOG_SIZE_PER_FILE:-250m}
+    max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
+
+x-logging-common: &logging-common
+  driver: "json-file"
+  options:
+    max-size: ${DOCKER_LOG_SIZE_PER_FILE:-100m}
+    max-file: ${DOCKER_LOG_NUM_FILES:-10}
+
 x-all-env: &all-env
   - ./project.env
   - ./general.env
@@ -83,15 +101,13 @@ x-es-common: &es-common
     - cognet
   extra_hosts: *common-hosts
   environment:
-    discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
-    cluster.initial_cluster_manager_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
     ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
     OPENSEARCH_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
     ELASTIC_USER: ${ELASTIC_USER:-elastic}
     ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-kibanaserver}
     OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
-    logger.level: ${ELASTICSEARCH_LOG_LEVEL:-INFO}
     ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
+  logging: *es-logging-common
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
@@ -113,6 +129,7 @@ x-metricbeat-common: &metricbeat-common
   networks:
     - cognet
   extra_hosts: *common-hosts
+  logging: *es-logging-common
 
 x-filebeat-common: &filebeat-common
   <<: *common-ulimits
@@ -134,6 +151,7 @@ x-filebeat-common: &filebeat-common
   networks:
     - cognet
   extra_hosts: *common-hosts
+  logging: *es-logging-common
 
 #---------------------------------------------------------------------------#
 # Used services                                                             #
@@ -406,6 +424,7 @@ services:
     networks:
       - cognet
     extra_hosts: *common-hosts
+    logging: *es-logging-common
 
 #---------------------------------------------------------------------------#
 # NiFi webapp                                                               #
@@ -424,8 +443,6 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
-      - NIFI_SECURITY_DIR=${NIFI_SECURITY_DIR:-../security/certificates/nifi/}
-      - ELASTICSEARCH_SECURITY_DIR=${ELASTICSEARCH_SECURITY_DIR:-../security/certificates/elastic/}
     volumes:
       # INFO: mapping custom development directory
       - ../nifi/devel:/opt/nifi/devel
@@ -481,6 +498,7 @@ services:
     ports:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
+    logging: *nifi-logging-common
  
   nifi-registry-flow:
     <<: *nifi-common
@@ -502,7 +520,7 @@ services:
       - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-./conf/truststore.jks}
 
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
-      - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"CN=admin, OU=nifi"}
+      - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
       - AUTH=${NIFI_AUTH:-"tls"}
       - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
       #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
@@ -525,7 +543,8 @@ services:
       chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/work && \
       chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/logs && \
       bash /opt/nifi-registry/scripts/start.sh"
-
+    logging: *nifi-logging-common
+  
   nifi-nginx:
     image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
     container_name: cogstack-nifi-nginx
@@ -544,6 +563,7 @@ services:
       - cognet
     command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
     extra_hosts: *common-hosts
+    logging: *nifi-logging-common
 
 #---------------------------------------------------------------------------#
 # Cogstack cohort service                                                   #
@@ -562,6 +582,7 @@ services:
         - cognet
       ports:
         - "3001:3000"
+      logging: *logging-common
 
 #---------------------------------------------------------------------------#
 # Version control service                                                   #
@@ -590,6 +611,7 @@ services:
     ports:
       - "3000:3000"
       - "2222:22"
+    logging: *logging-common
 
 #---------------------------------------------------------------------------#
 # Docker named volumes                                                      #
