@@ -1,17 +1,18 @@
 name: docker-nifi
 
 on:
-
   push:
     branches: ['**']
     tags: ['v*.*.*']
   pull_request:
-    branches: [ "*" ]
-    
+    branches: ['**']
   release:
     types: [published]
-
   workflow_dispatch:
+
+concurrency:
+  group: docker-nifi-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -32,83 +33,96 @@ jobs:
     defaults:
       run:
         working-directory: ./nifi/
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
+      - if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          
-      - name: Extract metadata (tags, labels) for Docker
+
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: cogstacksystems/cogstack-nifi:latest
-      
-      - name: Get and Set Release Version
-        id: set_release_version
+          images: cogstacksystems/cogstack-nifi
+          tags: |
+            # vX.Y.Z -> X.Y.Z and X.Y (strip leading "v")
+            type=semver,pattern={{version}},prefix=v
+            type=semver,pattern={{major}}.{{minor}},prefix=v
+            # latest on main and on v-tags
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+            # branch tag for non-PR branches
+            type=ref,event=branch,enable=${{ github.event_name != 'pull_request' }}
+            # short sha
+            type=sha,format=short
+
+      - name: Build & push NiFi (${{ matrix.platform }})
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: nifi
+          file: nifi/Dockerfile
+          platforms: linux/${{ matrix.platform }}
+          build-args: |
+            CPU_ARCHITECTURE=${{ matrix.platform }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=nifi-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=nifi-${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          provenance: false
+
+  # ---------- manifest merge ----------
+  manifest:
+    runs-on: ubuntu-22.04
+    if: github.event_name != 'pull_request'
+    needs: build
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Docker meta (again)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: cogstacksystems/cogstack-nifi
+          tags: |
+            # vX.Y.Z -> X.Y.Z and X.Y (strip leading "v")
+            type=semver,pattern={{version}},prefix=v
+            type=semver,pattern={{major}}.{{minor}},prefix=v
+            # latest on main and on v-tags
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+            # branch tag for non-PR branches
+            type=ref,event=branch,enable=${{ github.event_name != 'pull_request' }}
+            # short sha
+            type=sha,format=short
+
+      - name: Create multi-arch manifest
         shell: bash
         run: |
           set -euo pipefail
-
-          REF="${GITHUB_REF}"
-          SHORT_SHA="${GITHUB_SHA::7}"
-
-          is_semver_tag=false
-          if [[ "$REF" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            # vMAJOR.MINOR.PATCH -> MAJOR.MINOR.PATCH
-            VERSION="${REF#refs/tags/v}"
-            is_semver_tag=true
-            RELEASE_VERSION="$VERSION"
-            IMAGE_TAG="$VERSION"       # you can also add MAJOR.MINOR if you like
-            LATEST=true
-          elif [[ "$REF" =~ ^refs/tags/ ]]; then
-            # some other tag (not semver)
-            VERSION="${REF#refs/tags/}"
-            RELEASE_VERSION="$VERSION"
-            # don’t use latest for non-semver tags
-            IMAGE_TAG="$VERSION"
-            LATEST=false
-          elif [[ "$REF" =~ ^refs/heads/ ]]; then
-            BRANCH="${REF#refs/heads/}"
-            # sanitize branch -> docker tag (replace / and spaces)
-            BRANCH_SAFE="$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's#[^a-z0-9._-]+#-#g')"
-            RELEASE_VERSION="$BRANCH_SAFE"
-            IMAGE_TAG="${BRANCH_SAFE}-${SHORT_SHA}"
-            LATEST=false
-          else
-            RELEASE_VERSION="unknown"
-            IMAGE_TAG="unknown-${SHORT_SHA}"
-            LATEST=false
+          AMD64_DIGEST=$(docker buildx imagetools inspect cogstacksystems/cogstack-nifi:amd64 | awk '/Digest:/ {print $2; exit}' || true)
+          ARM64_DIGEST=$(docker buildx imagetools inspect cogstacksystems/cogstack-nifi:arm64 | awk '/Digest:/ {print $2; exit}' || true)
+          if [[ -z "$AMD64_DIGEST" || -z "$ARM64_DIGEST" ]]; then
+            echo "Missing digests!"; exit 1
           fi
-
-          {
-            echo "RELEASE_VERSION=$RELEASE_VERSION"
-            echo "IMAGE_TAG=$IMAGE_TAG"
-            echo "LATEST=$LATEST"
-            echo "IS_SEMVER_TAG=$is_semver_tag"
-          } >> "$GITHUB_ENV"
-
-          echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
-          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
-          echo "is_semver_tag=$is_semver_tag" >> "$GITHUB_OUTPUT"
-
-      - name: Build and push Docker NiFi image
-        id: docker_build
-        run: |
-          docker build --platform linux/${{ matrix.platform }} -t cogstacksystems/cogstack-nifi:$RELEASE_VERSION-${{ matrix.platform }} -f "./Dockerfile" --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} .
-          docker push cogstacksystems/cogstack-nifi:$RELEASE_VERSION-${{ matrix.platform }}
-          echo "::set-output name=digest::$(docker images --digests --format '{{.Digest}}' cogstacksystems/nifi-nginx | head -n 1)"
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+          while IFS= read -r ref; do
+            [[ -z "$ref" ]] && continue
+            img="${ref%%:*}"
+            tag="${ref#*:}"
+            echo "🌀 Merging ${img}:${tag}"
+            docker buildx imagetools create \
+              --tag "${img}:${tag}" \
+              "${img}@${AMD64_DIGEST}" \
+              "${img}@${ARM64_DIGEST}"
+          done < <(printf "%s" "${{ steps.meta.outputs.tags }}")
