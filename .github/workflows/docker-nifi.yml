@@ -64,7 +64,7 @@ jobs:
             type=sha,format=short
 
       - name: Build & push NiFi (${{ matrix.platform }})
-        id: build
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: nifi
@@ -72,7 +72,8 @@ jobs:
           platforms: linux/${{ matrix.platform }}
           build-args: |
             CPU_ARCHITECTURE=${{ matrix.platform }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}-${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=nifi-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=nifi-${{ matrix.platform }}
@@ -111,18 +112,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          AMD64_DIGEST=$(docker buildx imagetools inspect cogstacksystems/cogstack-nifi:amd64 | awk '/Digest:/ {print $2; exit}' || true)
-          ARM64_DIGEST=$(docker buildx imagetools inspect cogstacksystems/cogstack-nifi:arm64 | awk '/Digest:/ {print $2; exit}' || true)
-          if [[ -z "$AMD64_DIGEST" || -z "$ARM64_DIGEST" ]]; then
-            echo "Missing digests!"; exit 1
-          fi
           while IFS= read -r ref; do
             [[ -z "$ref" ]] && continue
             img="${ref%%:*}"
             tag="${ref#*:}"
-            echo "🌀 Merging ${img}:${tag}"
+            echo "🌀 Creating manifest for ${img}:${tag}"
             docker buildx imagetools create \
               --tag "${img}:${tag}" \
-              "${img}@${AMD64_DIGEST}" \
-              "${img}@${ARM64_DIGEST}"
+              "${img}:${tag}-amd64" \
+              "${img}:${tag}-arm64"
           done < <(printf "%s" "${{ steps.meta.outputs.tags }}")
