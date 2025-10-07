@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keep GitHub Actions (in .github/workflows) up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"  # this is correct even if workflows are in .github/workflows
+    schedule:
+      interval: "weekly"
+
+  # Keep Dockerfile base images (in repo root) up to date
+  - package-ecosystem: "docker"
+    directory: "/"  # root directory where your Dockerfiles live
+    schedule:
+      interval: "weekly"
