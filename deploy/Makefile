@@ -94,64 +94,64 @@ start-all: start-data-infra start-jupyter
 # stop services
 #
 stop-nifi:
-	docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
 
 stop-elastic:
-	docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
 
 stop-elastic-cluster:
-	docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2
 
 stop-elastic-1:
-	docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1
 	
 stop-elastic-2:
-	docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-2
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-2
 
 stop-elastic-3:
-	docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-3
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-3
 
 stop-metricbeat-1:
-	docker compose -f services.yml $(DC_STOP_CMD) metricbeat-1
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) metricbeat-1
 
 stop-metricbeat-2:
-	docker compose -f services.yml $(DC_STOP_CMD) metricbeat-2
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) metricbeat-2
 
 stop-filebeat-1:
-	docker compose -f services.yml $(DC_STOP_CMD) filebeat-1
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) filebeat-1
 
 stop-filebeat-2:
-	docker compose -f services.yml $(DC_STOP_CMD) filebeat-2
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) filebeat-2
 
 stop-filebeat-3:
-	docker compose -f services.yml $(DC_STOP_CMD) filebeat-3
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) filebeat-3
 
 stop-kibana:
-	docker compose -f services.yml $(DC_STOP_CMD) kibana
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) kibana
 
 stop-samples:
-	docker compose -f services.yml $(DC_STOP_CMD) samples-db
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) samples-db
 
 stop-jupyter:
-	docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
 
 stop-medcat-trainer:
-	docker compose -f../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
+	$(WITH_ENV) docker compose -f../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
 
 stop-medcat-service:
-	docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production
 
 stop-medcat-service-deid:
-	docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production-deid
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production-deid
 
 stop-git-ea:
-	docker compose -f services.yml ${DC_STOP_CMD} gitea
+	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea
 
 stop-ocr-services:
-	docker compose -f ../services/ocr-service/docker/docker-compose.yml ${DC_STOP_CMD} ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.yml ${DC_STOP_CMD} ocr-service ocr-service-text-only
 
 stop-production-db:
-	docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
 
 stop-data-infra: stop-nifi stop-elastic stop-samples
 
