@@ -8,6 +8,15 @@ updates:
 
   # Keep Dockerfile base images (in repo root) up to date
   - package-ecosystem: "docker"
-    directory: "/"  # root directory where your Dockerfiles live
+    directory: "/"
     schedule:
       interval: "weekly"
+    registries:
+      - dockerhub
+
+registries:
+  dockerhub:
+    type: "docker-registry"
+    url: "https://index.docker.io/v1/"
+    username: "${{secrets.DOCKER_HUB_USERNAME}}"
+    password: "${{secrets.DOCKER_HUB_ACCESS_TOKEN}}"
