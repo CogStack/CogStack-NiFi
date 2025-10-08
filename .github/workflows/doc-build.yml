@@ -1,7 +1,6 @@
 name: sphinx-doc-build
 
 on:
-
   push:
     branches: [ main ]
   pull_request:
@@ -10,21 +9,20 @@ on:
   release:
     types: [published]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     
     env:
       working-directory: ./docs
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
       - name: Build docs
         run: |

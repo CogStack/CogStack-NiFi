@@ -1,0 +1,23 @@
+name: docker-nifi-nginx
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*.*.*']
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/_docker-template.yml
+    with:
+      image: cogstacksystems/nifi-nginx
+      context: services/nginx
+      dockerfile: services/nginx/Dockerfile
+      cache_scope: nifi-nginx
+    secrets: inherit

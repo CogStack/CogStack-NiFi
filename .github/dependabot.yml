@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Keep GitHub Actions (in .github/workflows) up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"  # this is correct even if workflows are in .github/workflows
+    schedule:
+      interval: "weekly"
+
+  # Keep Dockerfile base images (in repo root) up to date
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    registries:
+      - dockerhub
+
+registries:
+  dockerhub:
+    type: "docker-registry"
+    url: "https://index.docker.io"
+    username: "${{secrets.DOCKER_HUB_USERNAME}}"
+    password: "${{secrets.DOCKER_HUB_ACCESS_TOKEN}}"

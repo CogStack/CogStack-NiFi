@@ -1,4 +1,5 @@
 import json
+
 file_path = "../logs/processed_*.log"
 
 json_dict = json.load(open(file_path)) 

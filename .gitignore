@@ -4,6 +4,7 @@
 .idea
 .vscode
 .venv
+.ruff_cache
 **__pycache__
 
 # keys and certificates
@@ -21,12 +22,20 @@
 
 # env files with passwords or local paths
 *.env
-security/es_roles/*
-security/es_certificates/*
-security/root_certificates/*
-security/nifi_certificates/*
-security/nifi_toolkit
+security/certificates/
+security/certificates/**
+security/env/
+security/env/**
+security/scripts/nifi_toolkit/
+security/scripts/nifi_toolkit/**
+security/templates/
+security/templates/**
 
 # docs
 docs/build/*
 
+# Ignore all .env files at any level
+*.env
+**/*.env
+!*.env.template
+!**/*.env.template

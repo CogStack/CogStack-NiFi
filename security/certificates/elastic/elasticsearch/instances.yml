@@ -1,0 +1,67 @@
+instances:
+  - name: elasticsearch-1
+    dns:
+      - elasticsearch-1
+      - es01
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
+  - name: elasticsearch-2
+    dns:
+      - elasticsearch-2
+      - es02
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
+  - name: elasticsearch-3
+    dns:
+      - elasticsearch-3
+      - es02
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
+  - name: elasticsearch-1-dev
+    dns:
+      - elasticsearch-1-dev
+      - es02
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
+  - name: elasticsearch-2-dev
+    dns:
+      - elasticsearch-2-dev
+      - es02
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
+  - name: elasticsearch-3-dev
+    dns:
+      - elasticsearch-3-dev
+      - es02
+      - localhost
+            - elasticsearch-1
+      - elasticsearch-2
+      - elasticsearch-3
+
+    ip:
+      - 127.0.0.1
