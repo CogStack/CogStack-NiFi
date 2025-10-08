@@ -1,5 +1,8 @@
 name: Docker Multi-Arch Template
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:

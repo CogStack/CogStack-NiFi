@@ -1,93 +1,32 @@
 name: docker-elasticsearch-stack
 
 on:
-
   push:
     branches: ['**']
     tags: ['v*.*.*']
   pull_request:
-    branches: [ "*" ]
-
   release:
     types: [published]
-
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  elasticsearch:
+    uses: ./.github/workflows/_docker-template.yml
+    with:
+      image: cogstacksystems/elasticsearch
+      context: services/elasticsearch
+      dockerfile: services/elasticsearch/Dockerfile_native
+      cache_scope: elasticsearch
+    secrets: inherit
 
-  build:
-
-    runs-on: ${{ matrix.runner }}
-
-    strategy:
-      matrix:
-        platform: [amd64, arm64]
-        include:
-          - platform: amd64
-            runner: ubuntu-22.04
-          - platform: arm64
-            runner: ubuntu-22.04-arm
-    
-    env:
-      working-directory: ./
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: cogstacksystems/kibana:latest
-
-      - name: Get and Set Release Version
-        id: release_version
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
-          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-          elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
-            VERSION="${GITHUB_REF#refs/heads/}"
-          else
-            VERSION="latest"
-          fi
-          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "release_version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Build and push Docker Kibana image
-        run: |
-          docker build \
-            --platform linux/${{ matrix.platform }} \
-            -t cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} \
-            -f services/kibana/Dockerfile_native \
-            services/kibana
-          docker push cogstacksystems/kibana:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
-
-      - name: Build and push Docker Elasticsearch image
-        id: docker_build
-        run: |
-          docker build \
-            --platform linux/${{ matrix.platform }} \
-            -t cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }} \
-            -f services/elasticsearch/Dockerfile_native \
-            --build-arg CPU_ARCHITECTURE=${{ matrix.platform }} \
-            services/elasticsearch
-          docker push cogstacksystems/elasticsearch:${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
-          echo "digest=$(docker images --digests --format '{{.Digest}}' cogstacksystems/elasticsearch | head -n 1)" >> $GITHUB_OUTPUT
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+  kibana:
+    uses: ./.github/workflows/_docker-template.yml
+    with:
+      image: cogstacksystems/kibana
+      context: services/kibana
+      dockerfile: services/kibana/Dockerfile_native
+      cache_scope: kibana
+    secrets: inherit
