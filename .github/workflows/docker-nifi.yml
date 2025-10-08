@@ -17,3 +17,4 @@ jobs:
       context: nifi
       dockerfile: nifi/Dockerfile
       cache_scope: nifi
+    secrets: inherit
