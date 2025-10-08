@@ -7,7 +7,7 @@ services:
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
-    # image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
+    # image: cogstacksystems/cogstack-nifi:latest
     build:
        context: ../nifi/
        args:
@@ -185,7 +185,7 @@ services:
       - cognet
 
   nifi-nginx:
-    # image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
+    # image: cogstacksystems/nifi-nginx:latest
     build:
        context: ../services/nginx/
        args:

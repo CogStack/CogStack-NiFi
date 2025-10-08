@@ -431,7 +431,7 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
-    image: cogstacksystems/cogstack-nifi:latest-${CPU_ARCHITECTURE:-amd64}
+    image: cogstacksystems/cogstack-nifi:latest
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_SHM_SIZE:-"1g"}
@@ -546,7 +546,7 @@ services:
     logging: *nifi-logging-common
   
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:latest-${CPU_ARCHITECTURE:-amd64}
+    image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
     restart: always
     shm_size: 512mb
