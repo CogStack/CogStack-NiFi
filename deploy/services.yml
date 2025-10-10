@@ -444,12 +444,9 @@ services:
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
     volumes:
-      # INFO: mapping custom development directory
-      - ../nifi/devel:/opt/nifi/devel
-
       # INFO: drivers folder
       - ../nifi/drivers:/opt/nifi/drivers
-      
+
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
