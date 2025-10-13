@@ -16,7 +16,7 @@ py4j==0.10.9.9
 rancoord==0.0.6
 geocoder==1.38.1
 avro==1.12.0
-nipyapi==0.22.0
+nipyapi==1.0.0
 py7zr==1.0.0
 ipyparallel==9.0.1
 cython==3.1.3

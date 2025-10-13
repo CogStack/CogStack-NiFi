@@ -27,3 +27,4 @@ git submodule foreach '
 #git submodule foreach git pull origin main
 git add $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}') || true
 git commit -m "Update submodules to latest release tags (or main)" || echo "ℹ️ No changes to commit."
+echo "✅ Submodule update complete."

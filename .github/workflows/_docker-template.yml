@@ -74,6 +74,16 @@ jobs:
             # short sha
             type=sha,format=short
 
+      - name: Prepare architecture tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUFFIX="-${{ matrix.platform }}"
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ steps.meta.outputs.tags }}" | sed "s/$/${SUFFIX}/" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Build & push (${{ matrix.platform }})
         id: push
         uses: docker/build-push-action@v6
@@ -82,13 +92,13 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: linux/${{ matrix.platform }}
           build-args: ${{ inputs.build_args }}
-          tags: |
-            ${{ steps.meta.outputs.tags }}-${{ matrix.platform }}
+          tags: ${{ steps.tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ inputs.cache_scope }}-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ inputs.cache_scope }}-${{ matrix.platform }}
           push: ${{ github.event_name != 'pull_request' }}
           provenance: false
+
 
   # -------- Merge both architectures ----------
   manifest:
