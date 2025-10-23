@@ -1,7 +1,7 @@
 from logging import Logger
-from typing import List
+from typing import List  # noqa: UP035
 
-from nifi_api_config import NiFiAPIConfig
+from dto.nifi_api_config import NiFiAPIConfig
 from nipyapi import canvas, security
 from nipyapi.nifi import ApiClient, ProcessGroupsApi
 from nipyapi.nifi.configuration import Configuration as NiFiConfiguration

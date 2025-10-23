@@ -3,9 +3,37 @@
 [tool.ruff]
 line-length = 120
 exclude = ["nifi/user-scripts/legacy_scripts"]
-target-version = "py38"
+target-version = "py311"
+indent-width = 4
 
 [tool.ruff.lint]
-# E=pycodestyle, F=pyflakes, B=bugbear, I=isort
-select = ["E", "F", "B", "I"]
+# Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
 fixable = ["ALL"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+strict = false
+
+[tool.isort]
+line_length = 120
+skip = ["venv", "venv-test", "envs", "docker", "models"]
+
+[tool.flake8]
+max-line-length = 120
+exclude = ["venv", "venv-test", "envs", "docker", "models"]
