@@ -1,12 +1,14 @@
-# 🔐 NiFi Registry TLS & Admin Access Setup (with NGINX)
+# 🔐 NiFi/NiFi Registry TLS & Admin Access Setup (with NGINX)
 
 This guide documents how to configure TLS and certificate-based admin access for Apache NiFi Registry (v1.26+) using OpenSSL-generated certificates and NGINX as a reverse proxy.
+For background on how these certificates are generated, see [Certificates and Root CA](certificates.md).  
+This section focuses on applying those certificates to secure **NiFi** and **NiFi Registry Flow**, including admin identity configuration and reverse-proxy integration.
 
 ---
 
 ## 📁 Folder Structure
 
-```bash
+```text
 security/certificates
 ├── elastic
 ├── nifi
@@ -30,43 +32,59 @@ security/certificates
 
 ---
 
-## 📜 openssl-x509.conf
+For securing Apache NiFi endpoint with self-signed certificates please refer to [the official documentation](https://nifi.apache.org/docs/nifi-docs/html/walkthroughs.html#securing-nifi-with-provided-certificates).
 
-Set up a reusable certificate config to define SANs and subject.
+Before starting the NIFI container it's important to take note of the following things if we wish to enable HTTPS functionality:
 
-```ini
-[req]
-default_bits = 4096
-prompt = no
-default_md = sha256
-distinguished_name = req_distinguished_name
-x509_extensions = v3_leaf
+- this step is optional (as you might have done it before from configuring other certificates), run `create_root_ca_cert.sh` to create the ROOT certificates, these will be used by NiFi/NiFi Registry Flow/OpenSearch etc.
 
-[req_distinguished_name]
-C  = UK
-ST = London
-L  = UK
-O  = cogstack
-OU = cogstack
-CN = cogstack
+- **(OPTIONAL, DO NOT USE FOR NIFI VERSION >= 2.0)** the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file.
+- the trust/store keys generated for production will be in the `nifi_certificates/localhost` folder and  the `nifi-cert.pem` + `nifi-key.key` files. in the base `nifi_certificates` folder.
 
-[v3_leaf]
-basicConstraints = critical, CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth, clientAuth
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid,issuer
-subjectAltName = @alt_names
+- as part of the security process the `nifi.sensitive.props.key` should be set to a random string or a password of minimum 12 characters. Once this is set do NOT modify it as all the other sensitive passwords will be hashed with this string. By default this is set to <strong>```cogstackNiFipass```</strong>
+Example (`nifi/conf/nifi.properties`):
 
-[alt_names]
-DNS.1 = cogstack
-DNS.2 = nifi
-DNS.3 = nifi-registry
-DNS.4 = localhost
-DNS.5 = *.cogstack
-IP.1 = 127.0.0.1
-email.1 = admin@cogstack.net
+```properties
+    nifi.security.keystorePasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
+    nifi.security.keyPasswd=ZFD4i4UDvod8++XwWzTg+3J6WJF6DRSZO33lbb7hAgc
+    nifi.security.truststore=./conf/truststore.jks
+    nifi.security.truststoreType=jks
+    nifi.security.truststorePasswd=lzMGadNB1JXQjgQEnFStLiNkJ6Wbbgw0bFdCTICKtKo
 ```
+
+### Setting up access via user account (SINGLE USER CREDETIAL)
+
+<strong>This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go.</strong>
+<br>
+Default username :
+<br>
+
+```
+username: admin     
+password: cogstackNiFi
+```
+
+- the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
+
+- alternative to the above step: go into the `/security` folder, set the desired nifi username & password in the `/security/nifi_users.env` file. Make sure to STOP any running NiFi containers `docker stop cogstack-nifi` and execute the following script: `bash /security/nifi_init_create_user_auth.sh`, this script will start a NiFi container for the time of the account creation and then remove itself, after it finishes, go back to the `/deploy` folder and start your NiFi container, all should be working!
+
+URL: <https://localhost:8443/nifi/login>
+
+Troubleshooting Security : if you encounter errors related to sensitive key properties not being set please clear/delete the docker volumes of the nifi container or delete all volumes of inactive containers `docker volume prune`.
+
+### Disabling the login screen
+
+If for some reason you do not wish to authenticate every time you connect to NiFi, you can enable the client certificates in the [nginx.conf](../services/nginx/config/nginx.conf) line 86-87 and delete the commented lines.
+
+## `nifi-nginx`
+
+Alternatively, one can secure the access to selected services by using NGINX reverse proxy.
+This may be essential in case some of the web services that need to be exposed to end-users do not offer SSL encryption.
+See [the official documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/) for more details on using NGINX for that.
+
+Nginx only requires the root-CA certificate by default, so use the above [generate cert](#generating-the-base-certificates-for-nifinginxjupyterhubocr-servicetikamedcat-service-certificates) section to create it.
+
+In order to be able to properly access the nifi instance securely, you also need to start the nifi-nginx container as it is configured to provide access from any source to nifi, available at <https://localhost:8443/nifi> .
 
 ---
 
@@ -173,7 +191,7 @@ curl -vk   --cert ./nifi.pem   --key ./nifi.key   https://localhost:18443/nifi-r
 
 ---
 
-Maintained by: `cogstack-dev@kcl.ac.uk`
+Maintained by: `admin@cogstack.org`
 
 ### 🔐 Admin Identity Consistency Between NiFi and NiFi Registry
 
