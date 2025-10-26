@@ -8,6 +8,7 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
+from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
 
@@ -49,7 +50,22 @@ class ConvertJsonRecordSchema(FlowFileTransform):
                                validators=[StandardValidators.BOOLEAN_VALIDATOR])
         ]
 
+        self._relationships = [
+            Relationship(
+                name="success",
+                description="All FlowFiles processed successfully."
+            ),
+            Relationship(
+                name="failure",
+                description="FlowFiles that failed processing."
+            )
+        ]
+
         self.descriptors: list[PropertyDescriptor] = self._properties
+        self.relationships: list[Relationship] = self._relationships
+    
+    def getRelationships(self) -> list[Relationship]:
+        return self.relationships
 
     def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
         return self.descriptors
