@@ -92,7 +92,7 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: linux/${{ matrix.platform }}
           build-args: ${{ inputs.build_args }}
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: ${{ steps.tags.outputs.tags }} 
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ inputs.cache_scope }}-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=${{ inputs.cache_scope }}-${{ matrix.platform }}
