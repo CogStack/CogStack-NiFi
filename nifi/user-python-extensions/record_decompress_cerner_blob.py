@@ -12,12 +12,21 @@ from nifiapi.properties import (
 )
 from py4j.java_gateway import JavaObject, JVMView
 
+""" This script decompresses Cerner LZW compressed blobs from a JSON input stream.
+    It expects a JSON array of records, each containing a field with the binary data.
+    All RECORDS are expected to have the same fields, and presumably belonging to the same DOCUMENT.
+    All the fields of these records should have the same field values, except for the binary data field.
+    The binary data field is expected to be a base64 encoded string, which will be concatenated according to 
+    the blob_sequence_order_field_name field, preserving the order of the blobs and composing the whole document (supposedly).
+    The final base64 enncoded string will be decoded back to binary data, then decompressed using LZW algorithm.
+"""
+
 # this script is using a custom utility for decompressing Cerner blobs
 # from nifi/user-python-extensions/record_decompress_cerner_blob.py
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
-from utils.cerner_blob import DecompressLzwCernerBlob # # noqa: I001
+from utils.cerner_blob import DecompressLzwCernerBlob # noqa: I001,E402
 
 
 class JsonRecordDecompressCernerBlob(FlowFileTransform):
@@ -92,8 +101,10 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
                                default_value="blob_sequence_num"),
         ]
 
-    def getPropertyDescriptors(self):
-        return self._properties
+        self.descriptors: list[PropertyDescriptor] = self._properties
+
+    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
+        return self.descriptors
 
     def set_logger(self, logger: Logger):
         self.logger = logger

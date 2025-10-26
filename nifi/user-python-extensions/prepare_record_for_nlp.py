@@ -58,8 +58,11 @@ class PrepareRecordForNlp(FlowFileTransform):
 
         ]
 
-    def getPropertyDescriptors(self):
-        return self._properties
+        self.descriptors: list[PropertyDescriptor] = self._properties
+
+    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
+        return self.descriptors
+
 
     def set_logger(self, logger: Logger):
         self.logger = logger

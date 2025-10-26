@@ -40,9 +40,6 @@ services:
       - NIFI_SECURITY_DIR=${NIFI_SECURITY_DIR:-../security/nifi_certificates/}
       - ELASTICSEARCH_SECURITY_DIR=${ELASTICSEARCH_SECURITY_DIR:-../security/es_certificates/}
     volumes:
-      # INFO: mapping custom development directory
-      - ../nifi/devel:/opt/nifi/devel
-
       # INFO: drivers folder
       - ../nifi/drivers:/opt/nifi/drivers
       

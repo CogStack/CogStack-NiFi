@@ -19,7 +19,7 @@ from py4j.java_gateway import JavaObject, JVMView
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
-from utils.avro_json_encoder import AvroJSONEncoder
+from utils.avro_json_encoder import AvroJSONEncoder # noqa: I001,E402
 
 
 class PrepareRecordForOcr(FlowFileTransform):
@@ -72,9 +72,11 @@ class PrepareRecordForOcr(FlowFileTransform):
                                required=True,
                                allowable_values=["avro", "json"]),
         ]
+        self.descriptors: list[PropertyDescriptor] = self._properties
 
-    def getPropertyDescriptors(self):
-        return self._properties
+    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
+        return self.descriptors
+
 
     def set_logger(self, logger: Logger):
         self.logger = logger

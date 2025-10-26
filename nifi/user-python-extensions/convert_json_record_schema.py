@@ -11,7 +11,7 @@ from nifiapi.properties import (
 from py4j.java_gateway import JavaObject, JVMView
 
 
-class ConvertElasticSearchRecordSchema(FlowFileTransform):
+class ConvertJsonRecordSchema(FlowFileTransform):
     identifier = None
     logger: Logger = Logger(__qualname__)
 
@@ -35,7 +35,9 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
         # this is directly mirrored to the UI
         self._properties = [
             PropertyDescriptor(name="json_mapper_schema_path",
-                               description="The path to the json schema mapping file, the schema directory is mounted as a volume in the nifi container in the /opt/nifi/user-schemas/ folder",
+                               description="The path to the json schema mapping file, " \
+                                "the schema directory is mounted as a volume in" \
+                                " the nifi container in the /opt/nifi/user-schemas/ folder",
                                default_value="/opt/nifi/user-schemas/cogstack_common_schema_mapping.json",
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
@@ -47,8 +49,10 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
                                validators=[StandardValidators.BOOLEAN_VALIDATOR])
         ]
 
-    def getPropertyDescriptors(self):
-        return self._properties
+        self.descriptors: list[PropertyDescriptor] = self._properties
+
+    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
+        return self.descriptors
 
     def set_logger(self, logger: Logger):
         self.logger = logger
@@ -78,9 +82,12 @@ class ConvertElasticSearchRecordSchema(FlowFileTransform):
         """
 
         new_record: dict = {}
+        
+        new_schema_field_names: list = [str(x).lower() for x in json_mapper_schema.keys()]
 
         for curr_field_name, curr_field_value in record.items():
-            if curr_field_name in json_mapper_schema.keys():
+            curr_field_name = str(curr_field_name).lower()
+            if curr_field_name in new_schema_field_names:
                 # check if the mapping is not a dict (nested field)
                 if isinstance(json_mapper_schema[curr_field_name], str): 
                     new_record.update({json_mapper_schema[curr_field_name] : curr_field_value})
