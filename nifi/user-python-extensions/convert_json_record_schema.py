@@ -88,6 +88,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
         Maps the fields of a record to new field names based on the provided JSON schema mapping.
+            {new_field -> old_field, ....}
 
         Args:
             record (dict): The input record whose fields need to be mapped.
@@ -99,22 +100,16 @@ class ConvertJsonRecordSchema(FlowFileTransform):
 
         new_record: dict = {}
         
-        new_schema_field_names: list = [str(x).lower() for x in json_mapper_schema.keys()]
+        # reverse the json_mapper_schema to map old_field -> new_field
+        json_mapper_schema_reverse: dict = {v: k for k, v in json_mapper_schema.items() if v}
 
         for curr_field_name, curr_field_value in record.items():
-            curr_field_name = str(curr_field_name).lower()
-            if curr_field_name in new_schema_field_names:
+            if curr_field_name in json_mapper_schema_reverse:
+                new_field_name = json_mapper_schema_reverse[curr_field_name]
                 # check if the mapping is not a dict (nested field)
-                if isinstance(json_mapper_schema[curr_field_name], str): 
-                    new_record.update({json_mapper_schema[curr_field_name] : curr_field_value})
-                elif isinstance(json_mapper_schema[curr_field_name], dict):
-                    # nested field
-                    new_record.update({curr_field_name: {}})
-                    for nested_field_name, nested_field_value in curr_field_value.items():
-                        if nested_field_name in json_mapper_schema[curr_field_name].keys():
-                            new_record[curr_field_name].update({ \
-                                json_mapper_schema[curr_field_name][nested_field_name]: nested_field_value})
-                            
+                if isinstance(new_field_name, str): 
+                    new_record.update({new_field_name: curr_field_value})
+
             elif self.preserve_non_mapped_fields:
                 new_record.update({curr_field_name: curr_field_value})
 

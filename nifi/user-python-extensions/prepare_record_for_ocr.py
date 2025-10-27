@@ -72,11 +72,11 @@ class PrepareRecordForOcr(FlowFileTransform):
                                required=True,
                                allowable_values=["avro", "json"]),
         ]
+
         self.descriptors: list[PropertyDescriptor] = self._properties
 
     def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
         return self.descriptors
-
 
     def set_logger(self, logger: Logger):
         self.logger = logger
