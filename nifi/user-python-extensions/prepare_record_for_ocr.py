@@ -4,7 +4,7 @@ import json
 import sys
 import traceback
 from logging import Logger
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -19,7 +19,7 @@ from py4j.java_gateway import JavaObject, JVMView
 # we need to add it to the sys imports
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
-from utils.avro_json_encoder import AvroJSONEncoder # noqa: I001,E402
+from utils.helpers.avro_json_encoder import AvroJSONEncoder # noqa: I001,E402
 
 
 class PrepareRecordForOcr(FlowFileTransform):
@@ -105,7 +105,7 @@ class PrepareRecordForOcr(FlowFileTransform):
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
-            reader: Union[DataFileReader, List[Dict[str, Any]] | List[Any]]
+            reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
 
             if self.process_flow_file_type == "avro":
                 reader = DataFileReader(input_byte_buffer, DatumReader())

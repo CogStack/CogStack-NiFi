@@ -1,4 +1,5 @@
 import json
+import sys
 import traceback
 from logging import Logger
 
@@ -11,6 +12,10 @@ from nifiapi.properties import (
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
+# we need to add it to the sys imports
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
+from utils.generic import parse_value  # noqa: I001,E402
 
 class ConvertJsonRecordSchema(FlowFileTransform):
     identifier = None
@@ -73,32 +78,19 @@ class ConvertJsonRecordSchema(FlowFileTransform):
     def set_logger(self, logger: Logger):
         self.logger = logger
 
-    def set_properties(self, properties: dict):
+    def set_properties(self, properties: dict) -> None:
         """ Gets the properties from the processor's context and sets them as instance variables.
 
         Args:
             properties (dict): dictionary containing property names and values.
         """
 
-        for k, v in list(properties.items()):
+        for k, v in properties.items():
             name = k.name if hasattr(k, "name") else str(k)
-            val_str = str(v).strip()
-
-            # Boolean normalization
-            if val_str.lower() in ("true", "false"):
-                val = val_str.lower() == "true"
-
-            # Numeric normalization (optional)
-            elif val_str.replace(".", "", 1).isdigit():
-                val = float(val_str) if "." in val_str else int(val_str)
-            else:
-                # leave as string/path etc.
-                val = v
-
-            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
-
+            val = parse_value(v)
             if hasattr(self, name):
                 setattr(self, name, val)
+            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """

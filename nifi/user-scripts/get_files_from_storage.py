@@ -11,8 +11,14 @@ import uuid
 import numpy
 import pandas
 
-# get the arguments from the "Command Arguments" property in NiFi, we are looking at anything after the 1st arg (which is the script name)
-# example args: ['/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/', 'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 'file_id_csv_column_name_match=file_name_id_no_ext']
+# get the arguments from the "Command Arguments" property in NiFi,
+# we are looking at anything after the 1st arg (which is the script name)
+# example args: 
+# [
+#  '/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/',
+#  'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 
+#  'file_id_csv_column_name_match=file_name_id_no_ext'
+#  ]
 
 folder_to_ingest = "2022"
 folder_pattern = ".*\d{4}\/\d{2}\/\d{2}"
@@ -20,10 +26,12 @@ file_id_csv_column_name_match = "file_name_id_no_ext"
 root_project_data_dir = "/opt/data/"
 csv_separator = "|"
 output_batch_size = 1000
-# generates a separate pseudoID, in this case, UUID for the documents. useful when doc IDs are weird or a mess and you dont want to spend time cleaning.
+# generates a separate pseudoID, in this case, UUID for the documents.
+# useful when doc IDs are weird or a mess and you dont want to spend time cleaning.
 generate_pseudo_doc_id = False
 
-# default: None, possible values: "files_only" - read files and only store their text & binary content (pre-ocr) and the file name as the document_Id
+# default: None, possible values: "files_only" - read files and only store their text & binary content (pre-ocr) and 
+# the file name as the document_Id
 operation_mode = ""
 
 encoding="UTF-8"

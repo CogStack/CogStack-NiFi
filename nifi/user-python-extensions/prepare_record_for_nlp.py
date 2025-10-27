@@ -2,7 +2,7 @@ import io
 import json
 import traceback
 from logging import Logger
-from typing import Any, Dict, List, Union
+from typing import Any, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -104,7 +104,7 @@ class PrepareRecordForNlp(FlowFileTransform):
             input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
-            reader: Union[DataFileReader, List[Dict[str, Any]] | List[Any]]
+            reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
 
             if self.process_flow_file_type == "avro":
                 reader = DataFileReader(input_byte_buffer, DatumReader())
