@@ -81,9 +81,24 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         """
 
         for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
+            name = k.name if hasattr(k, "name") else str(k)
+            val_str = str(v).strip()
+
+            # Boolean normalization
+            if val_str.lower() in ("true", "false"):
+                val = val_str.lower() == "true"
+
+            # Numeric normalization (optional)
+            elif val_str.replace(".", "", 1).isdigit():
+                val = float(val_str) if "." in val_str else int(val_str)
+            else:
+                # leave as string/path etc.
+                val = v
+
+            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
+
+            if hasattr(self, name):
+                setattr(self, name, val)
 
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
