@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+import traceback
 from collections import defaultdict
 from typing import Union
 
@@ -39,3 +41,60 @@ def dict2jsonl_file(input_dict: Union[dict| defaultdict], file_path: str):
             json_obj = json.loads(json.dumps(o))
             json.dump(json_obj, outfile, ensure_ascii=False, indent=None, separators=(',',':'))
             print('', file=outfile)
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Return a configured logger shared across all NiFi clients."""
+    level_name = os.getenv("NIFI_LOG_LEVEL", "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        fmt = logging.Formatter(
+            "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+            "%Y-%m-%d %H:%M:%S",
+        )
+        handler.setFormatter(fmt)
+        logger.addHandler(handler)
+        logger.setLevel(level)
+        logger.propagate = False
+    return logger
+
+
+# -----------------------------------------------------------------------------------------------------------------
+# Function for handling property parsing, used in NiFi processors mainly, but can beused elsewhere
+# -----------------------------------------------------------------------------------------------------------------
+def parse_value(value: str) -> str|int|float|bool:
+    """Convert NiFi string property values into native Python types."""
+    if isinstance(value, bool):
+        return value
+
+    val_str = str(value).strip()
+    if val_str.lower() in ("true", "false"):
+        return val_str.lower() == "true"
+    if val_str.replace(".", "", 1).isdigit():
+        return float(val_str) if "." in val_str else int(val_str)
+    return value
+
+
+# -----------------------------------------------------------------------------------------------------------------
+# Safe execution wrapper with consistent error logging
+# -----------------------------------------------------------------------------------------------------------------
+def safe_execute(logger: logging.Logger, func, *args, **kwargs):
+    """
+    Executes a function safely, logging errors with full traceback.
+
+    Args:
+        logger (logging.Logger): Logger to write errors to.
+        func (Callable): Function to execute.
+        *args, **kwargs: Arguments passed to the function.
+
+    Returns:
+        The result of func(*args, **kwargs), or None on error.
+    """
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        logger.error(f"❌ Error during execution of {func.__name__}: {e}\n{traceback.format_exc()}")
+        raise

@@ -17,7 +17,8 @@ from py4j.java_gateway import JavaObject, JVMView
     All RECORDS are expected to have the same fields, and presumably belonging to the same DOCUMENT.
     All the fields of these records should have the same field values, except for the binary data field.
     The binary data field is expected to be a base64 encoded string, which will be concatenated according to 
-    the blob_sequence_order_field_name field, preserving the order of the blobs and composing the whole document (supposedly).
+    the blob_sequence_order_field_name field, preserving the order of the blobs and composing 
+    the whole document (supposedly).
     The final base64 enncoded string will be decoded back to binary data, then decompressed using LZW algorithm.
 """
 

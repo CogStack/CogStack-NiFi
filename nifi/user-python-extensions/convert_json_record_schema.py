@@ -1,4 +1,5 @@
 import json
+import sys
 import traceback
 from logging import Logger
 
@@ -8,8 +9,13 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
+from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
+# we need to add it to the sys imports
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
+from utils.generic import parse_value  # noqa: I001,E402
 
 class ConvertJsonRecordSchema(FlowFileTransform):
     identifier = None
@@ -49,7 +55,22 @@ class ConvertJsonRecordSchema(FlowFileTransform):
                                validators=[StandardValidators.BOOLEAN_VALIDATOR])
         ]
 
+        self._relationships = [
+            Relationship(
+                name="success",
+                description="All FlowFiles processed successfully."
+            ),
+            Relationship(
+                name="failure",
+                description="FlowFiles that failed processing."
+            )
+        ]
+
         self.descriptors: list[PropertyDescriptor] = self._properties
+        self.relationships: list[Relationship] = self._relationships
+    
+    def getRelationships(self) -> list[Relationship]:
+        return self.relationships
 
     def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
         return self.descriptors
@@ -57,21 +78,24 @@ class ConvertJsonRecordSchema(FlowFileTransform):
     def set_logger(self, logger: Logger):
         self.logger = logger
 
-    def set_properties(self, properties: dict):
+    def set_properties(self, properties: dict) -> None:
         """ Gets the properties from the processor's context and sets them as instance variables.
 
         Args:
             properties (dict): dictionary containing property names and values.
         """
 
-        for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
+        for k, v in properties.items():
+            name = k.name if hasattr(k, "name") else str(k)
+            val = parse_value(v)
+            if hasattr(self, name):
+                setattr(self, name, val)
+            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
         Maps the fields of a record to new field names based on the provided JSON schema mapping.
+            {new_field -> old_field, ....}
 
         Args:
             record (dict): The input record whose fields need to be mapped.
@@ -83,22 +107,16 @@ class ConvertJsonRecordSchema(FlowFileTransform):
 
         new_record: dict = {}
         
-        new_schema_field_names: list = [str(x).lower() for x in json_mapper_schema.keys()]
+        # reverse the json_mapper_schema to map old_field -> new_field
+        json_mapper_schema_reverse: dict = {v: k for k, v in json_mapper_schema.items() if v}
 
         for curr_field_name, curr_field_value in record.items():
-            curr_field_name = str(curr_field_name).lower()
-            if curr_field_name in new_schema_field_names:
+            if curr_field_name in json_mapper_schema_reverse:
+                new_field_name = json_mapper_schema_reverse[curr_field_name]
                 # check if the mapping is not a dict (nested field)
-                if isinstance(json_mapper_schema[curr_field_name], str): 
-                    new_record.update({json_mapper_schema[curr_field_name] : curr_field_value})
-                elif isinstance(json_mapper_schema[curr_field_name], dict):
-                    # nested field
-                    new_record.update({curr_field_name: {}})
-                    for nested_field_name, nested_field_value in curr_field_value.items():
-                        if nested_field_name in json_mapper_schema[curr_field_name].keys():
-                            new_record[curr_field_name].update({ \
-                                json_mapper_schema[curr_field_name][nested_field_name]: nested_field_value})
-                            
+                if isinstance(new_field_name, str): 
+                    new_record.update({new_field_name: curr_field_value})
+
             elif self.preserve_non_mapped_fields:
                 new_record.update({curr_field_name: curr_field_value})
 

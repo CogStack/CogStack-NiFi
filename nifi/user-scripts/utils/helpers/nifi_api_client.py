@@ -1,5 +1,4 @@
 from logging import Logger
-from typing import List  # noqa: UP035
 
 from dto.nifi_api_config import NiFiAPIConfig
 from nipyapi import canvas, security
@@ -10,7 +9,7 @@ from nipyapi.nifi.models.processor_entity import ProcessorEntity
 from nipyapi.registry import ApiClient as RegistryApiClient
 from nipyapi.registry import BucketsApi
 from nipyapi.registry.configuration import Configuration as RegistryConfiguration
-from utils.helpers.logging import get_logger
+from utils.generic import get_logger
 
 
 class NiFiRegistryClient:
@@ -63,7 +62,7 @@ class NiFiClient:
     def get_root_process_group_id(self) -> str:
         return canvas.get_root_pg_id()
 
-    def get_process_group_by_name(self, process_group_name: str) -> None | List[object] | object:
+    def get_process_group_by_name(self, process_group_name: str) -> None | list[object] | object:
         return canvas.get_process_group(process_group_name, identifier_type="nam")
     
     def get_process_group_by_id(self, process_group_id: str) -> ProcessGroupEntity:
@@ -75,9 +74,9 @@ class NiFiClient:
     def stop_process_group(self, process_group_id: str) -> bool:
         return canvas.schedule_process_group(process_group_id, False)
 
-    def get_child_process_groups_from_parent_id(self, parent_process_group_id: str) -> List[ProcessGroupEntity]:
+    def get_child_process_groups_from_parent_id(self, parent_process_group_id: str) -> list[ProcessGroupEntity]:
         parent_pg = canvas.get_process_group(parent_process_group_id, identifier_type="id")
         return canvas.list_all_process_groups(parent_pg.id)
     
-    def get_all_processors_in_process_group(self, process_group_id: str) -> List[ProcessorEntity]:
+    def get_all_processors_in_process_group(self, process_group_id: str) -> list[ProcessorEntity]:
         return canvas.list_all_processors(process_group_id)
