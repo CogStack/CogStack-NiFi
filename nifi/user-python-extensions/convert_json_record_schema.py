@@ -113,7 +113,8 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         # reverse the json_mapper_schema to map old_field -> new_field
         json_mapper_schema_reverse = defaultdict(list)
         for new_field, old_field in json_mapper_schema.items():
-            if old_field:  # skip nulls / preset-only
+            # skip nulls & composite fields
+            if isinstance(old_field, str) and old_field:
                 json_mapper_schema_reverse[old_field].append(new_field)
 
         # Iterate through existing record fields
@@ -130,6 +131,13 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         for new_field, old_field in json_mapper_schema.items():
             if old_field is None:
                 new_record.setdefault(new_field, None)
+            elif isinstance(old_field, list):
+                parts = []
+                for sub_field in old_field:
+                    val = record.get(sub_field)
+                    if val is not None and val != "":
+                        parts.append(str(val))
+                new_record[new_field] = "\n".join(parts) if parts else None
 
         return new_record
 
