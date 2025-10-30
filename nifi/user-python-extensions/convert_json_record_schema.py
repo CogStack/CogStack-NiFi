@@ -17,6 +17,7 @@ sys.path.insert(0, "/opt/nifi/user-scripts")
 
 from utils.generic import parse_value  # noqa: I001,E402
 
+
 class ConvertJsonRecordSchema(FlowFileTransform):
     identifier = None
     logger: Logger = Logger(__qualname__)
@@ -121,7 +122,6 @@ class ConvertJsonRecordSchema(FlowFileTransform):
                 new_record.update({curr_field_name: curr_field_value})
 
         return new_record
-
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         output_contents: list = []
