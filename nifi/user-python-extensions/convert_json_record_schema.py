@@ -38,7 +38,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/cogstack_common_schema_mapping.json"
+        self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json"
         self.preserve_non_mapped_fields: bool = True
 
         # this is directly mirrored to the UI
@@ -47,7 +47,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
                                description="The path to the json schema mapping file, " \
                                 "the schema directory is mounted as a volume in" \
                                 " the nifi container in the /opt/nifi/user-schemas/ folder",
-                               default_value="/opt/nifi/user-schemas/cogstack_common_schema_mapping.json",
+                               default_value="/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json",
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
             PropertyDescriptor(name="preserve_non_mapped_fields",
