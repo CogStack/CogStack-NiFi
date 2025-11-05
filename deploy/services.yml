@@ -458,8 +458,7 @@ services:
       - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}:/opt/nifi/nifi-current/nifi_certificates:ro
-      - ./${ELASTICSEARCH_SECURITY_DIR:-../security/certificates/elastic/}:/opt/nifi/nifi-current/es_certificates:ro
+      - ../security:/security:ro
   
       # Security credentials scripts
       - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
