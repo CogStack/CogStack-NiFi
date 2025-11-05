@@ -64,7 +64,7 @@ start-samples:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db
 
 start-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_START_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml $(DC_START_CMD) cogstack-jupyter-hub
 
 start-medcat-service:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production

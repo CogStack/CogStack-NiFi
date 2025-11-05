@@ -1,7 +1,9 @@
 import json
 import logging
 import os
+import ssl
 import traceback
+import urllib.request
 from collections import defaultdict
 from typing import Union
 
@@ -34,7 +36,7 @@ def dict2json_truncate_add_to_file(input_dict: dict, file_path: str):
         dict2json_file(input_dict, file_path)
 
 
-def dict2jsonl_file(input_dict: Union[dict| defaultdict], file_path: str):
+def dict2jsonl_file(input_dict: dict | defaultdict, file_path: str):
     with open(file_path, 'a', encoding='utf-8') as outfile:
         for k,v in input_dict.items():
             o = {k: v}
@@ -61,6 +63,28 @@ def get_logger(name: str) -> logging.Logger:
         logger.propagate = False
     return logger
 
+def download_file_from_url(url: str, output_path: str, ssl_verify: bool = False, chunk_size: int = 8192) -> None:
+    """Download a file from a URL to a local destination.
+
+    Args:
+        url (str): The URL of the file to download.
+        output_path (str): The local file path to save the downloaded file.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to False.
+        chunk_size (int): Size of data chunks to read at a time. Defaults to 8192 bytes.
+
+    Raises:
+        Exception: If the download fails.
+    """
+
+    try:
+        context = ssl.create_default_context() if ssl_verify else ssl._create_unverified_context()
+
+        with urllib.request.urlopen(url, context=context) as response, open(output_path, 'wb') as out_file:
+            while chunk := response.read(chunk_size):
+                out_file.write(chunk)
+
+    except Exception as e:
+        raise Exception(f"Failed to download file from {url} to {output_path}: {e}") from e
 
 # -----------------------------------------------------------------------------------------------------------------
 # Function for handling property parsing, used in NiFi processors mainly, but can beused elsewhere

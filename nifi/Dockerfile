@@ -98,10 +98,10 @@ WORKDIR /opt/nifi/nifi-current/lib/
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
 
-RUN curl https://archive.apache.org/dist/groovy/5.0.0/distribution/apache-groovy-binary-5.0.0.zip --output apache-groovy-binary-5.0.0.zip --max-time 3600 && \
-    unzip apache-groovy-binary-5.0.0.zip && \
-    rm apache-groovy-binary-5.0.0.zip
-ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.0/bin
+RUN curl https://archive.apache.org/dist/groovy/5.0.2/distribution/apache-groovy-binary-5.0.2.zip --output apache-groovy-binary-5.0.2.zip --max-time 3600 && \
+    unzip apache-groovy-binary-5.0.2.zip && \
+    rm apache-groovy-binary-5.0.2.zip
+ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
 # copy configuration files

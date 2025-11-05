@@ -11,7 +11,6 @@
     "dynamic_date_formats": [
       "yyyy-MM-dd HH:mm:ss",
       "yyyy-MM-dd",
-      "epoch_millis",
       "basic_date",
       "date_hour",
       "date_hour_minute",
@@ -36,7 +35,7 @@
         "dates": {
           "match_mapping_type": "string",
           "match_pattern": "regex",
-          "match": "(?i).*(date|time|when|dt|dttm|timestamp|created|updated|modified|inserted|recorded|logged|entered|performed|signed|cosigned|completed|admit|discharge|visit|appointment|service|start|end|effective|expiry|validfrom|validto|close)$",
+          "match": "(?i).*(date|_datetime|_dt|_dttm|_dat|_datime|_time|_ts|_timestamp|time|when|dt|dttm|timestamp|created|updated|modified|inserted|recorded|logged|entered|performed|signed|cosigned|completed|admit|discharge|visit|appointment|service|start|end|effective|expiry|validfrom|validto|close)$",
           "mapping": {
             "type": "date",
             "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour_minute_second"

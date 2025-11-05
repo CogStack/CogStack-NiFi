@@ -1,7 +1,9 @@
 import json
 import sys
 import traceback
+from collections import defaultdict
 from logging import Logger
+from typing import Any
 
 from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import (
@@ -16,6 +18,7 @@ from py4j.java_gateway import JavaObject, JVMView
 sys.path.insert(0, "/opt/nifi/user-scripts")
 
 from utils.generic import parse_value  # noqa: I001,E402
+
 
 class ConvertJsonRecordSchema(FlowFileTransform):
     identifier = None
@@ -35,7 +38,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         """
         self.jvm = jvm
 
-        self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/cogstack_common_schema_mapping.json"
+        self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json"
         self.preserve_non_mapped_fields: bool = True
 
         # this is directly mirrored to the UI
@@ -44,7 +47,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
                                description="The path to the json schema mapping file, " \
                                 "the schema directory is mounted as a volume in" \
                                 " the nifi container in the /opt/nifi/user-schemas/ folder",
-                               default_value="/opt/nifi/user-schemas/cogstack_common_schema_mapping.json",
+                               default_value="/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json",
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
             PropertyDescriptor(name="preserve_non_mapped_fields",
@@ -108,23 +111,38 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         new_record: dict = {}
         
         # reverse the json_mapper_schema to map old_field -> new_field
-        json_mapper_schema_reverse: dict = {v: k for k, v in json_mapper_schema.items() if v}
+        json_mapper_schema_reverse = defaultdict(list)
+        for new_field, old_field in json_mapper_schema.items():
+            # skip nulls & composite fields
+            if isinstance(old_field, str) and old_field:
+                json_mapper_schema_reverse[old_field].append(new_field)
 
+        # Iterate through existing record fields
         for curr_field_name, curr_field_value in record.items():
             if curr_field_name in json_mapper_schema_reverse:
-                new_field_name = json_mapper_schema_reverse[curr_field_name]
-                # check if the mapping is not a dict (nested field)
-                if isinstance(new_field_name, str): 
-                    new_record.update({new_field_name: curr_field_value})
-
+                # multiple new fields can receive same source value
+                for new_field_name in json_mapper_schema_reverse[curr_field_name]:
+                    new_record[new_field_name] = curr_field_value
             elif self.preserve_non_mapped_fields:
-                new_record.update({curr_field_name: curr_field_value})
+                # preserve original fields not defined in mapping
+                new_record[curr_field_name] = curr_field_value
+
+        # Add preset fields defined with null in schema
+        for new_field, old_field in json_mapper_schema.items():
+            if old_field is None:
+                new_record.setdefault(new_field, None)
+            elif isinstance(old_field, list):
+                parts = []
+                for sub_field in old_field:
+                    val = record.get(sub_field)
+                    if val is not None and val != "":
+                        parts.append(str(val))
+                new_record[new_field] = "\n".join(parts) if parts else None
 
         return new_record
 
-
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
-        output_contents: list = []
+        output_contents: list[dict[Any, Any]] = []
         try:
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())

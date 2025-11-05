@@ -1,4 +1,5 @@
 import json
+import sys
 import traceback
 from logging import Logger
 
@@ -8,7 +9,13 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
+from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
+
+# we need to add it to the sys imports
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
+from utils.generic import parse_value  # noqa: I001,E402
 
 
 class ParseCogStackServiceResult(FlowFileTransform):
@@ -74,7 +81,22 @@ class ParseCogStackServiceResult(FlowFileTransform):
                                )
         ]
 
+        self._relationships = [
+            Relationship(
+                name="success",
+                description="All FlowFiles processed successfully."
+            ),
+            Relationship(
+                name="failure",
+                description="FlowFiles that failed processing."
+            )
+        ]
+
         self.descriptors: list[PropertyDescriptor] = self._properties
+        self.relationships: list[Relationship] = self._relationships
+
+    def getRelationships(self) -> list[Relationship]:
+        return self.relationships
 
     def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
         return self.descriptors
@@ -82,17 +104,19 @@ class ParseCogStackServiceResult(FlowFileTransform):
     def set_logger(self, logger: Logger):
         self.logger = logger
 
-    def set_properties(self, properties: dict):
+    def set_properties(self, properties: dict) -> None:
         """ Gets the properties from the processor's context and sets them as instance variables.
 
         Args:
             properties (dict): dictionary containing property names and values.
         """
 
-        for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
+        for k, v in properties.items():
+            name = k.name if hasattr(k, "name") else str(k)
+            val = parse_value(v)
+            if hasattr(self, name):
+                setattr(self, name, val)
+            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         """

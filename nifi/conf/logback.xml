@@ -177,6 +177,14 @@
     <!-- Py4J set to ERROR to avoid verbose socket communication messages -->
     <logger name="py4j" level="ERROR" />
 
+    <logger name="org.apache.nifi.python" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.processor" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.processor.PythonProcessorAdapter" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.processor.PythonProcessorProxy" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.exec" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.controller" level="DEBUG"/>
+    <logger name="org.apache.nifi.python.processor.PythonProcessorLoader" level="DEBUG"/>
+
     <logger name="org.apache.zookeeper.ClientCnxn" level="ERROR" />
     <logger name="org.apache.zookeeper.server.NIOServerCnxn" level="ERROR" />
     <logger name="org.apache.zookeeper.server.NIOServerCnxnFactory" level="ERROR" />
