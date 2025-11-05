@@ -11,12 +11,16 @@ Welcome to CogStack-Nifi's documentation!
    :caption: Contents:
 
    main.md
+   news.md
    nifi/main.md
+   security/main.md
+   security/certificates.md
+   security/elasticsearch_opensearch.md
+   security/nifi.md
+   security/services.yml
    deploy/main.md
    deploy/services.md
    deploy/workflows.md
-   security.md
-   news.md
 
 
 Indices and tables
