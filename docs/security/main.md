@@ -69,24 +69,17 @@ security/
     └── ssl-extensions-x509.cnf                 # SAN extensions used across certificate scripts
 ```
 
----
+```{include} certificates.md
+```
 
-```{include} ./certificates.md
+```{include} services.md
+```
 
----
+```{include} main.md
+```
 
-```{include} ./services.md
+```{include} nifi.md
+```
 
----
-
-```{include} ./main.md
-
----
-
-```{include} ./nifi.md
-
----
-
-```{include} ./elasticsearch_opensearch.md
-
----
+```{include} elasticsearch_opensearch.md
+```
