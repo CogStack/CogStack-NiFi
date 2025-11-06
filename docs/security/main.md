@@ -1,4 +1,6 @@
-# Security Overview
+# 🛡️ Security
+
+## 🗺️ Overview
 
 All core CogStack-NiFi services — including **NiFi**, **Elasticsearch/OpenSearch**, **Kibana/OpenSearch Dashboards**, **JupyterHub**, **NGINX** and **Gitea** — are now deployed with **HTTPS enabled by default**.  
 Each component is provisioned with its own X.509 certificates issued by the shared root CA generated via the `create_root_ca_cert.sh` script.
@@ -15,7 +17,7 @@ Security is achieved through:
 > ⚠️ **Important:** Always generate unique certificates and credentials for each deployment.  
 > The repository provides sample certificates for demonstration only.
 
-## Components secured with HTTPS
+## 🧩 Components secured with HTTPS
 
 | Service | HTTPS/TLS Enabled | Certificate Location | Script(s) Used |
 |----------|------------------|----------------------|----------------|
@@ -29,7 +31,7 @@ Security is achieved through:
 
 ---
 
-## Folder structure
+## 📂 Folder structure
 
 The `security/` directory centralizes all certificate, credential, and role management for CogStack-NiFi.  
 Below is the high-level structure with explanations for each sub-folder.
@@ -69,14 +71,22 @@ security/
 
 ---
 
-## Next steps
+```{include} ./certificates.md
 
-Refer to the detailed pages for each topic:
+---
 
-```{toctree}
-:maxdepth: 2
-:caption: Security Topics
+```{include} ./services.md
 
-certificates
-services
-nifi
+---
+
+```{include} ./main.md
+
+---
+
+```{include} ./nifi.md
+
+---
+
+```{include} ./elasticsearch_opensearch.md
+
+---

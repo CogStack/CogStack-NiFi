@@ -1,4 +1,4 @@
-# 🔐 NiFi/NiFi Registry TLS & Admin Access Setup (with NGINX)
+## 🔐 NiFi/NiFi Registry TLS & Admin Access Setup (with NGINX)
 
 This guide documents how to configure TLS and certificate-based admin access for Apache NiFi Registry (v1.26+) using OpenSSL-generated certificates and NGINX as a reverse proxy.
 For background on how these certificates are generated, see [Certificates and Root CA](certificates.md).  
@@ -6,7 +6,7 @@ This section focuses on applying those certificates to secure **NiFi** and **NiF
 
 ---
 
-## 📁 Folder Structure
+### 📁 Folder Structure
 
 ```text
 security/certificates
@@ -59,9 +59,9 @@ Example (`nifi/conf/nifi.properties`):
 Default username :
 <br>
 
-```
-username: admin     
-password: cogstackNiFi
+```text
+    username: admin     
+    password: cogstackNiFi
 ```
 
 - the `login-identity-providers.xml` file in `/nifi/conf/` stores the password for the user account, to generate a password one must use the following command within the container : `/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD`, once done, you would need to copy the file from `/opt/nifi/nifi-current/conf/login-identity-providers.xml` locally with docker cp and replace the one in the `nifi/conf` folder and rebuild the container.
@@ -76,7 +76,7 @@ Troubleshooting Security : if you encounter errors related to sensitive key prop
 
 If for some reason you do not wish to authenticate every time you connect to NiFi, you can enable the client certificates in the [nginx.conf](../services/nginx/config/nginx.conf) line 86-87 and delete the commented lines.
 
-## `nifi-nginx`
+### `nifi-nginx`
 
 Alternatively, one can secure the access to selected services by using NGINX reverse proxy.
 This may be essential in case some of the web services that need to be exposed to end-users do not offer SSL encryption.
@@ -88,7 +88,7 @@ In order to be able to properly access the nifi instance securely, you also need
 
 ---
 
-## 🔐 authorizers.xml – Multiple Admins
+### 🔐 authorizers.xml – Multiple Admins
 
 ```xml
 <userGroupProvider>
@@ -112,7 +112,7 @@ In order to be able to properly access the nifi instance securely, you also need
 
 ---
 
-## 🌐 `nifi-registry.properties`
+### 🌐 `nifi-registry.properties`
 
 ```properties
 nifi.registry.web.context.path=/nifi-registry
@@ -123,7 +123,7 @@ nifi.registry.security.identity.mapping.pattern.dn=^.*?CN=(.*?)(,|$)
 
 ---
 
-## 🌍 NGINX Reverse Proxy Example
+### 🌍 NGINX Reverse Proxy Example
 
 ```nginx
 server {
@@ -165,7 +165,7 @@ server {
 
 ---
 
-## ✅ Final Checklist
+### ✅ Final Checklist
 
 - [x] Certificate CN matches identity in `authorizers.xml`
 - [x] NGINX uses correct client cert + root CA
@@ -175,7 +175,7 @@ server {
 
 ---
 
-## 🧪 Test Identity
+### 🧪 Test Identity
 
 ```bash
 curl -vk   --cert ./nifi.pem   --key ./nifi.key   https://localhost:18443/nifi-registry-api/tenants/me
@@ -183,7 +183,7 @@ curl -vk   --cert ./nifi.pem   --key ./nifi.key   https://localhost:18443/nifi-r
 
 ---
 
-## 🛠 If Settings Icon Missing
+### 🛠 If Settings Icon Missing
 
 - Double-check that the user shown by `/tenants/me` is **exactly** the same as `Initial Admin Identity`
 - Recreate `authorizations.xml` if needed by clearing it
@@ -199,7 +199,7 @@ To ensure a seamless integration between **NiFi** and **NiFi Registry**, especia
 
 If your admin certificate resolves to identity `CN=cogstack`, then:
 
-#### ✅ You must define it in both `authorizers.xml` files:
+#### ✅ You must define it in both `authorizers.xml` files
 
 **For NiFi** (`conf/authorizers.xml`):
 
