@@ -1,4 +1,4 @@
-## Security for CogStack provided other services
+## 🗄️ Security for CogStack provided other services
 
 ### General services TLS configuration
 
