@@ -18,20 +18,6 @@ Certificates and credentials are generated using the scripts provided in `securi
 
 ---
 
-### ⚙️ Version variable (set before/after generating certs)
-
-Set the ES/OS version in `deploy/elasticsearch.env` before launching containers:
-
-```bash
-ELASTICSEARCH_VERSION=opensearch
-# or
-ELASTICSEARCH_VERSION=elasticsearch
-```
-
-This ensures the correct certificate directory (`elasticsearch` or `opensearch`) is mounted into containers.
-
----
-
 ### 📄 Environment files used
 
 All scripts reference the following environment configuration files:
@@ -138,7 +124,21 @@ security/certificates/elastic/opensearch/
 
 ---
 
-## #📁 Kibana / OpenDashboard certificates
+## ⚙️ Version variable
+
+Set the ES/OS version in `deploy/elasticsearch.env` before launching containers:
+
+```bash
+ELASTICSEARCH_VERSION=opensearch
+# or
+ELASTICSEARCH_VERSION=elasticsearch
+```
+
+This ensures the correct certificate directory (`elasticsearch` or `opensearch`) is mounted into containers.
+
+---
+
+### 📁 Kibana / OpenDashboard certificates
 
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
