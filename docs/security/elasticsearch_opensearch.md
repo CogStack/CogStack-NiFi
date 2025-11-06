@@ -1,4 +1,4 @@
-# Elasticsearch / OpenSearch Security
+## 🌐 Elasticsearch / OpenSearch Security
 
 This section describes how to secure both **Elasticsearch (native)** and **OpenSearch** clusters used in the CogStack-NiFi stack, including certificate setup, user management, and role configuration.
 
@@ -6,7 +6,7 @@ All related certificates are stored in `security/certificates/elastic/`, and are
 
 ---
 
-## 🔒 Overview
+### 🔒 Overview
 
 Both **Elasticsearch** and **OpenSearch** deployments require:
 
@@ -18,7 +18,7 @@ Certificates and credentials are generated using the scripts provided in `securi
 
 ---
 
-## 📄 Environment files used
+### 📄 Environment files used
 
 All scripts reference the following environment configuration files:
 
@@ -38,7 +38,7 @@ cd ../security
 
 ---
 
-## 🧩 Common certificate layout
+### 🧩 Common certificate layout
 
 Certificate naming and folder structure are consistent across both ES and OpenSearch:
 
@@ -67,9 +67,9 @@ Each version has its own generation scripts, but they all depend on the same `.e
 
 ---
 
-## 🏗️ Generating certificates
+### 🏗️ Generating certificates
 
-### Elasticsearch (native)
+#### Elasticsearch (native)
 
 To generate certificates for Elasticsearch:
 
@@ -94,7 +94,7 @@ Make sure the environment variables are set correctly before running the script.
 
 ---
 
-### OpenSearch
+#### OpenSearch
 
 For OpenSearch nodes:
 
@@ -149,9 +149,9 @@ All certificate references in `services/kibana/config/kibana_opensearch.yml` or 
 
 ---
 
-## 🔐 Users and roles
+### 🔐 Users and roles
 
-### OpenSearch
+#### OpenSearch
 
 1. Edit `security/es_roles/opensearch/internal_users.yml` to define users.
 2. Optionally generate password hashes:
@@ -173,7 +173,7 @@ OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshot
 
 ---
 
-### Elasticsearch (native)
+#### Elasticsearch (native)
 
 Run after containers start:
 
@@ -197,7 +197,7 @@ You can modify credentials in `security/env/elasticsearch_users.env`.
 
 ---
 
-## ⚠️ Notes
+#### ⚠️ Notes
 
 - The `security/certificates/` folder is also **mounted inside NiFi** so NiFi processors can access ES/OS securely without restarting.  
 - For OpenSearch role details, see the [OpenSearch Security Plugin documentation](https://opensearch.org/docs/latest/security-plugin/index/).  
@@ -205,7 +205,7 @@ You can modify credentials in `security/env/elasticsearch_users.env`.
 
 ---
 
-## ✅ Verification
+#### ✅ Verification
 
 To verify HTTPS access and trust:
 
@@ -216,5 +216,5 @@ curl -vk --cacert ./root-ca.pem https://elasticsearch-1:9200
 To check inter-node encryption (inside a container):
 
 ```bash
-openssl s_client -connect elasticsearch-2:9300 -CAfile ./root-ca.pem
+openssl s_client -connect elasticsearch-1:9300 -CAfile ./root-ca.pem
 ```

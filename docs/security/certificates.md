@@ -1,4 +1,4 @@
-# Certificates and Root CA
+## 🏛️ Certificates and Root CA
 
 This section describes the full structure of the `security/certificates/` directory and explains how certificates are generated, organized, and used across CogStack-NiFi services.
 
@@ -8,7 +8,7 @@ This Root CA signs all service certificates (NiFi, OpenSearch, Kibana, JupyterHu
 
 ---
 
-## 📂 Directory structure
+### 📂 Certificate directory structure
 
 ```text
 security/
@@ -55,7 +55,7 @@ security/
 
 ---
 
-## ⚙️ Environment configuration
+### ⚙️ Environment configuration
 
 All certificate-generation scripts source variables from `.env` files under `security/env/`:
 
@@ -66,7 +66,7 @@ All certificate-generation scripts source variables from `.env` files under `sec
 | `certificates_nifi.env` | NiFi keystore/truststore names and passwords. |
 | `users_*.env` | Default credentials used by generation scripts. |
 
-## 📜 openssl-x509.conf
+### 📜 openssl-x509.conf
 
 Set up a reusable certificate config to define SANs and subject. This is used globally for all services except ES native.
 Feel free to add custom DNS
@@ -155,7 +155,7 @@ CN = cogstack
 
 ---
 
-## 🛠️ Generation workflow
+### 🛠️ Generation workflow
 
 1. **Generate Root CA**
 
@@ -197,7 +197,7 @@ CN = cogstack
 
 ---
 
-## 🧠 Best practices
+### 🧠 Best practices
 
 - **Do not commit** private keys (`*.key`, `*.p12`, `*.jks`) to version control.  
 - **Back up** the Root CA files securely — they’re your trust anchor.  
