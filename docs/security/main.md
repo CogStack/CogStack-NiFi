@@ -75,9 +75,6 @@ security/
 ```{include} services.md
 ```
 
-```{include} main.md
-```
-
 ```{include} nifi.md
 ```
 
