@@ -147,6 +147,26 @@ class BaseNiFiProcessor(FlowFileTransform):
                 setattr(self, name, val)
             self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
+    def onScheduled(self, context: ProcessContext) -> None:
+        """
+            Called automatically by NiFi once when the processor is scheduled to run
+            (i.e., enabled or started). This method is used for initializing and
+            allocating resources that should persist across multiple FlowFile
+            executions.
+
+            Typical use cases include:
+            - Loading static data from disk (e.g., CSV lookup tables, configuration files)
+            - Establishing external connections (e.g., databases, APIs)
+            - Building in-memory caches or models used by onTrigger/transform()
+
+            The resources created here remain in memory for the lifetime of the
+            processor and are shared by all concurrent FlowFile executions on this
+            node. They should be lightweight and thread-safe. To release or clean up
+            such resources, use the @OnStopped method, which NiFi calls when the
+            processor is disabled or stopped.
+        """
+        pass
+
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         """ 
             NOTE: This is a sample method meant to be overridden and reimplemented by subclasses.
@@ -155,6 +175,16 @@ class BaseNiFiProcessor(FlowFileTransform):
             and writes them back out to a new flowfile. It also adds the processor properties
             to the flowfile attributes. IT IS A SAMPLE ONLY,
             you are meant to use this as a starting point for other processors
+
+            Args:
+                context (ProcessContext): The process context containing processor properties.
+                flowFile (JavaObject): The FlowFile object containing the input data.
+
+            Raises:
+                Exception: If any error occurs during processing.
+
+            Returns:
+                FlowFileTransformResult: The result containing the transformed contents and updated attributes.
         """
         output_contents = []
         try:

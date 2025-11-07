@@ -1,11 +1,46 @@
 import json
 import logging
 import os
+import shutil
 import ssl
+import subprocess
+import sys
 import traceback
 import urllib.request
 from collections import defaultdict
-from typing import Union
+from collections.abc import Callable, Iterable
+
+logger = logging.getLogger(__name__)
+
+
+def safe_delete_paths(paths: Iterable[str | os.PathLike], chmod_mode: int = 755) -> None:
+    """
+    Forcefully deletes a list of files or directories.
+    - Makes files and dirs writable before deletion.
+    - Removes both normal files and symlinks.
+    - Recursively deletes directories.
+
+    Args:
+        paths: iterable of file or directory paths.
+        chmod_mode: permission mode to apply before deleting.
+    """
+
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        try:
+            # Handle symlinks separately
+            if os.path.islink(path) or os.path.isfile(path):
+                os.chmod(path, chmod_mode)
+                os.remove(path)
+
+            if os.path.isdir(path):
+                # Make sure everything inside is writable
+                subprocess.run(["chmod", "-R", str(chmod_mode), path], check=False)
+                shutil.rmtree(path, ignore_errors=False)
+            logger.info(f"Deleted: {path}")
+        except Exception as e:
+            logger.error(f"Could not delete {path}: {e}")
 
 
 def chunk(input_list: list, num_slices: int):
@@ -14,14 +49,13 @@ def chunk(input_list: list, num_slices: int):
 
 
 # function to convert a dictionary to json and write to file (d: dictionary, fn: string (filename))
-def dict2json_file(input_dict: dict, file_path: str):
+def dict2json_file(input_dict: dict, file_path: str) -> None:
     # write the json file
     with open(file_path, "a+", encoding="utf-8") as outfile:
         json.dump(input_dict, outfile, ensure_ascii=False, indent=None, separators=(",", ":"))
 
 
-def dict2json_truncate_add_to_file(input_dict: dict, file_path: str):
-
+def dict2json_truncate_add_to_file(input_dict: dict, file_path: str) -> None:
     if os.path.exists(file_path):
         with open(file_path, "a+") as outfile:
             outfile.seek(outfile.tell() - 1, os.SEEK_SET)
@@ -36,7 +70,7 @@ def dict2json_truncate_add_to_file(input_dict: dict, file_path: str):
         dict2json_file(input_dict, file_path)
 
 
-def dict2jsonl_file(input_dict: dict | defaultdict, file_path: str):
+def dict2jsonl_file(input_dict: dict | defaultdict, file_path: str) -> None:
     with open(file_path, 'a', encoding='utf-8') as outfile:
         for k,v in input_dict.items():
             o = {k: v}
@@ -86,6 +120,7 @@ def download_file_from_url(url: str, output_path: str, ssl_verify: bool = False,
     except Exception as e:
         raise Exception(f"Failed to download file from {url} to {output_path}: {e}") from e
 
+
 # -----------------------------------------------------------------------------------------------------------------
 # Function for handling property parsing, used in NiFi processors mainly, but can beused elsewhere
 # -----------------------------------------------------------------------------------------------------------------
@@ -105,7 +140,7 @@ def parse_value(value: str) -> str|int|float|bool:
 # -----------------------------------------------------------------------------------------------------------------
 # Safe execution wrapper with consistent error logging
 # -----------------------------------------------------------------------------------------------------------------
-def safe_execute(logger: logging.Logger, func, *args, **kwargs):
+def safe_execute(logger: logging.Logger, func, *args, **kwargs) -> Callable:
     """
     Executes a function safely, logging errors with full traceback.
 
