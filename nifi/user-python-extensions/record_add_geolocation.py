@@ -1,4 +1,3 @@
-
 import sys
 
 sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402

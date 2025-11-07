@@ -1,24 +1,26 @@
+import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+
 import io
 import json
 import traceback
-from logging import Logger
 from typing import Any, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
+from overrides import override
 from py4j.java_gateway import JavaObject, JVMView
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class PrepareRecordForNlp(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
-
+class PrepareRecordForNlp(BaseNiFiProcessor):
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
@@ -27,11 +29,7 @@ class PrepareRecordForNlp(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.document_text_field_name: str = "text"
         self.document_id_field_name : str = "id"
@@ -60,25 +58,7 @@ class PrepareRecordForNlp(FlowFileTransform):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
-
-
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict):
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
-
+    @override
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         """_summary_
 

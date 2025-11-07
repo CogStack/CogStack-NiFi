@@ -1,33 +1,44 @@
+import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+
 import base64
 import copy
 import io
 import json
-import sys
 import traceback
-from logging import Logger
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
 from avro.schema import RecordSchema, Schema, parse
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
 from nifiapi.relationship import Relationship
+from overrides import override
 from py4j.java_gateway import JavaObject, JVMView
-
-# we need to add it to the sys imports
-sys.path.insert(0, "/opt/nifi/user-scripts")
-
-from utils.generic import parse_value  # noqa: I001,E402
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
+class ConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
+    """NiFi Python processor to convert a binary field in Avro records to base64-encoded string.
 
+    Reads each FlowFile as Avro, locates the configured binary_field_name, and rewrites the Avro schema,
+    so that field becomes a nullable string, preventing NiFi’s JSON 
+    converters from turning raw bytes into integer arrays.
+
+    Streams every record through a new Avro writer, base64-encoding the binary payload when operation_mode=base64
+    (or leaving bytes untouched for raw), then reattaching the remaining fields
+    so downstream processors still see the original record structure.
+
+    Emits the updated Avro binary along success with attributes capturing document ID field,
+    binary field, mode, and MIME type application/avro-binary; 
+    
+    Exception routes to failure after logging a stack trace.
+    """
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
@@ -36,11 +47,7 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.operation_mode: str = "base64"
         self.binary_field_name: str = "binarydoc"
@@ -78,31 +85,9 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
-    
-    def getRelationships(self) -> list[Relationship]:
-        return self.relationships
 
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
-
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict) -> None:
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in properties.items():
-            name = k.name if hasattr(k, "name") else str(k)
-            val = parse_value(v)
-            if hasattr(self, name):
-                setattr(self, name, val)
-            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
-
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    @override
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms an Avro flow file by converting a specified binary field to a base64-encoded string.
 
@@ -115,7 +100,8 @@ class ConvertAvroBinaryRecordFieldToBase64(FlowFileTransform):
             Exception: For any other errors during Avro processing.
 
         Returns:
-            FlowFileTransformResult: The result containing the transformed flow file, updated attributes, and relationship.
+            FlowFileTransformResult: The result containing the transformed flow file, updated attributes,
+                and relationship.
         """
         try:
             self.process_context = context

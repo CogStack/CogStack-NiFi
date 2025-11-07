@@ -1,18 +1,26 @@
+import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+
 import base64
 import json
 import sys
 import traceback
 from logging import Logger
 
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
 from py4j.java_gateway import JavaObject, JVMView
+from utils.cerner_blob import DecompressLzwCernerBlob
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
-""" This script decompresses Cerner LZW compressed blobs from a JSON input stream.
+
+class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
+    """ This script decompresses Cerner LZW compressed blobs from a JSON input stream.
     It expects a JSON array of records, each containing a field with the binary data.
     All RECORDS are expected to have the same fields, and presumably belonging to the same DOCUMENT.
     All the fields of these records should have the same field values, except for the binary data field.
@@ -20,19 +28,8 @@ from py4j.java_gateway import JavaObject, JVMView
     the blob_sequence_order_field_name field, preserving the order of the blobs and composing 
     the whole document (supposedly).
     The final base64 enncoded string will be decoded back to binary data, then decompressed using LZW algorithm.
-"""
 
-# this script is using a custom utility for decompressing Cerner blobs
-# from nifi/user-python-extensions/record_decompress_cerner_blob.py
-# we need to add it to the sys imports
-sys.path.insert(0, "/opt/nifi/user-scripts")
-
-from utils.cerner_blob import DecompressLzwCernerBlob # noqa: I001,E402
-
-
-class JsonRecordDecompressCernerBlob(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
+    """
 
 
     class Java:
@@ -42,11 +39,7 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.operation_mode: str = "base64"
         self.binary_field_name: str = "binarydoc"
@@ -104,24 +97,6 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
-
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict):
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
-
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
         """
         Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
@@ -167,13 +142,14 @@ class JsonRecordDecompressCernerBlob(FlowFileTransform):
             output_merged_record = {}
 
             for record in records:
-                if self.blob_sequence_order_field_name in record.keys():
-                    concatenated_blob_sequence_order[int(record[self.blob_sequence_order_field_name])] = record[self.binary_field_name]
+                if self.blob_sequence_order_field_name in record:
+                    concatenated_blob_sequence_order[int(record[self.blob_sequence_order_field_name])] = \
+                        record[self.binary_field_name]
 
             # take fields from the first record, doesn't matter which one,
             # as they are expected to be the same except for the binary data field
             for k, v in records[0].items():
-                if k not in output_merged_record.keys() and k != self.binary_field_name:
+                if k not in output_merged_record and k != self.binary_field_name:
                     output_merged_record[k] = v
 
             output_merged_record[self.binary_field_name] = b""
