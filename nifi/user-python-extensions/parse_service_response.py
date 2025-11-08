@@ -170,7 +170,7 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
                             output_contents.append(_output_annotated_record)
 
                         else:
-                            for annotation_id, annotation_data in annotations:
+                            for annotation_id, annotation_data in annotations.items():
                                 _output_annotated_record = {}
                                 _output_annotated_record["service_model"] = medcat_info
                                 _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
