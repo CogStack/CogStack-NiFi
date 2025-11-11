@@ -61,7 +61,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         self.postcode_field_name: str = "address_postcode"
         self.geolocation_field_name: str = "address_geolocation"
 
-        self.loaded_csv_file_rows: list[dict|list] = [{}]
+        self.loaded_csv_file_rows: list[list] = []
         self.postcode_lookup_index: dict[str, int] = {}
 
         self._properties: list[PropertyDescriptor] = [
@@ -98,13 +98,16 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
             context (ProcessContext): The process context.
             This argument is required by the NiFi framework.
         """
-        self.logger.info("onScheduled() called — initializing processor resources")
+
+        self.logger.debug("onScheduled() called — initializing processor resources")
+
         if self._check_geolocation_lookup_datafile():
             with open(self.lookup_datafile_path) as csv_file:
                 csv_reader = csv.reader(csv_file)
                 self.loaded_csv_file_rows = [row for row in csv_reader]
-                self.postcode_lookup_index: dict[str, int] = {str(val).replace(" ", ""): idx
-                for idx, val in enumerate(self.postcode_lookup_index)}
+
+        self.postcode_lookup_index = {val[9]: idx
+        for idx, val in enumerate(self.loaded_csv_file_rows)}
 
     def _check_geolocation_lookup_datafile(self) -> bool:
         """ Downloads the geolookup csv file for UK postcodes.
@@ -115,6 +118,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         Returns:
             bool: file exists or not
         """
+
         base_output_extract_dir_path: str = "/opt/nifi/user-scripts/db"
         output_extract_dir_path: str = os.path.join(base_output_extract_dir_path, "open_postcode_geo")
         output_download_path: str = os.path.join(base_output_extract_dir_path, "open_postcode_geo.zip")
@@ -166,7 +170,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
 
             if isinstance(records, dict):
                 records = [records]
-            
+
             if self.postcode_lookup_index:
                 for record in records:
                     if self.postcode_field_name in record:
