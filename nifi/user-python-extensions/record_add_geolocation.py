@@ -81,7 +81,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR],
                                default_value="address_postcode"),
-            PropertyDescriptor(name="address_geolocation",
+            PropertyDescriptor(name="geolocation_field_name",
                     description="new field to store the geolocation coords,"
                                 " if it is not present it will be created in each record",
                     required=True,
@@ -160,6 +160,20 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
 
     @override
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+        """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
+        Args:
+            context (ProcessContext): The process context.
+            flowFile (JavaObject): The input FlowFile to be transformed.
+        Returns:
+            FlowFileTransformResult: The result of the transformation, including updated attributes and contents.
+        Raises:
+            Exception: If any error occurs during processing.
+        
+        NOTE: the input json should be small enough to fit into memory otherwise it might cause memory issues, 
+              keep it < 20MB, under 20k records (depending on record size).
+              Use SplitRecord processor to split large files into smaller chunks before processing.
+        """
+
         try:
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
