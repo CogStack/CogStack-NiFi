@@ -62,7 +62,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         self.geolocation_field_name: str = "address_geolocation"
 
         self.loaded_csv_file_rows: list[dict|list] = [{}]
-        self.postcode_lookup_index: list[str] = []
+        self.postcode_lookup_index: dict[str, int] = {}
 
         self._properties: list[PropertyDescriptor] = [
            PropertyDescriptor(name="lookup_datafile_url",
@@ -93,12 +93,18 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
 
     @override
     def onScheduled(self, context: ProcessContext) -> None:
-    
+        """ Initializes processor resources when scheduled.
+        Args:
+            context (ProcessContext): The process context.
+            This argument is required by the NiFi framework.
+        """
+        self.logger.info("onScheduled() called — initializing processor resources")
         if self._check_geolocation_lookup_datafile():
             with open(self.lookup_datafile_path) as csv_file:
                 csv_reader = csv.reader(csv_file)
                 self.loaded_csv_file_rows = [row for row in csv_reader]
-                self.postcode_lookup_index = [row[10] for row in self.loaded_csv_file_rows]
+                self.postcode_lookup_index: dict[str, int] = {str(val).replace(" ", ""): idx
+                for idx, val in enumerate(self.postcode_lookup_index)}
 
     def _check_geolocation_lookup_datafile(self) -> bool:
         """ Downloads the geolookup csv file for UK postcodes.
@@ -165,8 +171,8 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
                 for record in records:
                     if self.postcode_field_name in record:
                         _postcode = str(record[self.postcode_field_name]).replace(" ", "")
-                        _data_col_row_idx = next((idx for idx, val in enumerate(self.postcode_lookup_index) 
-                                              if val == _postcode ), -1)
+                        _data_col_row_idx = self.postcode_lookup_index.get(_postcode, -1)
+
                         if _data_col_row_idx != -1:
                             _selected_row = self.loaded_csv_file_rows[_data_col_row_idx]
                             _lat, _long = _selected_row[7], _selected_row[8]
