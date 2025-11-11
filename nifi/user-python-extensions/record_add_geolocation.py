@@ -194,11 +194,13 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
                         if _data_col_row_idx != -1:
                             _selected_row = self.loaded_csv_file_rows[_data_col_row_idx]
                             _lat, _long = str(_selected_row[7]).strip(), str(_selected_row[8]).strip()
-                            if _lat and _long:
+                            try:
                                 record[self.geolocation_field_name] = {
                                     "lat": float(_lat),
                                     "lon": float(_long)
                                 }
+                            except ValueError:
+                                self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
             else:
                 raise FileNotFoundError("geolocation lookup datafile is not available and data was not loaded, " \
                                         "please check URLs")
