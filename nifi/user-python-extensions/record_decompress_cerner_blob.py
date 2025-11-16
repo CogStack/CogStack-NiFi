@@ -1,12 +1,11 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import base64
 import json
 import sys
 import traceback
-from logging import Logger
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
@@ -27,7 +26,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
     The binary data field is expected to be a base64 encoded string, which will be concatenated according to 
     the blob_sequence_order_field_name field, preserving the order of the blobs and composing 
     the whole document (supposedly).
-    The final base64 enncoded string will be decoded back to binary data, then decompressed using LZW algorithm.
+    The final base64 encoded string will be decoded back to binary data, then decompressed using LZW algorithm.
 
     """
 
@@ -155,7 +154,8 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             output_merged_record[self.binary_field_name] = b""
             full_compressed_blob = bytearray()
 
-            for k, v in concatenated_blob_sequence_order.items():
+            for k in sorted(concatenated_blob_sequence_order.keys()):
+                v = concatenated_blob_sequence_order[k]
                 try:
                     temporary_blob = v
                     if self.binary_field_source_encoding == "base64":

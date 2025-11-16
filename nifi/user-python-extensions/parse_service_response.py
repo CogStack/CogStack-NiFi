@@ -113,6 +113,7 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
         Returns:
             FlowFileTransformResult: The result containing the transformed contents and updated attributes.
         """
+
         output_contents = []
         try:
             self.process_context: ProcessContext = context

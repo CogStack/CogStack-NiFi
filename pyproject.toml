@@ -1,5 +1,3 @@
-# pyproject.toml
-
 [tool.ruff]
 line-length = 120
 exclude = ["nifi/user-scripts/legacy_scripts"]
