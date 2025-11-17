@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import json
 import traceback
@@ -122,14 +122,15 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
 
         return new_record
 
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         output_contents: list[dict[Any, Any]] = []
+
         try:
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
             if isinstance(records, dict):
@@ -142,8 +143,7 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
             for record in records:
                 output_contents.append(self.map_record(record, json_mapper_schema))
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["json_mapper_schema_path"] = str(self.json_mapper_schema_path)
             attributes["mime.type"] = "application/json"
 

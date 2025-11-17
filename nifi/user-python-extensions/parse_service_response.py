@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import json
 import traceback
@@ -99,7 +99,7 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
         self.relationships: list[Relationship] = self._relationships
 
     @override
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms the input FlowFile by parsing the service response and extracting relevant fields.
 
@@ -114,13 +114,14 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
             FlowFileTransformResult: The result containing the transformed contents and updated attributes.
         """
 
-        output_contents = []
+        output_contents: list = []
+
         try:
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
             records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
@@ -189,7 +190,7 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
                                 output_contents.append(_output_annotated_record)
 
             # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
 

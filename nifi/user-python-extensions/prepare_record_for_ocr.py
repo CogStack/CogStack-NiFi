@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import base64
 import io
@@ -83,8 +83,10 @@ class PrepareRecordForOcr(BaseNiFiProcessor):
         self.relationships: list[Relationship] = self._relationships
 
     @override
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
-        output_contents = []
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+
+        output_contents: list = []
+
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -92,7 +94,7 @@ class PrepareRecordForOcr(BaseNiFiProcessor):
             self.process_flow_file_type = str(self.process_flow_file_type).lower()
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
             reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
@@ -124,8 +126,7 @@ class PrepareRecordForOcr(BaseNiFiProcessor):
             if isinstance(reader, DataFileReader):
                 reader.close()
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)

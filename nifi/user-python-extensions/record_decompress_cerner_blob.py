@@ -96,7 +96,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
 
@@ -110,13 +110,15 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         Raises:
             Exception: If any error occurs during processing or decompression.
         """
-        output_contents = []
+
+        output_contents: list = []
+
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
             records = []
 
@@ -159,18 +161,17 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 try:
                     temporary_blob = v
                     if self.binary_field_source_encoding == "base64":
-                        temporary_blob: bytes = base64.b64decode(temporary_blob)
+                        temporary_blob = base64.b64decode(temporary_blob)
                     full_compressed_blob.extend(temporary_blob)
                 except Exception as e:
                     self.logger.error(f"Error decoding b64 blob part {k}: {str(e)}")
 
             try:
                 decompress_blob = DecompressLzwCernerBlob()
-                decompress_blob.decompress(full_compressed_blob) # type: ignore
+                decompress_blob.decompress(full_compressed_blob)
                 output_merged_record[self.binary_field_name] = decompress_blob.output_stream
             except Exception as exception:
                 self.logger.error(f"Error decompressing cerner blob: {str(exception)} \n")
-
 
             if self.output_mode == "base64":
                 output_merged_record[self.binary_field_name] = \
@@ -178,8 +179,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
             output_contents.append(output_merged_record)
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)

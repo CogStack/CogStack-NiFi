@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import base64
 import copy
@@ -108,7 +108,7 @@ class ConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
             reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
 
@@ -157,8 +157,7 @@ class ConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
             writer.flush()
             output_byte_buffer.seek(0)
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["operation_mode"] = str(self.operation_mode)

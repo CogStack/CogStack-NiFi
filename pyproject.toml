@@ -27,6 +27,8 @@ fixable = ["ALL"]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 strict = false
+files = "."
+mypy_path = "./typings/"
 
 [tool.isort]
 line_length = 120

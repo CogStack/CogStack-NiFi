@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import io
 import json
@@ -59,7 +59,7 @@ class PrepareRecordForNlp(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
 
     @override
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """_summary_
 
         Args:
@@ -73,7 +73,9 @@ class PrepareRecordForNlp(BaseNiFiProcessor):
         Returns:
             FlowFileTransformResult: _description_
         """
-        output_contents = []
+
+        output_contents: list = []
+
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -81,7 +83,7 @@ class PrepareRecordForNlp(BaseNiFiProcessor):
             self.process_flow_file_type = str(self.process_flow_file_type).lower()
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
             reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
@@ -108,12 +110,12 @@ class PrepareRecordForNlp(BaseNiFiProcessor):
             if isinstance(reader, DataFileReader):
                 reader.close()
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["mime.type"] = "application/json"
 
             output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
+
             return FlowFileTransformResult(relationship="success", 
                                            attributes=attributes,
                                            contents=json.dumps({"content": output_contents}).encode("utf-8"))

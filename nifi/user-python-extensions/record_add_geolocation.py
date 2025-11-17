@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")  # noqa: I001,E402
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import csv
 import json
@@ -159,7 +159,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         return file_found
 
     @override
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> list[FlowFileTransformResult]:
         """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
         Args:
             context (ProcessContext): The process context.
@@ -178,9 +178,12 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
 
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
             records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
+
+            valid_records: list[dict] = []
+            error_records: list[dict] = []
 
             if isinstance(records, dict):
                 records = [records]
@@ -201,16 +204,44 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
                                 }
                             except ValueError:
                                 self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
+                                error_records.append(record)
+                    valid_records.append(record)
             else:
                 raise FileNotFoundError("geolocation lookup datafile is not available and data was not loaded, " \
                                         "please check URLs")
 
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["mime.type"] = "application/json"
 
-            return FlowFileTransformResult(relationship="success",
-                                           attributes=attributes,
-                                           contents=json.dumps(records).encode('utf-8'))
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
-            raise exception
+            results: list[FlowFileTransformResult] = []
+
+            if valid_records:
+                results.append(
+                    FlowFileTransformResult(
+                        relationship="success",
+                        attributes=attributes,
+                        contents=json.dumps(valid_records).encode("utf-8"),
+                    )
+                )
+
+            if error_records:
+                error_attrs = attributes.copy()
+                error_attrs["record.count.errors"] = str(len(error_records))
+                results.append(
+                    FlowFileTransformResult(
+                        relationship="failure",
+                        attributes=error_attrs,
+                        contents=json.dumps(error_records).encode("utf-8"),
+                    )
+                )
+
+            return results
+        except Exception:
+            self.logger.error("Exception during flowfile processing:\n" + traceback.format_exc())
+            return [
+                FlowFileTransformResult(
+                    relationship="failure",
+                    contents=flowFile.getContentsAsBytes(),
+                    attributes={"exception": "unhandled processing error"},
+                )
+            ]
