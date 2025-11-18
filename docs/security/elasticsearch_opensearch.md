@@ -138,7 +138,7 @@ This ensures the correct certificate directory (`elasticsearch` or `opensearch`)
 
 ---
 
-## 📁 Kibana / OpenDashboard certificates
+### 📁 Kibana / OpenDashboard certificates
 
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
