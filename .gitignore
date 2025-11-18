@@ -5,7 +5,9 @@
 .vscode
 .venv
 .ruff_cache
+venv
 **__pycache__
+**/venv
 
 # keys and certificates
 *.pem
