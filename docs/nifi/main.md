@@ -1,4 +1,5 @@
-# NiFi
+# 💧 NiFi
+
 This directory contains files related with our custom Apache NiFi image and example deployment templates with associated services.
 Apache NiFi is used as a customizable data pipeline engine for controlling and executing data flow between used services. 
 There are multiple workflow templates provided with custom user scripts to work with NiFi.
@@ -16,7 +17,7 @@ Please read the following [article](https://nifi.apache.org/docs/nifi-docs/html/
 
 Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 
-## `NiFi directory layout : /nifi`   
+## `NiFi directory layout : /nifi`
 
 ```
 ├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
