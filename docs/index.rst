@@ -15,9 +15,9 @@ Welcome to CogStack-Nifi's documentation!
    nifi/main.md
    security/main.md
    deploy/main.md
-   deploy/services.md
+   deploy/deployment.md
+   deploy/troubleshooting.md
    deploy/workflows.md
-
 
 Indices and tables
 ==================

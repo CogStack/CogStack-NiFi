@@ -86,7 +86,7 @@ start-git-ea:
 
 start-data-infra: start-nifi start-elastic start-samples
 
-start-all: start-data-infra start-jupyter
+start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services
 
 .PHONY: start-all start-data-infra start-nifi start-elastic start-samples start-jupyter
 
@@ -155,7 +155,7 @@ stop-production-db:
 
 stop-data-infra: stop-nifi stop-elastic stop-samples
 
-stop-all: stop-data-infra stop-jupyter
+stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services
 
 .PHONY: stop-data-infra stop-nifi stop-elastic stop-samples stop-jupyter
 

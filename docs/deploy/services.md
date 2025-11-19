@@ -89,56 +89,12 @@ Bio-YODIE requires [UMLS](https://www.nlm.nih.gov/research/umls/index.html) reso
 MedCAT SNOMED CT model requires a prepared model based on [SNOMED CT](http://www.snomed.org/) dictionary with the model available in `RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH` directory.
 These paths can be defined in `.env` file in the deployment directory.
 
-### Bio-YODIE
-[Bio-YODIE](https://github.com/GateNLP/Bio-YODIE) is a named entity linking application build using [GATE NLP](https://gate.ac.uk/) suite ([publication](https://arxiv.org/abs/1811.04860)).
-
-The application files are stored in [`nlp-services/applications/bio-yodie/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/bio-yodie) directory.
-
-The Bio-Yodie service configuration is stored in [`nlp-services/applications/bio-yodie/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/bio-yodie/config) directory - the key service configuration properties are defined in `application.properties` file.
-
-
-### GATE
-
-**Important**
-Please note that this application is provided just as a proof-of-concept of running GATE applications.
-
-
-This simple application implements annotation of common drugs and medications.
-It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin.
-The application was been created in GATE Developer studio and exported into `gapp` format.
-This application is hence ready to be used by GATE and is stored in `nlp-services/applications/drug-app/gate` directory as `drug.gapp` alongside the used resources.
-
-The list of drugs and medications to annotate is based on a publicly available list of FDA-approved drugs and active ingredients.
-The data can be downloaded directly from [Drugs@FDA database](https://www.fda.gov/drugs/informationondrugs/ucm079750.htm).
-
-This applications is being run using a NLP Service runner application that uses internally [GATE Embedded](https://gate.ac.uk/family/embedded.html) (for running GATE applications) and exposes a REST API.
-The NLP Service necessary configuration files are stored in `nlp-services/applications/drug-app/config/` directory - the key service configuration properties are defined in `application.properties` file.
-
-If you would like to build the docker image with already initialized NLP application, service and necessary resources bundled, please use provided `Dockerfile` in the `nlp-services/applications/drug-app/` directory.
-
-To deploy an example GATE NLP Drug names extraction application as a service, type:
-```
-make start-nlp-gate
-```
-The command will deploy `nlp-gate-drugapp` service.
-Please see below the description of the deployed NLP service.
-
-To stop the service, type:
-```
-make stop-nlp-gate
-```
-
-
-**Important**
-This service will be discontinued in the near future, meaning it will be removed from the repo.
-
 
 ### MedCAT
 [MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.
 MedCAT is deployed as a service exposing RESTful API using the implementation from [MedCATservice](https://github.com/CogStack/MedCATservice).
 
 ### MedCAT Service
-
 
 MedCAT Service resources are stored in [`./services/nlp-services/applications/medcat/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/medcat) directory.
 The key configuration properties stored as environment variables are defined in [`./services/nlp-services/applications/medcat/config/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications/medcat/config) sub-directory.
@@ -257,21 +213,6 @@ More configuration options are covered in [nifi-doc](../nifi/main.md).
 
 Other `.env` files are mounted but those are only useful for custom scripts where you plan to use certain vars from other services, check the `services.yml` nifi `env-file` section definition.
 
-## Tika Service
-
-`tika-service` provides document text extraction functionality of [Apache Tika](https://tika.apache.org/).
-[Tika Service](https://github.com/CogStack/tika-service) implements the actual Apache Tika functionality behind a RESTful API.
-
-The application data, alongside configuration file, is stored in [`./services/tika-service`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/tika-service) directory.
-
-When deployed Tika Service exposes port `8090` at `tika-service` container being available to all services within `cognet` Docker network, most importantly by `nifi` data processing engine.
-The Tika service REST API endpoint for processing documents is available at `http://tika-service:8090/api/process`.
-
-For more details on configuration, API definition and example use of Tika Service please refer to [the official documentation](https://github.com/CogStack/tika-service).
-
-### ENV/CONF files:
-- `/deploy/tika-service/config/application.yaml`
-
 ## OCR Service
 
 The new `ocr-service` provides a new way to OCR documents at good speed, the equivalent in Tika-service but revwritten in Python and optimized.
@@ -293,7 +234,6 @@ In the example deployment we use NLP applications running as a service exposing 
 The current version of API specs is specified in [`./services/nlp-services/api-specs/`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/api-specs) directory (both [Swagger](https://swagger.io/) and [OpenAPI](https://www.openapis.org/) specs).
 The applications are stored in [`./services/nlp-services/applications`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/nlp-services/applications).
 
-
 ### NLP API
 All the NLP services implement a RESTful API that is defined in [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml).
 
@@ -306,23 +246,6 @@ When plugging-in the NLP services into Apache NiFi workflows, the endpoint for p
 Please see example Apache NiFi [workflows](./workflows.md) and [user scripts](https://github.com/CogStack/Cogstack-Nifi/nifi/user-scripts) on using and parsing the payloads with NiFi.
 
 For further details on the used API please refer to the [OpenAPI specification](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/api-specs/openapi.yaml) for the definition of the request and response payload.
-
-### GATE NLP
-`nlp-gate-drugapp` serves a simple drug names extraction NLP application using [GATE NLP Service](https://github.com/CogStack/gate-nlp-service).
-This simple application implements annotation of common drugs and medications.
-It was created using [GATE NLP](https://gate.ac.uk/sale/tao/splitch13.html) suite and uses GATE ANNIE Gazetteer plugin.
-The GATE application definition and resources are available in directory [`./services/nlp-services/applications/drug-app`](https://github.com/CogStack/CogStack-Nifi/services/nlp-services/applications/drug-app/).
-
-When deployed `nlp-gate-drugapp` exposes port `8095` on the container.
-The port is also bound from container to the host machine `8095` port.
-The service endpoint should be available to all the services running inside the `cognet` Docker network.
-For example, to access the API endpoint to process a document by a service in `cognet` network, the endpoint address would be `http://nlp-gate-drugapp:8095/api/process`.
-
-As a side note, when deployed `nlp-gate-bioyodie` (assuming that the Bio-YODIE resources are properly set up with `RES_BIOYODIE_UMLS_PATH` variable), the service will only expose port `8095` on container.
-Although the service won't be accessible from the host machine, but all the services inside the `cognet` network will be able to access it.
-
-For more information on the GATE NLP Service configuration and use please refer to [the official documentation](https://github.com/CogStack/gate-nlp-service).
-
 
 ### MedCAT NLP
 [MedCAT](https://github.com/CogStack/MedCAT) is a named entity recognition and linking application for concept annotation from UMLS or any other source.

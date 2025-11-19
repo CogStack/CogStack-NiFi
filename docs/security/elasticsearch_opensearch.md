@@ -38,6 +38,20 @@ cd ../security
 
 ---
 
+### ⚙️ Version variable
+
+Set the ES/OS version in `deploy/elasticsearch.env` before launching containers:
+
+```bash
+ELASTICSEARCH_VERSION=opensearch
+# or
+ELASTICSEARCH_VERSION=elasticsearch
+```
+
+This ensures the correct certificate directory (`elasticsearch` or `opensearch`) is mounted into containers.
+
+---
+
 ### 🧩 Common certificate layout
 
 Certificate naming and folder structure are consistent across both ES and OpenSearch:
@@ -121,20 +135,6 @@ The resulting certificates are placed in:
 ```text
 security/certificates/elastic/opensearch/
 ```
-
----
-
-## ⚙️ Version variable
-
-Set the ES/OS version in `deploy/elasticsearch.env` before launching containers:
-
-```bash
-ELASTICSEARCH_VERSION=opensearch
-# or
-ELASTICSEARCH_VERSION=elasticsearch
-```
-
-This ensures the correct certificate directory (`elasticsearch` or `opensearch`) is mounted into containers.
 
 ---
 

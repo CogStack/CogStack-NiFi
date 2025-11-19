@@ -4,7 +4,7 @@
 [![doc-build](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc-build.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc-build.yml)
 [![elasticsearch-stack](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-elasticsearch-stack.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-elasticsearch-stack.yml)
 
-## Introduction
+## 💡 Introduction
 
 This repository proposes a possible next step in the evolution of free-text data processing originally implemented in [CogStack-Pipeline](https://github.com/CogStack/CogStack-Pipeline), moving towards a more modular, Platform-as-a-Service (PaaS) approach.
 
@@ -38,7 +38,8 @@ Need help? Feel free to:
 | [`services`](./services) | NLP and auxiliary services, each with its own configs and resources. |
 | [`deploy`](./deploy)     | Example deployment setup, combining NiFi and related services. |
 | [`scripts`](./scripts)   | Helper scripts (e.g., setup tools, sample DB ingestion, Elasticsearch ingestion). |
-| [`data`](./data)         | Place any test or ingested data here. |
+| [`data`](./data)         | Place any test or data to be ingested here. |
+| [`typings`](./typings)   | Stubs for code linting/type-hint, etc. |
 
 ---
 
