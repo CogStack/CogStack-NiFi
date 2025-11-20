@@ -14,6 +14,7 @@ Welcome to CogStack-Nifi's documentation!
    news.md
    deploy/main.md
    deploy/deployment.md
+   deploy/services.md
    deploy/troubleshooting.md
    deploy/workflows.md
    nifi/main.md
