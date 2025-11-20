@@ -12,12 +12,13 @@ Welcome to CogStack-Nifi's documentation!
 
    main.md
    news.md
+   deploy/main.md
+   deploy/deployment.md
+   deploy/services.md
+   deploy/troubleshooting.md
+   deploy/workflows.md
    nifi/main.md
    security/main.md
-   deploy/main.md
-   deploy/services.md
-   deploy/workflows.md
-
 
 Indices and tables
 ==================
