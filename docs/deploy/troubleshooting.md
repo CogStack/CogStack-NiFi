@@ -1,4 +1,4 @@
-# Troubleshooting
+# 📛 Troubleshooting
 
 Always start with fresh containers and volumes, to make sure that there are no volumes from previous experimentations, make sure to always delete all/any cogstack running containers by executing:
 
@@ -8,13 +8,11 @@ followed by a cleanup or dangling volumes (careful as this will remove all volum
 
 `docker volume prune -f` <strong> WARNING THIS WILL DELETE ALL UNUSED VOLUMES ON YOUR MACHINE!</strong>. Check the volume names used in services.yml file and delete them as necessary `dockr volume rm volume_name`
 
-## Known Issues/errors
+## 🐞 Known Issues/errors
 
 Common issues that can be encountered across services.
-<br>
-<br>
 
-### **Apple Silicon**
+### 🍎 **Apple Silicon**
 
 Many services cannot run natively on Apple Silicon (such as M1 and M2 architectures). Common error messages related to Apple silicon follow patterns similar to:
     <br /><br/>
@@ -24,7 +22,7 @@ Many services cannot run natively on Apple Silicon (such as M1 and M2 architectu
     - `no matching manifest for linux/arm64/v8 in the manifest list entries`
     <br /><br/>
     <br /><br/>
-    - `image with reference cogstacksystems/cogstack-ocr-service:0.2.4 was found but does not match the specified platform: wanted linux/arm64, actual: linux/amd64`
+    - `image with reference cogstacksystems/cogstack-ocr-service:1.0.2 was found but does not match the specified platform: wanted linux/arm64, actual: linux/amd64`
     <br /><br/>
 To solve these issues; Rosetta is required and enabled in Docker Desktop. Finally an environment variable is required to be set.
 
@@ -42,7 +40,7 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 to set the environment variable. These issues are known to occur on the "cogstack-nifi", "cogstack-ocr-services" and "jupyter-hub" services and may occur on others.
 
-### **NiFi**
+### 🔧 **NiFi**
 
 When dealing with contaminated deployments ( containers using volumes from previous instances ) :
     <br /><br/>
@@ -63,9 +61,9 @@ When dealing with contaminated deployments ( containers using volumes from previ
     <br /><br/>
     - `Unable to connect to ElasticSearch` using the `ElasticSearchClientService` NiFi controller, make sure the settings are correct (username,password,certificates, etc.) and then click `Apply`, disregard the errors and click `Enable` on the controller to forcefully reload the controller, stop it and then validate the settings, start it again after and it should work.
 
-###  **Elasticsearch Errors**
+### 🛢️ **Elasticsearch Errors**
 
-#### **VM memory errors, failed bootstrap check**
+#### ⚡ **VM memory errors, failed bootstrap check**
 
 It is quite a common issue for both opensearch and native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
 
@@ -91,7 +89,7 @@ For more on this issue please read: https://www.elastic.co/guide/en/elasticsearc
 
 <br>
 
-#### **OpenSearch: validating opensearch.yml hosts**
+#### 📄 **OpenSearch: validating opensearch.yml hosts**
 
 ```bash
 FATAL  Error: [config validation of [opensearch].hosts]: types that failed validation:
@@ -118,7 +116,7 @@ Alternatively (if the script executes without issues):
     make start-elastic
 ```
 
-### DB-samples issues
+### 🗃️ DB-samples issues
 
 ```bash
 No table data for samples_db

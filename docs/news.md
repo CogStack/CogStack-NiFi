@@ -1,10 +1,10 @@
-# News
+# 📰 News
 
 <strong>This document covers important news with regards to the components of CogStack as a whole, any major security issues or major changes that might break existing deployments are covered here along with how to handle them.</strong>
 </br>
 </br>
 
-## 13-12-2021 LOG4J Vulnerabity
+## 🛑 13-12-2021 LOG4J Vulnerabity
 
 Since the discovery of the Log4J package vulnerability (https://www.ncsc.gov.uk/news/apache-log4j-vulnerability) it is necessary and recommended to update all existing deployments of CogStack.
 
@@ -22,7 +22,7 @@ For NiFI:
       - re-pull (docker pull cogstacksystems/cogstack-nifi:latest)
       - re-pull the tika image (docker pull cogstacksystems/tika-service:latest)
 
-## 01-10-2025 NiFi 2.0 Release
+## 🚀 01-10-2025 NiFi 2.0 Release
 
 New version of NiFi along with the long awaited NiFi registry flow released:
 

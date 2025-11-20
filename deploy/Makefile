@@ -73,7 +73,7 @@ start-medcat-service-deid:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production-deid
 
 start-medcat-trainer:
-	$(WITH_ENV) docker compose -f../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_START_CMD) medcattrainer nginx solr
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_START_CMD) medcattrainer nginx solr
 
 start-production-db:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
@@ -136,7 +136,7 @@ stop-jupyter:
 	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
 
 stop-medcat-trainer:
-	$(WITH_ENV) docker compose -f../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
 
 stop-medcat-service:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_STOP_CMD) nlp-medcat-service-production
