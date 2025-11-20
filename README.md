@@ -10,7 +10,7 @@ This repository proposes a possible next step in the evolution of free-text data
 
 **CogStack-NiFi** demonstrates how to use [Apache NiFi](https://nifi.apache.org/) as the central data workflow engine for clinical document processing, integrating services such as text extraction and natural language processing (NLP). Each component runs as a standalone service, with NiFi handling data routing between components and data sources/sinks.
 
-All NLP services are expected to implement a uniform RESTful API, allowing seamless integration into existing pipelines—making it easy to incorporate any NLP application into the stack.
+All NLP/ML/DATA services are expected to implement a uniform RESTful API, allowing seamless integration into existing pipelines—making it easy to incorporate any NLP application into the stack.
 
 ---
 
@@ -48,13 +48,13 @@ Need help? Feel free to:
 **Prerequisites**:
 
 - Docker (mandatory)  
-- Basic knowledge of Python and Linux/UNIX systems
+- Basic knowledge of Python and Linux/UNIX systems (Bash (simple commands only, we promise))
 
 📖 Official documentation: [cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/)
 
 🚀 New to the project? Start with the [deployment guide](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) for example setups and workflows.
 
-🐞 For troubleshooting or bug reports, consult the [Known Issues section](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) before opening a ticket.
+🐞 For troubleshooting or bug reports, consult the [known issues section](https://cogstack-nifi.readthedocs.io/en/latest/deploy/troubleshooting.html) before opening a ticket.
 
 ---
 

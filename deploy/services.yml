@@ -215,7 +215,7 @@ services:
       - databank-vol:/var/lib/postgresql/data
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
-      - 5556:5432
+      - 5558:5432
     expose:
       - 5432
     networks:
