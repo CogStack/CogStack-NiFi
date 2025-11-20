@@ -1,4 +1,4 @@
-# 📦 Services
+# 🧩 Services
 
 This section provides a complete overview of all services included in the CogStack-NiFi deployment.  
 All services run in Docker and interact within a shared internal Docker network.
