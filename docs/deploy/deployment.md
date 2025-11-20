@@ -49,6 +49,92 @@ This design allows each service to be:
 - NiFi-specific configuration (properties, custom processors, drivers, Python scripts, etc.) is under:  
   [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/)
 
+## 🧰 Makefile Command Overview
+
+A concise reference for controlling the full CogStack deployment stack (NiFi, Elasticsearch, JupyterHub, MedCAT, OCR-service, GitEA, Beats, DB, etc.).  
+All commands automatically load environment variables via `export_env_vars.sh`.
+
+---
+
+### 🔧 Utilities
+
+| Command                 | Description                                |
+|------------------------|---------------------------------------------|
+| `make load-env`        | Load all environment variables              |
+| `make show-env`        | Print environment variables (sorted)        |
+| `make git-freeze-security`   | Freeze all security submodules (read-only) |
+| `make git-unfreeze-security` | Unfreeze security submodules              |
+| `make git-update-submodules` | Update all submodules                      |
+
+---
+
+### 🚀 Start Services
+
+| Command                         | Description |
+|---------------------------------|-------------|
+| `make start-nifi`               | Start NiFi, NiFi-Nginx, NiFi Registry |
+| `make start-elastic`            | Start ES-1, ES-2, Kibana             |
+| `make start-elastic-cluster`    | Start ES-1, ES-2, ES-3               |
+| `make start-elastic-1/2/3`      | Start individual Elasticsearch nodes |
+| `make start-metricbeat-1/2/3`   | Start Metricbeat agents              |
+| `make start-filebeat-1/2/3`     | Start Filebeat agents                |
+| `make start-kibana`             | Start Kibana only                    |
+| `make start-samples`            | Start samples DB                     |
+| `make start-jupyter`            | Start JupyterHub (prod config)       |
+| `make start-medcat-service`     | Start MedCAT service                 |
+| `make start-medcat-service-deid`| Start DE-ID MedCAT service           |
+| `make start-medcat-trainer`     | Start MedCAT Trainer + Solr + Nginx  |
+| `make start-ocr-services`       | Start OCR-service (full + text-only) |
+| `make start-git-ea`             | Start GitEA                          |
+| `make start-production-db`      | Start Databank DB                    |
+| **`make start-data-infra`**     | Start NiFi + Elastic + Samples DB    |
+| **`make start-all`**            | Full stack: data infra + NLP + JupyterHub + OCR |
+
+---
+
+### 🛑 Stop Services
+
+| Command                         | Description |
+|---------------------------------|-------------|
+| `make stop-nifi`                | Stop NiFi stack                     |
+| `make stop-elastic`             | Stop ES-1, ES-2, Kibana             |
+| `make stop-elastic-cluster`     | Stop ES-1, ES-2                     |
+| `make stop-elastic-1/2/3`       | Stop individual ES nodes            |
+| `make stop-metricbeat-1/2/3`    | Stop Metricbeat agents              |
+| `make stop-filebeat-1/2/3`      | Stop Filebeat agents                |
+| `make stop-kibana`              | Stop Kibana                         |
+| `make stop-samples`             | Stop samples DB                     |
+| `make stop-jupyter`             | Stop JupyterHub                     |
+| `make stop-medcat-service`      | Stop MedCAT service                 |
+| `make stop-medcat-service-deid` | Stop DE-ID MedCAT service           |
+| `make stop-medcat-trainer`      | Stop MedCAT Trainer stack           |
+| `make stop-ocr-services`        | Stop OCR-service stack              |
+| `make stop-git-ea`              | Stop GitEA                          |
+| `make stop-production-db`       | Stop Databank DB                    |
+| **`make stop-data-infra`**      | Stop NiFi + Elastic + Samples       |
+| **`make stop-all`**             | Stop entire stack                   |
+
+---
+
+### 🧹 Cleanup
+
+| Command           | Description                                |
+|------------------|---------------------------------------------|
+| `make down-all`  | Docker Compose `down` for all core services |
+| `make cleanup`   | Full teardown, including volumes            |
+
+---
+
+### 📝 Notes
+
+- All `start-*` commands use `docker compose -f services.yml` unless referencing a specific service’s Dockerfile.
+- `start-all` and `stop-all` act as the top-level orchestration entry points.
+- Environment variables are **always sourced** using the integrated `WITH_ENV` macro.
+
+---
+
+If you want, I can also generate a **minimal cheat sheet**, or an **ASCII tree diagram** that shows how `start-all` expands into all services.
+
 ## 🚀 Starting the Services
 
 All core services defined in `services.yml` can be started using the Makefile in the `deploy/` directory.
@@ -69,7 +155,7 @@ This is useful for:
 
 ---
 
-#### 🧩 Core NiFi Services
+### 🧩 Core NiFi Services
 
 ```bash
 make start-nifi
@@ -105,6 +191,8 @@ Ideal for running ingestion pipelines and ETL workflows.
 
 #### 🛢️ Elasticsearch / OpenSearch Services
 
+Please note that to switch from OpenSearch (Amazon open-source fork) to ElasticSearch you will need to change some environment variables, see the [configuration](./configuration.md) section.
+
 ```bash
 make start-elastic
 ```
@@ -137,7 +225,7 @@ Starts Kibana for inspecting logs, checking index mappings, monitoring ES health
 
 ---
 
-#### 🗄️ Databases
+### 🗄️ Databases
 
 ```bash
 make start-samples
@@ -155,7 +243,7 @@ Use when testing SQL ingestion or verifying DB-driven NiFi flows.
 
 ---
 
-#### 📚 JupyterHub
+### 📚 JupyterHub
 
 ```bash
 make start-jupyter
@@ -165,7 +253,7 @@ Starts the CogStack JupyterHub instance. Used for notebooks, analysis, model tes
 
 ---
 
-#### 🧠 NLP Services (MedCAT & Trainer)
+### 🧠 NLP Services (MedCAT Service & Trainer)
 
 ```bash
 make start-medcat-service
@@ -187,7 +275,7 @@ Starts the full MedCAT Trainer stack (Trainer UI + Solr + NGINX). Useful for ann
 
 ---
 
-#### 📝 OCR Services
+### 📝 OCR Services
 
 ```bash
 make start-ocr-services
@@ -202,7 +290,7 @@ Use for PDF ingestion, OCR debugging, and pipeline validation.
 
 ---
 
-#### 🛠️ Miscellaneous Services (GIT EA)'
+### 🛠️ Miscellaneous Services (GIT EA)
 
 ```bash
 make start-git-ea
