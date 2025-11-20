@@ -19,7 +19,6 @@ Welcome to CogStack-Nifi's documentation!
    nifi/main.md
    security/main.md
 
-
 Indices and tables
 ==================
 
