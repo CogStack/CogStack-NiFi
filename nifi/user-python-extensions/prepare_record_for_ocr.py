@@ -1,33 +1,30 @@
+import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
 import base64
 import io
 import json
 import sys
 import traceback
-from logging import Logger
 from typing import Any, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
 from nifiapi.relationship import Relationship
+from overrides import override
 from py4j.java_gateway import JavaObject, JVMView
-
-# we need to add it to the sys imports
-sys.path.insert(0, "/opt/nifi/user-scripts")
-
-from utils.helpers.avro_json_encoder import AvroJSONEncoder # noqa: I001,E402
-from utils.generic import parse_value  # noqa: I001,E402
+from utils.helpers.avro_json_encoder import AvroJSONEncoder
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class PrepareRecordForOcr(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
-
+class PrepareRecordForOcr(BaseNiFiProcessor):
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
@@ -36,11 +33,7 @@ class PrepareRecordForOcr(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.operation_mode: str = "base64"
         self.binary_field_name: str = "binarydoc"
@@ -89,31 +82,11 @@ class PrepareRecordForOcr(FlowFileTransform):
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
 
-    def getRelationships(self) -> list[Relationship]:
-        return self.relationships
+    @override
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
 
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
+        output_contents: list = []
 
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict) -> None:
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in properties.items():
-            name = k.name if hasattr(k, "name") else str(k)
-            val = parse_value(v)
-            if hasattr(self, name):
-                setattr(self, name, val)
-            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
-
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
-        output_contents = []
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -121,7 +94,7 @@ class PrepareRecordForOcr(FlowFileTransform):
             self.process_flow_file_type = str(self.process_flow_file_type).lower()
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
             reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
@@ -153,8 +126,7 @@ class PrepareRecordForOcr(FlowFileTransform):
             if isinstance(reader, DataFileReader):
                 reader.close()
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)

@@ -1,11 +1,13 @@
-import json
 import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
+import json
 import traceback
 from collections import defaultdict
-from logging import Logger
 from typing import Any
 
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
@@ -13,17 +15,23 @@ from nifiapi.properties import (
 )
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
-
-# we need to add it to the sys imports
-sys.path.insert(0, "/opt/nifi/user-scripts")
-
-from utils.generic import parse_value  # noqa: I001,E402
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class ConvertJsonRecordSchema(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
+class ConvertJsonRecordSchema(BaseNiFiProcessor):
+    """Remaps each incoming JSON record (single dict or list of dicts)
+    using a lookup loaded from json_mapper_schema_path, 
+    so the FlowFile content conforms to the common schema defined under /opt/nifi/user-schemas/json.
 
+    For every mapping entry it can rename fields, populate constant null placeholders,
+    or stitch together composite fields by concatenating multiple source values with newline separators.
+
+    Optionally preserves any source fields not covered by the mapping via the
+    preserve_non_mapped_fields boolean property, which defaults to true to avoid accidental data loss.
+
+    Emits the transformed payload as JSON (mime.type=application/json) and tags the FlowFile with the schema path used,
+    routing successes to success and any exceptions to failure
+    """
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
@@ -32,11 +40,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json"
         self.preserve_non_mapped_fields: bool = True
@@ -71,29 +75,6 @@ class ConvertJsonRecordSchema(FlowFileTransform):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
-    
-    def getRelationships(self) -> list[Relationship]:
-        return self.relationships
-
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
-
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict) -> None:
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in properties.items():
-            name = k.name if hasattr(k, "name") else str(k)
-            val = parse_value(v)
-            if hasattr(self, name):
-                setattr(self, name, val)
-            self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
@@ -141,14 +122,15 @@ class ConvertJsonRecordSchema(FlowFileTransform):
 
         return new_record
 
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         output_contents: list[dict[Any, Any]] = []
+
         try:
             self.process_context: ProcessContext = context
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
             if isinstance(records, dict):
@@ -161,8 +143,7 @@ class ConvertJsonRecordSchema(FlowFileTransform):
             for record in records:
                 output_contents.append(self.map_record(record, json_mapper_schema))
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["json_mapper_schema_path"] = str(self.json_mapper_schema_path)
             attributes["mime.type"] = "application/json"
 

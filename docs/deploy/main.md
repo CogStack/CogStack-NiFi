@@ -43,7 +43,7 @@ Execute the following commands in the root directory of the repo:
 
 1. `git-lfs pull`
 2. (OPTIONAL, if you already have the software in [this section installed](#-software-requirements-linuxmacos))`sudo bash ./scripts/installation_utils/install_docker_and_utils.sh` , and wait for it to finish, it may take a while to get all the packages..
-3. `sudo bash ./scripts/git_update_submodules_in_repo.sh`
+3. `cd deploy && git-update-submodules`
 4. check that docker works correctly : `docker pull hello-world`
 5. if no errors, run: `docker run --rm hello-world`, it should run without issues
 6. if there are any issues check the below warning section
@@ -54,7 +54,7 @@ IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from 
 
 :::{warning}
 Ensure all Git submodules are initialized and updated:
-`sudo bash ./scripts/git_update_submodules_in_repo.sh`
+`cd deploy && git-update-submodules`
 :::
 
 :::{warning}

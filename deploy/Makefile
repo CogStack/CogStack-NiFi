@@ -10,6 +10,7 @@ set -a && source ./export_env_vars.sh;
 endef
 
 # utility commands
+
 git-freeze-security:
 	@../scripts/git_freeze_security.sh
 
@@ -19,8 +20,14 @@ git-unfreeze-security:
 git-update-submodules:
 	@../scripts/git_update_submodules_in_repo.sh
 
+load-env:
+	$(WITH_ENV) echo "Environment variables loaded."
+
+show-env:
+	${WITH_ENV} >/dev/null 2>&1; printenv | sort
+	
 # start services
-#
+
 start-nifi:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
 

@@ -1,9 +1,8 @@
-import json
 import logging
-import traceback
 from logging import Logger
+from typing import Generic, TypeVar
 
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransform
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
@@ -65,7 +64,9 @@ def nifi_processor(*, processor_details: dict | None = None):
     return decorator
     
 
-class BaseNiFiProcessor(FlowFileTransform):
+T = TypeVar("T")
+
+class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
     """Base class providing common NiFi Python processor utilities.
        NOTE: This is an example implementation meant to be reimplemented by processors inheriting it .
        For the moment all inherting processors must define 
@@ -89,28 +90,12 @@ class BaseNiFiProcessor(FlowFileTransform):
         self.logger: Logger = logging.getLogger(self.__class__.__name__)
         self.process_context: ProcessContext
 
-        # Example properties — meant to be overridden or extended in subclasses
-        self.sample_property_one: bool = True
-        self.sample_property_two: str = ""
-        self.sample_property_three: str = "default_value_one"
-
-        # this is directly mirrored to the UI
-        self._properties = [
-            PropertyDescriptor(name="sample_property_one",
+        self._properties: list = [
+                        PropertyDescriptor(name="sample_property_one",
                                description="sample property one description",
                                default_value="true",
                                required=True, 
-                               validators=[StandardValidators.BOOLEAN_VALIDATOR]),
-            PropertyDescriptor(name="sample_property_two",
-                               description="sample property two description",
-                               required=False,
-                               default_value="some_value"),
-            PropertyDescriptor(name="sample_property_three",
-                               required=True,
-                               description="sample property three description",
-                               default_value="default_value_one",
-                               allowable_values=["default_value_one", "default_value_two", "default_value_three"],
-                               validators=[StandardValidators.NON_EMPTY_VALIDATOR])
+                               validators=StandardValidators.BOOLEAN_VALIDATOR),
         ]
 
         self._relationships = [
@@ -147,26 +132,25 @@ class BaseNiFiProcessor(FlowFileTransform):
                 setattr(self, name, val)
             self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
 
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
-        """ 
-            NOTE: This is a sample method meant to be overridden and reimplemented by subclasses.
-
-            Main processor logic. This example reads Avro records from the incoming flowfile,
-            and writes them back out to a new flowfile. It also adds the processor properties
-            to the flowfile attributes. IT IS A SAMPLE ONLY,
-            you are meant to use this as a starting point for other processors
+    def onScheduled(self, context: ProcessContext) -> None:
         """
-        output_contents = []
-        try:
-            self.process_context: ProcessContext = context
-            self.set_properties(context.getProperties())
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
-            self.logger.info("Successfully transformed Avro content for OCR")
+            Called automatically by NiFi once when the processor is scheduled to run
+            (i.e., enabled or started). This method is used for initializing and
+            allocating resources that should persist across multiple FlowFile
+            executions.
 
-            return FlowFileTransformResult(relationship="success", 
-                                           attributes=attributes,
-                                           contents=json.dumps(output_contents))
-        except Exception as exception:
-            self.logger.error("Exception during Avro processing: " + traceback.format_exc())
-            raise exception
+            Typical use cases include:
+            - Loading static data from disk (e.g., CSV lookup tables, configuration files)
+            - Establishing external connections (e.g., databases, APIs)
+            - Building in-memory caches or models used by onTrigger/transform()
+
+            The resources created here remain in memory for the lifetime of the
+            processor and are shared by all concurrent FlowFile executions on this
+            node. They should be lightweight and thread-safe. To release or clean up
+            such resources, use the @OnStopped method, which NiFi calls when the
+            processor is disabled or stopped.
+        """
+        pass
+    
+    def transform(self, context: ProcessContext, flowFile: JavaObject):
+        raise NotImplementedError

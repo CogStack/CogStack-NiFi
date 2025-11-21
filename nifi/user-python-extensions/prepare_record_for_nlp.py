@@ -1,24 +1,26 @@
+import sys
+
+sys.path.insert(0, "/opt/nifi/user-scripts")
+
 import io
 import json
 import traceback
-from logging import Logger
 from typing import Any, Union
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
-from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
+from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
+from overrides import override
 from py4j.java_gateway import JavaObject, JVMView
+from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class PrepareRecordForNlp(FlowFileTransform):
-    identifier = None
-    logger: Logger = Logger(__qualname__)
-
+class PrepareRecordForNlp(BaseNiFiProcessor):
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
@@ -27,11 +29,7 @@ class PrepareRecordForNlp(FlowFileTransform):
         version = '0.0.1'
 
     def __init__(self, jvm: JVMView):
-        """
-        Args:
-            jvm (JVMView): Required, Store if you need to use Java classes later.
-        """
-        self.jvm = jvm
+        super().__init__(jvm)
 
         self.document_text_field_name: str = "text"
         self.document_id_field_name : str = "id"
@@ -60,26 +58,8 @@ class PrepareRecordForNlp(FlowFileTransform):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
-        return self.descriptors
-
-
-    def set_logger(self, logger: Logger):
-        self.logger = logger
-
-    def set_properties(self, properties: dict):
-        """ Gets the properties from the processor's context and sets them as instance variables.
-
-        Args:
-            properties (dict): dictionary containing property names and values.
-        """
-
-        for k, v in list(properties.items()):
-            self.logger.debug(f"property set '{k.name}' with value '{v}'")
-            if hasattr(self, k.name):
-                setattr(self, k.name, v)
-
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult: # type: ignore
+    @override
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """_summary_
 
         Args:
@@ -93,7 +73,9 @@ class PrepareRecordForNlp(FlowFileTransform):
         Returns:
             FlowFileTransformResult: _description_
         """
-        output_contents = []
+
+        output_contents: list = []
+
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
@@ -101,7 +83,7 @@ class PrepareRecordForNlp(FlowFileTransform):
             self.process_flow_file_type = str(self.process_flow_file_type).lower()
 
             # read avro record
-            input_raw_bytes: bytearray = flowFile.getContentsAsBytes() # type: ignore
+            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
             reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
@@ -128,12 +110,12 @@ class PrepareRecordForNlp(FlowFileTransform):
             if isinstance(reader, DataFileReader):
                 reader.close()
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()} # type: ignore
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
             attributes["mime.type"] = "application/json"
 
             output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
+
             return FlowFileTransformResult(relationship="success", 
                                            attributes=attributes,
                                            contents=json.dumps({"content": output_contents}).encode("utf-8"))
