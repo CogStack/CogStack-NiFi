@@ -28,3 +28,14 @@ git submodule foreach '
 git add $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}') || true
 git commit -m "Update submodules to latest release tags (or main)" || echo "ℹ️ No changes to commit."
 echo "✅ Submodule update complete."
+
+# fix jupyter-hub cookie file permissions
+for f in \
+  "../services/cogstack-jupyter-hub/config/jupyterhub_cookie_secret" \
+  "services/cogstack-jupyter-hub/config/jupyterhub_cookie_secret"
+do
+
+    [ -f "$f" ] && chmod 500 "$f" && echo "Fixing jupyter-hub cookie secret file permissions. $f"
+done
+
+exec "$@"

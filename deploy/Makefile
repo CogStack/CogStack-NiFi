@@ -140,7 +140,7 @@ stop-samples:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) samples-db
 
 stop-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
 
 stop-medcat-trainer:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
