@@ -3,12 +3,15 @@
 # Enable strict mode (without -e to avoid exit-on-error)
 set -uo pipefail
 
+# Support being sourced in shells where BASH_SOURCE is unset (e.g. zsh)
+SCRIPT_SOURCE="${BASH_SOURCE[0]-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+SCRIPT_NAME="$(basename "$SCRIPT_SOURCE")"
 
-echo "🔧 Running $(basename "${BASH_SOURCE[0]}")..."
+echo "🔧 Running $SCRIPT_NAME..."
 
 set -a
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$SCRIPT_DIR"
 SECURITY_DIR="$SCRIPT_DIR/../security/env"
 SERVICES_DIR="$SCRIPT_DIR/../services"
@@ -37,6 +40,18 @@ env_files=(
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/app.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
 )
+
+LINT_SCRIPT="$SCRIPT_DIR/../nifi/user-scripts/utils/lint_env.py"
+
+if [ -x "$LINT_SCRIPT" ]; then
+  echo "🔍 Validating env files..."
+  if ! python3 "$LINT_SCRIPT" "${env_files[@]}"; then
+    echo "❌ Env validation failed. Fix the errors above before continuing."
+    exit 1
+  fi
+else
+  echo "⚠️  Skipping env validation; $LINT_SCRIPT not found or not executable."
+fi
 
 for env_file in "${env_files[@]}"; do
   if [ -f "$env_file" ]; then
