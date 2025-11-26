@@ -69,11 +69,11 @@ RUN set -eux; \
       make \
       openssl \
       postgresql-server-dev-all \
+      python3.11 \
+      python3.11-dev \
       python3-dev \
       python3-pip \
       python3-venv \
-      python3.11 \
-      python3.11-dev \
       software-properties-common \
       sqlite3 \
       ssl-cert \

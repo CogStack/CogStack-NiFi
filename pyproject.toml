@@ -25,15 +25,9 @@ fixable = ["ALL"]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
+python_version = "3.11"
 ignore_missing_imports = true
 strict = false
 files = "."
 mypy_path = "./typings/"
-
-[tool.isort]
-line_length = 120
-skip = ["venv", "venv-test", "envs", "docker", "models"]
-
-[tool.flake8]
-max-line-length = 120
-exclude = ["venv", "venv-test", "envs", "docker", "models"]
+warn_unused_configs = true
