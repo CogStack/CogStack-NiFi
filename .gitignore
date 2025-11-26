@@ -5,6 +5,7 @@
 .vscode
 .venv
 .ruff_cache
+.mypy_cache
 venv
 **__pycache__
 **/venv

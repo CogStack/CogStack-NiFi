@@ -2,6 +2,8 @@ ARG NIFI_VERSION=2.6.0
 
 FROM apache/nifi:${NIFI_VERSION}
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
 ARG no_proxy=""
@@ -30,29 +32,53 @@ ENV PIP_NO_CACHE_DIR=1
 ENV NIFI_WEB_HTTP_PORT=""
 ENV NIFI_WEB_HTTP_HOST=""
 
-RUN echo "GID=${GID}" 
-RUN echo "UID=${UID}"
-
 USER root
 
-# run updates and install some base utility packages along with python support
-RUN apt-get update && apt-get upgrade -y --no-install-recommends && apt-get install -y --no-install-recommends iputils-ping libssl-dev openssl apt-transport-https apt-utils curl software-properties-common wget git build-essential make cmake ca-certificates zip unzip tzdata jq
-
-RUN echo "deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-
-RUN echo "deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb-src http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb-src http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-RUN echo "deb-src http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list.d/debian.sources
-
-# Microsoft repos
-RUN wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/packages.microsoft.gpg
-RUN echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | tee -a /etc/apt/sources.list
-
-RUN apt-get update && apt-get install --no-install-recommends -y ssl-cert libsqlite3-dev python3-dev python3-pip python3.11 python3.11-dev python3-venv sqlite3 postgresql-server-dev-all
+# add repositories, install tooling, and clean up apt metadata in one layer
+RUN set -eux; \
+    printf '%s\n' \
+      "deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
+      "deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
+      "deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
+      "deb http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
+      "deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
+      "deb-src http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
+      "deb-src http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
+      "deb-src http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
+      > /etc/apt/sources.list.d/debian.sources; \
+    wget -qO /etc/apt/trusted.gpg.d/packages.microsoft.gpg https://packages.microsoft.com/keys/microsoft.asc; \
+    echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /etc/apt/sources.list.d/microsoft.list; \
+    apt-get update; \
+    apt-get upgrade -y --no-install-recommends; \
+    apt-get install -y --no-install-recommends \
+      apt-transport-https \
+      apt-utils \
+      build-essential \
+      ca-certificates \
+      cmake \
+      curl \
+      git \
+      iputils-ping \
+      jq \
+      libsqlite3-dev \
+      libssl-dev \
+      make \
+      openssl \
+      postgresql-server-dev-all \
+      python3-dev \
+      python3-pip \
+      python3-venv \
+      python3.11 \
+      python3.11-dev \
+      software-properties-common \
+      sqlite3 \
+      ssl-cert \
+      tzdata \
+      unzip \
+      wget \
+      zip; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 
 # bust cache
 ENV UV_VERSION=latest
@@ -60,36 +86,31 @@ ENV UV_VERSION=latest
 # install rust, medcat requirement, install UV
 ENV HOME=/root
 ENV PATH="/root/.cargo/bin:${PATH}"
+ENV UV_INSTALL_DIR=/usr/local/bin
 
-RUN curl -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh \
- && chmod +x /tmp/rustup-init.sh \
- && /tmp/rustup-init.sh -y \
- && rm /tmp/rustup-init.sh
+RUN set -eux; \
+    curl -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh; \
+    chmod +x /tmp/rustup-init.sh; \
+    /tmp/rustup-init.sh -y; \
+    rm /tmp/rustup-init.sh
 
-RUN curl -Ls https://astral.sh/uv/install.sh -o /tmp/install_uv.sh \
- && bash /tmp/install_uv.sh
-
-RUN UV_PATH=$(find / -name uv -type f | head -n1) && \
-    ln -s "$UV_PATH" /usr/local/bin/uv
-
-# clean up apt
-RUN apt-get clean autoclean && apt-get autoremove --purge -y
+RUN set -eux; \
+    curl -Ls https://astral.sh/uv/install.sh -o /tmp/install_uv.sh; \
+    bash /tmp/install_uv.sh; \
+    rm /tmp/install_uv.sh
 
 ######################################## Python / PIP SECTION ########################################
 
 RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip setuptools wheel
 
-# install util packages used in NiFi scripts (such as MedCAT, avro, nifyapi, etc.)
+# install util packages used in NiFi scripts (such as avro, nifyapi, etc.)
 COPY ./requirements.txt ./requirements.txt
-RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt"
+RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt" --index-url https://pypi.org/simple
 
-# install MedCAT from the working with cogstack repo (as it is assumed to be stable and the latest version)
-RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
- 
 #######################################################################################################
 
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
-RUN export JAVA_OPTS="-Dhttp.proxyHost=$HTTP_PROXY -Dhttps.proxyHost=$HTTPS_PROXY -Dhttp.nonProxyHosts=$no_proxy"
+ENV JAVA_OPTS="-Dhttp.proxyHost=${HTTP_PROXY} -Dhttps.proxyHost=${HTTPS_PROXY} -Dhttp.nonProxyHosts=${no_proxy}"
 
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
