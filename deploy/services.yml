@@ -93,8 +93,8 @@ x-es-common-volumes: &es-common-volumes
 
 x-es-common: &es-common
   <<: *common-ulimits
-  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
-  shm_size: ${ELASTICSEARCH_SHM_SIZE:-"1g"}
+  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.3.0}
+  shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
   restart: always
   env_file: *es-env
   networks:
@@ -108,12 +108,21 @@ x-es-common: &es-common
     OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
     ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
   logging: *es-logging-common
+  deploy:
+    resources:
+      limits:
+        cpus: "${ELASTICSEARCH_DOCKER_CPU_MAX}"
+        memory: "${ELASTICSEARCH_DOCKER_RAM}"
+      reservations:
+        cpus: "${ELASTICSEARCH_DOCKER_CPU_MIN}"
+        memory: "${ELASTICSEARCH_DOCKER_RAM}"
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
   image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.2}
   command: -e --strict.perms=false
   restart: unless-stopped
+  shm_size: ${METRICBEAT_DOCKER_SHM:-1g}
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
@@ -122,6 +131,14 @@ x-metricbeat-common: &metricbeat-common
     - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
     - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
     - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+  deploy:
+    resources:
+      limits:
+        cpus: "${METRICBEAT_DOCKER_CPU_MAX}"
+        memory: "${METRICBEAT_DOCKER_RAM}"
+      reservations:
+        cpus: "${METRICBEAT_DOCKER_CPU_MIN}"
+        memory: "${METRICBEAT_DOCKER_RAM}"
   volumes:
     - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
     - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
@@ -136,6 +153,7 @@ x-filebeat-common: &filebeat-common
   image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
   command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
   restart: unless-stopped
+  shm_size: ${FILEBEAT_DOCKER_SHM:-1g}
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
@@ -144,6 +162,14 @@ x-filebeat-common: &filebeat-common
     - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
     - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
     - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+  deploy:
+    resources:
+      limits:
+        cpus: "${FILEBEAT_DOCKER_CPU_MAX}"
+        memory: "${FILEBEAT_DOCKER_RAM}"
+      reservations:
+        cpus: "${FILEBEAT_DOCKER_CPU_MIN}"
+        memory: "${FILEBEAT_DOCKER_RAM}"
   volumes:
     - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
     - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
@@ -252,7 +278,7 @@ services:
   es_native_create_certs:
     container_name: es_create_certs
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
-    shm_size: ${ELASTICSEARCH_SHM_SIZE:-"1g"}
+    shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
     env_file: *es-env
     restart: "no"
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
@@ -287,7 +313,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
-      - "${ELASTICSEARCH_NODE_1_ANALYZER_OUTPUT_PORT:-9600}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_1_ANALYZER_OUTPUT_PORT:-9600}:9600"
 
   elasticsearch-2:
     extends:
@@ -306,7 +332,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
-      - "${ELASTICSEARCH_NODE_2_ANALYZER_OUTPUT_PORT:-9601}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_2_ANALYZER_OUTPUT_PORT:-9601}:9600"
 
   elasticsearch-3:
     extends:
@@ -325,7 +351,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
-      - "${ELASTICSEARCH_NODE_3_ANALYZER_OUTPUT_PORT:-9602}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_3_ANALYZER_OUTPUT_PORT:-9602}:9600"
 
   metricbeat-1:
     <<: *metricbeat-common
@@ -389,9 +415,9 @@ services:
 #---------------------------------------------------------------------------#
   kibana:
     <<: *common-ulimits
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.2.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.3.0}
     container_name: cogstack-kibana
-    shm_size: ${KIBANA_SHM_SIZE:-"1g"}
+    shm_size: ${KIBANA_DOCKER_SHM_SIZE:-1g}
     restart: always
     env_file: *es-env
     environment:
@@ -401,7 +427,14 @@ services:
       # INFO: uncomment below to enable SSL keys
       SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
       OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
-
+    deploy:
+      resources:
+        limits:
+          cpus: "${KIBANA_DOCKER_CPU_MAX}"
+          memory: "${KIBANA_DOCKER_RAM}"
+        reservations:
+          cpus: "${KIBANA_DOCKER_CPU_MIN}"
+          memory: "${KIBANA_DOCKER_RAM}"
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
       - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
@@ -434,7 +467,7 @@ services:
     image: cogstacksystems/cogstack-nifi:latest
     container_name: cogstack-nifi
     hostname: nifi
-    shm_size: ${NIFI_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
@@ -443,6 +476,15 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
+      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_DOCKER_CPU_MAX}"
+          memory: "${NIFI_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_DOCKER_CPU_MIN}"
+          memory: "${NIFI_DOCKER_RAM}"
     volumes:
       # INFO: drivers folder
       - ../nifi/drivers:/opt/nifi/drivers
@@ -501,7 +543,7 @@ services:
     image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.6.0}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
-    shm_size: ${NIFI_REGISTRY_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
     user: root
     environment:
       - http_proxy=$HTTP_PROXY
@@ -521,6 +563,14 @@ services:
       - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
       #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MAX}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}" 
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
       - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
@@ -545,8 +595,16 @@ services:
     image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
     restart: always
-    shm_size: 512mb
+    shm_size: ${NGINX_SHM_SIZE:-1g}
     env_file: *all-env
+    deploy:
+      resources:
+        limits:
+          cpus: "${NGINX_DOCKER_CPU_MAX}"
+          memory: "${NGINX_DOCKER_RAM}"
+        reservations:
+          cpus: "${NGINX_DOCKER_CPU_MIN}"
+          memory: "${NGINX_DOCKER_RAM}"
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
