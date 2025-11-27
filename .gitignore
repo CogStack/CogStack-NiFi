@@ -38,6 +38,7 @@ security/templates/**
 docs/build/*
 
 # Ignore all .env files at any level
+.env
 *.env
 **/*.env
 !*.env.template
