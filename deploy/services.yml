@@ -42,6 +42,10 @@ x-es-env: &es-env
   - ../security/env/users_elasticsearch.env
   - ../security/env/certificates_elasticsearch.env
 
+x-db-env: &db-env
+  - ./database.env
+  - ../security/env/users_database.env
+
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
   - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
@@ -67,6 +71,20 @@ x-nifi-common: &nifi-common
   extra_hosts: *common-hosts
   networks:
     - cognet
+
+x-db-common: &db-common
+  <<: *common-ulimits
+  shm_size: ${DATABASE_DOCKER_SHM_SIZE:-"1g"}
+  restart: unless-stopped
+  env_file: *db-env
+  deploy:
+    resources:
+      limits:
+        cpus: "${DATABASE_DOCKER_CPU_MAX}"
+        memory: "${DATABASE_DOCKER_RAM}"
+      reservations:
+        cpus: "${DATABASE_DOCKER_CPU_MIN}"
+        memory: "${DATABASE_DOCKER_RAM}"
 
 x-es-common-volumes: &es-common-volumes
   # Shared configs
@@ -95,7 +113,7 @@ x-es-common: &es-common
   <<: *common-ulimits
   image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.3.0}
   shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
-  restart: always
+  restart: unless-stopped
   env_file: *es-env
   networks:
     - cognet
@@ -188,15 +206,10 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    <<: *common-ulimits
+    <<: *db-common
     image: postgres:17.5-alpine
     container_name: cogstack-samples-db
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
     platform: linux/amd64
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
       # PG env vars
       - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
@@ -220,15 +233,10 @@ services:
 # CogStack Databank / Cogstack-DB, production database                      #
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
-    <<: *common-ulimits
+    <<: *db-common
     image: postgres:17.5-alpine
     container_name: cogstack-production-databank-db
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
     platform: linux/amd64
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
@@ -248,14 +256,9 @@ services:
       - cognet
   
   cogstack-databank-db-mssql:
-    <<: *common-ulimits
+    <<: *db-common
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: cogstack-production-databank-db-mssql
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
@@ -645,12 +648,20 @@ services:
     <<: *common-ulimits
     container_name: cogstack-gitea
     image:  gitea/gitea:1.23-rootless
-    shm_size: ${DOCKER_SHM_SIZE:-"1g"}
+    shm_size: ${GITEA_DOCKER_SHM_SIZE:-"1g"}
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
+    deploy:
+      resources:
+        limits:
+          cpus: "${GITEA_DOCKER_CPU_MAX}"
+          memory: "${GITEA_DOCKER_RAM}"
+        reservations:
+          cpus: "${GITEA_DOCKER_CPU_MIN}"
+          memory: "${GITEA_DOCKER_RAM}"
     volumes:
       # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
