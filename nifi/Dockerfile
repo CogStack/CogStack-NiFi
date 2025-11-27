@@ -27,6 +27,10 @@ ENV NIFI_PYTHON_WORKING_DIRECTORY=${NIFI_PYTHON_WORKING_DIRECTORY}
 ENV PIP_PREFER_BINARY=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_CACHE_DIR=1
+# Enables Python to generate .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=0
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
 
 # default env vars to prevent NiFi from running on HTTP
 ENV NIFI_WEB_HTTP_PORT=""
