@@ -1,0 +1,2754 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<template encoding-version="1.3">
+    <description>Annotation template, checking documents pulled from ES/OS have already been annotated via a sqlite DB.
+
+Will call a medcat service to annotate documents then return and update the sqlite db with document ID so it will not be sent for annotations again.
+
+Finally will add annotations to ES/OS indexes. </description>
+    <groupId>2dbabfd7-018e-1000-1376-16353db98216</groupId>
+    <name>SQL_Annotate_Per_Doc</name>
+    <snippet>
+        <controllerServices>
+            <id>1b0d033e-0882-3481-0000-000000000000</id>
+            <parentGroupId>840be94b-7742-3448-0000-000000000000</parentGroupId>
+            <versionedComponentId>1b0d033e-0882-3481-aed1-99e8b0ffb4e3</versionedComponentId>
+            <bulletinLevel>WARN</bulletinLevel>
+            <bundle>
+                <artifact>nifi-elasticsearch-client-service-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.24.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>el-cs-http-hosts</key>
+                    <value>
+                        <name>el-cs-http-hosts</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-path-prefix</key>
+                    <value>
+                        <name>el-cs-path-prefix</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>authorization-scheme</key>
+                    <value>
+                        <name>authorization-scheme</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-username</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>el-cs-username</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-password</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>el-cs-password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>api-key-id</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>API_KEY</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>api-key-id</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>api-key</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>API_KEY</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>api-key</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-ssl-context-service</key>
+                    <value>
+                        <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+                        <name>el-cs-ssl-context-service</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>proxy-configuration-service</key>
+                    <value>
+                        <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                        <name>proxy-configuration-service</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-connect-timeout</key>
+                    <value>
+                        <name>el-cs-connect-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-socket-timeout</key>
+                    <value>
+                        <name>el-cs-socket-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-retry-timeout</key>
+                    <value>
+                        <name>el-cs-retry-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-charset</key>
+                    <value>
+                        <name>el-cs-charset</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-suppress-nulls</key>
+                    <value>
+                        <name>el-cs-suppress-nulls</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-enable-compression</key>
+                    <value>
+                        <name>el-cs-enable-compression</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-send-meta-header</key>
+                    <value>
+                        <name>el-cs-send-meta-header</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-strict-deprecation</key>
+                    <value>
+                        <name>el-cs-strict-deprecation</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-node-selector</key>
+                    <value>
+                        <name>el-cs-node-selector</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-cluster-nodes</key>
+                    <value>
+                        <name>el-cs-sniff-cluster-nodes</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-interval</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-interval</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-request-timeout</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-request-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-failure</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniff-failure</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-failure-delay</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-failure</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-failure-delay</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>ElasticSearchClientServiceImpl</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>el-cs-http-hosts</key>
+                    <value>https://elasticsearch-1:9200</value>
+                </entry>
+                <entry>
+                    <key>el-cs-path-prefix</key>
+                </entry>
+                <entry>
+                    <key>authorization-scheme</key>
+                    <value>BASIC</value>
+                </entry>
+                <entry>
+                    <key>el-cs-username</key>
+                    <value>admin</value>
+                </entry>
+                <entry>
+                    <key>el-cs-password</key>
+                </entry>
+                <entry>
+                    <key>api-key-id</key>
+                </entry>
+                <entry>
+                    <key>api-key</key>
+                </entry>
+                <entry>
+                    <key>el-cs-ssl-context-service</key>
+                    <value>c48d5e8a-2b73-3c08-0000-000000000000</value>
+                </entry>
+                <entry>
+                    <key>proxy-configuration-service</key>
+                </entry>
+                <entry>
+                    <key>el-cs-connect-timeout</key>
+                    <value>5000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-socket-timeout</key>
+                    <value>60000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-retry-timeout</key>
+                    <value>60000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-charset</key>
+                    <value>UTF-8</value>
+                </entry>
+                <entry>
+                    <key>el-cs-suppress-nulls</key>
+                    <value>always-suppress</value>
+                </entry>
+                <entry>
+                    <key>el-cs-enable-compression</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-send-meta-header</key>
+                    <value>true</value>
+                </entry>
+                <entry>
+                    <key>el-cs-strict-deprecation</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-node-selector</key>
+                    <value>ANY</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-cluster-nodes</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-interval</key>
+                    <value>5 mins</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-request-timeout</key>
+                    <value>1 sec</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-failure</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-failure-delay</key>
+                    <value>1 min</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>org.apache.nifi.elasticsearch.ElasticSearchClientServiceImpl</type>
+        </controllerServices>
+        <controllerServices>
+            <id>8e0d7194-251c-3a5d-0000-000000000000</id>
+            <parentGroupId>840be94b-7742-3448-0000-000000000000</parentGroupId>
+            <versionedComponentId>8e0d7194-251c-3a5d-9f1c-1801264cc429</versionedComponentId>
+            <bulletinLevel>WARN</bulletinLevel>
+            <bundle>
+                <artifact>nifi-ssl-context-service-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.24.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>Keystore Filename</key>
+                    <value>
+                        <name>Keystore Filename</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Keystore Password</key>
+                    <value>
+                        <name>Keystore Password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>key-password</key>
+                    <value>
+                        <name>key-password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Keystore Type</key>
+                    <value>
+                        <name>Keystore Type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Filename</key>
+                    <value>
+                        <name>Truststore Filename</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Password</key>
+                    <value>
+                        <name>Truststore Password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Type</key>
+                    <value>
+                        <name>Truststore Type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>
+                        <name>SSL Protocol</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>StandardSSLContextService</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>Keystore Filename</key>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-keystore.jks</value>
+                </entry>
+                <entry>
+                    <key>Keystore Password</key>
+                </entry>
+                <entry>
+                    <key>key-password</key>
+                </entry>
+                <entry>
+                    <key>Keystore Type</key>
+                    <value>PKCS12</value>
+                </entry>
+                <entry>
+                    <key>Truststore Filename</key>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-truststore.key</value>
+                </entry>
+                <entry>
+                    <key>Truststore Password</key>
+                </entry>
+                <entry>
+                    <key>Truststore Type</key>
+                    <value>PKCS12</value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>TLS</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>org.apache.nifi.ssl.StandardSSLContextService</type>
+        </controllerServices>
+        <controllerServices>
+            <id>902c44a6-6ae5-3da5-0000-000000000000</id>
+            <parentGroupId>840be94b-7742-3448-0000-000000000000</parentGroupId>
+            <versionedComponentId>902c44a6-6ae5-3da5-b7d8-f824daf8090a</versionedComponentId>
+            <bulletinLevel>WARN</bulletinLevel>
+            <bundle>
+                <artifact>nifi-elasticsearch-client-service-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.24.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>el-cs-http-hosts</key>
+                    <value>
+                        <name>el-cs-http-hosts</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-path-prefix</key>
+                    <value>
+                        <name>el-cs-path-prefix</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>authorization-scheme</key>
+                    <value>
+                        <name>authorization-scheme</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-username</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>el-cs-username</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-password</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>BASIC</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>el-cs-password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>api-key-id</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>API_KEY</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>api-key-id</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>api-key</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>API_KEY</dependentValues>
+                            <propertyName>authorization-scheme</propertyName>
+                        </dependencies>
+                        <name>api-key</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-ssl-context-service</key>
+                    <value>
+                        <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+                        <name>el-cs-ssl-context-service</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>proxy-configuration-service</key>
+                    <value>
+                        <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                        <name>proxy-configuration-service</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-connect-timeout</key>
+                    <value>
+                        <name>el-cs-connect-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-socket-timeout</key>
+                    <value>
+                        <name>el-cs-socket-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-retry-timeout</key>
+                    <value>
+                        <name>el-cs-retry-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-charset</key>
+                    <value>
+                        <name>el-cs-charset</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-suppress-nulls</key>
+                    <value>
+                        <name>el-cs-suppress-nulls</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-enable-compression</key>
+                    <value>
+                        <name>el-cs-enable-compression</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-send-meta-header</key>
+                    <value>
+                        <name>el-cs-send-meta-header</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-strict-deprecation</key>
+                    <value>
+                        <name>el-cs-strict-deprecation</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-node-selector</key>
+                    <value>
+                        <name>el-cs-node-selector</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-cluster-nodes</key>
+                    <value>
+                        <name>el-cs-sniff-cluster-nodes</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-interval</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-interval</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-request-timeout</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-request-timeout</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-failure</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-cluster-nodes</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniff-failure</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-failure-delay</key>
+                    <value>
+                        <dependencies>
+                            <dependentValues>true</dependentValues>
+                            <propertyName>el-cs-sniff-failure</propertyName>
+                        </dependencies>
+                        <name>el-cs-sniffer-failure-delay</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>ElasticSearchClientServiceImpl</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>el-cs-http-hosts</key>
+                    <value>https://elasticsearch-1:9200</value>
+                </entry>
+                <entry>
+                    <key>el-cs-path-prefix</key>
+                </entry>
+                <entry>
+                    <key>authorization-scheme</key>
+                    <value>BASIC</value>
+                </entry>
+                <entry>
+                    <key>el-cs-username</key>
+                    <value>admin</value>
+                </entry>
+                <entry>
+                    <key>el-cs-password</key>
+                </entry>
+                <entry>
+                    <key>api-key-id</key>
+                </entry>
+                <entry>
+                    <key>api-key</key>
+                </entry>
+                <entry>
+                    <key>el-cs-ssl-context-service</key>
+                    <value>8e0d7194-251c-3a5d-0000-000000000000</value>
+                </entry>
+                <entry>
+                    <key>proxy-configuration-service</key>
+                </entry>
+                <entry>
+                    <key>el-cs-connect-timeout</key>
+                    <value>15000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-socket-timeout</key>
+                    <value>60000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-retry-timeout</key>
+                    <value>60000</value>
+                </entry>
+                <entry>
+                    <key>el-cs-charset</key>
+                    <value>UTF-8</value>
+                </entry>
+                <entry>
+                    <key>el-cs-suppress-nulls</key>
+                    <value>never-suppress</value>
+                </entry>
+                <entry>
+                    <key>el-cs-enable-compression</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-send-meta-header</key>
+                    <value>true</value>
+                </entry>
+                <entry>
+                    <key>el-cs-strict-deprecation</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-node-selector</key>
+                    <value>ANY</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-cluster-nodes</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-interval</key>
+                    <value>5 mins</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-request-timeout</key>
+                    <value>1 sec</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniff-failure</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>el-cs-sniffer-failure-delay</key>
+                    <value>1 min</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>org.apache.nifi.elasticsearch.ElasticSearchClientServiceImpl</type>
+        </controllerServices>
+        <controllerServices>
+            <id>c48d5e8a-2b73-3c08-0000-000000000000</id>
+            <parentGroupId>840be94b-7742-3448-0000-000000000000</parentGroupId>
+            <versionedComponentId>c48d5e8a-2b73-3c08-8ffb-895850b273ab</versionedComponentId>
+            <bulletinLevel>WARN</bulletinLevel>
+            <bundle>
+                <artifact>nifi-ssl-context-service-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.24.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>Keystore Filename</key>
+                    <value>
+                        <name>Keystore Filename</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Keystore Password</key>
+                    <value>
+                        <name>Keystore Password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>key-password</key>
+                    <value>
+                        <name>key-password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Keystore Type</key>
+                    <value>
+                        <name>Keystore Type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Filename</key>
+                    <value>
+                        <name>Truststore Filename</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Password</key>
+                    <value>
+                        <name>Truststore Password</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>Truststore Type</key>
+                    <value>
+                        <name>Truststore Type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>
+                        <name>SSL Protocol</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>StandardSSLContextService</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>Keystore Filename</key>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-keystore.jks</value>
+                </entry>
+                <entry>
+                    <key>Keystore Password</key>
+                </entry>
+                <entry>
+                    <key>key-password</key>
+                </entry>
+                <entry>
+                    <key>Keystore Type</key>
+                    <value>PKCS12</value>
+                </entry>
+                <entry>
+                    <key>Truststore Filename</key>
+                    <value>/opt/nifi/nifi-current/es_certificates/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-truststore.key</value>
+                </entry>
+                <entry>
+                    <key>Truststore Password</key>
+                </entry>
+                <entry>
+                    <key>Truststore Type</key>
+                    <value>PKCS12</value>
+                </entry>
+                <entry>
+                    <key>SSL Protocol</key>
+                    <value>TLS</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>org.apache.nifi.ssl.StandardSSLContextService</type>
+        </controllerServices>
+        <processGroups>
+            <id>00d4ff50-1ec9-3b6d-0000-000000000000</id>
+            <parentGroupId>840be94b-7742-3448-0000-000000000000</parentGroupId>
+            <position>
+                <x>0.0</x>
+                <y>0.0</y>
+            </position>
+            <versionedComponentId>00d4ff50-1ec9-3b6d-9bd8-1aa462d38e6b</versionedComponentId>
+            <comments></comments>
+            <contents>
+                <connections>
+                    <id>0926f926-960b-3663-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>0926f926-960b-3663-87f7-4f386b4782ee</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>b623c46a-5dce-3931-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>b623c46a-5dce-3931-8dde-ec24f6ef779a</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>failure</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>26f820fc-7e1f-37d4-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>26f820fc-7e1f-37d4-a14d-c5bca0356a44</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>1c82b944-83d7-3b66-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>1c82b944-83d7-3b66-b4bb-0821d09b71cf</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>af5067db-0f3c-3eb3-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>af5067db-0f3c-3eb3-ba13-de95b4c7a1bf</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>hits</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>ff9c6591-57ec-3c2b-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>ff9c6591-57ec-3c2b-8a97-74bc133494dc</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>2b9cc295-ee96-328f-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>2b9cc295-ee96-328f-9880-d85d61c922d6</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>50a58e24-c733-3695-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>50a58e24-c733-3695-acab-2d5c4a0b74e8</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>nonzero status</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>c61f16c3-df73-3fc7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>c61f16c3-df73-3fc7-a7e5-e9fcf4f7c9bf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>44086a98-03ed-3a2a-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>44086a98-03ed-3a2a-8689-517197da7b6a</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>c7c906ad-79ce-37ee-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>c7c906ad-79ce-37ee-ae25-b843aaa9c865</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>failure</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>af5067db-0f3c-3eb3-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>af5067db-0f3c-3eb3-ba13-de95b4c7a1bf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>475b5835-96d0-3122-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>475b5835-96d0-3122-92bb-6ac1d9353151</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>output stream</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>c61f16c3-df73-3fc7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>c61f16c3-df73-3fc7-a7e5-e9fcf4f7c9bf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>4b9cb8c6-8904-3f2c-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>4b9cb8c6-8904-3f2c-81f0-0253f1bdbf90</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>074518bc-644d-3cf7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>074518bc-644d-3cf7-a019-68b867def2a6</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>Response</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>5182143b-f15c-3da4-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>5182143b-f15c-3da4-9daa-aa01042c041c</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>1000000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>45f1be9d-c636-3306-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>45f1be9d-c636-3306-8e08-d49dac6a6741</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>26f820fc-7e1f-37d4-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>26f820fc-7e1f-37d4-a14d-c5bca0356a44</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>51c9424d-6ddb-3f35-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>51c9424d-6ddb-3f35-bf26-fc88abec4340</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>305770c1-6e74-3740-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>305770c1-6e74-3740-9d34-56d333101f4d</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>errors</selectedRelationships>
+                    <selectedRelationships>failure</selectedRelationships>
+                    <selectedRelationships>retry</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>45f1be9d-c636-3306-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>45f1be9d-c636-3306-8e08-d49dac6a6741</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>63635b75-c9b5-3731-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>63635b75-c9b5-3731-afbc-1151b3fd1a90</versionedComponentId>
+                    <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <bends>
+                        <x>2231.41379737854</x>
+                        <y>1847.2254036037048</y>
+                    </bends>
+                    <bends>
+                        <x>2231.41379737854</x>
+                        <y>1895.2254036037048</y>
+                    </bends>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>Retry</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>675677b0-6608-3cae-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>675677b0-6608-3cae-8289-51da0d33194e</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>c61f16c3-df73-3fc7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>c61f16c3-df73-3fc7-a7e5-e9fcf4f7c9bf</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>af5067db-0f3c-3eb3-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>af5067db-0f3c-3eb3-ba13-de95b4c7a1bf</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>adcc41f7-89a2-3eee-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>adcc41f7-89a2-3eee-a958-84fb771de399</versionedComponentId>
+                    <backPressureDataSizeThreshold>100 MB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>86dac5cb-c950-3aa4-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>86dac5cb-c950-3aa4-9f0b-05b48909fde4</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>Failure</selectedRelationships>
+                    <selectedRelationships>No Retry</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>c4dc37f8-dd69-3c16-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>c4dc37f8-dd69-3c16-bd2e-89f37e20dbc9</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>e3b291f9-7654-31b8-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>e3b291f9-7654-31b8-94d6-507c05eb529a</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>nonzero status</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>074518bc-644d-3cf7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>074518bc-644d-3cf7-a019-68b867def2a6</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>ec719b2e-3336-3e74-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>ec719b2e-3336-3e74-86d4-2c0d4f2c793b</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>26f820fc-7e1f-37d4-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>26f820fc-7e1f-37d4-a14d-c5bca0356a44</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>output stream</selectedRelationships>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>074518bc-644d-3cf7-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>074518bc-644d-3cf7-a019-68b867def2a6</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>f50d4cbf-1f80-3ca6-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <versionedComponentId>f50d4cbf-1f80-3ca6-b777-12a29aec9088</versionedComponentId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <bends>
+                        <x>1572.2973937988281</x>
+                        <y>2521.6146858302673</y>
+                    </bends>
+                    <destination>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>45f1be9d-c636-3306-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                        <versionedComponentId>45f1be9d-c636-3306-8e08-d49dac6a6741</versionedComponentId>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <source>
+                        <groupId>00d4ff50-1ec9-3b6d-0000-000000000000</groupId>
+                        <id>305770c1-6e74-3740-0000-000000000000</id>
+                        <type>FUNNEL</type>
+                        <versionedComponentId>305770c1-6e74-3740-9d34-56d333101f4d</versionedComponentId>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <funnels>
+                    <id>305770c1-6e74-3740-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1365.9499969482422</x>
+                        <y>2544.0509651271423</y>
+                    </position>
+                    <versionedComponentId>305770c1-6e74-3740-9d34-56d333101f4d</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>50a58e24-c733-3695-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>2357.949996948242</x>
+                        <y>1576.0509651271423</y>
+                    </position>
+                    <versionedComponentId>50a58e24-c733-3695-acab-2d5c4a0b74e8</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>86dac5cb-c950-3aa4-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1365.9499969482422</x>
+                        <y>1848.0509651271423</y>
+                    </position>
+                    <versionedComponentId>86dac5cb-c950-3aa4-9f0b-05b48909fde4</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>b623c46a-5dce-3931-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1368.0</x>
+                        <y>2312.0</y>
+                    </position>
+                    <versionedComponentId>b623c46a-5dce-3931-8dde-ec24f6ef779a</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>c7c906ad-79ce-37ee-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>2389.949996948242</x>
+                        <y>1272.0509651271423</y>
+                    </position>
+                    <versionedComponentId>c7c906ad-79ce-37ee-ae25-b843aaa9c865</versionedComponentId>
+                </funnels>
+                <funnels>
+                    <id>e3b291f9-7654-31b8-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>2400.0</x>
+                        <y>2088.0</y>
+                    </position>
+                    <versionedComponentId>e3b291f9-7654-31b8-94d6-507c05eb529a</versionedComponentId>
+                </funnels>
+                <processors>
+                    <id>074518bc-644d-3cf7-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1736.0</x>
+                        <y>2040.0</y>
+                    </position>
+                    <versionedComponentId>074518bc-644d-3cf7-a019-68b867def2a6</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Working Directory</key>
+<value>
+    <name>Working Directory</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>
+    <name>Command Path</name>
+</value>
+                            </entry>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>
+    <name>argumentsStrategy</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <dependencies>
+        <dependentValues>Command Arguments Property</dependentValues>
+        <propertyName>argumentsStrategy</propertyName>
+    </dependencies>
+    <name>Command Arguments</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>
+    <dependencies>
+        <dependentValues>Command Arguments Property</dependentValues>
+        <propertyName>argumentsStrategy</propertyName>
+    </dependencies>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+<value>
+    <name>Output Destination Attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>
+    <name>Max Attribute Length</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Output MIME Type</key>
+<value>
+    <name>Output MIME Type</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Working Directory</key>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>python3</value>
+                            </entry>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>Command Arguments Property</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>/opt/nifi/user-scripts/annotation_manager_docs.py;index_db_file_name="annotations.db";document_id_field="note_id";log_file_name="annotations.log";</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>;</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>256</value>
+                            </entry>
+                            <entry>
+<key>Output MIME Type</key>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>UpdateAnnotationDB-DocOnly</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>nonzero status</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>original</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>output stream</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.ExecuteStreamCommand</type>
+                </processors>
+                <processors>
+                    <id>26f820fc-7e1f-37d4-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1736.0</x>
+                        <y>2272.0</y>
+                    </position>
+                    <versionedComponentId>26f820fc-7e1f-37d4-a14d-c5bca0356a44</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-scripting-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>ERROR</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Script Engine</key>
+<value>
+    <name>Script Engine</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Script File</key>
+<value>
+    <name>Script File</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Script Body</key>
+<value>
+    <name>Script Body</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Module Directory</key>
+<value>
+    <name>Module Directory</name>
+</value>
+                            </entry>
+                            <entry>
+<key>annotation_id_field</key>
+<value>
+    <name>annotation_id_field</name>
+</value>
+                            </entry>
+                            <entry>
+<key>document_id_field</key>
+<value>
+    <name>document_id_field</name>
+</value>
+                            </entry>
+                            <entry>
+<key>ignore_annotation_types</key>
+<value>
+    <name>ignore_annotation_types</name>
+</value>
+                            </entry>
+                            <entry>
+<key>original_record_fields_to_include</key>
+<value>
+    <name>original_record_fields_to_include</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Script Engine</key>
+<value>python</value>
+                            </entry>
+                            <entry>
+<key>Script File</key>
+<value>/opt/nifi/user-scripts/parse-anns-from-nlp-response-bulk.py</value>
+                            </entry>
+                            <entry>
+<key>Script Body</key>
+                            </entry>
+                            <entry>
+<key>Module Directory</key>
+                            </entry>
+                            <entry>
+<key>annotation_id_field</key>
+<value>id</value>
+                            </entry>
+                            <entry>
+<key>document_id_field</key>
+<value>note_id</value>
+                            </entry>
+                            <entry>
+<key>ignore_annotation_types</key>
+<value>none</value>
+                            </entry>
+                            <entry>
+<key>original_record_fields_to_include</key>
+<value>none</value>
+                            </entry>
+                        </properties>
+                        <retryCount>0</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0.05 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>ParseJSON-ResponseContent-Bulk</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.script.ExecuteScript</type>
+                </processors>
+                <processors>
+                    <id>40f459bb-2e08-3b02-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1733.9499969482422</x>
+                        <y>1808.0509651271423</y>
+                    </position>
+                    <versionedComponentId>40f459bb-2e08-3b02-aaf3-dc045af1b774</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>HTTP Method</key>
+<value>
+    <name>HTTP Method</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Remote URL</key>
+<value>
+    <name>Remote URL</name>
+</value>
+                            </entry>
+                            <entry>
+<key>disable-http2</key>
+<value>
+    <name>disable-http2</name>
+</value>
+                            </entry>
+                            <entry>
+<key>SSL Context Service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+    <name>SSL Context Service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Connection Timeout</key>
+<value>
+    <name>Connection Timeout</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Read Timeout</key>
+<value>
+    <name>Read Timeout</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Socket Write Timeout</key>
+<value>
+    <name>Socket Write Timeout</name>
+</value>
+                            </entry>
+                            <entry>
+<key>idle-timeout</key>
+<value>
+    <name>idle-timeout</name>
+</value>
+                            </entry>
+                            <entry>
+<key>max-idle-connections</key>
+<value>
+    <name>max-idle-connections</name>
+</value>
+                            </entry>
+                            <entry>
+<key>proxy-configuration-service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+    <name>proxy-configuration-service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Proxy Host</key>
+<value>
+    <name>Proxy Host</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Proxy Port</key>
+<value>
+    <dependencies>
+        <propertyName>Proxy Host</propertyName>
+    </dependencies>
+    <name>Proxy Port</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Proxy Type</key>
+<value>
+    <dependencies>
+        <propertyName>Proxy Host</propertyName>
+    </dependencies>
+    <name>Proxy Type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>invokehttp-proxy-user</key>
+<value>
+    <dependencies>
+        <propertyName>Proxy Host</propertyName>
+    </dependencies>
+    <name>invokehttp-proxy-user</name>
+</value>
+                            </entry>
+                            <entry>
+<key>invokehttp-proxy-password</key>
+<value>
+    <dependencies>
+        <propertyName>Proxy Host</propertyName>
+    </dependencies>
+    <name>invokehttp-proxy-password</name>
+</value>
+                            </entry>
+                            <entry>
+<key>oauth2-access-token-provider</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.oauth2.OAuth2AccessTokenProvider</identifiesControllerService>
+    <name>oauth2-access-token-provider</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Basic Authentication Username</key>
+<value>
+    <name>Basic Authentication Username</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Basic Authentication Password</key>
+<value>
+    <name>Basic Authentication Password</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Digest Authentication</key>
+<value>
+    <dependencies>
+        <propertyName>Basic Authentication Username</propertyName>
+    </dependencies>
+    <name>Digest Authentication</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Penalize on "No Retry"</key>
+<value>
+    <name>Penalize on "No Retry"</name>
+</value>
+                            </entry>
+                            <entry>
+<key>send-message-body</key>
+<value>
+    <dependencies>
+        <dependentValues>POST</dependentValues>
+        <dependentValues>PATCH</dependentValues>
+        <dependentValues>PUT</dependentValues>
+        <propertyName>HTTP Method</propertyName>
+    </dependencies>
+    <name>send-message-body</name>
+</value>
+                            </entry>
+                            <entry>
+<key>form-body-form-name</key>
+<value>
+    <dependencies>
+        <dependentValues>true</dependentValues>
+        <propertyName>send-message-body</propertyName>
+    </dependencies>
+    <name>form-body-form-name</name>
+</value>
+                            </entry>
+                            <entry>
+<key>set-form-filename</key>
+<value>
+    <dependencies>
+        <propertyName>form-body-form-name</propertyName>
+    </dependencies>
+    <name>set-form-filename</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Use Chunked Encoding</key>
+<value>
+    <dependencies>
+        <dependentValues>POST</dependentValues>
+        <dependentValues>PATCH</dependentValues>
+        <dependentValues>PUT</dependentValues>
+        <propertyName>HTTP Method</propertyName>
+    </dependencies>
+    <name>Use Chunked Encoding</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Content-Encoding</key>
+<value>
+    <dependencies>
+        <dependentValues>POST</dependentValues>
+        <dependentValues>PATCH</dependentValues>
+        <dependentValues>PUT</dependentValues>
+        <propertyName>HTTP Method</propertyName>
+    </dependencies>
+    <name>Content-Encoding</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Content-Type</key>
+<value>
+    <dependencies>
+        <dependentValues>POST</dependentValues>
+        <dependentValues>PATCH</dependentValues>
+        <dependentValues>PUT</dependentValues>
+        <propertyName>HTTP Method</propertyName>
+    </dependencies>
+    <name>Content-Type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Include Date Header</key>
+<value>
+    <name>Include Date Header</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Attributes to Send</key>
+<value>
+    <name>Attributes to Send</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Useragent</key>
+<value>
+    <name>Useragent</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Put Response Body In Attribute</key>
+<value>
+    <name>Put Response Body In Attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Max Length To Put In Attribute</key>
+<value>
+    <dependencies>
+        <propertyName>Put Response Body In Attribute</propertyName>
+    </dependencies>
+    <name>Max Length To Put In Attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>ignore-response-content</key>
+<value>
+    <name>ignore-response-content</name>
+</value>
+                            </entry>
+                            <entry>
+<key>use-etag</key>
+<value>
+    <name>use-etag</name>
+</value>
+                            </entry>
+                            <entry>
+<key>etag-max-cache-size</key>
+<value>
+    <dependencies>
+        <dependentValues>true</dependentValues>
+        <propertyName>use-etag</propertyName>
+    </dependencies>
+    <name>etag-max-cache-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>cookie-strategy</key>
+<value>
+    <name>cookie-strategy</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Always Output Response</key>
+<value>
+    <name>Always Output Response</name>
+</value>
+                            </entry>
+                            <entry>
+<key>flow-file-naming-strategy</key>
+<value>
+    <name>flow-file-naming-strategy</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Add Response Headers to Request</key>
+<value>
+    <name>Add Response Headers to Request</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Follow Redirects</key>
+<value>
+    <name>Follow Redirects</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>HTTP Method</key>
+<value>POST</value>
+                            </entry>
+                            <entry>
+<key>Remote URL</key>
+<value>http://10.211.113.98:5000/api/process_bulk</value>
+                            </entry>
+                            <entry>
+<key>disable-http2</key>
+<value>False</value>
+                            </entry>
+                            <entry>
+<key>SSL Context Service</key>
+                            </entry>
+                            <entry>
+<key>Connection Timeout</key>
+<value>5 secs</value>
+                            </entry>
+                            <entry>
+<key>Read Timeout</key>
+<value>600 secs</value>
+                            </entry>
+                            <entry>
+<key>Socket Write Timeout</key>
+<value>15 secs</value>
+                            </entry>
+                            <entry>
+<key>idle-timeout</key>
+<value>5 mins</value>
+                            </entry>
+                            <entry>
+<key>max-idle-connections</key>
+<value>5</value>
+                            </entry>
+                            <entry>
+<key>proxy-configuration-service</key>
+                            </entry>
+                            <entry>
+<key>Proxy Host</key>
+                            </entry>
+                            <entry>
+<key>Proxy Port</key>
+                            </entry>
+                            <entry>
+<key>Proxy Type</key>
+<value>http</value>
+                            </entry>
+                            <entry>
+<key>invokehttp-proxy-user</key>
+                            </entry>
+                            <entry>
+<key>invokehttp-proxy-password</key>
+                            </entry>
+                            <entry>
+<key>oauth2-access-token-provider</key>
+                            </entry>
+                            <entry>
+<key>Basic Authentication Username</key>
+                            </entry>
+                            <entry>
+<key>Basic Authentication Password</key>
+                            </entry>
+                            <entry>
+<key>Digest Authentication</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Penalize on "No Retry"</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>send-message-body</key>
+<value>true</value>
+                            </entry>
+                            <entry>
+<key>form-body-form-name</key>
+                            </entry>
+                            <entry>
+<key>set-form-filename</key>
+<value>true</value>
+                            </entry>
+                            <entry>
+<key>Use Chunked Encoding</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Content-Encoding</key>
+<value>DISABLED</value>
+                            </entry>
+                            <entry>
+<key>Content-Type</key>
+<value>application/json</value>
+                            </entry>
+                            <entry>
+<key>Include Date Header</key>
+<value>True</value>
+                            </entry>
+                            <entry>
+<key>Attributes to Send</key>
+                            </entry>
+                            <entry>
+<key>Useragent</key>
+                            </entry>
+                            <entry>
+<key>Put Response Body In Attribute</key>
+                            </entry>
+                            <entry>
+<key>Max Length To Put In Attribute</key>
+<value>256</value>
+                            </entry>
+                            <entry>
+<key>ignore-response-content</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>use-etag</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>etag-max-cache-size</key>
+<value>10MB</value>
+                            </entry>
+                            <entry>
+<key>cookie-strategy</key>
+<value>DISABLED</value>
+                            </entry>
+                            <entry>
+<key>Always Output Response</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>flow-file-naming-strategy</key>
+<value>RANDOM</value>
+                            </entry>
+                            <entry>
+<key>Add Response Headers to Request</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Follow Redirects</key>
+<value>False</value>
+                            </entry>
+                        </properties>
+                        <retryCount>0</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>QueryNlpService-MedCAT-Bulk</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>Failure</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>No Retry</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>Original</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>Response</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>Retry</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.InvokeHTTP</type>
+                </processors>
+                <processors>
+                    <id>45f1be9d-c636-3306-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1733.9499969482422</x>
+                        <y>2528.0509651271423</y>
+                    </position>
+                    <versionedComponentId>45f1be9d-c636-3306-8e08-d49dac6a6741</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-elasticsearch-restapi-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>put-es-json-id-attr</key>
+<value>
+    <name>put-es-json-id-attr</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-record-index-op</key>
+<value>
+    <name>put-es-record-index-op</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-fetch-index</key>
+<value>
+    <name>el-rest-fetch-index</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-type</key>
+<value>
+    <name>el-rest-type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-script</key>
+<value>
+    <name>put-es-json-script</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-scripted-upsert</key>
+<value>
+    <name>put-es-json-scripted-upsert</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-dynamic_templates</key>
+<value>
+    <name>put-es-json-dynamic_templates</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-record-batch-size</key>
+<value>
+    <name>put-es-record-batch-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-charset</key>
+<value>
+    <name>put-es-json-charset</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-client-service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.elasticsearch.ElasticSearchClientService</identifiesControllerService>
+    <name>el-rest-client-service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-record-log-error-responses</key>
+<value>
+    <name>put-es-record-log-error-responses</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-output-error-responses</key>
+<value>
+    <name>put-es-output-error-responses</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-error-documents</key>
+<value>
+    <name>put-es-json-error-documents</name>
+</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-not_found-is-error</key>
+<value>
+    <dependencies>
+        <dependentValues>true</dependentValues>
+        <propertyName>put-es-json-error-documents</propertyName>
+    </dependencies>
+    <name>put-es-json-not_found-is-error</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>put-es-json-id-attr</key>
+                            </entry>
+                            <entry>
+<key>put-es-record-index-op</key>
+<value>index</value>
+                            </entry>
+                            <entry>
+<key>el-rest-fetch-index</key>
+<value>discharge_annos</value>
+                            </entry>
+                            <entry>
+<key>el-rest-type</key>
+                            </entry>
+                            <entry>
+<key>put-es-json-script</key>
+                            </entry>
+                            <entry>
+<key>put-es-json-scripted-upsert</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-dynamic_templates</key>
+                            </entry>
+                            <entry>
+<key>put-es-record-batch-size</key>
+<value>100</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-charset</key>
+<value>UTF-8</value>
+                            </entry>
+                            <entry>
+<key>el-rest-client-service</key>
+<value>902c44a6-6ae5-3da5-0000-000000000000</value>
+                            </entry>
+                            <entry>
+<key>put-es-record-log-error-responses</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>put-es-output-error-responses</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-error-documents</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>put-es-json-not_found-is-error</key>
+<value>true</value>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>PutElasticsearchJson</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>errors</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>retry</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>success</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.elasticsearch.PutElasticsearchJson</type>
+                </processors>
+                <processors>
+                    <id>af5067db-0f3c-3eb3-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1736.0</x>
+                        <y>1248.0</y>
+                    </position>
+                    <versionedComponentId>af5067db-0f3c-3eb3-ba13-de95b4c7a1bf</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-scripting-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>DEBUG</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Script Engine</key>
+<value>
+    <name>Script Engine</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Script File</key>
+<value>
+    <name>Script File</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Script Body</key>
+<value>
+    <name>Script Body</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Module Directory</key>
+<value>
+    <name>Module Directory</name>
+</value>
+                            </entry>
+                            <entry>
+<key>document_id_field</key>
+<value>
+    <name>document_id_field</name>
+</value>
+                            </entry>
+                            <entry>
+<key>document_text_field</key>
+<value>
+    <name>document_text_field</name>
+</value>
+                            </entry>
+                            <entry>
+<key>log_file_name</key>
+<value>
+    <name>log_file_name</name>
+</value>
+                            </entry>
+                            <entry>
+<key>log_invalid_records_to_file</key>
+<value>
+    <name>log_invalid_records_to_file</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Script Engine</key>
+<value>python</value>
+                            </entry>
+                            <entry>
+<key>Script File</key>
+<value>/opt/nifi/user-scripts/parse-es-db-result-for-nlp-request-bulk.py</value>
+                            </entry>
+                            <entry>
+<key>Script Body</key>
+                            </entry>
+                            <entry>
+<key>Module Directory</key>
+<value>${JYTHON_HOME}/Lib/site-packages</value>
+                            </entry>
+                            <entry>
+<key>document_id_field</key>
+<value>note_id</value>
+                            </entry>
+                            <entry>
+<key>document_text_field</key>
+<value>text</value>
+                            </entry>
+                            <entry>
+<key>log_file_name</key>
+<value>nlp_request_bulk_parse_medical_text.log</value>
+                            </entry>
+                            <entry>
+<key>log_invalid_records_to_file</key>
+<value>True</value>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>ExecuteScript-ConvertRecordToMedCATinput</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.script.ExecuteScript</type>
+                </processors>
+                <processors>
+                    <id>c61f16c3-df73-3fc7-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1736.0</x>
+                        <y>1528.0</y>
+                    </position>
+                    <versionedComponentId>c61f16c3-df73-3fc7-a7e5-e9fcf4f7c9bf</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>Working Directory</key>
+<value>
+    <name>Working Directory</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>
+    <name>Command Path</name>
+</value>
+                            </entry>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>
+    <name>argumentsStrategy</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>
+    <dependencies>
+        <dependentValues>Command Arguments Property</dependentValues>
+        <propertyName>argumentsStrategy</propertyName>
+    </dependencies>
+    <name>Command Arguments</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>
+    <dependencies>
+        <dependentValues>Command Arguments Property</dependentValues>
+        <propertyName>argumentsStrategy</propertyName>
+    </dependencies>
+    <name>Argument Delimiter</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>
+    <name>Ignore STDIN</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+<value>
+    <name>Output Destination Attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>
+    <name>Max Attribute Length</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Output MIME Type</key>
+<value>
+    <name>Output MIME Type</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>Working Directory</key>
+                            </entry>
+                            <entry>
+<key>Command Path</key>
+<value>python3</value>
+                            </entry>
+                            <entry>
+<key>argumentsStrategy</key>
+<value>Command Arguments Property</value>
+                            </entry>
+                            <entry>
+<key>Command Arguments</key>
+<value>/opt/nifi/user-scripts/annotation_manager.py;index_db_file_name="annotations.db";document_id_field="id";log_file_name="annotations.log";</value>
+                            </entry>
+                            <entry>
+<key>Argument Delimiter</key>
+<value>;</value>
+                            </entry>
+                            <entry>
+<key>Ignore STDIN</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>Output Destination Attribute</key>
+                            </entry>
+                            <entry>
+<key>Max Attribute Length</key>
+<value>256</value>
+                            </entry>
+                            <entry>
+<key>Output MIME Type</key>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0.5 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>ExecuteStreamCommand-CheckIfAnnotated</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>nonzero status</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>original</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>output stream</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.ExecuteStreamCommand</type>
+                </processors>
+                <processors>
+                    <id>ff9c6591-57ec-3c2b-0000-000000000000</id>
+                    <parentGroupId>00d4ff50-1ec9-3b6d-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>1736.0</x>
+                        <y>960.0</y>
+                    </position>
+                    <versionedComponentId>ff9c6591-57ec-3c2b-8a97-74bc133494dc</versionedComponentId>
+                    <bundle>
+                        <artifact>nifi-elasticsearch-restapi-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.24.0</version>
+                    </bundle>
+                    <config>
+                        <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>el-rest-query-definition-style</key>
+<value>
+    <name>el-rest-query-definition-style</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-query</key>
+<value>
+    <dependencies>
+        <dependentValues>full</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>el-rest-query</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-query-clause</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>el-rest-query-clause</name>
+</value>
+                            </entry>
+                            <entry>
+<key>es-rest-size</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>es-rest-size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>es-rest-query-sort</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>es-rest-query-sort</name>
+</value>
+                            </entry>
+                            <entry>
+<key>es-rest-query-aggs</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>es-rest-query-aggs</name>
+</value>
+                            </entry>
+                            <entry>
+<key>es-rest-query-fields</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>es-rest-query-fields</name>
+</value>
+                            </entry>
+                            <entry>
+<key>es-rest-query-script-fields</key>
+<value>
+    <dependencies>
+        <dependentValues>build</dependentValues>
+        <propertyName>el-rest-query-definition-style</propertyName>
+    </dependencies>
+    <name>es-rest-query-script-fields</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-query-attribute</key>
+<value>
+    <name>el-query-attribute</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-fetch-index</key>
+<value>
+    <name>el-rest-fetch-index</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-type</key>
+<value>
+    <name>el-rest-type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-client-service</key>
+<value>
+    <identifiesControllerService>org.apache.nifi.elasticsearch.ElasticSearchClientService</identifiesControllerService>
+    <name>el-rest-client-service</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-split-up-hits</key>
+<value>
+    <name>el-rest-split-up-hits</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-format-hits</key>
+<value>
+    <name>el-rest-format-hits</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-split-up-aggregations</key>
+<value>
+    <name>el-rest-split-up-aggregations</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-format-aggregations</key>
+<value>
+    <name>el-rest-format-aggregations</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-output-no-hits</key>
+<value>
+    <name>el-rest-output-no-hits</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-pagination-type</key>
+<value>
+    <name>el-rest-pagination-type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>el-rest-pagination-keep-alive</key>
+<value>
+    <name>el-rest-pagination-keep-alive</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>PRIMARY</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <maxBackoffPeriod>10 mins</maxBackoffPeriod>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>el-rest-query-definition-style</key>
+<value>full</value>
+                            </entry>
+                            <entry>
+<key>el-rest-query</key>
+<value>{
+  "query": {
+    "exists": {
+      "field": "text"
+    }
+  }
+}</value>
+                            </entry>
+                            <entry>
+<key>el-rest-query-clause</key>
+                            </entry>
+                            <entry>
+<key>es-rest-size</key>
+                            </entry>
+                            <entry>
+<key>es-rest-query-sort</key>
+                            </entry>
+                            <entry>
+<key>es-rest-query-aggs</key>
+                            </entry>
+                            <entry>
+<key>es-rest-query-fields</key>
+                            </entry>
+                            <entry>
+<key>es-rest-query-script-fields</key>
+                            </entry>
+                            <entry>
+<key>el-query-attribute</key>
+<value>document</value>
+                            </entry>
+                            <entry>
+<key>el-rest-fetch-index</key>
+<value>discharge</value>
+                            </entry>
+                            <entry>
+<key>el-rest-type</key>
+                            </entry>
+                            <entry>
+<key>el-rest-client-service</key>
+<value>1b0d033e-0882-3481-0000-000000000000</value>
+                            </entry>
+                            <entry>
+<key>el-rest-split-up-hits</key>
+<value>splitUp-no</value>
+                            </entry>
+                            <entry>
+<key>el-rest-format-hits</key>
+<value>FULL</value>
+                            </entry>
+                            <entry>
+<key>el-rest-split-up-aggregations</key>
+<value>splitUp-no</value>
+                            </entry>
+                            <entry>
+<key>el-rest-format-aggregations</key>
+<value>FULL</value>
+                            </entry>
+                            <entry>
+<key>el-rest-output-no-hits</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>el-rest-pagination-type</key>
+<value>pagination-scroll</value>
+                            </entry>
+                            <entry>
+<key>el-rest-pagination-keep-alive</key>
+<value>24 hours</value>
+                            </entry>
+                        </properties>
+                        <retryCount>10</retryCount>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>1 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>true</executionNodeRestricted>
+                    <name>SearchElasticsearch</name>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>aggregations</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>hits</name>
+                        <retry>false</retry>
+                    </relationships>
+                    <state>RUNNING</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.elasticsearch.SearchElasticsearch</type>
+                </processors>
+            </contents>
+            <defaultBackPressureDataSizeThreshold>1 GB</defaultBackPressureDataSizeThreshold>
+            <defaultBackPressureObjectThreshold>10000</defaultBackPressureObjectThreshold>
+            <defaultFlowFileExpiration>0 sec</defaultFlowFileExpiration>
+            <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
+            <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
+            <name>SQL_Annotate</name>
+            <variables/>
+        </processGroups>
+    </snippet>
+    <timestamp>04/15/2024 13:36:04 BST</timestamp>
+</template>

@@ -1,0 +1,65 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1,
+      "refresh_interval": "60s"
+    }
+  },
+  "mappings": {
+    "date_detection": true,
+    "dynamic_date_formats": [
+      "yyyy-MM-dd HH:mm:ss",
+      "yyyy-MM-dd",
+      "basic_date",
+      "date_hour",
+      "date_hour_minute",
+      "date_hour_minute_second",
+      "time",
+      "hour_minute",
+      "yyyy/MM/dd",
+      "dd/MM/yyyy",
+      "dd/MM/yyyy HH:mm",
+      "date_time",
+      "t_time",
+      "date_hour_minute_second_millis",
+      "basic_time",
+      "basic_time_no_millis",
+      "basic_t_time",
+      "hour_minute_second",
+      "HH:mm.ss",
+      "HH:mm.ssZ"
+    ],
+    "dynamic_templates": [
+      {
+        "dates": {
+          "match_mapping_type": "string",
+          "match_pattern": "regex",
+          "match": "(?i).*(date|_datetime|_dt|_dttm|_dat|_datime|_time|_ts|_timestamp|time|when|dt|dttm|timestamp|created|updated|modified|inserted|recorded|logged|entered|performed|signed|cosigned|completed|admit|discharge|visit|appointment|service|start|end|effective|expiry|validfrom|validto|close)$",
+          "mapping": {
+            "type": "date",
+            "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||basic_date||date_hour_minute_second"
+          }
+        }
+      },
+      {
+        "strings_as_text": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "text",
+            "analyzer": "standard",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          }
+        }
+      }
+    ],
+    "properties": {
+      "id": { "type": "keyword" }
+    }
+  }
+}
