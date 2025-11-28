@@ -37,21 +37,21 @@ def poly_creator(city: str):
 
 def main():
     input_stream = sys.stdin.read()
+    log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
+    output_stream = []
 
     try:
-        log_file_path = os.path.join(NIFI_USER_SCRIPT_LOGS_DIR, str(LOG_FILE_NAME))
         patients = json.loads(input_stream)
 
         locations = [poly_creator(location) for location in LOCATIONS.split(",")]
-
-        output_stream = []
         for patient in patients:
             to_append = {}
 
             id = patient["_source"][SUBJECT_ID_FIELD_NAME]
-            idx = randrange(len(locations)) # pick a random location specified
-            lat, lon, _ = rc.coordinates_randomizer(polygon = locations[idx], num_locations = 1) # generate latitude and longitude
-
+            # pick a random location specified
+            idx = randrange(len(locations))
+            # generate latitude and longitude
+            lat, lon, _ = rc.coordinates_randomizer(polygon = locations[idx], num_locations = 1) 
             to_append[SUBJECT_ID_FIELD_NAME] = id
             to_append[LOCATION_NAME_FIELD] = "POINT (" + str(lon[0]) + " " + str(lat[0]) + ")"
             output_stream.append(to_append)
@@ -62,8 +62,8 @@ def main():
         else:
             with open(log_file_path, "a+") as log_file:
                 log_file.write("\n" + str(traceback.print_exc()))
-    finally:
-        return output_stream
 
+    return output_stream
 
 sys.stdout.write(json.dumps(main()))
+

@@ -1,6 +1,6 @@
-import psycopg2
+import psycopg
 
-conn = psycopg2.connect(
+conn = psycopg.connect(
     host="localhost",
     database="suppliers",
     user="YourUsername",

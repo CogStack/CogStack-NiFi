@@ -79,7 +79,7 @@ def dict2jsonl_file(input_dict: dict | defaultdict, file_path: str) -> None:
             print('', file=outfile)
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: str, propagate: bool = True) -> logging.Logger:
     """Return a configured logger shared across all NiFi clients."""
     level_name = os.getenv("NIFI_LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)
@@ -94,7 +94,7 @@ def get_logger(name: str) -> logging.Logger:
         handler.setFormatter(fmt)
         logger.addHandler(handler)
         logger.setLevel(level)
-        logger.propagate = False
+        logger.propagate = propagate
     return logger
 
 def download_file_from_url(url: str, output_path: str, ssl_verify: bool = False, chunk_size: int = 8192) -> None:

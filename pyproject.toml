@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 120
-exclude = ["nifi/user-scripts/legacy_scripts"]
+exclude = ["nifi/user_scripts/legacy_scripts"]
 target-version = "py311"
 indent-width = 4
 
@@ -25,15 +25,23 @@ fixable = ["ALL"]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
+python_version = "3.11"
 ignore_missing_imports = true
 strict = false
 files = "."
 mypy_path = "./typings/"
+warn_unused_configs = true
 
-[tool.isort]
-line_length = 120
-skip = ["venv", "venv-test", "envs", "docker", "models"]
+[tool.setuptools.packages.find]
+include = ["nifi*"]
+exclude = ["*egg-info*", "nifi/conf*", "nifi/drivers*", "nifi/user_schemas*", "nifi/user_templates*"]
 
-[tool.flake8]
-max-line-length = 120
-exclude = ["venv", "venv-test", "envs", "docker", "models"]
+[project]
+name = "cogstack_nifi"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
