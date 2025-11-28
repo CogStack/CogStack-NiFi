@@ -41,7 +41,7 @@ env_files=(
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
 )
 
-LINT_SCRIPT="$SCRIPT_DIR/../nifi/user-scripts/utils/lint_env.py"
+LINT_SCRIPT="$SCRIPT_DIR/../nifi/user_scripts/utils/lint_env.py"
 
 if [ -x "$LINT_SCRIPT" ]; then
   echo "🔍 Validating env files..."

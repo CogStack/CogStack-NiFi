@@ -9,6 +9,13 @@
 venv
 **__pycache__
 **/venv
+*.pyc 
+.pyc
+
+# Ignore setuptools metadata
+*.egg-info/
+*.egg-info
+**/*.egg-info/
 
 # keys and certificates
 *.pem

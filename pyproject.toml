@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 120
-exclude = ["nifi/user-scripts/legacy_scripts"]
+exclude = ["nifi/user_scripts/legacy_scripts"]
 target-version = "py311"
 indent-width = 4
 
@@ -31,3 +31,17 @@ strict = false
 files = "."
 mypy_path = "./typings/"
 warn_unused_configs = true
+
+[tool.setuptools.packages.find]
+include = ["nifi*"]
+exclude = ["*egg-info*", "nifi/conf*", "nifi/drivers*", "nifi/user_schemas*", "nifi/user_templates*"]
+
+[project]
+name = "cogstack_nifi"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+

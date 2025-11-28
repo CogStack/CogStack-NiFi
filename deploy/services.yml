@@ -238,9 +238,9 @@ services:
     container_name: cogstack-production-databank-db
     platform: linux/amd64
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
-      - POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-cogstack}
+      - POSTGRES_USER=${DATABASE_USER:-admin}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-admin}
+      - POSTGRES_DATABANK_DB=${DATABASE_DB_NAME:-cogstack}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/pgsql/schemas:/data/:ro
@@ -495,12 +495,12 @@ services:
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
-      - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
-      - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
+      - ../nifi/user_templates:/opt/nifi/nifi-current/conf/templates:rw
+      - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+      - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
 
       # this is a direct mapping to where we store the NiFi python processors as of NiFi 2.x.x
-      - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
+      - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
       
       # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
       - ../security:/security:ro
