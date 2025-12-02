@@ -45,11 +45,11 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         self.binary_field_name: str = "binarydoc"
         self.output_text_field_name: str = "text"
         self.document_id_field_name: str = "id"
-        self.input_charset = "utf-8"
-        self.output_charset = "utf-8"
-        self.output_mode = "base64"
-        self.binary_field_source_encoding = "base64"
-        self.blob_sequence_order_field_name = "blob_sequence_num"
+        self.input_charset: str = "utf-8"
+        self.output_charset: str = "utf-8"
+        self.output_mode: str = "base64"
+        self.binary_field_source_encoding: str = "base64"
+        self.blob_sequence_order_field_name: str = "blob_sequence_num"
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -57,7 +57,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                                description="Avro field containing binary data",
                                default_value="binarydoc",
                                required=True,
-                               validators=StandardValidators.NON_EMPTY_VALIDATOR),
+                               validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
             PropertyDescriptor(name="output_text_field_name",
                                description="Field to store  output text",
                                default_value="text",
@@ -120,7 +120,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             self.set_properties(context.getProperties())
 
             # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+            input_raw_bytes: bytes | bytearray = flowFile.getContentsAsBytes()
 
             records = []
 
