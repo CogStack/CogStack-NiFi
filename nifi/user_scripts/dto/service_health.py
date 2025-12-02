@@ -33,14 +33,14 @@ class NiFiHealth(ServiceHealth):
     queued_bytes: int | None = Field(default=None, description="Total queued bytes")
     queued_count: int | None = Field(default=None, description="Number of queued flowfiles")
 
-class ElasticsearchHealth(ServiceHealth):
-    cluster_status: str | None = Field(None, description="Cluster health status")
-    node_count: int | None = Field(None)
-    active_shards: int | None = Field(None)
+class ElasticHealth(ServiceHealth):
+    cluster_status: str | None = Field(default=None, description="Cluster health status")
+    node_count: int | None = Field(default=None)
+    active_shards: int | None = Field(default=None)
 
 class DatabaseHealth(ServiceHealth):
-    version: str | None = Field(None, description="Database version, e.g PgSQL 17, MSSQL 21, etc.")
-    db_name: str | None = Field(None, description="Database name")
+    version: str | None = Field(default=None, description="Database version, e.g PgSQL 17, MSSQL 21, etc.")
+    db_name: str | None = Field(default=None, description="Database name")
 
 class MedCATTrainerHealth(ServiceHealth):
     """Health check model for MedCAT Trainer web service."""

@@ -22,7 +22,9 @@ class DatabaseConfig(BaseSettings):
     database_name : str = Field(default="db_samples", validation_alias=AliasChoices("DB", "DB_NAME"))
     username: str = Field(default="test", validation_alias=AliasChoices("POSTGRES_USER_SAMPLES", "POSTGRES_USER"))
     password: SecretStr = Field(default_factory=lambda: SecretStr("test"),
-                                validation_alias=AliasChoices("POSTGRES_PASSWORD_SAMPLES", "POSTGRES_PASSWORD"))
+                                validation_alias=AliasChoices("POSTGRES_PASSWORD_SAMPLES",
+                                                              "password",
+                                                              "POSTGRES_PASSWORD"))
     timeout: PositiveInt = Field(default=60, validation_alias=AliasChoices("TIMEOUT"))
 
     def get_field_values_kwargs(self) -> dict[str, Any]:

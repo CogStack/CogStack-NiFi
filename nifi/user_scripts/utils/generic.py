@@ -79,7 +79,7 @@ def dict2jsonl_file(input_dict: dict | defaultdict, file_path: str) -> None:
             print('', file=outfile)
 
 
-def get_logger(name: str, propagate: bool = True) -> logging.Logger:
+def get_logger(name: str, propagate: bool = False) -> logging.Logger:
     """Return a configured logger shared across all NiFi clients."""
     level_name = os.getenv("NIFI_LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)

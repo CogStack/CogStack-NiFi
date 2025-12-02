@@ -49,9 +49,9 @@ class NiFiRegistryClient:
             response = requests.head(
                 url=self.config.nifi_registry_base_url,
                 auth=self.config.auth_credentials(),
-                cert=self.config.get_nifi_ssl_certs_paths(),
+                cert=self.config.get_ssl_certs_paths(),
                 verify=self.config.root_cert_ca_path,
-                timeout=timeout,
+                timeout=timeout
             )
 
             nifi_health.latency_ms = (time.perf_counter() - start) * 1000
@@ -61,11 +61,9 @@ class NiFiRegistryClient:
                 nifi_health.status = "healthy"
                 self.logger.info(f"✅ Logged in to NiFi Registry, latency {nifi_health.latency_ms:.2f} ms")
             else:
-                nifi_health.status = "unhealthy"
                 nifi_health.message = f"❌ Unexpected status code {response.status_code}"
 
         except Exception as exc:
-            nifi_health.latency_ms = (time.perf_counter() - start) * 1000
             nifi_health.message = str(exc)
             self.logger.info("❌ Failed to log in to NiFi: %s", exc)
 

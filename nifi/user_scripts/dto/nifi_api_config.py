@@ -42,6 +42,6 @@ class NiFiAPIConfig:
         """convenience for requests auth=(user, password)."""
         return (self.nifi_username, self.nifi_password)
 
-    def get_nifi_ssl_certs_paths(self) -> tuple[str, str]:
+    def get_ssl_certs_paths(self) -> tuple[str, str]:
         """convenience for requests cert=(cert_path, key_path)."""
         return (self.nifi_cert_pem_path, self.nifi_cert_key_path)
