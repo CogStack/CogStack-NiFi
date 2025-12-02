@@ -49,7 +49,7 @@ echo "==========================================================================
 
 CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}"$ROOT_CERTIFICATE_NAME".pem"
 CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}"$ROOT_CERTIFICATE_NAME".key"
-EXT_FILE= "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
+EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 # === Client cert ===
 echo "Generating a key for: $ES_CLIENT_CERT_NAME"
