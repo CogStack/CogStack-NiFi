@@ -13,6 +13,7 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
+from overrides import override
 from py4j.java_gateway import JavaObject, JVMView
 from utils.cerner_blob import DecompressLzwCernerBlob
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
@@ -96,6 +97,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
+    @override
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
