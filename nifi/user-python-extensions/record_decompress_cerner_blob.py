@@ -141,6 +141,9 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             if not isinstance(records, list):
                 records = [records]
 
+            if not records:
+                raise ValueError("No records found in JSON input")
+
             concatenated_blob_sequence_order = {}
             output_merged_record = {}
 
@@ -148,6 +151,10 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 if self.blob_sequence_order_field_name in record:
                     concatenated_blob_sequence_order[int(record[self.blob_sequence_order_field_name])] = \
                         record[self.binary_field_name]
+                else:
+                    # If no sequence field, treat as single blob
+                    if 0 not in concatenated_blob_sequence_order:
+                        concatenated_blob_sequence_order[0] = record[self.binary_field_name]
 
             # take fields from the first record, doesn't matter which one,
             # as they are expected to be the same except for the binary data field
@@ -174,6 +181,7 @@ class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 output_merged_record[self.binary_field_name] = decompress_blob.output_stream
             except Exception as exception:
                 self.logger.error(f"Error decompressing cerner blob: {str(exception)} \n")
+                raise exception
 
             if self.output_mode == "base64":
                 output_merged_record[self.binary_field_name] = \
