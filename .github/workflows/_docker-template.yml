@@ -114,7 +114,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Docker metadata (again)
-        id: meta
+        id: meta_manifest
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image }}
@@ -141,4 +141,4 @@ jobs:
               --tag "${img}:${tag}" \
               "${img}:${tag}-amd64" \
               "${img}:${tag}-arm64"
-          done < <(printf "%s" "${{ steps.meta.outputs.tags }}")
+          done < <(printf "%s" "${{ steps.meta_manifest.outputs.tags }}")
