@@ -256,7 +256,7 @@ This service is complex and is completely described in [this section](../nifi/ma
 
 ### Credentials
 
-- PgSQL: user - `admin` password - `cogstackNiFi`
+- Default user: user - `admin` password - `cogstackNiFi`
 
 ### Access
 
