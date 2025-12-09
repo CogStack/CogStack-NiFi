@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user-scripts")
+sys.path.insert(0, "/opt/nifi/user_scripts")
 
 import base64
 import io

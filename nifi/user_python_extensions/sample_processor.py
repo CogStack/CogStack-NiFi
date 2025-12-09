@@ -1,7 +1,7 @@
 import sys
 from typing import Any
 
-sys.path.insert(0, "/opt/nifi/user-scripts")
+sys.path.insert(0, "/opt/nifi/user_scripts")
 
 import io
 import json
