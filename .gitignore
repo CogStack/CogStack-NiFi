@@ -11,6 +11,7 @@ venv
 **/venv
 *.pyc 
 .pyc
+build
 
 # Ignore setuptools metadata
 *.egg-info/
