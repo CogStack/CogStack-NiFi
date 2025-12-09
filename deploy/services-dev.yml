@@ -96,9 +96,9 @@ services:
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
-      - ../nifi/user-scripts:/opt/nifi/user_scripts:rw
-      - ../nifi/user-schemas:/opt/nifi/user_schemas:rw
+      - ../nifi/user_templates:/opt/nifi/nifi-current/conf/templates:rw
+      - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+      - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
 
       # this is a direct mapping to where we store the NiFi python processors as of NiFi 2.x.x
       - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
