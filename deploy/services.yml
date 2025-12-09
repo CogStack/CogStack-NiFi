@@ -66,7 +66,7 @@ x-common-ulimits: &common-ulimits
 
 x-nifi-common: &nifi-common
   <<: *common-ulimits
-  restart: always
+  restart: unless-stopped
   env_file: *all-env
   extra_hosts: *common-hosts
   networks:
