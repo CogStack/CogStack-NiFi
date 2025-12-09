@@ -14,6 +14,6 @@ def running_in_docker() -> bool:
 
 # we need to add it to the sys imports
 if running_in_docker():
-    sys.path.insert(0, "/opt/nifi/user-scripts")
+    sys.path.insert(0, "/opt/nifi/user_scripts")
 else:
-    sys.path.insert(0, "./user-scripts")
+    sys.path.insert(0, "./user_scripts")
