@@ -10,7 +10,7 @@ pandas==1.5.3
 dill>=0.3.6,<1.0.0
 bokeh==3.8.0
 psycopg[c,binary]==3.2.9
-override==7.7.0
+override==7.5.0
 
 # used in NiFi scripts: geolocation, avro conversion etc.
 py4j==0.10.9.9
