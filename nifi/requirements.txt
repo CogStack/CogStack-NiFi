@@ -1,7 +1,5 @@
 wheel==0.45.1
 
-uv==0.9.12
-
 # data science pkgs
 nltk==3.9.1
 numpy==2.3.5
@@ -12,7 +10,7 @@ py4j==0.10.9.9
 rancoord==0.0.6
 geocoder==1.38.1
 avro==1.12.1
-nipyapi==1.0.0
+nipyapi==1.1.0
 py7zr==1.0.0
 jsonpickle==4.1.1
 xlsxwriter==3.2.9
@@ -22,6 +20,7 @@ psycopg[c,binary]==3.2.9
 requests==2.32.5
 PyYAML==6.0.3
 pydantic==2.12.5
+overrides==7.0.0
 
 # other utils
 xnat==0.7.2

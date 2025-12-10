@@ -1,7 +1,10 @@
 # Workflows
 
+<span style="color: red"><strong> IMPORTANT: This section will be revised as Workflow formats and some settings changed since the NiFi 2.0 Update</strong></span>
+
 Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) in `./nifi` directory.
 These are:
+
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
 2. `OpenSearch_ingest_DB_OCR_service_to_ES` - performing ingestion of raw notes in PDF format from database to Elasticsearch, OCR involved using the OCR-service.
 3. `OpenSearch_ingest_annotate_DB_MedCATService_to_ES` - annotating the free-text notes using MedCAT, reading from database and storing in Elasticsearch.
@@ -42,7 +45,7 @@ Before start, please see [the official Apache NiFi guide on using the web user i
 
 In this doc only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
 
-Once deployed, the Apache-NiFi web interface will be accessible from the host (e.g. localhost) machine at `http://localhost:8080`.
+Once deployed, the Apache-NiFi web interface will be accessible from the host (e.g. localhost) machine at `http://localhost:8443`.
 
 To see all available user workflow templates navigate to **Templates** window by clicking the corresponding list item as presented on the figure below.
 Following, to select an example workflow template to run, drag and drop the **template** button from the components toolbar panel to the main notepad window.
@@ -128,6 +131,7 @@ psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME -f $DATA_DIR/"new_schema.sql"
 ```
 
 After this is done , the only things that need to be changed are in the NiFi flow config, as follows:
+
   - in the "GenerateTableFetch" process (make sure it is not running, and that you right click it go to view state​ and then click on the "Clear State" button, this resets the ingested records), we change the table_name from medical_reports_text to your own custom `index_table_name` , and the Maximum-value Columns to any field that we wish to select DB rows by, preferably some unique ID field that could also be a primary key `unique_id_column` ( if it's the actual key you wish to select the documents by) .
   - in the "PutElasticsearchRecord" process, change the "Identifier Record Path" from "/docid" to "/unique_id_column"
 
@@ -159,21 +163,24 @@ The figure below presents how to execute the current workflow.
 Assuming that the services are available to be accessed on the host machine `localhost`, one can check whether the records have been indexed by Elassticsearch directly in Kibana interface by navigating to `http://localhost:5601`.
 
 Alternatively, one can run `curl` on local machine to check the number of documents ingested:
-```
-curl -s -XGET http://admin:admin@localhost:9200/medical_reports_text/_count | jq
-```
+
+  ```
+  curl -s -XGET http://admin:admin@localhost:9200/medical_reports_text/_count | jq
+  ```
+
 with the expected response:
-```
-{
-  "count": 259,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
+
+  ```
+  {
+    "count": 259,
+    "_shards": {
+      "total": 1,
+      "successful": 1,
+      "skipped": 0,
+      "failed": 0
+    }
   }
-}
-```
+  ```
 
 <br>
 
