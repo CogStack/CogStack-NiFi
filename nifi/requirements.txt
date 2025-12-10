@@ -10,6 +10,7 @@ pandas==1.5.3
 dill>=0.3.6,<1.0.0
 bokeh==3.8.0
 psycopg[c,binary]==3.2.9
+override==7.7.0
 
 # used in NiFi scripts: geolocation, avro conversion etc.
 py4j==0.10.9.9
@@ -34,7 +35,6 @@ xnat==0.7.2
 opensearch-py==3.0.0
 elasticsearch9==9.1.0
 neo4j==5.28.2
-eland==9.0.1
 
 # git utils
 dvc==3.62.0
