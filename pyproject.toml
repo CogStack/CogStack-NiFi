@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 120
-exclude = ["nifi/user-scripts/legacy_scripts", "services"]
+exclude = ["nifi/user_scripts/legacy_scripts", "services"]
 target-version = "py311"
 indent-width = 4
 
@@ -46,7 +46,7 @@ exclude = [
 
 [project]
 name = "cogstack_nifi"
-version = "0.1.0"
+version = "0.0.1"
 requires-python = ">=3.11"
 
 [build-system]
