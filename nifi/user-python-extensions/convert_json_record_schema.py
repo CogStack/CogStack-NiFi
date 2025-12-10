@@ -8,11 +8,7 @@ from collections import defaultdict
 from typing import Any
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
-from nifiapi.properties import (
-    ProcessContext,
-    PropertyDescriptor,
-    StandardValidators,
-)
+from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValidators
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
@@ -44,6 +40,7 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
 
         self.json_mapper_schema_path: str = "/opt/nifi/user-schemas/json/cogstack_common_schema_mapping.json"
         self.preserve_non_mapped_fields: bool = True
+        self.composite_first_non_empty_field: list[str] = []
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -59,7 +56,12 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
                                default_value="true",
                                required=True,
                                allowable_values=["true", "false"],
-                               validators=[StandardValidators.BOOLEAN_VALIDATOR])
+                               validators=[StandardValidators.BOOLEAN_VALIDATOR]),
+            PropertyDescriptor(name="composite_first_non_empty_field",
+                    description="List of fields that are composite fields taking the first non-empty value e.g."
+                    " 'new_field_mapping': [field1, field2] if field1 is empty then field2 is taken",
+                    default_value="",
+                    required=False)
         ]
 
         self._relationships = [
@@ -93,6 +95,7 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
         
         # reverse the json_mapper_schema to map old_field -> new_field
         json_mapper_schema_reverse = defaultdict(list)
+
         for new_field, old_field in json_mapper_schema.items():
             # skip nulls & composite fields
             if isinstance(old_field, str) and old_field:
@@ -110,15 +113,27 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
 
         # Add preset fields defined with null in schema
         for new_field, old_field in json_mapper_schema.items():
-            if old_field is None:
-                new_record.setdefault(new_field, None)
-            elif isinstance(old_field, list):
-                parts = []
-                for sub_field in old_field:
-                    val = record.get(sub_field)
-                    if val is not None and val != "":
-                        parts.append(str(val))
-                new_record[new_field] = "\n".join(parts) if parts else None
+                if old_field is None:
+                    new_record.setdefault(new_field, None)
+
+                elif isinstance(old_field, list):
+                    if new_field in self.composite_first_non_empty_field:
+                        # take first non-empty
+                        value = None
+                        for sub_field in old_field:
+                            val = record.get(sub_field)
+                            if val not in (None, ""):
+                                value = str(val)
+                                break
+                        new_record[new_field] = value
+                    else:
+                        # concatenate all non-empty values with newline
+                        parts: list[str] = []
+                        for sub_field in old_field:
+                            val = record.get(sub_field)
+                            if val not in (None, ""):
+                                parts.append(str(val))
+                        new_record[new_field] = "\n".join(parts) if parts else None
 
         return new_record
 
