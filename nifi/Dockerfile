@@ -83,9 +83,6 @@ RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip
 COPY ./requirements.txt ./requirements.txt
 RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt"
 
-# install MedCAT from the working with cogstack repo (as it is assumed to be stable and the latest version)
-RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r https://raw.githubusercontent.com/CogStack/working_with_cogstack/refs/heads/main/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu/
- 
 #######################################################################################################
 
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
