@@ -134,7 +134,7 @@ class ParseCogStackServiceResult(BaseNiFiProcessor):
 
                     _record = {}
                     _record["metadata"] = result.get("metadata", {})
-                    _record["text"] = result.get("text", "")
+                    _record[self.output_text_field_name] = result.get("text", "")
                     _record["success"] = result.get("success", False)
                     _record["timestamp"] = result.get("timestamp", None)
 
