@@ -379,9 +379,9 @@ services:
     container_name: cogstack-metricbeat-3
     volumes:
       - metricbeat-data-3:/usr/share/metricbeat/data
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
 
   filebeat-1:
     <<: *filebeat-common
@@ -554,11 +554,11 @@ services:
       - no_proxy=$no_proxy
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
-      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-./conf/keystore.jks}
+      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-./conf/truststore.jks}
+      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
 
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
       - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
@@ -573,11 +573,11 @@ services:
           memory: "${NIFI_REGISTRY_DOCKER_RAM}"
         reservations:
           cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
-          memory: "${NIFI_REGISTRY_DOCKER_RAM}" 
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
+      - ../security:/security:ro
+
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
       - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
       - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
