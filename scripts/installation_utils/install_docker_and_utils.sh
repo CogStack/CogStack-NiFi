@@ -15,7 +15,6 @@ then
     # monitoring
     sudo apt-get install -y htop iotop sysstat
 
-    sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip python3-full libssl-dev zip unzip tar nano gcc make python3-dev build-essential software-properties-common
 
     sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
@@ -53,8 +52,6 @@ then
 
     # monitoring
     sudo yum install htop iotop sysstat
-
-    sudo yum install libreoffice-base libreoffice-writer
   
     sudo yum remove -y docker \
                     docker-client \
