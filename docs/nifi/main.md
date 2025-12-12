@@ -25,9 +25,9 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 ├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
 ├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
 ├── nifi-app.log - log file mounted directly from the container for easy log checking
-├── user-schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
-├── user-scripts - custom scripts used in workflows, you can put them here
-└── user-templates - here we store the fully exported templates of the workflows within NiFi
+├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
+├── user_scripts - custom scripts used in workflows, you can put them here
+└── user_templates - here we store the fully exported templates of the workflows within NiFi
 ```
 
 ## Custom Docker image
