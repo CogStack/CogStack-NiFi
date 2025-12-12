@@ -2,7 +2,8 @@
 
 echo "This script must be run with root privileges."
 
-os_distribution="$(exec ./detect_os.sh)"
+os_distribution="$(sudo bash ./detect_os.sh)"
+
 echo "Found distribution: $os_distribution "
 
 if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
