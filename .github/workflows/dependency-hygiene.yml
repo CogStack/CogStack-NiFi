@@ -1,0 +1,42 @@
+name: dependency-hygiene
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # weekly Monday UTC
+  pull_request:
+    paths:
+      - "docs/requirements.txt"
+      - "nifi/requirements.txt"
+      - "scripts/maintenance/audit_pip_dependency.sh"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('docs/requirements.txt', 'nifi/requirements.txt', 'scripts/maintenance/audit_pip_dependency.sh') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: python -m pip install --upgrade pip pip-audit
+
+      - name: Ensure script is executable
+        run: chmod +x scripts/maintenance/audit_pip_dependency.sh
+
+      - name: Run dependency audit
+        run: ./scripts/maintenance/audit_pip_dependency.sh --include-nifi

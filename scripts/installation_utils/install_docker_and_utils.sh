@@ -2,7 +2,8 @@
 
 echo "This script must be run with root privileges."
 
-os_distribution="$(exec ./detect_os.sh)"
+os_distribution="$(sudo bash ./detect_os.sh)"
+
 echo "Found distribution: $os_distribution "
 
 if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
@@ -15,7 +16,6 @@ then
     # monitoring
     sudo apt-get install -y htop iotop sysstat
 
-    sudo apt-get install -y --no-install-recommends libreoffice-core libreoffice-writer
     sudo apt-get install -y jq wget curl gnupg-agent git ca-certificates apt-transport-https python3 python3-pip python3-full libssl-dev zip unzip tar nano gcc make python3-dev build-essential software-properties-common
 
     sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/$os_distribution $(lsb_release -cs) stable"
@@ -23,6 +23,9 @@ then
     sudo install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    echo "Installing Azure CLI..."
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
     echo \
     "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
@@ -53,8 +56,6 @@ then
 
     # monitoring
     sudo yum install htop iotop sysstat
-
-    sudo yum install libreoffice-base libreoffice-writer
   
     sudo yum remove -y docker \
                     docker-client \
@@ -69,6 +70,10 @@ then
 
     # install necessary prerequisites
     sudo yum install -y jq yum-utils wget curl git device-mapper-persistent-data lvm2 python3 python3-pip libffi-devel openssl-devel zip unzip tar nano gcc gcc-c++ make python3-devel libevent-devel
+
+    echo "Installing Azure CLI..."
+    sudo rpm --import https://packages.microsoft.com/keys/microsoft-2025.asc
+    sudo dnf install azure-cli
     
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum-config-manager --enable docker-ce-stable
@@ -99,3 +104,4 @@ echo "Finished installing docker and utils.."
 sudo sysctl -w vm.max_map_count=262144
 
 sudo sh -c "echo 'vm.max_map_count=262144' >> /etc/sysctl.conf"
+sudo sysctl -p 
