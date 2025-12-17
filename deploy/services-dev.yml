@@ -115,7 +115,7 @@ services:
       - cognet
 
   nifi-registry-flow:
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.0}
+    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.1}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     restart: always
