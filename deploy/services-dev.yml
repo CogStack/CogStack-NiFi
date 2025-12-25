@@ -143,7 +143,7 @@ services:
     logging: *nifi-logging-common
  
   nifi-registry-flow:
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.0}
+    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.1}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     shm_size: ${NIFI_REGISTRY_SHM_SIZE:-"1g"}

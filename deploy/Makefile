@@ -86,7 +86,7 @@ start-production-db:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
 start-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.yml ${DC_START_CMD} ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
 
 start-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} gitea
@@ -155,7 +155,7 @@ stop-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea
 
 stop-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.yml ${DC_STOP_CMD} ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_STOP_CMD) ocr-service ocr-service-text-only
 
 stop-production-db:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
