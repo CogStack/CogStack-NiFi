@@ -25,9 +25,9 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 ├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
 ├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
 ├── nifi-app.log - log file mounted directly from the container for easy log checking
-├── user-schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
-├── user-scripts - custom scripts used in workflows, you can put them here
-└── user-templates - here we store the fully exported templates of the workflows within NiFi
+├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
+├── user_scripts - custom scripts used in workflows, you can put them here
+└── user_templates - here we store the fully exported templates of the workflows within NiFi
 ```
 
 ## Custom Docker image
@@ -85,14 +85,14 @@ nifi.flow.configuration.archive.max.time=1 days
 nifi.flow.configuration.archive.max.storage=12 GB
 ```
 
-By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The ```nifi.flow.configuration.archive.max.time``` sets the max duration, max size configurable via ```nifi.flow.configuration.archive.max.storage```, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
+By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The `nifi.flow.configuration.archive.max.time` sets the max duration, max size configurable via `nifi.flow.configuration.archive.max.storage`, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
 
 Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 <br><br>
 
 #### IMPORTANT NOTE about nifi properties
 
-:::{admonition} IMPORTANT NOTE about `nifi.properties
+:::{admonition} IMPORTANT NOTE about `nifi.properties`
 :class: warning
 For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.
 :::
