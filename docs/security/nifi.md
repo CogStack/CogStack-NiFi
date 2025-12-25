@@ -41,7 +41,7 @@ Before starting the NIFI container it's important to take note of the following 
 - **(OPTIONAL, DO NOT USE FOR NIFI VERSION >= 2.0)** the `nifi_toolkit_security.sh` script is used to download the nifi toolkit and generate new certificates and keys that are used by the container, take note that inside the `localhost` folder there is another nifi.properties file that is generated, we must look to the following setttings which are generated randomly and copy them to the `nifi/conf/nifi.properties` file.
 - the trust/store keys generated for production will be in the `nifi_certificates/localhost` folder and  the `nifi-cert.pem` + `nifi-key.key` files. in the base `nifi_certificates` folder.
 
-- as part of the security process the `nifi.sensitive.props.key` should be set to a random string or a password of minimum 12 characters. Once this is set do NOT modify it as all the other sensitive passwords will be hashed with this string. By default this is set to <strong>```cogstackNiFipass```</strong>
+- as part of the security process the `nifi.sensitive.props.key` should be set to a random string or a password of minimum 12 characters. Once this is set do NOT modify it as all the other sensitive passwords will be hashed with this string. By default this is set to <strong><code>cogstackNiFipass</code></strong>
 Example (`nifi/conf/nifi.properties`):
 
 ```properties
@@ -54,7 +54,7 @@ Example (`nifi/conf/nifi.properties`):
 
 ### Setting up access via user account (SINGLE USER CREDETIAL)
 
-<strong>This is entirely optional, if you have configered the security certs as described in ```security/README.md``` then you are good to go.</strong>
+<strong>This is entirely optional, if you have configered the security certs as described in <code>security/README.md</code> then you are good to go.</strong>
 <br>
 Default username :
 <br>

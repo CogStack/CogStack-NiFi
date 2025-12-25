@@ -85,14 +85,14 @@ nifi.flow.configuration.archive.max.time=1 days
 nifi.flow.configuration.archive.max.storage=12 GB
 ```
 
-By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The ```nifi.flow.configuration.archive.max.time``` sets the max duration, max size configurable via ```nifi.flow.configuration.archive.max.storage```, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
+By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The `nifi.flow.configuration.archive.max.time` sets the max duration, max size configurable via `nifi.flow.configuration.archive.max.storage`, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
 
 Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 <br><br>
 
 #### IMPORTANT NOTE about nifi properties
 
-:::{admonition} IMPORTANT NOTE about `nifi.properties
+:::{admonition} IMPORTANT NOTE about `nifi.properties`
 :class: warning
 For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.
 :::
