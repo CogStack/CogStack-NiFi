@@ -18,7 +18,7 @@ from nifiapi.properties import (
     StandardValidators,
 )
 from nifiapi.relationship import Relationship
-from overrides import override
+from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.avro_json_encoder import AvroJSONEncoder
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
@@ -82,7 +82,7 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
 
-    @override
+    @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
 
         output_contents: list = []

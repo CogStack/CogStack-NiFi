@@ -18,7 +18,7 @@ from nifiapi.properties import (
     StandardValidators,
 )
 from nifiapi.relationship import Relationship
-from overrides import override
+from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
@@ -86,7 +86,7 @@ class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
 
-    @override
+    @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms an Avro flow file by converting a specified binary field to a base64-encoded string.

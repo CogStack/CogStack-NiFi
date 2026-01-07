@@ -2,9 +2,12 @@ wheel==0.45.1
 
 # data science pkgs
 nltk==3.9.1
-numpy==2.3.5
-pandas==2.3.3
-pyarrow==22.0.0
+numpy>=1.26.0,<2.0.0
+pandas==1.5.3
+dill>=0.3.6,<1.0.0
+bokeh==3.8.2
+psycopg[c,binary]==3.2.9
+overrides==7.0.0
 
 # used in NiFi scripts: geolocation, avro conversion etc.
 py4j==0.10.9.9
@@ -17,7 +20,6 @@ jsonpickle==4.1.1
 xlsxwriter==3.2.9
 mysql-connector-python==9.5.0
 pymssql==2.3.9
-psycopg[c,binary]==3.2.9
 requests==2.32.5
 PyYAML==6.0.3
 pydantic==2.12.5

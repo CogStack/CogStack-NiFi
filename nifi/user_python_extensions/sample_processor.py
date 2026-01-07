@@ -6,7 +6,6 @@ sys.path.insert(0, "/opt/nifi/user_scripts")
 import io
 import json
 import traceback
-from logging import Logger
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
