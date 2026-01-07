@@ -17,7 +17,7 @@ from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class ParseCogStackServiceResult(BaseNiFiProcessor):
+class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
     """ Normalises JSON responses from CogStack OCR or MedCAT services, reading each FlowFile,
     coercing single objects to lists.
     Exposes configurable properties for output text field name, service message type,

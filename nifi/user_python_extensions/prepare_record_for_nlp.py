@@ -20,7 +20,7 @@ from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class PrepareRecordForNlp(BaseNiFiProcessor):
+class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']

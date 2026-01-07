@@ -23,7 +23,7 @@ from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class ConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
+class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
     """NiFi Python processor to convert a binary field in Avro records to base64-encoded string.
 
     Reads each FlowFile as Avro, locates the configured binary_field_name, and rewrites the Avro schema,

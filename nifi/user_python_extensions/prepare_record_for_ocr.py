@@ -24,7 +24,7 @@ from utils.helpers.avro_json_encoder import AvroJSONEncoder
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class PrepareRecordForOcr(BaseNiFiProcessor):
+class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
 
     class Java:
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']

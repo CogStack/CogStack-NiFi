@@ -21,7 +21,7 @@ from utils.generic import download_file_from_url, safe_delete_paths
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class JsonRecordAddGeolocation(BaseNiFiProcessor):
+class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
     """NiFi Python processor to add geolocation data to JSON records based on postcode lookup.
        We use https://www.getthedata.com/open-postcode-geo for geolocation.
        The schema of the file used is available at: https://www.getthedata.com/open-postcode-geo

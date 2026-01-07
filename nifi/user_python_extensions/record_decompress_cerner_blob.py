@@ -19,7 +19,7 @@ from utils.cerner_blob import DecompressLzwCernerBlob
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class JsonRecordDecompressCernerBlob(BaseNiFiProcessor):
+class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
     """ This script decompresses Cerner LZW compressed blobs from a JSON input stream.
     It expects a JSON array of records, each containing a field with the binary data.
     All RECORDS are expected to have the same fields, and presumably belonging to the same DOCUMENT.
