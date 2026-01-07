@@ -2,7 +2,7 @@ import logging
 from logging import Logger
 from typing import Generic, TypeVar
 
-from nifiapi.flowfiletransform import FlowFileTransform
+from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import (
     ProcessContext,
     PropertyDescriptor,
@@ -131,6 +131,28 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
             if hasattr(self, name):
                 setattr(self, name, val)
             self.logger.debug(f"property set '{name}' -> {val!r} (type={type(val).__name__})")
+
+    def build_failure_result(
+        self,
+        flowFile: JavaObject,
+        exception: Exception,
+        *,
+        include_flowfile_attributes: bool = False,
+    ) -> FlowFileTransformResult:
+        exception_name = type(exception).__name__
+        exception_message = str(exception)
+        exception_value = (
+            f"{exception_name}: {exception_message}" if exception_message else exception_name
+        )
+        attributes = {}
+        if include_flowfile_attributes:
+            attributes = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["exception"] = exception_value
+        return FlowFileTransformResult(
+            relationship="failure",
+            attributes=attributes,
+            contents=flowFile.getContentsAsBytes(),
+        )
 
     def onScheduled(self, context: ProcessContext) -> None:
         """
