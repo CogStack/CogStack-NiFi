@@ -8,7 +8,7 @@ import avro
 from avro.datafile import DataFileWriter
 from avro.io import DatumWriter
 
-log_file_path = "/opt/nifi/user-scripts/logs/parse_json/parse-json-to-avro_file_"
+log_file_path = "/opt/nifi/user_scripts/logs/parse_json/parse-json-to-avro_file_"
 
 time = str(time.now().timestamp())
 
@@ -39,7 +39,7 @@ avro_schema = avro.schema.parse(json.dumps(schema))
 
 file_id = str(uuid.uuid4().hex) 
 
-tmp_file_path = os.path.join("/opt/nifi/user-scripts/tmp/" + file_id + ".avro")
+tmp_file_path = os.path.join("/opt/nifi/user_scripts/tmp/" + file_id + ".avro")
 
 with open(tmp_file_path, mode="wb+") as tmp_file:
     writer = DataFileWriter(tmp_file, DatumWriter(), avro_schema)

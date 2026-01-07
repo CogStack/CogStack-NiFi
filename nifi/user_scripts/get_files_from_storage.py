@@ -15,7 +15,7 @@ import pandas
 # we are looking at anything after the 1st arg (which is the script name)
 # example args: 
 # [
-#  '/opt/nifi/user-scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/',
+#  '/opt/nifi/user_scripts/get_files_from_storage.py', 'root_project_data_dir=/opt/data/',
 #  'folder_pattern=.*\\d{4}\\/\\d{2}\\/\\d{2}', 'folder_to_ingest=2022', 
 #  'file_id_csv_column_name_match=file_name_id_no_ext'
 #  ]
@@ -57,7 +57,7 @@ for arg in sys.argv:
 
 # This is the DATA directory inside the postgres database Docker image, or it could be a folder on the local system
 processed_folder_dump = "processed_" + folder_to_ingest
-processed_folder_dump_path = os.path.join(str(os.environ.get("NIFI_USER_SCRIPT_LOGS_DIR", "/opt/nifi/user-scripts/logs/")), processed_folder_dump)
+processed_folder_dump_path = os.path.join(str(os.environ.get("NIFI_USER_SCRIPT_LOGS_DIR", "/opt/nifi/user_scripts/logs/")), processed_folder_dump)
 processed_folder_dump_path = processed_folder_dump_path.replace("\"", "").replace("\'", "")
 
 # log file name
