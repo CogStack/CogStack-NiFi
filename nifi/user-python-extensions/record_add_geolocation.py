@@ -15,7 +15,7 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from overrides import override
+from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from utils.generic import download_file_from_url, safe_delete_paths
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
@@ -91,7 +91,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @override
+    @overrides
     def onScheduled(self, context: ProcessContext) -> None:
         """ Initializes processor resources when scheduled.
         Args:
@@ -158,7 +158,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
 
         return file_found
 
-    @override
+    @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> list[FlowFileTransformResult]:
         """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
         Args:
