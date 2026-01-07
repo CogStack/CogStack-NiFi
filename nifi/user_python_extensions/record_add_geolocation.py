@@ -57,7 +57,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         super().__init__(jvm)
 
         self.lookup_datafile_url: str = "https://download.getthedata.com/downloads/open_postcode_geo.csv.zip"
-        self.lookup_datafile_path: str = "/opt/nifi/user-scripts/db/open_postcode_geo.csv"
+        self.lookup_datafile_path: str = "/opt/nifi/user_scripts/db/open_postcode_geo.csv"
         self.postcode_field_name: str = "address_postcode"
         self.geolocation_field_name: str = "address_geolocation"
 
@@ -75,7 +75,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
                                description="specify the local path for the geolocation lookup datafile csv",
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR],
-                               default_value="/opt/nifi/user-scripts/db/open_postcode_geo.csv"),
+                               default_value="/opt/nifi/user_scripts/db/open_postcode_geo.csv"),
             PropertyDescriptor(name="postcode_field_name",
                                description="postcode field name in the records",
                                required=True,
@@ -119,7 +119,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
             bool: file exists or not
         """
 
-        base_output_extract_dir_path: str = "/opt/nifi/user-scripts/db"
+        base_output_extract_dir_path: str = "/opt/nifi/user_scripts/db"
         output_extract_dir_path: str = os.path.join(base_output_extract_dir_path, "open_postcode_geo")
         output_download_path: str = os.path.join(base_output_extract_dir_path, "open_postcode_geo.zip")
         datafile_csv_initial_path: str = os.path.join(output_extract_dir_path, "open_postcode_geo.csv")
@@ -159,7 +159,7 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
         return file_found
 
     @override
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> list[FlowFileTransformResult]:
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
         Args:
             context (ProcessContext): The process context.
@@ -213,35 +213,15 @@ class JsonRecordAddGeolocation(BaseNiFiProcessor):
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["mime.type"] = "application/json"
 
-            results: list[FlowFileTransformResult] = []
-
-            if valid_records:
-                results.append(
-                    FlowFileTransformResult(
-                        relationship="success",
-                        attributes=attributes,
-                        contents=json.dumps(valid_records).encode("utf-8"),
-                    )
-                )
-
             if error_records:
-                error_attrs = attributes.copy()
-                error_attrs["record.count.errors"] = str(len(error_records))
-                results.append(
-                    FlowFileTransformResult(
-                        relationship="failure",
-                        attributes=error_attrs,
-                        contents=json.dumps(error_records).encode("utf-8"),
-                    )
-                )
+                attributes["record.count.errors"] = str(len(error_records))
+            attributes["record.count"] = str(len(valid_records))
 
-            return results
-        except Exception:
+            return FlowFileTransformResult(
+                relationship="success",
+                attributes=attributes,
+                contents=json.dumps(valid_records).encode("utf-8"),
+            )
+        except Exception as exception:
             self.logger.error("Exception during flowfile processing:\n" + traceback.format_exc())
-            return [
-                FlowFileTransformResult(
-                    relationship="failure",
-                    contents=flowFile.getContentsAsBytes(),
-                    attributes={"exception": "unhandled processing error"},
-                )
-            ]
+            return self.build_failure_result(flowFile, exception)
