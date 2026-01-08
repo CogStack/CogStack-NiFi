@@ -148,7 +148,94 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
         # comma-separated fallback
         return [x.strip() for x in raw.split(",") if x.strip()]
 
+    def _render_list_items(
+            self,
+            items: list[dict],
+            keys: list[str] = ["label", "valueText", "valueNum", "valueDate", "comment"],
+        ) -> str | None:
+            """
+            Render a list of dict items (typically nested records such as `document_Fields`)
+            into a readable multi-line text block for use inside composite fields like `document_Content`.
 
+            Each item is rendered by extracting the first non-empty values for the provided `keys`
+            (in the given order). The formatting is:
+
+                <label>: <valueText> | <valueNum> | <valueDate> | <comment>
+
+            - If only one value is present, it is emitted as a single token.
+            - Empty / null / empty-collection values are skipped.
+            - Items with no non-empty values are skipped.
+            - Items are separated by a blank line.
+
+            Args:
+                items: List of dict objects to render (e.g. record["document_Fields"]).
+                keys: Ordered list of keys to pull from each dict. Defaults to the schema
+                    produced by your ES nested field mapping:
+                    ["label", "valueText", "valueNum", "valueDate", "comment"].
+
+            Returns:
+                A string containing the rendered content, or None if nothing could be rendered.
+            """
+
+
+            lines: list[str] = []
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+
+                vals: list[str] = []
+                for k in keys:
+                    v = it.get(k)
+                    if v not in (None, "", [], {}):
+                        vals.append(str(v))
+
+                if not vals:
+                    continue
+
+                # nice formatting: label: rest...
+                if len(vals) > 1:
+                    lines.append(f"{vals[0]}: " + " | ".join(vals[1:]))
+                else:
+                    lines.append(vals[0])
+
+            return "\n\n".join(lines) if lines else None
+
+    def _value_for_composite(self, record: dict, field_name: str) -> str | None:
+        """
+        Resolve a single entry referenced by a composite field mapping.
+
+        This is used when a mapping specifies something like:
+            "document_Content": ["OrderingComment", "SchedulingInstructions", "document_Fields"]
+
+        Behaviour:
+        - If record[field_name] is a scalar (str/int/float/bool/date-like), it is stringified.
+        - If record[field_name] is a list of dicts, it is rendered via `_render_list_items()`.
+        - If record[field_name] is a dict or a non-dict list, it is ignored (returns None)
+            to avoid dumping structured JSON into text fields.
+        - Missing / null / empty-string values return None.
+
+        Args:
+            record: The input record being mapped.
+            field_name: A top-level field name referenced by a composite mapping entry.
+
+        Returns:
+            A string suitable for concatenation into the composite output field, or None if the
+            field is missing / empty / unsupported for text rendering.
+        """
+
+        val = record.get(field_name)
+        if val in (None, ""):
+            return None
+
+        # list-of-dicts => render as Q&A-ish text
+        if isinstance(val, list) and all(isinstance(x, dict) for x in val):
+            return self._render_list_items(val)
+
+        # scalar => stringify
+        if isinstance(val, dict | list):
+            return None  # avoid dumping raw objects
+        return str(val)
+    
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
         Maps the fields of a record to new field names based on the provided JSON schema mapping.
@@ -185,6 +272,11 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
             if old_field is None:
                 # only set if missing (supports dotted destination too)
                 # (simple check: if top-level key exists, don't overwrite)
+                # Composite fields:
+                # - For scalars: concatenate values as strings (newline-separated).
+                # - For list[dict] values: render them into readable Q&A-like text using
+                #   keys ["label","valueText","valueNum","valueDate","comment"] and append
+                #   to the composite output (e.g. document_Content).
                 top = new_field.split(".", 1)[0]
                 if "." not in new_field:
                     new_record.setdefault(new_field, None)
@@ -197,17 +289,17 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
                 if new_field in self.composite_first_non_empty_field:
                     value = None
                     for sub_field in old_field:
-                        val = record.get(sub_field)
-                        if val not in (None, ""):
-                            value = str(val)
+                        rendered = self._value_for_composite(record, sub_field)
+                        if rendered not in (None, ""):
+                            value = rendered
                             break
                     self._set_field(new_record, new_field, value)
                 else:
                     parts: list[str] = []
                     for sub_field in old_field:
-                        val = record.get(sub_field)
-                        if val not in (None, ""):
-                            parts.append(str(val))
+                        rendered = self._value_for_composite(record, sub_field)
+                        if rendered not in (None, ""):
+                            parts.append(rendered)
                     self._set_field(new_record, new_field, "\n".join(parts) if parts else None)
 
         # 3) apply nested schema to container fields (dict or list[dict])
