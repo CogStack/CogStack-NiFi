@@ -158,7 +158,7 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
 
         return file_found
 
-    @override
+    @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
         Args:

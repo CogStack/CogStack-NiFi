@@ -15,10 +15,19 @@ from py4j.java_gateway import JavaObject, JVMView
 from utils.helpers.base_nifi_processor import BaseNiFiProcessor
 
 
-class CogStackConvertJsonRecordSchema(BaseNiFiProcessor):
-    """Remaps each incoming JSON record (single dict or list of dicts)
-    using a lookup loaded from json_mapper_schema_path, 
-    so the FlowFile content conforms to the common schema defined under /opt/nifi/user-schemas/json.
+class ConvertJsonRecordSchema(BaseNiFiProcessor):
+    """
+        Remaps each incoming JSON record (single dict or list of dicts) using a lookup loaded from
+        json_mapper_schema_path.
+
+        Supports:
+        - simple renames: {"new_field": "old_field"}
+        - constants/null placeholders: {"new_field": null}
+        - composite concatenation: {"new_field": ["field1", "field2", ...]}
+        - dotted destination keys for nesting: {"a.b.c": "old_field"} => {"a": {"b": {"c": value}}}
+        - dotted destination keys applied to nested dict/list containers:
+            {"document_Fields.valueText": "Answer"} will be applied to each object in record["document_Fields"]
+            if document_Fields is a list[dict].
 
     For every mapping entry it can rename fields, populate constant null placeholders,
     or stitch together composite fields by concatenating multiple source values with newline separators.
@@ -79,6 +88,67 @@ class CogStackConvertJsonRecordSchema(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
 
+    # -----------------------------
+    # Helpers for nested destinations
+    # -----------------------------
+    @staticmethod
+    def _set_nested(out: dict, dotted_key: str, value: Any) -> None:
+        parts = dotted_key.split(".")
+        cur = out
+        for p in parts[:-1]:
+            nxt = cur.get(p)
+            if nxt is None:
+                nxt = {}
+                cur[p] = nxt
+            elif not isinstance(nxt, dict):
+                raise ValueError(f"Cannot nest into '{dotted_key}': '{p}' is not an object")
+            cur = nxt
+        cur[parts[-1]] = value
+
+    def _set_field(self, out: dict, key: str, value: Any) -> None:
+        if "." in key:
+            self._set_nested(out, key, value)
+        else:
+            out[key] = value
+
+    @staticmethod
+    def _split_schema(schema: dict) -> tuple[dict, dict[str, dict]]:
+        """
+        Splits schema into:
+          flat_schema: keys without a dot
+          nested_schema: {container: {subpath: old_field}}
+        Example:
+          "document_Fields.valueText": "Answer"
+        becomes:
+          nested_schema["document_Fields"]["valueText"] = "Answer"
+        """
+        flat: dict = {}
+        nested: dict[str, dict] = defaultdict(dict)
+        for new_field, old_field in schema.items():
+            if "." in new_field:
+                container, subpath = new_field.split(".", 1)
+                nested[container][subpath] = old_field
+            else:
+                flat[new_field] = old_field
+        return flat, nested
+
+    @staticmethod
+    def _parse_list_property(raw: str) -> list[str]:
+        raw = (raw or "").strip()
+        if not raw:
+            return []
+        # JSON list?
+        if raw.startswith("["):
+            try:
+                val = json.loads(raw)
+                if isinstance(val, list):
+                    return [str(x).strip() for x in val if str(x).strip()]
+            except Exception:
+                pass
+        # comma-separated fallback
+        return [x.strip() for x in raw.split(",") if x.strip()]
+
+
     def map_record(self, record: dict, json_mapper_schema: dict) -> dict:
         """
         Maps the fields of a record to new field names based on the provided JSON schema mapping.
@@ -93,48 +163,73 @@ class CogStackConvertJsonRecordSchema(BaseNiFiProcessor):
         """
 
         new_record: dict = {}
-        
-        # reverse the json_mapper_schema to map old_field -> new_field
-        json_mapper_schema_reverse = defaultdict(list)
 
-        for new_field, old_field in json_mapper_schema.items():
-            # skip nulls & composite fields
+        flat_schema, nested_schema = self._split_schema(json_mapper_schema)
+
+        # reverse mapping for direct renames: old_field -> [new_field...]
+        reverse = defaultdict(list)
+        for new_field, old_field in flat_schema.items():
             if isinstance(old_field, str) and old_field:
-                json_mapper_schema_reverse[old_field].append(new_field)
+                reverse[old_field].append(new_field)
 
-        # Iterate through existing record fields
+        # 1) rename / preserve fields at this level
         for curr_field_name, curr_field_value in record.items():
-            if curr_field_name in json_mapper_schema_reverse:
-                # multiple new fields can receive same source value
-                for new_field_name in json_mapper_schema_reverse[curr_field_name]:
-                    new_record[new_field_name] = curr_field_value
+            if curr_field_name in reverse:
+                for new_field_name in reverse[curr_field_name]:
+                    self._set_field(new_record, new_field_name, curr_field_value)
             elif self.preserve_non_mapped_fields:
-                # preserve original fields not defined in mapping
                 new_record[curr_field_name] = curr_field_value
 
-        # Add preset fields defined with null in schema
-        for new_field, old_field in json_mapper_schema.items():
-                if old_field is None:
+        # 2) add null placeholders + composite fields at this level
+        for new_field, old_field in flat_schema.items():
+            if old_field is None:
+                # only set if missing (supports dotted destination too)
+                # (simple check: if top-level key exists, don't overwrite)
+                top = new_field.split(".", 1)[0]
+                if "." not in new_field:
                     new_record.setdefault(new_field, None)
+                else:
+                    # nested: set only if not present
+                    if top not in new_record:
+                        self._set_field(new_record, new_field, None)
+                    # if top exists, we avoid overwriting to keep behavior conservative
+            elif isinstance(old_field, list):
+                if new_field in self.composite_first_non_empty_field:
+                    value = None
+                    for sub_field in old_field:
+                        val = record.get(sub_field)
+                        if val not in (None, ""):
+                            value = str(val)
+                            break
+                    self._set_field(new_record, new_field, value)
+                else:
+                    parts: list[str] = []
+                    for sub_field in old_field:
+                        val = record.get(sub_field)
+                        if val not in (None, ""):
+                            parts.append(str(val))
+                    self._set_field(new_record, new_field, "\n".join(parts) if parts else None)
 
-                elif isinstance(old_field, list):
-                    if new_field in self.composite_first_non_empty_field:
-                        # take first non-empty
-                        value = None
-                        for sub_field in old_field:
-                            val = record.get(sub_field)
-                            if val not in (None, ""):
-                                value = str(val)
-                                break
-                        new_record[new_field] = value
+        # 3) apply nested schema to container fields (dict or list[dict])
+        for container, sub_schema in nested_schema.items():
+            src = record.get(container)
+
+            if isinstance(src, list):
+                out_list: list[Any] = []
+                for item in src:
+                    if isinstance(item, dict):
+                        out_list.append(self.map_record(item, sub_schema))
                     else:
-                        # concatenate all non-empty values with newline
-                        parts: list[str] = []
-                        for sub_field in old_field:
-                            val = record.get(sub_field)
-                            if val not in (None, ""):
-                                parts.append(str(val))
-                        new_record[new_field] = "\n".join(parts) if parts else None
+                        out_list.append(item)
+                new_record[container] = out_list
+
+            elif isinstance(src, dict):
+                new_record[container] = self.map_record(src, sub_schema)
+
+            else:
+                # container missing or scalar -> leave as-is/preserved
+                # (if preserve_non_mapped_fields was true, it is already in new_record)
+                pass
 
         return new_record
 
