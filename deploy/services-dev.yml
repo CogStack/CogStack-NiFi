@@ -113,7 +113,7 @@ services:
       - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
       # this is where you should place data to be ingested, under the form of symbolic
-      - ./${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
+      - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
 
       # DB-schemas, from the services folder
       - ../services/cogstack-db/:/opt/cogstack-db/:rw
