@@ -24,6 +24,7 @@ requests==2.32.5
 PyYAML==6.0.3
 pydantic==2.12.5
 overrides==7.0.0
+pyarrow==22.0.0
 
 # other utils
 xnat==0.7.2
