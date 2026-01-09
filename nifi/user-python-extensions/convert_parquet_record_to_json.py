@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, "/opt/nifi/user_scripts")
+sys.path.insert(0, "/opt/nifi/user-scripts")
 
 import io
 import json
