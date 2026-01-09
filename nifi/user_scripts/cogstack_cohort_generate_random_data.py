@@ -15,7 +15,7 @@ PATIENT_GENDER_FIELD_NAME = "gender"
 PATIENT_BIRTH_DATE_FIELD_NAME = "birthdate"
 PATIENT_DEATH_DATE_FIELD_NAME = "deathdate"
 
-OUTPUT_FOLDER_PATH = os.path.join(os.getenv("NIFI_DATA_PATH", "/opt/data/"), "cogstack-cohort")
+OUTPUT_FOLDER_PATH = os.path.join(os.getenv("NIFI_DATA_PATH", "/data/"), "cogstack-cohort")
 
 # this is a json exported by NiFi to some path in the NIFI_DATA_PATH
 INPUT_PATIENT_RECORDS_PATH = ""

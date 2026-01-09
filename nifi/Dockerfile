@@ -132,6 +132,16 @@ RUN curl https://archive.apache.org/dist/groovy/5.0.2/distribution/apache-groovy
 ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
+# --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
+ARG NETTY_VERSION=4.2.9.Final
+RUN set -eux; \
+    cd /opt/nifi/nifi-current/lib; \
+    curl -fL --retry 5 --retry-delay 2 \
+      -o "netty-codec-classes-quic-${NETTY_VERSION}.jar" \
+      "https://repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/${NETTY_VERSION}/netty-codec-classes-quic-${NETTY_VERSION}.jar"; \
+    # sanity check: ensure the Quic class exists in the jar
+    jar tf "netty-codec-classes-quic-${NETTY_VERSION}.jar" | grep -q '^io/netty/handler/codec/quic/Quic.class$'
+
 # copy configuration files
 WORKDIR /opt/nifi/nifi-current/conf/
 

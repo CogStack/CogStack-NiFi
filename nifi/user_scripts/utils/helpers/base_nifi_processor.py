@@ -90,6 +90,15 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         self.logger: Logger = logging.getLogger(self.__class__.__name__)
         self.process_context: ProcessContext
 
+        self.REL_SUCCESS = Relationship(
+            name="success",
+            description="All FlowFiles processed successfully.",
+        )
+        self.REL_FAILURE = Relationship(
+            name="failure",
+            description="FlowFiles that failed processing.",
+        )
+
         self._properties: list = [
                         PropertyDescriptor(name="sample_property_one",
                                description="sample property one description",
@@ -98,16 +107,7 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
                                validators=StandardValidators.BOOLEAN_VALIDATOR),
         ]
 
-        self._relationships = [
-            Relationship(
-                name="success",
-                description="All FlowFiles processed successfully."
-            ),
-            Relationship(
-                name="failure",
-                description="FlowFiles that failed processing."
-            )
-        ]
+        self._relationships = [self.REL_SUCCESS, self.REL_FAILURE]
 
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships

@@ -37,19 +37,19 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
         # this is directly mirrored to the UI
         self._properties = []
 
-        self._relationships = [
-            Relationship(
-                name="success",
-                description="All FlowFiles processed successfully."
-            ),
-            Relationship(
-                name="failure",
-                description="FlowFiles that failed processing."
-            )
-        ]
+        # self._relationships = [
+        #     Relationship(
+        #         name="success",
+        #         description="All FlowFiles processed successfully."
+        #     ),
+        #     Relationship(
+        #         name="failure",
+        #         description="FlowFiles that failed processing."
+        #     )
+        # ]
 
         self.descriptors: list[PropertyDescriptor] = self._properties
-        self.relationships: list[Relationship] = self._relationships
+        #self.relationships: list[Relationship] = self._relationships
 
     @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
@@ -67,23 +67,33 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
             parquet_file = parquet.ParquetFile(input_byte_buffer)
             parquet_table: pyarrow.Table = parquet_file.read()
 
-            records: list[dict] = parquet_table.to_pylist()
+            output_buffer: io.BytesIO = io.BytesIO() 
+            record_count: int = 0
 
-            output_contents = json.dumps(
-                records,
-                ensure_ascii=False,
-                separators=(",", ":"),
-                default=parquet_json_data_type_convert,
-            ).encode("utf-8")
+            for batch in parquet_file.iter_batches(batch_size=10000):
+                records: list[dict] = batch.to_pylist()
+
+                for record in records:
+                    json_record = json.dumps(
+                        record,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        default=parquet_json_data_type_convert,
+                    )
+
+                    output_buffer.write(json_record.encode("utf-8"))
+                    output_buffer.write(b"\n")
+                record_count += len(records)
 
             input_byte_buffer.close()
 
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["mime.type"] = "application/json"
+            attributes["mime.type"] = "application/x-ndjson"
+            attributes["record.count"] = str(record_count)
 
             return FlowFileTransformResult(relationship="success",
                                            attributes=attributes,
-                                           contents=output_contents)
+                                           contents=output_buffer.getvalue())
         except Exception as exception:
             self.logger.error("Exception during Avro processing: " + traceback.format_exc())
             raise exception
