@@ -2,9 +2,9 @@ wheel==0.45.1
 
 # data science pkgs
 nltk==3.9.1
-numpy>=1.26.0,<2.0.0
-pandas==1.5.3
-dill>=0.3.6,<1.0.0
+numpy==2.4.0
+pandas==2.3.3
+dill>=0.4.0,<1.0.0
 bokeh==3.8.2
 psycopg[c,binary]==3.2.9
 overrides==7.0.0
