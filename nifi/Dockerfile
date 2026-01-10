@@ -4,6 +4,8 @@ FROM apache/nifi:${NIFI_VERSION}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG NIFI_VERSION=2.7.2
+
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
 ARG no_proxy=""
@@ -146,7 +148,7 @@ RUN set -eux; \
 # Install parquet NAR
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
-  nars="\
+  nars=( \
     nifi-parquet-nar \
     nifi-aws-nar \
     nifi-aws-service-api-nar \
@@ -171,13 +173,13 @@ RUN set -eux; \
     nifi-gitlab-nar \
     nifi-couchbase-nar \
     nifi-media-nar \
-    nifi-slack-nar \
-  "; \
-  for a in $nars; do \
-    curl -fsSL -o "/opt/nifi/nifi-current/lib/${a}-${NIFI_VERSION}.nar" \
+  ); \
+  for a in "${nars[@]}"; do \
+    curl -fsSL --retry 5 --retry-delay 2 \
+      -o "${a}-${NIFI_VERSION}.nar" \
       "${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
   done; \
-  chown nifi:nifi /opt/nifi/nifi-current/lib/*.nar
+  chown ${UID}:${GID} ./*.nar
 
 ########################################################################################################
 
