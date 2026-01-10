@@ -132,6 +132,7 @@ RUN curl https://archive.apache.org/dist/groovy/5.0.2/distribution/apache-groovy
 ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
+####################################### NAR INSTALL SECTION ##########################################
 # --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
 ARG NETTY_VERSION=4.2.9.Final
 RUN set -eux; \
@@ -141,6 +142,44 @@ RUN set -eux; \
       "https://repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/${NETTY_VERSION}/netty-codec-classes-quic-${NETTY_VERSION}.jar"; \
     # sanity check: ensure the Quic class exists in the jar
     jar tf "netty-codec-classes-quic-${NETTY_VERSION}.jar" | grep -q '^io/netty/handler/codec/quic/Quic.class$'
+
+# Install parquet NAR
+RUN set -eux; \
+  base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
+  nars="\
+    nifi-parquet-nar \
+    nifi-aws-nar \
+    nifi-aws-service-api-nar \
+    nifi-azure-nar \
+    nifi-azure-services-api-nar \
+    nifi-snowflake-processors-nar \
+    nifi-snowflake-services-nar \
+    nifi-snowflake-services-api-nar \
+    nifi-database-dialect-service-nar \
+    nifi-iceberg-shared-nar \
+    nifi-iceberg-services-api-nar \
+    nifi-iceberg-services-nar \
+    nifi-iceberg-processors-nar \
+    nifi-iceberg-rest-catalog-nar \
+    nifi-iceberg-azure-nar \
+    nifi-hashicorp-vault-nar \
+    nifi-hashicorp-vault-client-service-api-nar \
+    nifi-hashicorp-vault-client-service-nar \
+    nifi-hadoop-libraries-nar \
+    nifi-hadoop-nar \
+    nifi-github-nar \
+    nifi-gitlab-nar \
+    nifi-couchbase-nar \
+    nifi-media-nar \
+    nifi-slack-nar \
+  "; \
+  for a in $nars; do \
+    curl -fsSL -o "/opt/nifi/nifi-current/lib/${a}-${NIFI_VERSION}.nar" \
+      "${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
+  done; \
+  chown nifi:nifi /opt/nifi/nifi-current/lib/*.nar
+
+########################################################################################################
 
 # copy configuration files
 WORKDIR /opt/nifi/nifi-current/conf/
