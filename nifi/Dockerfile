@@ -159,8 +159,7 @@ RUN set -eux; \
     nifi-snowflake-services-api-nar \
     nifi-database-dialect-service-nar \
     nifi-iceberg-shared-nar \
-    nifi-iceberg-services-api-nar \
-    nifi-iceberg-services-nar \
+    nifi-iceberg-service-api-nar \
     nifi-iceberg-processors-nar \
     nifi-iceberg-rest-catalog-nar \
     nifi-iceberg-azure-nar \
