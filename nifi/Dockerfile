@@ -152,6 +152,7 @@ RUN set -eux; \
     nifi-parquet-nar \
     nifi-aws-nar \
     nifi-aws-service-api-nar \
+    nifi-aws-kinesis-nar \
     nifi-azure-nar \
     nifi-azure-services-api-nar \
     nifi-snowflake-processors-nar \
@@ -169,8 +170,10 @@ RUN set -eux; \
     nifi-hadoop-nar \
     nifi-github-nar \
     nifi-gitlab-nar \
+    nifi-graph-client-service-api-nar \
     nifi-couchbase-nar \
     nifi-media-nar \
+    nifi-neo4j-cypher-service-nar \
   ); \
   for a in "${nars[@]}"; do \
     curl -fsSL --retry 5 --retry-delay 2 \
