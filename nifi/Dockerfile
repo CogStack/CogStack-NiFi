@@ -165,7 +165,6 @@ RUN set -eux; \
     nifi-iceberg-azure-nar \
     nifi-hashicorp-vault-nar \
     nifi-hashicorp-vault-client-service-api-nar \
-    nifi-hashicorp-vault-client-service-nar \
     nifi-hadoop-libraries-nar \
     nifi-hadoop-nar \
     nifi-github-nar \
