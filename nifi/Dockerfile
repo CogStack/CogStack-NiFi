@@ -121,8 +121,6 @@ RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON
 # solve groovy grape proxy issues, grape ignores the current environment's proxy settings
 ENV JAVA_OPTS="-Dhttp.proxyHost=${HTTP_PROXY} -Dhttps.proxyHost=${HTTPS_PROXY} -Dhttp.nonProxyHosts=${no_proxy}"
 
-# INSTALL NAR extensions 
-WORKDIR /opt/nifi/nifi-current/lib/
 
 # Install Groovy
 RUN mkdir -p /opt/nifi/groovy
@@ -135,6 +133,9 @@ ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
 ####################################### NAR INSTALL SECTION ##########################################
+# INSTALL NAR extensions 
+WORKDIR /opt/nifi/nifi-current/lib/
+
 # --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
 ARG NETTY_VERSION=4.2.9.Final
 RUN set -eux; \
@@ -149,7 +150,6 @@ RUN set -eux; \
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
   nars=( \
-    nifi-parquet-nar \
     nifi-aws-nar \
     nifi-aws-service-api-nar \
     nifi-aws-kinesis-nar \
@@ -158,6 +158,7 @@ RUN set -eux; \
     nifi-snowflake-processors-nar \
     nifi-snowflake-services-nar \
     nifi-snowflake-services-api-nar \
+    nifi-parquet-nar \
     nifi-database-dialect-service-nar \
     nifi-iceberg-shared-nar \
     nifi-iceberg-service-api-nar \
