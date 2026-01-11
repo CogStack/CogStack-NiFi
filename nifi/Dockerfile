@@ -5,6 +5,7 @@ FROM apache/nifi:${NIFI_VERSION}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG NIFI_VERSION=2.7.2
+ARG GROOVY_VERSION=5.0.2
 
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
