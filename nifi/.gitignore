@@ -1,8 +1,8 @@
 conf/*
-user-scripts/db/*
+user_scripts/db/*
 **devel
 devel
 **flow
 **login
 nifi-registry/*
-user-scripts/extensions/*
+user_scripts/extensions/*
