@@ -63,15 +63,13 @@ def validate_entries(path: Path, entries: Iterable[tuple[str, str, int]]) -> lis
     for key, value, lineno in entries:
         normalized = strip_quotes(value)
 
-        if any(key.endswith(suffix) for suffix in PORT_SUFFIXES):
-            if not normalized.isdigit():
-                errors.append(f"{path}:{lineno}: '{key}' should be an integer port (got '{value}')")
+        if any(key.endswith(suffix) for suffix in PORT_SUFFIXES) and not normalized.isdigit():
+            errors.append(f"{path}:{lineno}: '{key}' should be an integer port (got '{value}')")
 
-        if any(key.endswith(suffix) for suffix in BOOL_SUFFIXES):
-            if normalized.lower() not in BOOL_VALUES:
-                errors.append(
-                    f"{path}:{lineno}: '{key}' should be one of {sorted(BOOL_VALUES)} (got '{value}')"
-                )
+        if any(key.endswith(suffix) for suffix in BOOL_SUFFIXES) and normalized.lower() not in BOOL_VALUES:
+            errors.append(
+                f"{path}:{lineno}: '{key}' should be one of {sorted(BOOL_VALUES)} (got '{value}')"
+            )
 
     return errors
 

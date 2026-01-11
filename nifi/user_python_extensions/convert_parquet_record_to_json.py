@@ -65,7 +65,6 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
             parquet_file = parquet.ParquetFile(input_byte_buffer)
-            parquet_table: pyarrow.Table = parquet_file.read()
 
             output_buffer: io.BytesIO = io.BytesIO() 
             record_count: int = 0

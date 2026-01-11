@@ -1,5 +1,3 @@
-from typing import List
-
 
 class LzwItem:
     def __init__(self, _prefix: int = 0, _suffix: int = 0) -> None:
@@ -10,8 +8,8 @@ class LzwItem:
 class DecompressLzwCernerBlob:
     def __init__(self) -> None:
         self.MAX_CODES: int = 8192
-        self.tmp_decompression_buffer: List[int] = [0] * self.MAX_CODES
-        self.lzw_lookup_table: List[LzwItem] = [LzwItem()] * self.MAX_CODES
+        self.tmp_decompression_buffer: list[int] = [0] * self.MAX_CODES
+        self.lzw_lookup_table: list[LzwItem] = [LzwItem()] * self.MAX_CODES
         self.tmp_buffer_index: int = 0
         self.current_byte_buffer_index: int = 0
 
