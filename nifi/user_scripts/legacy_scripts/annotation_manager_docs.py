@@ -3,7 +3,7 @@ import os
 import sys
 import traceback
 
-from utils.sqlite_query import check_db_exists, connect_and_query, create_db_from_file
+from utils.db.sqlite_query import check_db_exists, connect_and_query, create_db_from_file
 
 global DOCUMENT_ID_FIELD_NAME
 global DOCUMENT_TEXT_FIELD_NAME

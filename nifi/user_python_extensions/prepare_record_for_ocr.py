@@ -20,8 +20,8 @@ from nifiapi.properties import (
 from nifiapi.relationship import Relationship
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.helpers.avro_json_encoder import AvroJSONEncoder
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
+from utils.serialization.avro_json_encoder import AvroJSONEncoder
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackPrepareRecordForOcr(BaseNiFiProcessor):

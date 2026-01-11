@@ -10,7 +10,7 @@ from nifiapi.properties import (
 )
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
-from utils.generic import parse_value
+from ..generic import parse_value
 
 
 def _make_wrapper_method(name):

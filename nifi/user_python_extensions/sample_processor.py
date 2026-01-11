@@ -18,7 +18,7 @@ from nifiapi.properties import (
 )
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackSampleTestProcessor(BaseNiFiProcessor):

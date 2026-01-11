@@ -7,7 +7,7 @@ from opensearchpy import OpenSearch
 from nifi.user_scripts.dto.database_config import DatabaseConfig
 from nifi.user_scripts.dto.elastic_config import ElasticConfig
 from nifi.user_scripts.dto.service_health import DatabaseHealth, ElasticHealth
-from nifi.user_scripts.utils.generic import get_logger
+from ..generic import get_logger
 
 logger = get_logger(__name__)
 

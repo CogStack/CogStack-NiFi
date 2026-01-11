@@ -13,8 +13,8 @@ from dto.database_config import DatabaseConfig
 from dto.service_health import NiFiHealth, DatabaseHealth
 from nipyapi import config as nipy_config
 from nipyapi import security, versioning
-from utils.helpers.nifi_api_client import NiFiClient, NiFiRegistryClient
-from utils.helpers.service import check_postgres
+from utils.nifi.nifi_api_client import NiFiClient, NiFiRegistryClient
+from utils.health.service import check_postgres
 
 
 class TestServices(unittest.TestCase):

@@ -17,8 +17,8 @@ from nifiapi.relationship import Relationship
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from pyarrow import parquet
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
-from utils.helpers.parquet_json_data_types_converter import parquet_json_data_type_convert
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+from utils.serialization.parquet_json_data_types_converter import parquet_json_data_type_convert
 
 
 class CogStackConvertParquetToJson(BaseNiFiProcessor):

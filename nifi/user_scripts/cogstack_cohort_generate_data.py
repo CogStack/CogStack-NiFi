@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from multiprocessing import Pool, Queue
 
-from utils.ethnicity_map import ethnicity_map
+from utils.data.ethnicity_map import ethnicity_map
 from utils.generic import chunk, dict2json_file, dict2jsonl_file
 
 # default values from /deploy/nifi.env

@@ -13,7 +13,7 @@ from nipyapi.registry.configuration import Configuration as RegistryConfiguratio
 
 from nifi.user_scripts.dto.nifi_api_config import NiFiAPIConfig
 from nifi.user_scripts.dto.service_health import NiFiHealth
-from nifi.user_scripts.utils.generic import get_logger
+from ..generic import get_logger
 
 
 class NiFiRegistryClient:

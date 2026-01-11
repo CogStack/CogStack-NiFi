@@ -15,8 +15,8 @@ from nifiapi.properties import (
 )
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.cerner_blob import DecompressLzwCernerBlob
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
+from utils.codecs.cerner_blob import DecompressLzwCernerBlob
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):

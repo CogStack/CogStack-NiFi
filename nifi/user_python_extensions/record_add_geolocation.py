@@ -18,7 +18,7 @@ from nifiapi.properties import (
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from utils.generic import download_file_from_url, safe_delete_paths
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):

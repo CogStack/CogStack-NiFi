@@ -7,8 +7,8 @@ from nifi.user_scripts.dto.elastic_config import ElasticConfig
 from nifi.user_scripts.dto.nifi_api_config import NiFiAPIConfig
 from nifi.user_scripts.dto.service_health import DatabaseHealth, ElasticHealth, NiFiHealth
 from nifi.user_scripts.utils.generic import get_logger
-from nifi.user_scripts.utils.helpers.nifi_api_client import NiFiClient, NiFiRegistryClient
-from nifi.user_scripts.utils.helpers.service import check_elasticsearch, check_kibana, check_postgres
+from nifi.user_scripts.utils.nifi.nifi_api_client import NiFiClient, NiFiRegistryClient
+from nifi.user_scripts.utils.health.service import check_elasticsearch, check_kibana, check_postgres
 
 
 class TestServices(unittest.TestCase):

@@ -17,7 +17,7 @@ from nifiapi.properties import (
 )
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.helpers.base_nifi_processor import BaseNiFiProcessor
+from utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
