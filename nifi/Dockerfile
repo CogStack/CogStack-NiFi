@@ -126,9 +126,15 @@ ENV JAVA_OPTS="-Dhttp.proxyHost=${HTTP_PROXY} -Dhttps.proxyHost=${HTTPS_PROXY} -
 RUN mkdir -p /opt/nifi/groovy
 WORKDIR /opt/nifi/groovy/
 
-RUN curl https://archive.apache.org/dist/groovy/5.0.2/distribution/apache-groovy-binary-5.0.2.zip --output apache-groovy-binary-5.0.2.zip --max-time 3600 && \
-    unzip apache-groovy-binary-5.0.2.zip && \
-    rm apache-groovy-binary-5.0.2.zip
+RUN set -eux; \
+  mkdir -p /opt/nifi/groovy; \
+  cd /opt/nifi/groovy; \
+  url1="https://archive.apache.org/dist/groovy/${GROOVY_VERSION}/distribution/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
+  url2="https://repo1.maven.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
+  curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url1" \
+    || curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url2"; \
+  unzip groovy.zip; rm groovy.zip
+
 ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
