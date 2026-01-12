@@ -30,13 +30,15 @@ Example configuration using `clean_doc.py`:
 ```text
 Processor: ExecuteStreamCommand
 Command: python3
-Command Arguments: /opt/nifi/user-scripts/processors/clean_doc.py
+Command Arguments: /opt/nifi/user_scripts/processors/clean_doc.py
 Script args: text_field_name=text
-Working Directory: /opt/nifi/user-scripts
-Environment Variables: PYTHONPATH=/opt/nifi/user-scripts
+Working Directory: /opt/nifi/user_scripts
+Environment Variables: PYTHONPATH=/opt/nifi/nifi-current/python/framework
 ```
 
 Notes:
+- Ensure `PYTHONPATH` includes `/opt/nifi/nifi-current/python/framework` so `nifi.user_scripts` imports resolve.
+- Rebuild the NiFi image to pick up changes in `nifi/user_scripts` utilities used via package imports.
 - Ensure upstream processors output the expected format (most scripts here expect JSON).
 - Handle errors by writing useful messages to stderr and exiting non-zero so NiFi can route failures.
 
@@ -51,5 +53,6 @@ Use this folder when you want processors to appear in the NiFi UI as native Pyth
 See `nifi/user_python_extensions/sample_processor.py` for a reference implementation and
 `nifi/user_scripts/utils/nifi/base_nifi_processor.py` for shared utilities.
 
-If a Python extension needs shared helpers from `nifi/user_scripts/`, add that path to
-`sys.path` (as in the samples) or configure `PYTHONPATH` in the container.
+If a Python extension needs shared helpers from `nifi/user_scripts/`, import via the
+`nifi.user_scripts` package and ensure `PYTHONPATH` includes
+`/opt/nifi/nifi-current/python/framework` in the container.

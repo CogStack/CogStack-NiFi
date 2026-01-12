@@ -9,6 +9,8 @@ This page covers Python FlowFileTransform processors loaded by NiFi's Python ext
 - Config property: `nifi.python.extensions.source.directory.default`
   (set in `nifi/conf/nifi.properties`)
 - Compose mounts: `deploy/services.yml` and `deploy/services-dev.yml`
+- Import path: `PYTHONPATH` should include `/opt/nifi/nifi-current/python/framework`
+  (set via `NIFI_PYTHONPATH` in `deploy/nifi.env`)
 
 ## When to use
 
@@ -20,14 +22,10 @@ If you only need stdin/stdout scripts, use `nifi/user_scripts/processors/` inste
 ## Minimal processor example
 
 ```python
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext
 from py4j.java_gateway import JavaObject, JVMView
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class ExampleProcessor(BaseNiFiProcessor):
@@ -52,8 +50,8 @@ See `nifi/user_python_extensions/sample_processor.py` for a fuller example.
 
 ## Imports and shared utilities
 
-If a processor uses helpers from `nifi/user_scripts/`, add that directory to `sys.path` (as above) or
-set `PYTHONPATH` in the container.
+If a processor uses helpers from `nifi/user_scripts/`, import via `nifi.user_scripts`
+and set `PYTHONPATH` to `/opt/nifi/nifi-current/python/framework` in the container.
 
 ## Dependencies
 
@@ -63,7 +61,8 @@ during the custom image build. Add new dependencies there if your extension need
 ## Development workflow
 
 - Edit files in `nifi/user_python_extensions/`.
-- Rebuild the NiFi image (or restart the container if you are bind-mounting the folder).
+- Restart the container to pick up bind-mounted extension changes, and rebuild the image to refresh the
+  installed `nifi.user_scripts` package.
 
 ## Related docs
 
