@@ -75,15 +75,15 @@ ERROR: [1] bootstrap checks failed
 To solve this one needs to simply execute :
     <br>
     - on Linux/Mac OS X : 
-    ```sysctl -w vm.max_map_count=262144``` in terminal. 
-    To make the same change systemwide plase add ```vm.max_map_count=262144``` to /etc/sysctl.conf and restart the dockerservice/machine.
+    `sysctl -w vm.max_map_count=262144` in terminal. 
+    To make the same change systemwide plase add `vm.max_map_count=262144` to /etc/sysctl.conf and restart the dockerservice/machine.
     An example of this can be found under /services/elasticsearch/sysctl.conf
     <br>
     - on Windows you need to enter the following commands in a powershell instance:
     <br>
-    ```wsl -d docker-desktop```
+    `wsl -d docker-desktop`
     <br>
-    ```sysctl -w vm.max_map_count=262144```
+    `sysctl -w vm.max_map_count=262144`
 
 For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
 

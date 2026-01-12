@@ -260,7 +260,7 @@ Given a document content encoded as JSON, it will return payload containing the 
 There are several NiFi components involved in this process which stand out:
 1. `ConvertAvroToJSON` - converts the AVRO records to JSON format using a generic format transcoder,
 2. `ExecuteScript-ConvertRecordToMedCATinput` - prepares the JSON payload for MedCAT Service, this is Jython script, it has several configurable process properties:
-  - `document_id_field\ = `docid` , the exact name of the unique Id column for the DB/ES record
+  - `document_id_field` = `docid`, the exact name of the unique Id column for the DB/ES record
   - `document_text_field` = `document`, field/column name containing free text 
   - `log_file_name` = `nlp_request_bulk_parse_medical_text.log`, creates a log file in the repo folder `/nifi/user-scripts/`
   - `log_invalid_records_to_file` = `True`, enable/disable logging errors to logfile with the above mentioned file name
@@ -403,4 +403,3 @@ Prerequisites for this workflow:
 4. datetime fields must have the same format.
 
 The script used for this process is located here: `nifi/user-scripts/cogstack_cohort_generate_data.py`. Please read all the info provided in the NiFi template.
-
