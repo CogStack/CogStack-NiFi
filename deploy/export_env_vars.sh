@@ -43,6 +43,10 @@ env_files=(
 
 LINT_SCRIPT="$SCRIPT_DIR/../nifi/user_scripts/utils/lint_env.py"
 
+if [ -e "$LINT_SCRIPT" ]; then
+    chmod +x $LINT_SCRIPT
+fi
+
 if [ -x "$LINT_SCRIPT" ]; then
   echo "🔍 Validating env files..."
   if ! python3 "$LINT_SCRIPT" "${env_files[@]}"; then
