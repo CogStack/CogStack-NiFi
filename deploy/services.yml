@@ -479,6 +479,7 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
+      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
       - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
     deploy:
       resources:

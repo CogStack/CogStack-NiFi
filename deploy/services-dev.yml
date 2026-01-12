@@ -1,6 +1,7 @@
 #---------------------------------------------------------------------------#
 # Common snippets / anchors                                                 #
 #---------------------------------------------------------------------------#
+
 x-nifi-logging-common: &nifi-logging-common
   driver: "json-file"
   options:
@@ -36,6 +37,10 @@ x-es-env: &es-env
   - ../security/env/users_elasticsearch.env
   - ../security/env/certificates_elasticsearch.env
 
+x-db-env: &db-env
+  - ./database.env
+  - ../security/env/users_database.env
+
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
   - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
@@ -56,7 +61,7 @@ x-common-ulimits: &common-ulimits
 
 x-nifi-common: &nifi-common
   <<: *common-ulimits
-  restart: always
+  restart: unless-stopped
   env_file: *all-env
   extra_hosts: *common-hosts
   networks:
@@ -73,14 +78,15 @@ services:
   nifi:
     <<: *nifi-common
     build:
-       context: ../nifi/
+       context: ../
+       dockerfile: nifi/Dockerfile
        args:
            HTTP_PROXY: $HTTP_PROXY
            HTTPS_PROXY: $HTTPS_PROXY
            no_proxy: $no_proxy
     container_name: cogstack-nifi
     hostname: nifi
-    shm_size: ${NIFI_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
@@ -89,6 +95,16 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
+      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_DOCKER_CPU_MAX}"
+          memory: "${NIFI_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_DOCKER_CPU_MIN}"
+          memory: "${NIFI_DOCKER_RAM}"
     volumes:
       # INFO: drivers folder
       - ../nifi/drivers:/opt/nifi/drivers
@@ -143,10 +159,11 @@ services:
     logging: *nifi-logging-common
  
   nifi-registry-flow:
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.1}
+    <<: *nifi-common
+    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.2}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
-    shm_size: ${NIFI_REGISTRY_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
     user: root
     environment:
       - http_proxy=$HTTP_PROXY
@@ -154,11 +171,11 @@ services:
       - no_proxy=$no_proxy
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
-      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-./conf/keystore.jks}
+      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-./conf/truststore.jks}
+      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
 
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
       - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
@@ -166,10 +183,18 @@ services:
       - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
       #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MAX}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
     volumes:
       - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
+      - ../security:/security:ro
+
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
       - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
       - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
@@ -190,8 +215,16 @@ services:
     image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
     restart: always
-    shm_size: 512mb
+    shm_size: ${NGINX_SHM_SIZE:-1g}
     env_file: *all-env
+    deploy:
+      resources:
+        limits:
+          cpus: "${NGINX_DOCKER_CPU_MAX}"
+          memory: "${NGINX_DOCKER_RAM}"
+        reservations:
+          cpus: "${NGINX_DOCKER_CPU_MIN}"
+          memory: "${NGINX_DOCKER_RAM}"
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
@@ -240,6 +273,7 @@ volumes:
     driver: local
   nifi-registry-vol-logs:
     driver: local
+
 #---------------------------------------------------------------------------#
 # Docker networks.                                                          #
 #---------------------------------------------------------------------------#
