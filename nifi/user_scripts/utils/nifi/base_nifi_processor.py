@@ -10,12 +10,14 @@ from nifiapi.properties import (
 )
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
+
 from ..generic import parse_value
 
 
 def _make_wrapper_method(name):
-    """Return a function that delegates to the base's implementation on self."""
+    """Return a wrapper that delegates to the base class implementation."""
     def wrapper(self, *args, **kwargs):
+        """Call the named base class method on the current instance."""
         # call Base class implementation
         base_impl = getattr(super(self.__class__, self), name, None)
         if base_impl is None:
@@ -26,20 +28,22 @@ def _make_wrapper_method(name):
 
 def nifi_processor(*, processor_details: dict | None = None):
     """
-        NOTE (4-11-2025): at the moment this decorator is a bit useless as the curre 
-            NiFi version does not support automatic discovery of processor details from Python processors
-            it only scans for the Java nested class "ProcessorDetails" and stops there, limited
-            discovery capabilities for now. Hopefully in future versions this can be used.
+    Class decorator that injects NiFi-required nested classes and method wrappers.
 
-        Class decorator that injects:
-        - class Java with implements set
-        - class ProcessorDetails (optional)
-        - thin wrappers for getPropertyDescriptors, getRelationships, transform
-        Use like:
-            @nifi_processor(processor_details={"version":"0.1.0"})
-            class MyProc(BaseNiFiProcessor): ...
+    Note (2025-04-11): NiFi currently does not support automatic discovery of
+    processor details from Python processors. It scans for the Java nested class
+    "ProcessorDetails" and stops there, so discovery is limited for now.
+
+    Args:
+        processor_details: Optional attributes to add to the ProcessorDetails
+            nested class.
+
+    Use like:
+        @nifi_processor(processor_details={"version": "0.1.0"})
+        class MyProc(BaseNiFiProcessor): ...
     """
     def decorator(cls):
+        """Mutate the class to add NiFi metadata and wrapper methods."""
         # Inject Java if missing (exact nested-class syntax NiFi looks for)
         if not hasattr(cls, "Java"):
             class Java:
@@ -115,16 +119,39 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         self.logger.info(f"Initialized {self.__class__.__name__} processor.")
 
     def getRelationships(self) -> list[Relationship]:
+        """
+        Return the list of relationships supported by the processor.
+
+        Returns:
+            A list of Relationship objects exposed to NiFi.
+        """
         return self.relationships
 
     def getPropertyDescriptors(self) -> list[PropertyDescriptor]:
+        """
+        Return the property descriptors supported by the processor.
+
+        Returns:
+            A list of PropertyDescriptor objects exposed to NiFi.
+        """
         return self.descriptors
 
     def set_logger(self, logger: Logger):
+        """
+        Replace the logger instance used by this processor.
+
+        Args:
+            logger: Logger instance to use for subsequent log entries.
+        """
         self.logger = logger
 
     def set_properties(self, properties: dict) -> None:
-        """Populate class attributes from NiFi property map."""
+        """
+        Populate class attributes from a NiFi property map.
+
+        Args:
+            properties: Mapping of NiFi PropertyDescriptor to value.
+        """
         for k, v in properties.items():
             name = k.name if hasattr(k, "name") else str(k)
             val = parse_value(v)
@@ -139,15 +166,29 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         *,
         include_flowfile_attributes: bool = False,
     ) -> FlowFileTransformResult:
+        """
+        Build a failure FlowFileTransformResult with exception metadata.
+
+        Args:
+            flowFile: The FlowFile being processed.
+            exception: The exception raised during processing.
+            include_flowfile_attributes: If true, include all FlowFile attributes.
+
+        Returns:
+            A FlowFileTransformResult targeting the failure relationship.
+        """
+
         exception_name = type(exception).__name__
         exception_message = str(exception)
         exception_value = (
             f"{exception_name}: {exception_message}" if exception_message else exception_name
         )
+
         attributes = {}
         if include_flowfile_attributes:
             attributes = {k: str(v) for k, v in flowFile.getAttributes().items()}
         attributes["exception"] = exception_value
+
         return FlowFileTransformResult(
             relationship="failure",
             attributes=attributes,
@@ -156,23 +197,29 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
 
     def onScheduled(self, context: ProcessContext) -> None:
         """
-            Called automatically by NiFi once when the processor is scheduled to run
-            (i.e., enabled or started). This method is used for initializing and
-            allocating resources that should persist across multiple FlowFile
-            executions.
+        Called once when the processor is scheduled (enabled or started).
 
-            Typical use cases include:
-            - Loading static data from disk (e.g., CSV lookup tables, configuration files)
-            - Establishing external connections (e.g., databases, APIs)
-            - Building in-memory caches or models used by onTrigger/transform()
+        Use this hook to initialize and allocate resources that should persist
+        across multiple FlowFile executions, such as loading static data,
+        establishing connections, or building caches used by transform().
 
-            The resources created here remain in memory for the lifetime of the
-            processor and are shared by all concurrent FlowFile executions on this
-            node. They should be lightweight and thread-safe. To release or clean up
-            such resources, use the @OnStopped method, which NiFi calls when the
-            processor is disabled or stopped.
+        Resources created here live for the processor lifetime and are shared
+        across concurrent executions. They should be lightweight and
+        thread-safe. Clean up in @OnStopped when the processor is disabled.
         """
         pass
     
-    def transform(self, context: ProcessContext, flowFile: JavaObject):
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+        """
+        Process a FlowFile and return a FlowFileTransformResult.
+
+        Subclasses must override this method to implement processor logic.
+
+        Args:
+            context: The NiFi ProcessContext for this invocation.
+            flowFile: The FlowFile being processed.
+
+        Raises:
+            NotImplementedError: Always, until overridden by a subclass.
+        """
         raise NotImplementedError

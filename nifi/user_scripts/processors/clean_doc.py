@@ -29,7 +29,7 @@ PII_PATTERNS = [
 
 # removes any PII from the text field
 for i in range(len(records)):
-    if TEXT_FIELD_NAME in records[i].keys():
+    if TEXT_FIELD_NAME in records[i]:
         clean_text = records[i][TEXT_FIELD_NAME]
         for pattern, repl in PII_PATTERNS:
             clean_text = re.sub(pattern, repl, clean_text, flags=re.IGNORECASE)
