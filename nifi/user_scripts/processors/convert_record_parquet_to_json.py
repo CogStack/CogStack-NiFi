@@ -5,56 +5,35 @@ import traceback
 from logging import Logger
 
 from pyarrow import parquet
-from nifi.user_python_extensions.convert_record_parquet_to_json import parquet_json_data_type_convert
-from utils.generic import get_logger
+
+from nifi.user_scripts.utils.generic import get_logger
+from nifi.user_scripts.utils.serialization.parquet_json_data_types_converter import (
+    parquet_json_data_type_convert,
+)
 
 logger: Logger = get_logger(__name__)
 input_byte_buffer: io.BytesIO =  io.BytesIO(sys.stdin.buffer.read())
 
-record_count: int = 0
-error_record_count: int = 0
-
-output_buffer: io.BytesIO = io.BytesIO()
+output_buffer = sys.stdout.buffer
 
 try:
     parquet_file = parquet.ParquetFile(input_byte_buffer)
 
     for batch in parquet_file.iter_batches(batch_size=10000):
-        records: list[dict] = batch.to_pylist()
-
-        for record in records:
-            json_record = json.dumps(
+        for record in batch.to_pylist(): 
+            output_buffer.write(json.dumps(
                 record,
                 ensure_ascii=False,
                 separators=(",", ":"),
                 default=parquet_json_data_type_convert
-            )
+            ).encode("utf-8"))
+            output_buffer.write(b"\n")
+
 
 except Exception as exception:
-    
+    logger.error("Exception during Parquet file processing: " + traceback.format_exc())
+    raise exception
 
-
-    #for batch in parquet_file.iter_batches(batch_size=10000):
-    #    table = pyarrow.Table.from_batches([batch])
-    #    json_str = table.to_pydict()
-    #    records.extend(parquet_json_data_type_convert(json_str))
-#
-#
-    #for batch in parquet_file.iter_batches(batch_size=10000):
-    #    records: list[dict] = batch.to_pylist()
-#
-    #    for record in records:
-    #        json_record = json.dumps(
-    #            record,
-    #            ensure_ascii=False,
-    #            separators=(",", ":"),
-    #            default=parquet_json_data_type_convert,
-    #        )
-#
-    #        output_buffer.write(json_record.encode("utf-8"))
-    #        output_buffer.write(b"\n")
-    #    record_count += len(records)
-
-
-# Output cleaned JSON as UTF-8
-sys.stdout.buffer.write(json.dumps(records, ensure_ascii=False).encode("utf-8"))
+finally:
+    input_byte_buffer.close()
+    output_buffer.close()

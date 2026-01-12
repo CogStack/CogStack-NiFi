@@ -1,7 +1,3 @@
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import io
 import json
 import traceback
@@ -17,7 +13,8 @@ from nifiapi.properties import (
 )
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackPrepareRecordForNlp(BaseNiFiProcessor):

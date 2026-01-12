@@ -1,11 +1,7 @@
-import sys
-from typing import Any
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import io
 import json
 import traceback
+from typing import Any
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
@@ -18,7 +14,8 @@ from nifiapi.properties import (
 )
 from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackSampleTestProcessor(BaseNiFiProcessor):

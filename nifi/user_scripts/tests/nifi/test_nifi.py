@@ -1,20 +1,17 @@
 import json
 import os
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, "../../")
-
 import requests
-from dto.nifi_api_config import NiFiAPIConfig
-from dto.database_config import DatabaseConfig
-from dto.service_health import NiFiHealth, DatabaseHealth
+from nifi.user_scripts.dto.nifi_api_config import NiFiAPIConfig
+from nifi.user_scripts.dto.database_config import DatabaseConfig
+from nifi.user_scripts.dto.service_health import NiFiHealth, DatabaseHealth
 from nipyapi import config as nipy_config
 from nipyapi import security, versioning
-from utils.nifi.nifi_api_client import NiFiClient, NiFiRegistryClient
-from utils.health.service import check_postgres
+from nifi.user_scripts.utils.nifi.nifi_api_client import NiFiClient, NiFiRegistryClient
+from nifi.user_scripts.utils.health.service import check_postgres
 
 
 class TestServices(unittest.TestCase):

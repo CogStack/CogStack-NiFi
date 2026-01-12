@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 
 def running_in_docker() -> bool:
@@ -12,8 +13,13 @@ def running_in_docker() -> bool:
         return False
 
 
-# we need to add it to the sys imports
+# Ensure the repo root (parent of the nifi package) is on the import path.
 if running_in_docker():
-    sys.path.insert(0, "/opt/nifi/user_scripts")
+    framework_dir = os.getenv(
+        "NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY",
+        "/opt/nifi/nifi-current/python/framework",
+    )
+    sys.path.insert(0, framework_dir)
 else:
-    sys.path.insert(0, "./user_scripts")
+    repo_root = Path(__file__).resolve().parents[3]
+    sys.path.insert(0, str(repo_root))

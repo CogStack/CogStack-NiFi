@@ -5,7 +5,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 
-from utils.data.ethnicity_map import ethnicity_map
+from nifi.user_scripts.utils.data.ethnicity_map import ethnicity_map
 
 ANNOTATION_DOCUMENT_ID_FIELD_NAME = "meta.docid"
 

@@ -8,8 +8,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from multiprocessing import Pool, Queue
 
-from utils.data.ethnicity_map import ethnicity_map
-from utils.generic import chunk, dict2json_file, dict2jsonl_file
+from nifi.user_scripts.utils.data.ethnicity_map import ethnicity_map
+from nifi.user_scripts.utils.generic import chunk, dict2json_file, dict2jsonl_file
 
 # default values from /deploy/nifi.env
 NIFI_USER_SCRIPT_LOGS_DIR = os.getenv("NIFI_USER_SCRIPT_LOGS_DIR", "")

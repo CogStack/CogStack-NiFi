@@ -1,11 +1,6 @@
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import base64
 import io
 import json
-import sys
 import traceback
 from typing import Any, Union
 
@@ -20,8 +15,9 @@ from nifiapi.properties import (
 from nifiapi.relationship import Relationship
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.serialization.avro_json_encoder import AvroJSONEncoder
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
+from nifi.user_scripts.utils.serialization.avro_json_encoder import AvroJSONEncoder
 
 
 class CogStackPrepareRecordForOcr(BaseNiFiProcessor):

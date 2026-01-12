@@ -1,10 +1,5 @@
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import base64
 import json
-import sys
 import traceback
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
@@ -15,8 +10,9 @@ from nifiapi.properties import (
 )
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.codecs.cerner_blob import DecompressLzwCernerBlob
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+
+from nifi.user_scripts.utils.codecs.cerner_blob import DecompressLzwCernerBlob
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):

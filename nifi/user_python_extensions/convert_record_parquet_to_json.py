@@ -1,7 +1,3 @@
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import io
 import json
 import traceback
@@ -17,8 +13,9 @@ from nifiapi.relationship import Relationship
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from pyarrow import parquet
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
-from utils.serialization.parquet_json_data_types_converter import parquet_json_data_type_convert
+
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
+from nifi.user_scripts.utils.serialization.parquet_json_data_types_converter import parquet_json_data_type_convert
 
 
 class CogStackConvertParquetToJson(BaseNiFiProcessor):
@@ -62,7 +59,7 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
 
             # read avro record
             input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
+            input_byte_buffer: io.BytesIO = io.BytesIO(input_raw_bytes)
 
             parquet_file = parquet.ParquetFile(input_byte_buffer)
 

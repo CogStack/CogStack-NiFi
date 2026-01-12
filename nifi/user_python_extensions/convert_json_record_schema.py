@@ -1,7 +1,3 @@
-import sys
-
-sys.path.insert(0, "/opt/nifi/user_scripts")
-
 import json
 import traceback
 from collections import defaultdict
@@ -12,7 +8,8 @@ from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValid
 from nifiapi.relationship import Relationship
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
-from utils.nifi.base_nifi_processor import BaseNiFiProcessor
+
+from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
 class ConvertJsonRecordSchema(BaseNiFiProcessor):
