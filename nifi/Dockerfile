@@ -115,12 +115,12 @@ RUN set -eux; \
 RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip setuptools wheel
 
 # install util packages used in NiFi scripts (such as avro, nifyapi, etc.)
-COPY ./requirements.txt ./requirements.txt
+COPY nifi/requirements.txt ./requirements.txt
 RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt" --index-url https://pypi.org/simple
 
 # install the local cogstack_nifi package so nifi.user_scripts imports resolve
-COPY ../pyproject.toml /tmp/cogstack_nifi/pyproject.toml
-COPY ./ /tmp/cogstack_nifi/nifi
+COPY pyproject.toml /tmp/cogstack_nifi/pyproject.toml
+COPY nifi /tmp/cogstack_nifi/nifi
 RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} /tmp/cogstack_nifi
 
 #######################################################################################################

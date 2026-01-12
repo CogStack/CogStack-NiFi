@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_docker-template.yml
     with:
       image: cogstacksystems/cogstack-nifi
-      context: nifi
+      context: .
       dockerfile: nifi/Dockerfile
       cache_scope: nifi
     secrets: inherit
