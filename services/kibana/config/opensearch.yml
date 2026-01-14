@@ -38,7 +38,7 @@ opensearch_security.cookie.secure: true
 
 # We changed this from .opensearch_dashboards to .kibana because of a permission bug in OpenSearch Dashboards 2.19.x and 3.0.0
 # report: https://github.com/opensearch-project/security/issues/5360
-opensearchDashboards.index: ".kibana"
+opensearchDashboards.index: ".opensearch_dashboards"
 
 # The default application to load.
 #opensearchDashboards.defaultAppId: "home"
