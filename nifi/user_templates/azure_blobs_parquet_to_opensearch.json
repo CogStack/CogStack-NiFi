@@ -1,0 +1,1900 @@
+{
+    "flowContents": {
+        "identifier": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+        "instanceIdentifier": "bd30bb46-019b-1000-a394-23186386d413",
+        "name": "azure_blobs_parquet_to_opensearch",
+        "comments": "",
+        "position": {
+            "x": -1304.0,
+            "y": -2192.0
+        },
+        "processGroups": [],
+        "remoteProcessGroups": [],
+        "processors": [
+            {
+                "identifier": "7b442720-10fc-3fb9-a233-b4c922dc5af5",
+                "instanceIdentifier": "aceec62f-019b-1000-b767-ae30b679e5b7",
+                "name": "RouteOnAttribute-parquetFiles",
+                "comments": "",
+                "position": {
+                    "x": -680.0,
+                    "y": -1616.0
+                },
+                "type": "org.apache.nifi.processors.standard.RouteOnAttribute",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-standard-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Routing Strategy": "Route to 'match' if all match",
+                    "filename": "${filename:endsWith(\".parquet\")}"
+                },
+                "propertyDescriptors": {
+                    "Routing Strategy": {
+                        "name": "Routing Strategy",
+                        "displayName": "Routing Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "filename": {
+                        "name": "filename",
+                        "displayName": "filename",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": true
+                    }
+                },
+                "style": {},
+                "schedulingPeriod": "0 sec",
+                "schedulingStrategy": "TIMER_DRIVEN",
+                "executionNode": "ALL",
+                "penaltyDuration": "30 sec",
+                "yieldDuration": "1 sec",
+                "bulletinLevel": "WARN",
+                "runDurationMillis": 25,
+                "concurrentlySchedulableTaskCount": 1,
+                "autoTerminatedRelationships": [
+                    "unmatched"
+                ],
+                "scheduledState": "ENABLED",
+                "retryCount": 10,
+                "retriedRelationships": [],
+                "backoffMechanism": "PENALIZE_FLOWFILE",
+                "maxBackoffPeriod": "10 mins",
+                "componentType": "PROCESSOR",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "49cae84d-fbcd-392d-a87b-3353b91a283d",
+                "instanceIdentifier": "12bf93dd-019b-1000-9922-ddf71f2d1c72",
+                "name": "FetchAzureBlobStorage_v12",
+                "comments": "",
+                "position": {
+                    "x": -680.0,
+                    "y": -1376.0
+                },
+                "type": "org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage_v12",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-azure-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Range Start": null,
+                    "Container Name": "${azure.container}",
+                    "Blob Name": "${azure.blobname}",
+                    "Client-Side Encryption Key ID": null,
+                    "Storage Credentials": "c35e15f9-c1c6-34f5-bbd5-52e93dcdfc7b",
+                    "Client-Side Encryption Key Type": "NONE",
+                    "Range Length": null,
+                    "Proxy Configuration Service": null
+                },
+                "propertyDescriptors": {
+                    "Range Start": {
+                        "name": "Range Start",
+                        "displayName": "Range Start",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Container Name": {
+                        "name": "Container Name",
+                        "displayName": "Container Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Blob Name": {
+                        "name": "Blob Name",
+                        "displayName": "Blob Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Client-Side Encryption Key ID": {
+                        "name": "Client-Side Encryption Key ID",
+                        "displayName": "Client-Side Encryption Key ID",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Storage Credentials": {
+                        "name": "Storage Credentials",
+                        "displayName": "Storage Credentials",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Client-Side Encryption Key Type": {
+                        "name": "Client-Side Encryption Key Type",
+                        "displayName": "Client-Side Encryption Key Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Client-Side Encryption Local Key": {
+                        "name": "Client-Side Encryption Local Key",
+                        "displayName": "Client-Side Encryption Local Key",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Range Length": {
+                        "name": "Range Length",
+                        "displayName": "Range Length",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Proxy Configuration Service": {
+                        "name": "Proxy Configuration Service",
+                        "displayName": "Proxy Configuration Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "style": {},
+                "schedulingPeriod": "0 sec",
+                "schedulingStrategy": "TIMER_DRIVEN",
+                "executionNode": "ALL",
+                "penaltyDuration": "30 sec",
+                "yieldDuration": "1 sec",
+                "bulletinLevel": "WARN",
+                "runDurationMillis": 0,
+                "concurrentlySchedulableTaskCount": 1,
+                "autoTerminatedRelationships": [],
+                "scheduledState": "ENABLED",
+                "retryCount": 10,
+                "retriedRelationships": [],
+                "backoffMechanism": "PENALIZE_FLOWFILE",
+                "maxBackoffPeriod": "10 mins",
+                "componentType": "PROCESSOR",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "c2626114-337b-37a2-afb5-01597b41a99b",
+                "instanceIdentifier": "a2f5360a-019b-1000-5267-0c0cbf02b041",
+                "name": "PutElasticsearchRecord",
+                "comments": "",
+                "position": {
+                    "x": -680.0,
+                    "y": -2080.0
+                },
+                "type": "org.apache.nifi.processors.elasticsearch.PutElasticsearchRecord",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-elasticsearch-restapi-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Timestamp Value": null,
+                    "Max JSON Field String Length": "20 MB",
+                    "Dynamic Templates Record Path": null,
+                    "Index Operation": "create",
+                    "Index": "${azure.blobname:substringBefore('/'):toLower()}",
+                    "Record Reader": "f0308333-144e-394f-98ca-f444ee91a2a7",
+                    "Date Format": null,
+                    "Retain Record Path ID Field": "false",
+                    "Time Format": null,
+                    "Result Record Writer": "839d0da7-1f72-36da-aefb-c8123d21c751",
+                    "Treat Not Found as Success": "true",
+                    "Group Results by Bulk Error Type": "false",
+                    "Scripted Upsert Record Path": null,
+                    "Index Operation Record Path": null,
+                    "Type Record Path": null,
+                    "ID Record Path": null,
+                    "Log Error Responses": "true",
+                    "Script Record Path": null,
+                    "Output Error Responses": "true",
+                    "Retain Record Timestamp": "false",
+                    "Timestamp Format": null,
+                    "Type": null,
+                    "Batch Size": "10000",
+                    "Client Service": "441a8cf7-4c90-3b4e-ab0b-8facbb51b4db",
+                    "Index Record Path": null,
+                    "Timestamp Record Path": null
+                },
+                "propertyDescriptors": {
+                    "Timestamp Value": {
+                        "name": "Timestamp Value",
+                        "displayName": "Timestamp Value",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Max JSON Field String Length": {
+                        "name": "Max JSON Field String Length",
+                        "displayName": "Max JSON Field String Length",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Dynamic Templates Record Path": {
+                        "name": "Dynamic Templates Record Path",
+                        "displayName": "Dynamic Templates Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Index Operation": {
+                        "name": "Index Operation",
+                        "displayName": "Index Operation",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Index": {
+                        "name": "Index",
+                        "displayName": "Index",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Record Reader": {
+                        "name": "Record Reader",
+                        "displayName": "Record Reader",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Date Format": {
+                        "name": "Date Format",
+                        "displayName": "Date Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Retain Record Path ID Field": {
+                        "name": "Retain Record Path ID Field",
+                        "displayName": "Retain Record Path ID Field",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Time Format": {
+                        "name": "Time Format",
+                        "displayName": "Time Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Result Record Writer": {
+                        "name": "Result Record Writer",
+                        "displayName": "Result Record Writer",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Treat Not Found as Success": {
+                        "name": "Treat Not Found as Success",
+                        "displayName": "Treat Not Found as Success",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Group Results by Bulk Error Type": {
+                        "name": "Group Results by Bulk Error Type",
+                        "displayName": "Group Results by Bulk Error Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Scripted Upsert Record Path": {
+                        "name": "Scripted Upsert Record Path",
+                        "displayName": "Scripted Upsert Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Index Operation Record Path": {
+                        "name": "Index Operation Record Path",
+                        "displayName": "Index Operation Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Type Record Path": {
+                        "name": "Type Record Path",
+                        "displayName": "Type Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "ID Record Path": {
+                        "name": "ID Record Path",
+                        "displayName": "ID Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Log Error Responses": {
+                        "name": "Log Error Responses",
+                        "displayName": "Log Error Responses",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Script Record Path": {
+                        "name": "Script Record Path",
+                        "displayName": "Script Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Output Error Responses": {
+                        "name": "Output Error Responses",
+                        "displayName": "Output Error Responses",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Retain Record Timestamp": {
+                        "name": "Retain Record Timestamp",
+                        "displayName": "Retain Record Timestamp",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Timestamp Format": {
+                        "name": "Timestamp Format",
+                        "displayName": "Timestamp Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Type": {
+                        "name": "Type",
+                        "displayName": "Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Batch Size": {
+                        "name": "Batch Size",
+                        "displayName": "Batch Size",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Client Service": {
+                        "name": "Client Service",
+                        "displayName": "Client Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Index Record Path": {
+                        "name": "Index Record Path",
+                        "displayName": "Index Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Timestamp Record Path": {
+                        "name": "Timestamp Record Path",
+                        "displayName": "Timestamp Record Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "style": {},
+                "schedulingPeriod": "0 sec",
+                "schedulingStrategy": "TIMER_DRIVEN",
+                "executionNode": "ALL",
+                "penaltyDuration": "30 sec",
+                "yieldDuration": "1 sec",
+                "bulletinLevel": "INFO",
+                "runDurationMillis": 0,
+                "concurrentlySchedulableTaskCount": 1,
+                "autoTerminatedRelationships": [
+                    "original",
+                    "successful"
+                ],
+                "scheduledState": "ENABLED",
+                "retryCount": 10,
+                "retriedRelationships": [],
+                "backoffMechanism": "PENALIZE_FLOWFILE",
+                "maxBackoffPeriod": "10 mins",
+                "componentType": "PROCESSOR",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "22b8f0dd-5e91-37e8-b483-2e672300eeb9",
+                "instanceIdentifier": "12bf12c5-019b-1000-8fad-fa2a6785fc4e",
+                "name": "ListAzureBlobStorage_v12",
+                "comments": "",
+                "position": {
+                    "x": -1304.0,
+                    "y": -1376.0
+                },
+                "type": "org.apache.nifi.processors.azure.storage.ListAzureBlobStorage_v12",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-azure-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Minimum File Age": "0 sec",
+                    "Entity Tracking Initial Listing Target": "all",
+                    "Maximum File Age": null,
+                    "Entity Tracking State Cache": null,
+                    "Maximum File Size": null,
+                    "Storage Credentials": "c35e15f9-c1c6-34f5-bbd5-52e93dcdfc7b",
+                    "Proxy Configuration Service": null,
+                    "Container Name": "container_name",
+                    "Blob Name Prefix": null,
+                    "Record Writer": null,
+                    "Minimum File Size": "0 B",
+                    "Listing Strategy": "timestamps",
+                    "Entity Tracking Time Window": "3 hours"
+                },
+                "propertyDescriptors": {
+                    "Minimum File Age": {
+                        "name": "Minimum File Age",
+                        "displayName": "Minimum File Age",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Entity Tracking Initial Listing Target": {
+                        "name": "Entity Tracking Initial Listing Target",
+                        "displayName": "Entity Tracking Initial Listing Target",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Maximum File Age": {
+                        "name": "Maximum File Age",
+                        "displayName": "Maximum File Age",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Entity Tracking State Cache": {
+                        "name": "Entity Tracking State Cache",
+                        "displayName": "Entity Tracking State Cache",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Maximum File Size": {
+                        "name": "Maximum File Size",
+                        "displayName": "Maximum File Size",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Storage Credentials": {
+                        "name": "Storage Credentials",
+                        "displayName": "Storage Credentials",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Proxy Configuration Service": {
+                        "name": "Proxy Configuration Service",
+                        "displayName": "Proxy Configuration Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Container Name": {
+                        "name": "Container Name",
+                        "displayName": "Container Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Blob Name Prefix": {
+                        "name": "Blob Name Prefix",
+                        "displayName": "Blob Name Prefix",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Record Writer": {
+                        "name": "Record Writer",
+                        "displayName": "Record Writer",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Minimum File Size": {
+                        "name": "Minimum File Size",
+                        "displayName": "Minimum File Size",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Listing Strategy": {
+                        "name": "Listing Strategy",
+                        "displayName": "Listing Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Entity Tracking Time Window": {
+                        "name": "Entity Tracking Time Window",
+                        "displayName": "Entity Tracking Time Window",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "style": {},
+                "schedulingPeriod": "1 min",
+                "schedulingStrategy": "TIMER_DRIVEN",
+                "executionNode": "PRIMARY",
+                "penaltyDuration": "30 sec",
+                "yieldDuration": "1 sec",
+                "bulletinLevel": "WARN",
+                "runDurationMillis": 0,
+                "concurrentlySchedulableTaskCount": 1,
+                "autoTerminatedRelationships": [],
+                "scheduledState": "ENABLED",
+                "retryCount": 10,
+                "retriedRelationships": [],
+                "backoffMechanism": "PENALIZE_FLOWFILE",
+                "maxBackoffPeriod": "10 mins",
+                "componentType": "PROCESSOR",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "ce4bef66-5d14-32f0-897d-539b09f5a5ac",
+                "instanceIdentifier": "b454d1ad-019b-1000-2c9e-809b0fd80136",
+                "name": "ExecuteStreamCommand-ParquetToJson",
+                "comments": "",
+                "position": {
+                    "x": -680.0,
+                    "y": -1816.0
+                },
+                "type": "org.apache.nifi.processors.standard.ExecuteStreamCommand",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-standard-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Max Attribute Length": "256",
+                    "Command Arguments Strategy": "Command Arguments Property",
+                    "Output MIME Type": "application/x-ndjson",
+                    "Working Directory": "/opt/nifi/user_scripts/processors/",
+                    "Command Path": "python3.11",
+                    "Output Destination Attribute": null,
+                    "Argument Delimiter": ";",
+                    "Ignore STDIN": "false",
+                    "Command Arguments": "convert_record_parquet_to_json.py"
+                },
+                "propertyDescriptors": {
+                    "Max Attribute Length": {
+                        "name": "Max Attribute Length",
+                        "displayName": "Max Attribute Length",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Command Arguments Strategy": {
+                        "name": "Command Arguments Strategy",
+                        "displayName": "Command Arguments Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Output MIME Type": {
+                        "name": "Output MIME Type",
+                        "displayName": "Output MIME Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Working Directory": {
+                        "name": "Working Directory",
+                        "displayName": "Working Directory",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Command Path": {
+                        "name": "Command Path",
+                        "displayName": "Command Path",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Output Destination Attribute": {
+                        "name": "Output Destination Attribute",
+                        "displayName": "Output Destination Attribute",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Argument Delimiter": {
+                        "name": "Argument Delimiter",
+                        "displayName": "Argument Delimiter",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Ignore STDIN": {
+                        "name": "Ignore STDIN",
+                        "displayName": "Ignore STDIN",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Command Arguments": {
+                        "name": "Command Arguments",
+                        "displayName": "Command Arguments",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "style": {},
+                "schedulingPeriod": "0 sec",
+                "schedulingStrategy": "TIMER_DRIVEN",
+                "executionNode": "ALL",
+                "penaltyDuration": "30 sec",
+                "yieldDuration": "1 sec",
+                "bulletinLevel": "WARN",
+                "runDurationMillis": 0,
+                "concurrentlySchedulableTaskCount": 1,
+                "autoTerminatedRelationships": [
+                    "original"
+                ],
+                "scheduledState": "ENABLED",
+                "retryCount": 10,
+                "retriedRelationships": [],
+                "backoffMechanism": "PENALIZE_FLOWFILE",
+                "maxBackoffPeriod": "10 mins",
+                "componentType": "PROCESSOR",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            }
+        ],
+        "inputPorts": [],
+        "outputPorts": [],
+        "connections": [
+            {
+                "identifier": "3916e55c-d569-32d0-bb8e-9d220fd5868b",
+                "instanceIdentifier": "a2f57578-019b-1000-0fec-af6bdde922c0",
+                "name": "",
+                "source": {
+                    "id": "c2626114-337b-37a2-afb5-01597b41a99b",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "PutElasticsearchRecord",
+                    "comments": "",
+                    "instanceIdentifier": "a2f5360a-019b-1000-5267-0c0cbf02b041"
+                },
+                "destination": {
+                    "id": "1f850d26-6468-343d-a705-bd6e872dc9b4",
+                    "type": "FUNNEL",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "Funnel",
+                    "comments": "",
+                    "instanceIdentifier": "a2f2838e-019b-1000-7b4d-437e60164c83"
+                },
+                "labelIndex": 0,
+                "zIndex": 8,
+                "selectedRelationships": [
+                    "failure",
+                    "retry",
+                    "errors"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "2.5 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "fe505c47-18e2-395c-aedf-b7ab32754fd9",
+                "instanceIdentifier": "b45604ea-019b-1000-5e72-a935e1eecb48",
+                "name": "",
+                "source": {
+                    "id": "ce4bef66-5d14-32f0-897d-539b09f5a5ac",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "ExecuteStreamCommand-ParquetToJson",
+                    "comments": "",
+                    "instanceIdentifier": "b454d1ad-019b-1000-2c9e-809b0fd80136"
+                },
+                "destination": {
+                    "id": "c2626114-337b-37a2-afb5-01597b41a99b",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "PutElasticsearchRecord",
+                    "comments": "",
+                    "instanceIdentifier": "a2f5360a-019b-1000-5267-0c0cbf02b041"
+                },
+                "labelIndex": 0,
+                "zIndex": 16,
+                "selectedRelationships": [
+                    "output stream"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "2e2b7e84-d655-3ef5-b23f-2b3a949e4660",
+                "instanceIdentifier": "acefe222-019b-1000-50cd-81b8134fb2ea",
+                "name": "",
+                "source": {
+                    "id": "7b442720-10fc-3fb9-a233-b4c922dc5af5",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "RouteOnAttribute-parquetFiles",
+                    "comments": "",
+                    "instanceIdentifier": "aceec62f-019b-1000-b767-ae30b679e5b7"
+                },
+                "destination": {
+                    "id": "ce4bef66-5d14-32f0-897d-539b09f5a5ac",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "ExecuteStreamCommand-ParquetToJson",
+                    "comments": "",
+                    "instanceIdentifier": "b454d1ad-019b-1000-2c9e-809b0fd80136"
+                },
+                "labelIndex": 0,
+                "zIndex": 12,
+                "selectedRelationships": [
+                    "matched"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "40b811d1-7ad0-30f5-b394-37080365d484",
+                "instanceIdentifier": "12f7175a-019b-1000-f077-2bccd9d1f77f",
+                "name": "",
+                "source": {
+                    "id": "49cae84d-fbcd-392d-a87b-3353b91a283d",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "FetchAzureBlobStorage_v12",
+                    "comments": "",
+                    "instanceIdentifier": "12bf93dd-019b-1000-9922-ddf71f2d1c72"
+                },
+                "destination": {
+                    "id": "f86fb032-4ec9-3c1f-95ca-cf0a490d05fc",
+                    "type": "FUNNEL",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "Funnel",
+                    "comments": "",
+                    "instanceIdentifier": "12f70e62-019b-1000-456a-d6238f34c803"
+                },
+                "labelIndex": 0,
+                "zIndex": 3,
+                "selectedRelationships": [
+                    "failure"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "a7062be3-1d80-3e33-ba0d-1d57b47df4ab",
+                "instanceIdentifier": "12f70808-019b-1000-3f84-1aa24ca7f81e",
+                "name": "",
+                "source": {
+                    "id": "49cae84d-fbcd-392d-a87b-3353b91a283d",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "FetchAzureBlobStorage_v12",
+                    "comments": "",
+                    "instanceIdentifier": "12bf93dd-019b-1000-9922-ddf71f2d1c72"
+                },
+                "destination": {
+                    "id": "7b442720-10fc-3fb9-a233-b4c922dc5af5",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "RouteOnAttribute-parquetFiles",
+                    "comments": "",
+                    "instanceIdentifier": "aceec62f-019b-1000-b767-ae30b679e5b7"
+                },
+                "labelIndex": 0,
+                "zIndex": 2,
+                "selectedRelationships": [
+                    "success"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "72f6bca4-63f6-3622-8b8b-dd5458457c11",
+                "instanceIdentifier": "b72e03a3-019b-1000-1d5a-84a4b073816e",
+                "name": "",
+                "source": {
+                    "id": "c2626114-337b-37a2-afb5-01597b41a99b",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "PutElasticsearchRecord",
+                    "comments": "",
+                    "instanceIdentifier": "a2f5360a-019b-1000-5267-0c0cbf02b041"
+                },
+                "destination": {
+                    "id": "ed73259d-0c68-3bbc-b291-471f4549ca23",
+                    "type": "FUNNEL",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "Funnel",
+                    "comments": "",
+                    "instanceIdentifier": "b72df80b-019b-1000-0328-c137f4566c4f"
+                },
+                "labelIndex": 0,
+                "zIndex": 19,
+                "selectedRelationships": [
+                    "error_responses"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "af7284d5-f746-3522-9ca4-ac603d5cfe54",
+                "instanceIdentifier": "12c7e7da-019b-1000-f977-dc837ca741aa",
+                "name": "",
+                "source": {
+                    "id": "22b8f0dd-5e91-37e8-b483-2e672300eeb9",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "ListAzureBlobStorage_v12",
+                    "comments": "",
+                    "instanceIdentifier": "12bf12c5-019b-1000-8fad-fa2a6785fc4e"
+                },
+                "destination": {
+                    "id": "49cae84d-fbcd-392d-a87b-3353b91a283d",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "FetchAzureBlobStorage_v12",
+                    "comments": "",
+                    "instanceIdentifier": "12bf93dd-019b-1000-9922-ddf71f2d1c72"
+                },
+                "labelIndex": 0,
+                "zIndex": 1,
+                "selectedRelationships": [
+                    "success"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "9ad78242-8ef8-3bad-a140-6a6fc2823136",
+                "instanceIdentifier": "b455e6d6-019b-1000-7dcf-2c5311212e8d",
+                "name": "",
+                "source": {
+                    "id": "ce4bef66-5d14-32f0-897d-539b09f5a5ac",
+                    "type": "PROCESSOR",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "ExecuteStreamCommand-ParquetToJson",
+                    "comments": "",
+                    "instanceIdentifier": "b454d1ad-019b-1000-2c9e-809b0fd80136"
+                },
+                "destination": {
+                    "id": "d62beed4-d9a3-3117-b48d-60b2d3bfea74",
+                    "type": "FUNNEL",
+                    "groupId": "b3dd314f-e399-39f2-a5c6-bbc776589132",
+                    "name": "Funnel",
+                    "comments": "",
+                    "instanceIdentifier": "b1a2a265-019b-1000-73cf-d1d352d0db2f"
+                },
+                "labelIndex": 0,
+                "zIndex": 15,
+                "selectedRelationships": [
+                    "nonzero status"
+                ],
+                "backPressureObjectThreshold": 10000,
+                "backPressureDataSizeThreshold": "1 GB",
+                "flowFileExpiration": "0 sec",
+                "prioritizers": [],
+                "bends": [],
+                "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+                "partitioningAttribute": "",
+                "loadBalanceCompression": "DO_NOT_COMPRESS",
+                "componentType": "CONNECTION",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            }
+        ],
+        "labels": [
+            {
+                "identifier": "bd2c4d70-019b-1000-eb42-d372d94add8b",
+                "instanceIdentifier": "c70655f6-fbef-37b6-b678-be5cb13a2c1e",
+                "position": {
+                    "x": -1000.0,
+                    "y": -1816.0
+                },
+                "label": "Custom script to convert files from Parquet format to Json (NDJSON actually). We use this instead of a native processor because the current NiFi version is buggy with files over 100mb, and custom Python processor that is currently implemented \"CogStackConvertParquetToJson\" also has a similar issue.",
+                "zIndex": 2,
+                "width": 312.0,
+                "height": 144.0,
+                "style": {
+                    "font-size": "12px"
+                },
+                "componentType": "LABEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "161e6c6d-bac4-3370-9eab-67b5cd74ee36",
+                "instanceIdentifier": "bd2e59ac-019b-1000-aee5-f778be711553",
+                "position": {
+                    "x": -680.0,
+                    "y": -2192.0
+                },
+                "label": "We grab the index name for the the specific record via the custom Expression language: ${azure.blobname:substringBefore('/'):toLower()}",
+                "zIndex": 4,
+                "width": 352.0,
+                "height": 104.0,
+                "style": {
+                    "font-size": "12px"
+                },
+                "componentType": "LABEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "b7c5c895-2803-3b8b-9694-849d8acef785",
+                "instanceIdentifier": "13354bc6-019b-1000-d8c6-2574f9e0003f",
+                "position": {
+                    "x": -1304.0,
+                    "y": -1488.0
+                },
+                "label": "Note: do not set RecordWriter if you want one blob -> one flowfile, otherwise, if you do, the processor will pile them up in one flowfile and FetchAzureBlobStorage will error out.",
+                "zIndex": 1,
+                "width": 352.0,
+                "height": 96.0,
+                "style": {
+                    "font-size": "12px"
+                },
+                "componentType": "LABEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "282b8e6d-03be-3fec-9215-dc9a7cb7a43e",
+                "instanceIdentifier": "bd2b2ad4-019b-1000-f5ff-5d7cca5ca409",
+                "position": {
+                    "x": -680.0,
+                    "y": -1240.0
+                },
+                "label": "The Azure container name and blob names are being fetched via ExpressionLanguage from the already generated FlowFiles from the ListAzureBlobStorage processor.",
+                "zIndex": 3,
+                "width": 352.0,
+                "height": 88.0,
+                "style": {
+                    "font-size": "12px"
+                },
+                "componentType": "LABEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "fc49dc24-9d2f-3e32-b9f2-08d6bee2115d",
+                "instanceIdentifier": "b4a21b93-019b-1000-8ce2-b13f6d19498e",
+                "position": {
+                    "x": -312.0,
+                    "y": -1616.0
+                },
+                "label": "Only get .parquet files. Everything else, terminate.",
+                "zIndex": 2,
+                "width": 312.0,
+                "height": 32.0,
+                "style": {
+                    "font-size": "12px"
+                },
+                "componentType": "LABEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            }
+        ],
+        "funnels": [
+            {
+                "identifier": "f86fb032-4ec9-3c1f-95ca-cf0a490d05fc",
+                "instanceIdentifier": "12f70e62-019b-1000-456a-d6238f34c803",
+                "position": {
+                    "x": -40.0,
+                    "y": -1336.0
+                },
+                "componentType": "FUNNEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "1f850d26-6468-343d-a705-bd6e872dc9b4",
+                "instanceIdentifier": "a2f2838e-019b-1000-7b4d-437e60164c83",
+                "position": {
+                    "x": -40.0,
+                    "y": -2032.0
+                },
+                "componentType": "FUNNEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "d62beed4-d9a3-3117-b48d-60b2d3bfea74",
+                "instanceIdentifier": "b1a2a265-019b-1000-73cf-d1d352d0db2f",
+                "position": {
+                    "x": -40.0,
+                    "y": -1776.0
+                },
+                "componentType": "FUNNEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            },
+            {
+                "identifier": "ed73259d-0c68-3bbc-b291-471f4549ca23",
+                "instanceIdentifier": "b72df80b-019b-1000-0328-c137f4566c4f",
+                "position": {
+                    "x": -1064.0,
+                    "y": -2040.0
+                },
+                "componentType": "FUNNEL",
+                "groupIdentifier": "b3dd314f-e399-39f2-a5c6-bbc776589132"
+            }
+        ],
+        "controllerServices": [
+            {
+                "identifier": "f0308333-144e-394f-98ca-f444ee91a2a7",
+                "instanceIdentifier": "a2f601e6-019b-1000-0b57-2e77f5f75fbc",
+                "name": "JsonTreeReader",
+                "comments": "",
+                "type": "org.apache.nifi.json.JsonTreeReader",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-record-serialization-services-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Schema Branch": null,
+                    "Schema Reference Reader": null,
+                    "Schema Text": "${avro.schema}",
+                    "Starting Field Name": null,
+                    "Max String Length": "20 MB",
+                    "Schema Inference Cache": null,
+                    "Starting Field Strategy": "ROOT_NODE",
+                    "Schema Registry": null,
+                    "Schema Access Strategy": "infer-schema",
+                    "Schema Name": "${schema.name}",
+                    "Timestamp Format": null,
+                    "Date Format": null,
+                    "Schema Application Strategy": "SELECTED_PART",
+                    "Schema Version": null,
+                    "Time Format": null,
+                    "Allow Comments": "false"
+                },
+                "propertyDescriptors": {
+                    "Schema Branch": {
+                        "name": "Schema Branch",
+                        "displayName": "Schema Branch",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Reference Reader": {
+                        "name": "Schema Reference Reader",
+                        "displayName": "Schema Reference Reader",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Text": {
+                        "name": "Schema Text",
+                        "displayName": "Schema Text",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Starting Field Name": {
+                        "name": "Starting Field Name",
+                        "displayName": "Starting Field Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Max String Length": {
+                        "name": "Max String Length",
+                        "displayName": "Max String Length",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Inference Cache": {
+                        "name": "Schema Inference Cache",
+                        "displayName": "Schema Inference Cache",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Starting Field Strategy": {
+                        "name": "Starting Field Strategy",
+                        "displayName": "Starting Field Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Registry": {
+                        "name": "Schema Registry",
+                        "displayName": "Schema Registry",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Access Strategy": {
+                        "name": "Schema Access Strategy",
+                        "displayName": "Schema Access Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Name": {
+                        "name": "Schema Name",
+                        "displayName": "Schema Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Timestamp Format": {
+                        "name": "Timestamp Format",
+                        "displayName": "Timestamp Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Date Format": {
+                        "name": "Date Format",
+                        "displayName": "Date Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Application Strategy": {
+                        "name": "Schema Application Strategy",
+                        "displayName": "Schema Application Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Version": {
+                        "name": "Schema Version",
+                        "displayName": "Schema Version",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Time Format": {
+                        "name": "Time Format",
+                        "displayName": "Time Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Allow Comments": {
+                        "name": "Allow Comments",
+                        "displayName": "Allow Comments",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "controllerServiceApis": [
+                    {
+                        "type": "org.apache.nifi.serialization.RecordReaderFactory",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-standard-services-api-nar",
+                            "version": "2.7.2"
+                        }
+                    }
+                ],
+                "scheduledState": "DISABLED",
+                "bulletinLevel": "WARN",
+                "componentType": "CONTROLLER_SERVICE",
+                "groupIdentifier": "bd30bb46-019b-1000-a394-23186386d413"
+            },
+            {
+                "identifier": "c35e15f9-c1c6-34f5-bbd5-52e93dcdfc7b",
+                "instanceIdentifier": "12c4d4a3-019b-1000-6c90-72ea0dda41d8",
+                "name": "AzureStorageCredentialsControllerService_v12-RIO_BLOBS",
+                "comments": "",
+                "type": "org.apache.nifi.services.azure.storage.AzureStorageCredentialsControllerService_v12",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-azure-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Endpoint Suffix": "blob.core.windows.net",
+                    "Credentials Type": "ACCOUNT_KEY",
+                    "Proxy Configuration Service": null
+                },
+                "propertyDescriptors": {
+                    "Service Principal Client ID": {
+                        "name": "Service Principal Client ID",
+                        "displayName": "Service Principal Client ID",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Service Principal Client Secret": {
+                        "name": "Service Principal Client Secret",
+                        "displayName": "Service Principal Client Secret",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Storage Account Name": {
+                        "name": "Storage Account Name",
+                        "displayName": "Storage Account Name",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Managed Identity Client ID": {
+                        "name": "Managed Identity Client ID",
+                        "displayName": "Managed Identity Client ID",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Service Principal Tenant ID": {
+                        "name": "Service Principal Tenant ID",
+                        "displayName": "Service Principal Tenant ID",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Endpoint Suffix": {
+                        "name": "Endpoint Suffix",
+                        "displayName": "Endpoint Suffix",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Credentials Type": {
+                        "name": "Credentials Type",
+                        "displayName": "Credentials Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Account Key": {
+                        "name": "Account Key",
+                        "displayName": "Account Key",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "SAS Token": {
+                        "name": "SAS Token",
+                        "displayName": "SAS Token",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Proxy Configuration Service": {
+                        "name": "Proxy Configuration Service",
+                        "displayName": "Proxy Configuration Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "controllerServiceApis": [
+                    {
+                        "type": "org.apache.nifi.services.azure.storage.AzureStorageCredentialsService_v12",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-azure-services-api-nar",
+                            "version": "2.7.2"
+                        }
+                    }
+                ],
+                "scheduledState": "DISABLED",
+                "bulletinLevel": "WARN",
+                "componentType": "CONTROLLER_SERVICE",
+                "groupIdentifier": "bd30bb46-019b-1000-a394-23186386d413"
+            },
+            {
+                "identifier": "441a8cf7-4c90-3b4e-ab0b-8facbb51b4db",
+                "instanceIdentifier": "a2f5bd7a-019b-1000-84fa-874b9c14e835",
+                "name": "ElasticSearchClientServiceImpl",
+                "comments": "",
+                "type": "org.apache.nifi.elasticsearch.ElasticSearchClientServiceImpl",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-elasticsearch-client-service-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Sniffer Request Timeout": "1 sec",
+                    "Connect Timeout": "5000",
+                    "HTTP Hosts": "https://elasticsearch-1:9200",
+                    "Path Prefix": null,
+                    "API Key ID": null,
+                    "Enable Compression": "false",
+                    "Read Timeout": "60000",
+                    "Sniff on Failure": "false",
+                    "Sniffer Failure Delay": "1 min",
+                    "OAuth2 Access Token Provider": null,
+                    "Suppress Null and Empty Values": "always-suppress",
+                    "Node Selector": "ANY",
+                    "Proxy Configuration Service": null,
+                    "Strict Deprecation": "false",
+                    "Sniff Cluster Nodes": "false",
+                    "SSL Context Service": "273c0798-af30-33d7-9cd7-9f1c316b4c8d",
+                    "Send Meta Header": "true",
+                    "Username": "admin",
+                    "Authorization Scheme": "BASIC",
+                    "Sniffer Interval": "5 mins",
+                    "Run As User": null,
+                    "Character Set": "UTF-8"
+                },
+                "propertyDescriptors": {
+                    "Sniffer Request Timeout": {
+                        "name": "Sniffer Request Timeout",
+                        "displayName": "Sniffer Request Timeout",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Connect Timeout": {
+                        "name": "Connect Timeout",
+                        "displayName": "Connect Timeout",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "API Key ID": {
+                        "name": "API Key ID",
+                        "displayName": "API Key ID",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Enable Compression": {
+                        "name": "Enable Compression",
+                        "displayName": "Enable Compression",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Sniff on Failure": {
+                        "name": "Sniff on Failure",
+                        "displayName": "Sniff on Failure",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "OAuth2 Access Token Provider": {
+                        "name": "OAuth2 Access Token Provider",
+                        "displayName": "OAuth2 Access Token Provider",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Node Selector": {
+                        "name": "Node Selector",
+                        "displayName": "Node Selector",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Proxy Configuration Service": {
+                        "name": "Proxy Configuration Service",
+                        "displayName": "Proxy Configuration Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Strict Deprecation": {
+                        "name": "Strict Deprecation",
+                        "displayName": "Strict Deprecation",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "JWT Shared Secret": {
+                        "name": "JWT Shared Secret",
+                        "displayName": "JWT Shared Secret",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "API Key": {
+                        "name": "API Key",
+                        "displayName": "API Key",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Send Meta Header": {
+                        "name": "Send Meta Header",
+                        "displayName": "Send Meta Header",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Authorization Scheme": {
+                        "name": "Authorization Scheme",
+                        "displayName": "Authorization Scheme",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Password": {
+                        "name": "Password",
+                        "displayName": "Password",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "HTTP Hosts": {
+                        "name": "HTTP Hosts",
+                        "displayName": "HTTP Hosts",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Path Prefix": {
+                        "name": "Path Prefix",
+                        "displayName": "Path Prefix",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Read Timeout": {
+                        "name": "Read Timeout",
+                        "displayName": "Read Timeout",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Sniffer Failure Delay": {
+                        "name": "Sniffer Failure Delay",
+                        "displayName": "Sniffer Failure Delay",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Suppress Null and Empty Values": {
+                        "name": "Suppress Null and Empty Values",
+                        "displayName": "Suppress Null and Empty Values",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Sniff Cluster Nodes": {
+                        "name": "Sniff Cluster Nodes",
+                        "displayName": "Sniff Cluster Nodes",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "SSL Context Service": {
+                        "name": "SSL Context Service",
+                        "displayName": "SSL Context Service",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Username": {
+                        "name": "Username",
+                        "displayName": "Username",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Sniffer Interval": {
+                        "name": "Sniffer Interval",
+                        "displayName": "Sniffer Interval",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Run As User": {
+                        "name": "Run As User",
+                        "displayName": "Run As User",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Character Set": {
+                        "name": "Character Set",
+                        "displayName": "Character Set",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "controllerServiceApis": [
+                    {
+                        "type": "org.apache.nifi.elasticsearch.ElasticSearchClientService",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-elasticsearch-client-service-api-nar",
+                            "version": "2.7.2"
+                        }
+                    }
+                ],
+                "scheduledState": "DISABLED",
+                "bulletinLevel": "WARN",
+                "componentType": "CONTROLLER_SERVICE",
+                "groupIdentifier": "bd30bb46-019b-1000-a394-23186386d413"
+            },
+            {
+                "identifier": "839d0da7-1f72-36da-aefb-c8123d21c751",
+                "instanceIdentifier": "12cb4a70-019b-1000-282d-6bf1553998e3",
+                "name": "JsonRecordSetWriter",
+                "comments": "",
+                "type": "org.apache.nifi.json.JsonRecordSetWriter",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-record-serialization-services-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Schema Branch": null,
+                    "Schema Reference Reader": null,
+                    "Schema Text": "${avro.schema}",
+                    "Allow Scientific Notation": "false",
+                    "Compression Level": "1",
+                    "Output Grouping": "output-array",
+                    "Schema Registry": null,
+                    "Schema Access Strategy": "inherit-record-schema",
+                    "Schema Name": "${schema.name}",
+                    "Timestamp Format": null,
+                    "Date Format": null,
+                    "Pretty Print JSON": "false",
+                    "Suppress Null Values": "never-suppress",
+                    "Schema Write Strategy": "no-schema",
+                    "Compression Format": "none",
+                    "Schema Cache": null,
+                    "Schema Version": null,
+                    "Time Format": null,
+                    "Schema Reference Writer": null
+                },
+                "propertyDescriptors": {
+                    "Schema Branch": {
+                        "name": "Schema Branch",
+                        "displayName": "Schema Branch",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Reference Reader": {
+                        "name": "Schema Reference Reader",
+                        "displayName": "Schema Reference Reader",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Text": {
+                        "name": "Schema Text",
+                        "displayName": "Schema Text",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Allow Scientific Notation": {
+                        "name": "Allow Scientific Notation",
+                        "displayName": "Allow Scientific Notation",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Compression Level": {
+                        "name": "Compression Level",
+                        "displayName": "Compression Level",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Output Grouping": {
+                        "name": "Output Grouping",
+                        "displayName": "Output Grouping",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Registry": {
+                        "name": "Schema Registry",
+                        "displayName": "Schema Registry",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Access Strategy": {
+                        "name": "Schema Access Strategy",
+                        "displayName": "Schema Access Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Name": {
+                        "name": "Schema Name",
+                        "displayName": "Schema Name",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Timestamp Format": {
+                        "name": "Timestamp Format",
+                        "displayName": "Timestamp Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Date Format": {
+                        "name": "Date Format",
+                        "displayName": "Date Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Pretty Print JSON": {
+                        "name": "Pretty Print JSON",
+                        "displayName": "Pretty Print JSON",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Suppress Null Values": {
+                        "name": "Suppress Null Values",
+                        "displayName": "Suppress Null Values",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Write Strategy": {
+                        "name": "Schema Write Strategy",
+                        "displayName": "Schema Write Strategy",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Compression Format": {
+                        "name": "Compression Format",
+                        "displayName": "Compression Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Cache": {
+                        "name": "Schema Cache",
+                        "displayName": "Schema Cache",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Version": {
+                        "name": "Schema Version",
+                        "displayName": "Schema Version",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Time Format": {
+                        "name": "Time Format",
+                        "displayName": "Time Format",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Schema Reference Writer": {
+                        "name": "Schema Reference Writer",
+                        "displayName": "Schema Reference Writer",
+                        "identifiesControllerService": true,
+                        "sensitive": false,
+                        "dynamic": false
+                    }
+                },
+                "controllerServiceApis": [
+                    {
+                        "type": "org.apache.nifi.serialization.RecordSetWriterFactory",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-standard-services-api-nar",
+                            "version": "2.7.2"
+                        }
+                    }
+                ],
+                "scheduledState": "DISABLED",
+                "bulletinLevel": "WARN",
+                "componentType": "CONTROLLER_SERVICE",
+                "groupIdentifier": "bd30bb46-019b-1000-a394-23186386d413"
+            },
+            {
+                "identifier": "273c0798-af30-33d7-9cd7-9f1c316b4c8d",
+                "instanceIdentifier": "a2f6b3f8-019b-1000-7c3a-602b41f32ebf",
+                "name": "StandardSSLContextService",
+                "comments": "",
+                "type": "org.apache.nifi.ssl.StandardSSLContextService",
+                "bundle": {
+                    "group": "org.apache.nifi",
+                    "artifact": "nifi-ssl-context-service-nar",
+                    "version": "2.7.2"
+                },
+                "properties": {
+                    "Truststore Type": "PKCS12",
+                    "Keystore Type": "PKCS12",
+                    "Truststore Filename": "/security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-truststore.key",
+                    "TLS Protocol": "TLS",
+                    "Keystore Filename": "/security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1-keystore.jks"
+                },
+                "propertyDescriptors": {
+                    "Truststore Type": {
+                        "name": "Truststore Type",
+                        "displayName": "Truststore Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Key Password": {
+                        "name": "Key Password",
+                        "displayName": "Key Password",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Keystore Type": {
+                        "name": "Keystore Type",
+                        "displayName": "Keystore Type",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Truststore Filename": {
+                        "name": "Truststore Filename",
+                        "displayName": "Truststore Filename",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false,
+                        "resourceDefinition": {
+                            "cardinality": "SINGLE",
+                            "resourceTypes": [
+                                "FILE"
+                            ]
+                        }
+                    },
+                    "Keystore Password": {
+                        "name": "Keystore Password",
+                        "displayName": "Keystore Password",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "Truststore Password": {
+                        "name": "Truststore Password",
+                        "displayName": "Truststore Password",
+                        "identifiesControllerService": false,
+                        "sensitive": true,
+                        "dynamic": false
+                    },
+                    "TLS Protocol": {
+                        "name": "TLS Protocol",
+                        "displayName": "TLS Protocol",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false
+                    },
+                    "Keystore Filename": {
+                        "name": "Keystore Filename",
+                        "displayName": "Keystore Filename",
+                        "identifiesControllerService": false,
+                        "sensitive": false,
+                        "dynamic": false,
+                        "resourceDefinition": {
+                            "cardinality": "SINGLE",
+                            "resourceTypes": [
+                                "FILE"
+                            ]
+                        }
+                    }
+                },
+                "controllerServiceApis": [
+                    {
+                        "type": "org.apache.nifi.ssl.SSLContextProvider",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-standard-services-api-nar",
+                            "version": "2.7.2"
+                        }
+                    },
+                    {
+                        "type": "org.apache.nifi.ssl.SSLContextService",
+                        "bundle": {
+                            "group": "org.apache.nifi",
+                            "artifact": "nifi-standard-services-api-nar",
+                            "version": "2.7.2"
+                        }
+                    }
+                ],
+                "scheduledState": "DISABLED",
+                "bulletinLevel": "WARN",
+                "componentType": "CONTROLLER_SERVICE",
+                "groupIdentifier": "bd30bb46-019b-1000-a394-23186386d413"
+            }
+        ],
+        "defaultFlowFileExpiration": "0 sec",
+        "defaultBackPressureObjectThreshold": 10000,
+        "defaultBackPressureDataSizeThreshold": "1 GB",
+        "scheduledState": "ENABLED",
+        "executionEngine": "INHERITED",
+        "maxConcurrentTasks": 1,
+        "statelessFlowTimeout": "1 min",
+        "flowFileConcurrency": "UNBOUNDED",
+        "flowFileOutboundPolicy": "STREAM_WHEN_AVAILABLE",
+        "componentType": "PROCESS_GROUP"
+    },
+    "externalControllerServices": {},
+    "parameterContexts": {},
+    "flowEncodingVersion": "1.0",
+    "parameterProviders": {},
+    "latest": false
+}
