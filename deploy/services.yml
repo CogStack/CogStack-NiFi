@@ -494,9 +494,8 @@ services:
       - ../nifi/drivers:/opt/nifi/drivers
 
       # INFO: if there are  local changes, map these content from local host to container
-      #       (normally, these 3 directories  below are bundled with our NiFi image)
+      #       (normally, these directories below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user_templates:/opt/nifi/user_templates:rw
       - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
       - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
 
@@ -510,7 +509,7 @@ services:
       - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
       # # Nifi properties file:
-      - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
+      - ../nifi/conf/:/opt/nifi/nifi-current/conf/:ro
 
       # this is where you should place data to be ingested, under the form of symbolic
       - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
@@ -576,7 +575,7 @@ services:
           cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
           memory: "${NIFI_REGISTRY_DOCKER_RAM}"
     volumes:
-      - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
+      - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:ro
       - ../security:/security:ro
 
       - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
