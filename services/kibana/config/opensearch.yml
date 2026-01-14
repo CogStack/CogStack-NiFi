@@ -38,7 +38,7 @@ opensearch_security.cookie.secure: true
 
 # We changed this from .opensearch_dashboards to .kibana because of a permission bug in OpenSearch Dashboards 2.19.x and 3.0.0
 # report: https://github.com/opensearch-project/security/issues/5360
-opensearchDashboards.index: ".kibana"
+opensearchDashboards.index: ".opensearch_dashboards"
 
 # The default application to load.
 #opensearchDashboards.defaultAppId: "home"
@@ -131,3 +131,10 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # Set the value of this setting to true to capture region blocked warnings and errors 
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
+
+# Set the value to true to enable multiple data source feature
+data_source.enabled: true
+# Set the value to true to enable workspace feature
+workspace.enabled: true
+# Set the value to true to enable explore feature
+explore.enabled: true
