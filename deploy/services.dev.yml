@@ -61,6 +61,59 @@ x-nifi-common: &nifi-common
   networks:
     - cognet
 
+x-nifi-volumes: &nifi-volumes
+  # Drivers
+  - ../nifi/drivers:/opt/nifi/drivers
+
+  # User overrides bundled in the image
+  - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+
+  # Python processors (NiFi 2.x)
+  - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Security helper scripts
+  - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
+
+  # NiFi configuration
+  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:ro
+
+  # Ingest data directory
+  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+
+  # DB schemas
+  - ../services/cogstack-db/:/opt/cogstack-db/:rw
+
+  # MedCAT models
+  - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+
+  # NiFi repositories/state
+  - nifi-vol-logs:/opt/nifi/nifi-current/logs
+  - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+  - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+  - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+  - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+  - nifi-vol-state:/opt/nifi/nifi-current/state
+
+  # Flowfile error output
+  - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+
+x-nifi-registry-volumes: &nifi-registry-volumes
+  # Registry configuration
+  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:ro
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Registry persistence
+  - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
+  - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
+  - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
+  - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
+
 #---------------------------------------------------------------------------#
 # Used services                                                             #
 #---------------------------------------------------------------------------#
@@ -99,47 +152,7 @@ services:
         reservations:
           cpus: "${NIFI_DOCKER_CPU_MIN}"
           memory: "${NIFI_DOCKER_RAM}"
-    volumes:
-      # INFO: drivers folder
-      - ../nifi/drivers:/opt/nifi/drivers
-
-      # INFO: if there are  local changes, map these content from local host to container
-      #       (normally, these directories below are bundled with our NiFi image)
-      # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
-      - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
-
-      # this is a direct mapping to where we store the NiFi python processors as of NiFi 2.x.x
-      - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
-      
-      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ../security:/security:ro
-  
-      # Security credentials scripts
-      - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
-
-      # # Nifi properties file:
-      - ../nifi/conf/:/opt/nifi/nifi-current/conf/:ro
-
-      # this is where you should place data to be ingested, under the form of symbolic
-      - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
-
-      # DB-schemas, from the services folder
-      - ../services/cogstack-db/:/opt/cogstack-db/:rw
-
-      # medcat models
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
-
-      # rest of volumes to persist the state
-      - nifi-vol-logs:/opt/nifi/nifi-current/logs
-      - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
-      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
-      - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
-      - nifi-vol-content:/opt/nifi/nifi-current/content_repository
-      - nifi-vol-state:/opt/nifi/nifi-current/state
-
-      # errors generated during data processing
-      - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+    volumes: *nifi-volumes
 
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
@@ -184,14 +197,7 @@ services:
         reservations:
           cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
           memory: "${NIFI_REGISTRY_DOCKER_RAM}"
-    volumes:
-      - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:ro
-      - ../security:/security:ro
-
-      - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
-      - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
-      - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
-      - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
+    volumes: *nifi-registry-volumes
     extra_hosts: *common-hosts
     tty: true
     ports:
