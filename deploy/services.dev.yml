@@ -103,7 +103,7 @@ x-nifi-volumes: &nifi-volumes
 
 x-nifi-registry-volumes: &nifi-registry-volumes
   # Registry configuration
-  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:ro
+  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
 
   # Security certificates
   - ../security:/security:ro
