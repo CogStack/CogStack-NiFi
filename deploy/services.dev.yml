@@ -79,7 +79,7 @@ x-nifi-volumes: &nifi-volumes
   - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
 
   # NiFi configuration
-  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:ro
+  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
   # Ingest data directory
   - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
