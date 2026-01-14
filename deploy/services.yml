@@ -164,7 +164,7 @@ x-es-common-volumes: &es-common-volumes
 
 x-es-common: &es-common
   <<: *common-ulimits
-  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.3.0}
+  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:latest}
   shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
   restart: unless-stopped
   env_file: *es-env
@@ -190,7 +190,7 @@ x-es-common: &es-common
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
-  image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.2}
+  image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:latest}
   command: -e --strict.perms=false
   restart: unless-stopped
   shm_size: ${METRICBEAT_DOCKER_SHM:-1g}
@@ -221,7 +221,7 @@ x-metricbeat-common: &metricbeat-common
 
 x-filebeat-common: &filebeat-common
   <<: *common-ulimits
-  image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
+  image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:latest}
   command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
   restart: unless-stopped
   shm_size: ${FILEBEAT_DOCKER_SHM:-1g}
@@ -333,7 +333,7 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:latest
     shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
     env_file: *es-env
     restart: "no"
@@ -471,7 +471,7 @@ services:
 #---------------------------------------------------------------------------#
   kibana:
     <<: *common-ulimits
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.3.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:latest}
     container_name: cogstack-kibana
     shm_size: ${KIBANA_DOCKER_SHM_SIZE:-1g}
     restart: always
@@ -520,7 +520,7 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
-    image: cogstacksystems/cogstack-nifi:latest
+    image: ${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
@@ -556,7 +556,7 @@ services:
  
   nifi-registry-flow:
     <<: *nifi-common
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.2}
+    image: ${NIFI_REGISTRY_DOCKER_IMAGE:-apache/nifi-registry:${NIFI_REGISTRY_VERSION:-latest}}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}

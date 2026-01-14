@@ -166,7 +166,7 @@ services:
  
   nifi-registry-flow:
     <<: *nifi-common
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.2}
+    image: ${NIFI_REGISTRY_DOCKER_IMAGE:-apache/nifi-registry:${NIFI_REGISTRY_VERSION:-latest}}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
