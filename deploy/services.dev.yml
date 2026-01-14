@@ -8,12 +8,6 @@ x-nifi-logging-common: &nifi-logging-common
     max-size: ${NIFI_DOCKER_LOG_SIZE_PER_FILE:-250m}
     max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
 
-x-logging-common: &logging-common
-  driver: "json-file"
-  options:
-    max-size: ${DOCKER_LOG_SIZE_PER_FILE:-100m}
-    max-file: ${DOCKER_LOG_NUM_FILES:-10}
-
 x-all-env: &all-env
   - ./project.env
   - ./general.env
@@ -78,7 +72,7 @@ services:
   nifi:
     <<: *nifi-common
     build:
-       context: ../
+       context: ../nifi
        dockerfile: nifi/Dockerfile
        args:
            HTTP_PROXY: $HTTP_PROXY
