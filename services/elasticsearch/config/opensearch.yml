@@ -181,6 +181,7 @@ plugins.security.audit.config.enable_ssl_client_auth: true
 # Indices configured as system indices can be accessed by only super-admin and no role will provide access to these indices.
 # Enable system indices
 plugins.security.system_indices.enabled: true
+plugins.security.system_indices.permission.enabled: true
 
 # Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
 # plugins.security.system_indices.indices: ['.opendistro-alerting-config', '.opendistro-ism-*', '.opendistro-reports-*', '.opensearch-notifications-*', '.opensearch-notebooks', '.opensearch-observability', '.opendistro-asynchronous-search-response*', '.replication-metadata-store']
