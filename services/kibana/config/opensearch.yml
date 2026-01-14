@@ -132,9 +132,15 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
 
+
+savedObjects.permission.enabled: true
+
 # Set the value to true to enable multiple data source feature
 data_source.enabled: true
 # Set the value to true to enable workspace feature
 workspace.enabled: true
 # Set the value to true to enable explore feature
 explore.enabled: true
+
+opensearchDashboards.dashboardAdmin.users: ["admin"]
+opensearchDashboards.dashboardAdmin.groups: ["admin","all_access"]
