@@ -496,7 +496,7 @@ services:
       # INFO: if there are  local changes, map these content from local host to container
       #       (normally, these 3 directories  below are bundled with our NiFi image)
       # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user_templates:/opt/nifi/nifi-current/conf/templates:rw
+      - ../nifi/user_templates:/opt/nifi/user_templates:rw
       - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
       - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
 
