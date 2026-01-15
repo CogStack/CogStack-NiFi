@@ -58,10 +58,10 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
             PropertyDescriptor(name="process_flow_file_type",
-                               description="Type of flowfile input: avro | json",
+                               description="Type of flowfile input: avro | json | ndjson",
                                default_value="json",
                                required=True,
-                               allowable_values=["avro", "json"]),
+                               allowable_values=["avro", "json", "ndjson"]),
         ]
 
         self._relationships = [
@@ -97,6 +97,9 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
 
             if self.process_flow_file_type == "avro":
                 reader = DataFileReader(input_byte_buffer, DatumReader())
+            elif self.process_flow_file_type == "ndjson":
+                json_lines = input_byte_buffer.read().decode("utf-8").splitlines()
+                reader = [json.loads(line) for line in json_lines if line.strip()]
             else:
                 json_obj = json.loads(input_byte_buffer.read().decode("utf-8"))
                 reader = [json_obj] if isinstance(json_obj, dict) else json_obj if isinstance(json_obj, list) else []
