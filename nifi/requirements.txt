@@ -8,6 +8,8 @@ dill>=0.4.0,<1.0.0
 bokeh==3.8.2
 psycopg[c,binary]==3.2.9
 overrides==7.0.0
+polars==1.37.1
+snowflake==1.10.0
 
 # used in NiFi scripts: geolocation, avro conversion etc.
 py4j==0.10.9.9
@@ -19,13 +21,14 @@ py7zr==1.0.0
 jsonpickle==4.1.1
 xlsxwriter==3.2.9
 mysql-connector-python==9.5.0
+snowflake-connector-python==4.2.0
 pymssql==2.3.9
 requests==2.32.5
 PyYAML==6.0.3
 pydantic==2.12.5
 overrides==7.0.0
 pyarrow==22.0.0
-
+pydantic-settings==2.12.0
 # other utils
 xnat==0.7.2
 
