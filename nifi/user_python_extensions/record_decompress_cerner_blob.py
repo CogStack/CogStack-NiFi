@@ -193,7 +193,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
             return FlowFileTransformResult(relationship="success",
                                            attributes=attributes,
-                                           contents=json.dumps(output_contents))
+                                           contents=json.dumps(output_contents).encode("utf-8"))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception

@@ -1,7 +1,7 @@
 import io
 import json
 import traceback
-from typing import Any, Union
+from typing import Any
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -83,7 +83,7 @@ class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
             input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
-            reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
+            reader: DataFileReader | (list[dict[str, Any]] | list[Any])
 
             if self.process_flow_file_type == "avro":
                 reader = DataFileReader(input_byte_buffer, DatumReader())

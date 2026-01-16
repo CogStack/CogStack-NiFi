@@ -2,7 +2,7 @@ import base64
 import io
 import json
 import traceback
-from typing import Any, Union
+from typing import Any
 
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
@@ -93,7 +93,7 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
             input_raw_bytes: bytes = flowFile.getContentsAsBytes()
             input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
 
-            reader: Union[DataFileReader, list[dict[str, Any]] | list[Any]]
+            reader: DataFileReader | (list[dict[str, Any]] | list[Any])
 
             if self.process_flow_file_type == "avro":
                 reader = DataFileReader(input_byte_buffer, DatumReader())
@@ -134,11 +134,12 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
             if self.process_flow_file_type == "avro":
                 return FlowFileTransformResult(relationship="success",
                                                attributes=attributes,
-                                               contents=json.dumps(output_contents, cls=AvroJSONEncoder))
+                                               contents=json.dumps(output_contents, cls=AvroJSONEncoder).encode("utf-8")
+                                               )
             else:
                 return FlowFileTransformResult(relationship="success",
                                                attributes=attributes,
-                                               contents=json.dumps(output_contents))
+                                               contents=json.dumps(output_contents).encode("utf-8"))
         except Exception as exception:
             self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
             raise exception
