@@ -74,7 +74,7 @@ Troubleshooting Security : if you encounter errors related to sensitive key prop
 
 ### Disabling the login screen
 
-If for some reason you do not wish to authenticate every time you connect to NiFi, you can enable the client certificates in the [nginx.conf](../services/nginx/config/nginx.conf) line 86-87 and delete the commented lines.
+If for some reason you do not wish to authenticate every time you connect to NiFi, you can enable the client certificates in the [nginx.conf.template](../services/nginx/config/nginx.conf.template) file and delete the commented lines.
 
 ### `nifi-nginx`
 
