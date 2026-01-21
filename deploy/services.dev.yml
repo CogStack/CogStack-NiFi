@@ -211,10 +211,12 @@ services:
     logging: *nifi-logging-common
   
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:latest
+    build:
+      context: ../services/nginx
+      dockerfile: Dockerfile
     container_name: cogstack-nifi-nginx
     restart: always
-    shm_size: ${NGINX_SHM_SIZE:-1g}
+    shm_size: ${NGINX_SHM_SIZE:-512mb}
     env_file: *all-env
     deploy:
       resources:
