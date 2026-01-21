@@ -172,8 +172,6 @@ http {
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-        #   proxy_set_header X-Forwarded-Context /nifi;
-        #   proxy_set_header X-ProxyContextPath /nifi;
             proxy_pass https://nifi;
         }
 
@@ -220,33 +218,19 @@ http {
             proxy_pass https://nifi/content-viewer/;
         }
 
-      #  location ~ ^(/nifi-standard-content-viewer-[0-9.]+/.*)$ {
-      #      proxy_set_header Host nifi;
-      #      proxy_set_header X-Real-IP $remote_addr;
-      #      proxy_set_header X-ProxyHost $host;
-      #      proxy_set_header X-ProxyPort 8443;
-      #      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      #      proxy_set_header X-ProxyScheme $scheme;
+        location ~ ^/nifi-standard-content-viewer-[0-9.]+/ {
+            proxy_set_header Host nifi;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-ProxyHost $host;
+            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-ProxyScheme $scheme;
 
-      #      add_header Access-Control-Allow-Origin $http_origin always;
-      #      add_header Access-Control-Allow-Credentials true;
-      #      add_header Access-Control-Allow-Headers *;
+            # Relax CSP if needed
+            # proxy_hide_header Content-Security-Policy;
+            # add_header Content-Security-Policy "";
 
-      #      # Relax CSP if needed
-      #      proxy_hide_header Content-Security-Policy;
-      #      add_header Content-Security-Policy "";
-
-      #      proxy_pass https://nifi$1;
-      #  }
-
-       location ^~ /nifi-standard-content-viewer-2.7.2/ {
-          proxy_set_header Host nifi;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-ProxyHost $host;
-          proxy_set_header X-ProxyPort 8443;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-ProxyScheme $scheme;
-          proxy_pass https://nifi/nifi-standard-content-viewer-2.7.2/;
-        }    
+            proxy_pass https://nifi;
+        }
     }
 }

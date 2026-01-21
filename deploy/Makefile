@@ -34,6 +34,9 @@ start-nifi:
 start-nifi-dev:
 	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
 
+start-nifi-dev-build:
+	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+
 start-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -98,7 +101,7 @@ start-data-infra: start-nifi start-elastic start-samples
 
 start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
 
 
 # stop services
