@@ -21,7 +21,7 @@ http {
 
     # Hide nginx version information.
     server_tokens off;
-
+    
     server_name_in_redirect off;
 
     # Specify MIME types for files.
@@ -36,9 +36,15 @@ http {
     #    server kibana:5601;
     #}
 
-    upstream NIFI {
-        server NIFI:8443;
+    upstream nifi {
+        server nifi:8443;
     }
+    
+    upstream nifi-registry {
+        server nifi-registry:18443;
+    }
+
+    include /etc/nginx/sites-enabled/*.conf;
 
     #server {
     #    listen 9200;
@@ -46,7 +52,7 @@ http {
 
     #    location / {
     #        proxy_pass http://elasticsearch;
-    #
+    #        
     #        proxy_set_header X-ProxyScheme http;
     #        proxy_set_header X-ProxyHost nginx.docker.localhost;
     #        proxy_set_header X-ProxyPort 9200;
@@ -55,25 +61,15 @@ http {
     #}
 
     #server {
-    #    listen ${KIBANA_SERVER_OUTPUT_PORT};
+    #    listen 5601;
     #    server_name kibana.local;
 
-    #    ssl_certificate /etc/nginx/es_certificates/elastic-stack-ca.crt.pem;
-    #    ssl_certificate_key /etc/nginx/es_certificates/elastic-stack-ca.key.pem;
-
-    #
-    #    proxy_ssl_certificate /etc/nginx/es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}.crt;
-    #    proxy_ssl_certificate_key /etc/nginx/es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}.pem;
-
-    #    proxy_ssl_trusted_certificate /etc/nginx/es_certificates/${ELASTICSEARCH_VERSION}/elasticsearch/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}/${NGINX_ES_NODE_SOURCE_INSTANCE_NAME}.crt;
-    #    proxy_ssl_server_name on;
-
     #    location / {
-    #        proxy_pass http://${NGINX_KIBANA_HOST};
-    #
-    #        proxy_set_header X-ProxyScheme https;
+    #        proxy_pass http://kibana;
+    #        
+    #        proxy_set_header X-ProxyScheme http;
     #        proxy_set_header X-ProxyHost nginx.docker.localhost;
-    #        proxy_set_header X-ProxyPort ${NGINX_KIBANA_PROXY_PORT};
+    #        proxy_set_header X-ProxyPort 5601;
     #        proxy_set_header X-ProxyContextPath /;
     #    }
     #}
@@ -81,111 +77,176 @@ http {
     #server {
     #    listen 80;
     #    listen [::]:80;
-    #    server_name nginx.local;
+    #    server_name nginx.local; 
     #    return 301 https://$host$request_uri;
     #}
 
+    server {
+        listen 18443 ssl;
+        server_name nginx.local;
+
+        ssl_certificate           /certificates/nifi/nifi.pem;
+        ssl_certificate_key       /certificates/nifi/nifi.key;
+        ssl_client_certificate    /certificates/root/root-ca.pem;
+        ssl_trusted_certificate   /certificates/root/root-ca.pem;
+
+        location / {
+            proxy_ssl_certificate     /certificates/nifi/nifi.pem;
+            proxy_ssl_certificate_key /certificates/nifi/nifi.key;
+            proxy_ssl_trusted_certificate  /certificates/root/root-ca.pem;
+            proxy_set_header Host nifi-registry;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-ProxyHost $host;
+            proxy_set_header X-ProxyPort 18443;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-ProxyScheme $scheme;
+ 
+            proxy_pass https://nifi-registry;
+        }
+
+        location ^~ /nifi-registry/ {
+            proxy_ssl_certificate     /certificates/nifi/nifi.pem;
+            proxy_ssl_certificate_key /certificates/nifi/nifi.key;
+            proxy_ssl_trusted_certificate  /certificates/root/root-ca.pem;
+            proxy_set_header Host nifi-registry;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-ProxyHost $host;
+            proxy_set_header X-ProxyPort 18443;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-ProxyScheme $scheme;
+
+            proxy_pass https://nifi-registry/nifi-registry/;
+        }
+
+        location ^~ /nifi-registry-api/ {
+            proxy_ssl_certificate     /certificates/nifi/nifi.pem;
+            proxy_ssl_certificate_key /certificates/nifi/nifi.key;
+            proxy_ssl_trusted_certificate  /certificates/root/root-ca.pem;
+
+            proxy_set_header Host nifi-registry;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-ProxyHost $host;
+            proxy_set_header X-ProxyPort 18443;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-ProxyScheme $scheme;
+
+            proxy_pass https://nifi-registry/nifi-registry-api/;
+        }
+
+    }
 
     server {
         listen 8443 ssl;
-        server_name nginx.local cogstack-nifi NIFI;
-        ssl_certificate /etc/nginx/root-ca.pem;
-        ssl_certificate_key /etc/nginx/root-ca.key;
+        server_name nginx.local;
 
-        proxy_ssl_certificate /etc/nginx/nifi-cert.pem;
-        proxy_ssl_certificate_key /etc/nginx/nifi-key.key;
-
-        proxy_ssl_trusted_certificate /etc/nginx/nifi-cert.pem;
         proxy_ssl_server_name on;
+
+        ssl_certificate           /certificates/nifi/nifi.pem;
+        ssl_certificate_key       /certificates/nifi/nifi.key;
+        ssl_client_certificate    /certificates/root/root-ca.pem;
+        ssl_trusted_certificate   /certificates/root/root-ca.pem;
+
+        # if you comment this out then you will automatically enable authentication, because nginx won't certify your session...
+
+        #proxy_ssl_certificate  /certificates/nifi/nifi.pem;
+        #proxy_ssl_certificate_key /certificates/nifi/nifi.key;
+        #proxy_ssl_trusted_certificate /certificates/nifi/nifi.pem;
+
 
         location / {
             proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
+            proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath /;
-            proxy_set_header X-Forwarded-Context /;
+            # proxy_set_header X-ProxyContextPath /;
+            # proxy_set_header X-Forwarded-Context /;
             proxy_pass https://nifi;
         }
 
-        location ^~ /nifi {
+        location /nifi {
             proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
+            proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-Forwarded-Context /nifi;
-            proxy_set_header X-ProxyContextPath /nifi;
+        #   proxy_set_header X-Forwarded-Context /nifi;
+        #   proxy_set_header X-ProxyContextPath /nifi;
             proxy_pass https://nifi;
         }
 
         location ^~ /nifi-api/ {
             proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
+            proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
+            proxy_hide_header X-Frame-Options;
             proxy_pass https://nifi/nifi-api/;
         }
 
-        location ^~ /nifi-content-viewer/ {
+        # location ^~ /nifi-api/flowfile-queues/ {
+        #     proxy_set_header Host nifi;
+        #     proxy_set_header X-Real-IP nifi;
+        #     proxy_set_header X-ProxyHost $host;
+        #     proxy_set_header X-ProxyPort 8443;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-ProxyScheme $scheme;
+        #     proxy_hide_header Content-Security-Policy;
+        #     add_header Content-Security-Policy "";
+        #     proxy_pass https://nifi/nifi-api/flowfile-queues/;
+        # }
+
+        location ^~ /media/ {
             proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
+            proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
-            proxy_pass https://nifi/nifi-content-viewer/;
+            proxy_pass https://nifi/media/;
         }
 
-        location ^~ /nifi-registry-api/ {
+        location ^~ /content-viewer/ {
             proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
+            proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
             proxy_set_header X-ProxyPort 8443;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
-            proxy_pass https://nifi/nifi-registry-api/;
+            proxy_pass https://nifi/content-viewer/;
         }
 
-        location ^~ /tenants {
-            proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
-            proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
-            proxy_pass https://nifi/tenants/;
-        }
+      #  location ~ ^(/nifi-standard-content-viewer-[0-9.]+/.*)$ {
+      #      proxy_set_header Host nifi;
+      #      proxy_set_header X-Real-IP $remote_addr;
+      #      proxy_set_header X-ProxyHost $host;
+      #      proxy_set_header X-ProxyPort 8443;
+      #      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      #      proxy_set_header X-ProxyScheme $scheme;
 
-        location ^~ /controller {
-            proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
-            proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
-            proxy_pass https://nifi/controller/;
-        }
+      #      add_header Access-Control-Allow-Origin $http_origin always;
+      #      add_header Access-Control-Allow-Credentials true;
+      #      add_header Access-Control-Allow-Headers *;
 
-        location ^~ /policies {
-            proxy_set_header Host nifi;
-            proxy_set_header X-Real-IP nifi;
-            proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-ProxyScheme $scheme;
-            proxy_set_header X-ProxyContextPath "";
-            proxy_pass https://nifi/policies/;
-        }
+      #      # Relax CSP if needed
+      #      proxy_hide_header Content-Security-Policy;
+      #      add_header Content-Security-Policy "";
+
+      #      proxy_pass https://nifi$1;
+      #  }
+
+       location ^~ /nifi-standard-content-viewer-2.7.2/ {
+          proxy_set_header Host nifi;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-ProxyHost $host;
+          proxy_set_header X-ProxyPort 8443;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-ProxyScheme $scheme;
+          proxy_pass https://nifi/nifi-standard-content-viewer-2.7.2/;
+        }    
     }
 }

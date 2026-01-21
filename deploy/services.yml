@@ -616,15 +616,15 @@ services:
           memory: "${NGINX_DOCKER_RAM}"
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
-      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ../security/certificates:/certificates:ro
+    environment:
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
       - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
     networks:
       - cognet
-    command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
 

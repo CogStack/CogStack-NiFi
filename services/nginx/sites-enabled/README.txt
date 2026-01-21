@@ -1,1 +1,1 @@
-Put any other site confs here.
+Put any other site confs here (use `.conf` extension).
