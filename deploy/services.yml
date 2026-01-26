@@ -174,10 +174,6 @@ x-es-common: &es-common
   environment:
     ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
     OPENSEARCH_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
-    ELASTIC_USER: ${ELASTIC_USER:-elastic}
-    ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-kibanaserver}
-    OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
-    ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
   logging: *es-logging-common
   deploy:
     resources:
@@ -197,11 +193,6 @@ x-metricbeat-common: &metricbeat-common
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
-  environment:
-    - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
-    - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
-    - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
-    - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
   deploy:
     resources:
       limits:
@@ -476,13 +467,6 @@ services:
     shm_size: ${KIBANA_DOCKER_SHM_SIZE:-1g}
     restart: always
     env_file: *es-env
-    environment:
-      # INFO: use HTTPS instead of HTTP when enabled SSL
-      OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
-      # INFO: uncomment below to enable SSL keys
-      SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
-      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
     deploy:
       resources:
         limits:
