@@ -85,8 +85,7 @@ opensearch.pingTimeout: 10000
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-opensearch.requestTimeout: 1200000
-
+opensearch.requestTimeout: 200000
 
 # List of OpenSearch Dashboards client-side headers to send to OpenSearch. To send *no* client-side
 # headers, set this value to [] (an empty list).
