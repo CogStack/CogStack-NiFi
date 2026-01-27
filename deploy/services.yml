@@ -251,7 +251,7 @@ services:
 #---------------------------------------------------------------------------#
   samples-db:
     <<: *db-common
-    image: postgres:17.5-alpine
+    image: postgres:17.7-alpine
     container_name: cogstack-samples-db
     platform: linux/amd64
     environment:
@@ -278,7 +278,7 @@ services:
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
     <<: *db-common
-    image: postgres:17.5-alpine
+    image: postgres:17.7-alpine
     container_name: cogstack-production-databank-db
     platform: linux/amd64
     environment:
@@ -602,8 +602,6 @@ services:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ../security/certificates:/certificates:ro
-    environment:
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
       - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
