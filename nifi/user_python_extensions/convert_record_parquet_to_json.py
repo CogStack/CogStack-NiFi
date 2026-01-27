@@ -2,14 +2,8 @@ import io
 import json
 import traceback
 
-import pyarrow
 from nifiapi.flowfiletransform import FlowFileTransformResult
-from nifiapi.properties import (
-    ProcessContext,
-    PropertyDescriptor,
-    StandardValidators,
-)
-from nifiapi.relationship import Relationship
+from nifiapi.properties import ProcessContext, PropertyDescriptor
 from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from pyarrow import parquet
@@ -34,25 +28,14 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
         # this is directly mirrored to the UI
         self._properties = []
 
-        # self._relationships = [
-        #     Relationship(
-        #         name="success",
-        #         description="All FlowFiles processed successfully."
-        #     ),
-        #     Relationship(
-        #         name="failure",
-        #         description="FlowFiles that failed processing."
-        #     )
-        # ]
-
         self.descriptors: list[PropertyDescriptor] = self._properties
-        #self.relationships: list[Relationship] = self._relationships
 
     @overrides
     def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
  
         """
+
         try:
             self.process_context = context
             self.set_properties(context.getProperties())
