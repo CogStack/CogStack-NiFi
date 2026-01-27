@@ -31,7 +31,11 @@ jobs:
           ./create_nifi_certs.sh
 
       - name: Start NiFi services (build)
-        run: docker compose -f deploy/services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
+          docker compose -f deploy/services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
 
       - name: Smoke tests
         run: |
@@ -52,9 +56,16 @@ jobs:
       - name: Dump container logs
         if: failure()
         run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
           docker compose -f deploy/services.dev.yml ps
           docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx nifi-registry-flow
 
       - name: Shutdown stack
         if: always()
-        run: docker compose -f deploy/services.dev.yml down -v
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
+          docker compose -f deploy/services.dev.yml down -v
