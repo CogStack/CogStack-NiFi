@@ -1,8 +1,8 @@
-wheel==0.45.1
+wheel==0.46.2
 
 # data science pkgs
 nltk==3.9.1
-numpy==2.3.5
+numpy==2.4.0
 pandas==2.3.3
 dill>=0.4.0,<1.0.0
 bokeh==3.8.2
