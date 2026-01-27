@@ -81,11 +81,12 @@ opensearch.ssl.verificationMode: full
 
 # Time in milliseconds to wait for OpenSearch to respond to pings. Defaults to the value of
 # the opensearch.requestTimeout setting.
-opensearch.pingTimeout: 5000
+opensearch.pingTimeout: 10000
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-opensearch.requestTimeout: 30000
+opensearch.requestTimeout: 1200000
+
 
 # List of OpenSearch Dashboards client-side headers to send to OpenSearch. To send *no* client-side
 # headers, set this value to [] (an empty list).

@@ -198,3 +198,12 @@ plugins.security.system_indices.indices: [
   ".opendistro-anomaly-checkpoints",
   ".opendistro-anomaly-detection-state"
 ]
+
+# coordinator-level kill switch for searches
+search.cancel_after_time_interval: 5m
+
+# shard-level default timeout (can be overridden per request via "timeout")
+search.default_search_timeout: 5m
+
+# relevant if SQL is paging via PIT
+search.default_keep_alive: 10m
