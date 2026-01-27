@@ -1,0 +1,282 @@
+#---------------------------------------------------------------------------#
+# Common snippets / anchors                                                 #
+#---------------------------------------------------------------------------#
+
+x-nifi-logging-common: &nifi-logging-common
+  driver: "json-file"
+  options:
+    max-size: ${NIFI_DOCKER_LOG_SIZE_PER_FILE:-250m}
+    max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
+
+x-all-env: &all-env
+  - ./project.env
+  - ./general.env
+  - ./nifi.env
+  - ./gitea.env
+  - ./nginx.env
+  - ./database.env
+  - ./elasticsearch.env
+  - ./network_settings.env
+  - ../security/env/users_nifi.env
+  - ../security/env/users_database.env
+  - ../security/env/users_nginx.env
+  - ../security/env/users_elasticsearch.env
+  - ../security/env/certificates_general.env
+  - ../security/env/certificates_elasticsearch.env
+  - ../security/env/certificates_nifi.env
+
+x-es-env: &es-env
+  - ./network_settings.env
+  - ./elasticsearch.env
+  - ../security/env/users_elasticsearch.env
+  - ../security/env/certificates_elasticsearch.env
+
+x-db-env: &db-env
+  - ./database.env
+  - ../security/env/users_database.env
+
+x-common-hosts: &common-hosts
+  - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
+  - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
+  - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
+  - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
+  - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
+  - ${NIFI_REGISTRY_HOST_NAME:-test-6:0.0.0.0}
+
+x-common-ulimits: &common-ulimits
+  ulimits:
+    nofile:
+      soft: 65535
+      hard: 65535
+    nproc: 65535
+    memlock:
+      soft: -1
+      hard: -1
+
+x-nifi-common: &nifi-common
+  <<: *common-ulimits
+  restart: unless-stopped
+  env_file: *all-env
+  extra_hosts: *common-hosts
+  networks:
+    - cognet
+
+x-nifi-volumes: &nifi-volumes
+  # Drivers
+  - ../nifi/drivers:/opt/nifi/drivers
+
+  # User overrides bundled in the image
+  - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+
+  # Python processors (NiFi 2.x)
+  - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Security helper scripts
+  - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
+
+  # NiFi configuration
+  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
+
+  # Ingest data directory
+  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+
+  # DB schemas
+  - ../services/cogstack-db/:/opt/cogstack-db/:rw
+
+  # MedCAT models
+  - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+
+  # NiFi repositories/state
+  - nifi-vol-logs:/opt/nifi/nifi-current/logs
+  - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+  - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+  - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+  - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+  - nifi-vol-state:/opt/nifi/nifi-current/state
+
+  # Flowfile error output
+  - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+
+x-nifi-registry-volumes: &nifi-registry-volumes
+  # Registry configuration
+  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Registry persistence
+  - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
+  - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
+  - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
+  - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
+
+#---------------------------------------------------------------------------#
+# Used services                                                             #
+#---------------------------------------------------------------------------#
+services:
+
+#---------------------------------------------------------------------------#
+# NiFi webapp                                                               #
+#---------------------------------------------------------------------------#
+  nifi:
+    <<: *nifi-common
+    build:
+       context: ..
+       dockerfile: nifi/Dockerfile
+       args:
+           HTTP_PROXY: $HTTP_PROXY
+           HTTPS_PROXY: $HTTPS_PROXY
+           no_proxy: $no_proxy
+    container_name: cogstack-nifi
+    hostname: nifi
+    shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
+    environment:
+      - USER_ID=${NIFI_UID:-1000}
+      - GROUP_ID=${NIFI_GID:-1000}
+      - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"localhost:8443"}
+      - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/nifi"}
+      - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
+      - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
+      - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
+      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_DOCKER_CPU_MAX}"
+          memory: "${NIFI_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_DOCKER_CPU_MIN}"
+          memory: "${NIFI_DOCKER_RAM}"
+    volumes: *nifi-volumes
+
+    # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
+    #        a bit messy this way as you will need to copy the credentials back
+    #        to the "login-identity-providers.xml" section.
+    # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
+    tty: true
+    ports:
+      - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
+      - "${NIFI_INPUT_SOCKET_PORT:-10000}"
+    logging: *nifi-logging-common
+ 
+  nifi-registry-flow:
+    <<: *nifi-common
+    image: ${NIFI_REGISTRY_DOCKER_IMAGE:-apache/nifi-registry:${NIFI_REGISTRY_VERSION:-latest}}
+    hostname: nifi-registry
+    container_name: cogstack-nifi-registry-flow
+    shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
+    user: root
+    environment:
+      - http_proxy=$HTTP_PROXY
+      - https_proxy=$HTTPS_PROXY
+      - no_proxy=$no_proxy
+      - USER_ID=${NIFI_UID:-1000}
+      - GROUP_ID=${NIFI_GID:-1000}
+      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
+      - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
+      - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
+      - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
+      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
+
+      - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
+      - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
+      - AUTH=${NIFI_AUTH:-"tls"}
+      - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
+      #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
+      - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MAX}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+    volumes: *nifi-registry-volumes
+    extra_hosts: *common-hosts
+    tty: true
+    ports:
+      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-8083}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
+    
+    entrypoint: bash -c "chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/database && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/flow_storage && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/work && \
+      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/logs && \
+      bash /opt/nifi-registry/scripts/start.sh"
+    logging: *nifi-logging-common
+  
+  nifi-nginx:
+    build:
+      context: ../services/nginx
+      dockerfile: Dockerfile
+    container_name: cogstack-nifi-nginx
+    restart: always
+    shm_size: ${NGINX_SHM_SIZE:-512mb}
+    env_file: *all-env
+    deploy:
+      resources:
+        limits:
+          cpus: "${NGINX_DOCKER_CPU_MAX}"
+          memory: "${NGINX_DOCKER_RAM}"
+        reservations:
+          cpus: "${NGINX_DOCKER_CPU_MIN}"
+          memory: "${NGINX_DOCKER_RAM}"
+    volumes:
+      - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ../security/certificates:/certificates:ro
+    ports:
+      - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
+      - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
+    networks:
+      - cognet
+    extra_hosts: *common-hosts
+    logging: *nifi-logging-common
+
+#---------------------------------------------------------------------------#
+# Docker named volumes                                                      #
+#---------------------------------------------------------------------------#
+volumes:
+  # NiFi related
+  nifi-vol-logs:
+    driver: local
+
+  nifi-vol-provenance:
+    driver: local
+
+  nifi-vol-database:
+    driver: local
+
+  nifi-vol-flowfiles:
+    driver: local
+
+  nifi-vol-content:
+    driver: local
+  
+  nifi-vol-state:
+    driver: local
+
+  nifi-vol-errors:
+    driver: local
+
+  nifi-registry-vol-database:
+    driver: local
+  nifi-registry-vol-flow-storage:
+    driver: local
+  nifi-registry-vol-work:
+    driver: local
+  nifi-registry-vol-logs:
+    driver: local
+
+#---------------------------------------------------------------------------#
+# Docker networks.                                                          #
+#---------------------------------------------------------------------------#
+networks:
+  cognet:
+    driver: bridge
+    name: cogstack-net

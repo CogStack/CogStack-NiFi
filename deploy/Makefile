@@ -31,6 +31,12 @@ show-env:
 start-nifi:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
 
+start-nifi-dev:
+	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+
+start-nifi-dev-build:
+	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+
 start-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -95,13 +101,16 @@ start-data-infra: start-nifi start-elastic start-samples
 
 start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services
 
-.PHONY: start-all start-data-infra start-nifi start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
 
 
 # stop services
 #
 stop-nifi:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+
+stop-nifi-dev:
+	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
 
 stop-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
@@ -164,7 +173,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services
 
-.PHONY: stop-data-infra stop-nifi stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev stop-elastic stop-samples stop-jupyter
 
 
 # cleanup

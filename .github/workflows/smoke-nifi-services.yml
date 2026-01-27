@@ -1,0 +1,71 @@
+name: smoke-nifi-services
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Build and smoke-test NiFi services
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate certificates
+        working-directory: security/scripts
+        run: |
+          set -euo pipefail
+          ./create_root_ca_cert.sh
+          ./create_nifi_certs.sh
+
+      - name: Start NiFi services (build)
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
+          docker compose -f deploy/services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+
+      - name: Smoke tests
+        run: |
+          set -euo pipefail
+          echo "Running smoke checks against NiFi, NiFi Registry, and nginx."
+          retries=30
+          delay=15
+          for attempt in $(seq 1 $retries); do
+            if ./scripts/smoke_nifi_services.sh; then
+              exit 0
+            fi
+            echo "Attempt ${attempt}/${retries} failed. Sleeping ${delay}s..."
+            sleep "$delay"
+          done
+          echo "Smoke tests failed after ${retries} attempts."
+          exit 1
+
+      - name: Dump container logs
+        if: failure()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
+          docker compose -f deploy/services.dev.yml ps
+          docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx nifi-registry-flow
+
+      - name: Shutdown stack
+        if: always()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          set -euo pipefail
+          docker compose -f deploy/services.dev.yml down -v

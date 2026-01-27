@@ -5,9 +5,18 @@
 .vscode
 .venv
 .ruff_cache
+.mypy_cache
 venv
 **__pycache__
 **/venv
+*.pyc 
+.pyc
+build
+
+# Ignore setuptools metadata
+*.egg-info/
+*.egg-info
+**/*.egg-info/
 
 # keys and certificates
 *.pem
@@ -37,6 +46,7 @@ security/templates/**
 docs/build/*
 
 # Ignore all .env files at any level
+.env
 *.env
 **/*.env
 !*.env.template

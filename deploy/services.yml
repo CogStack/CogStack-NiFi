@@ -42,6 +42,10 @@ x-es-env: &es-env
   - ../security/env/users_elasticsearch.env
   - ../security/env/certificates_elasticsearch.env
 
+x-db-env: &db-env
+  - ./database.env
+  - ../security/env/users_database.env
+
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
   - ${ELASTICSEARCH_2_HOST_NAME:-test-2:0.0.0.0}
@@ -62,11 +66,78 @@ x-common-ulimits: &common-ulimits
 
 x-nifi-common: &nifi-common
   <<: *common-ulimits
-  restart: always
+  restart: unless-stopped
   env_file: *all-env
   extra_hosts: *common-hosts
   networks:
     - cognet
+
+x-nifi-volumes: &nifi-volumes
+  # Drivers
+  - ../nifi/drivers:/opt/nifi/drivers
+
+  # User overrides bundled in the image
+  - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+
+  # Python processors (NiFi 2.x)
+  - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Security helper scripts
+  - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
+
+  # NiFi configuration
+  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
+
+  # Ingest data directory
+  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+
+  # DB schemas
+  - ../services/cogstack-db/:/opt/cogstack-db/:rw
+
+  # MedCAT models
+  - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+
+  # NiFi repositories/state
+  - nifi-vol-logs:/opt/nifi/nifi-current/logs
+  - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+  - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+  - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+  - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+  - nifi-vol-state:/opt/nifi/nifi-current/state
+
+  # Flowfile error output
+  - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+
+x-nifi-registry-volumes: &nifi-registry-volumes
+  # Registry configuration
+  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
+
+  # Security certificates
+  - ../security:/security:ro
+
+  # Registry persistence
+  - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
+  - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
+  - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
+  - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
+
+x-db-common: &db-common
+  <<: *common-ulimits
+  shm_size: ${DATABASE_DOCKER_SHM_SIZE:-"1g"}
+  restart: unless-stopped
+  env_file: *db-env
+  deploy:
+    resources:
+      limits:
+        cpus: "${DATABASE_DOCKER_CPU_MAX}"
+        memory: "${DATABASE_DOCKER_RAM}"
+      reservations:
+        cpus: "${DATABASE_DOCKER_CPU_MIN}"
+        memory: "${DATABASE_DOCKER_RAM}"
 
 x-es-common-volumes: &es-common-volumes
   # Shared configs
@@ -93,9 +164,9 @@ x-es-common-volumes: &es-common-volumes
 
 x-es-common: &es-common
   <<: *common-ulimits
-  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:3.2.0}
-  shm_size: ${ELASTICSEARCH_SHM_SIZE:-"1g"}
-  restart: always
+  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:latest}
+  shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
+  restart: unless-stopped
   env_file: *es-env
   networks:
     - cognet
@@ -103,25 +174,33 @@ x-es-common: &es-common
   environment:
     ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
     OPENSEARCH_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
-    ELASTIC_USER: ${ELASTIC_USER:-elastic}
-    ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-kibanaserver}
-    OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
-    ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
   logging: *es-logging-common
+  deploy:
+    resources:
+      limits:
+        cpus: "${ELASTICSEARCH_DOCKER_CPU_MAX}"
+        memory: "${ELASTICSEARCH_DOCKER_RAM}"
+      reservations:
+        cpus: "${ELASTICSEARCH_DOCKER_CPU_MIN}"
+        memory: "${ELASTICSEARCH_DOCKER_RAM}"
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
-  image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:8.18.2}
+  image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:latest}
   command: -e --strict.perms=false
   restart: unless-stopped
+  shm_size: ${METRICBEAT_DOCKER_SHM:-1g}
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
-  environment:
-    - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
-    - METRICBEAT_USER=${METRICBEAT_USER:-elastic}
-    - METRICBEAT_PASSWORD=${METRICBEAT_PASSWORD:-kibanaserver}
-    - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+  deploy:
+    resources:
+      limits:
+        cpus: "${METRICBEAT_DOCKER_CPU_MAX}"
+        memory: "${METRICBEAT_DOCKER_RAM}"
+      reservations:
+        cpus: "${METRICBEAT_DOCKER_CPU_MIN}"
+        memory: "${METRICBEAT_DOCKER_RAM}"
   volumes:
     - ../services/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
     - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/usr/share/metricbeat/root-ca.crt:ro
@@ -133,9 +212,10 @@ x-metricbeat-common: &metricbeat-common
 
 x-filebeat-common: &filebeat-common
   <<: *common-ulimits
-  image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:8.18.2}
+  image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:latest}
   command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
   restart: unless-stopped
+  shm_size: ${FILEBEAT_DOCKER_SHM:-1g}
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
@@ -144,6 +224,14 @@ x-filebeat-common: &filebeat-common
     - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
     - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
     - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
+  deploy:
+    resources:
+      limits:
+        cpus: "${FILEBEAT_DOCKER_CPU_MAX}"
+        memory: "${FILEBEAT_DOCKER_RAM}"
+      reservations:
+        cpus: "${FILEBEAT_DOCKER_CPU_MIN}"
+        memory: "${FILEBEAT_DOCKER_RAM}"
   volumes:
     - ../services/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw
     - ../security/certificates/elastic/elasticsearch/elastic-stack-ca.crt.pem:/etc/pki/root/root-ca.crt:ro
@@ -162,15 +250,10 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    <<: *common-ulimits
-    image: postgres:17.5-alpine
+    <<: *db-common
+    image: postgres:17.7-alpine
     container_name: cogstack-samples-db
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
     platform: linux/amd64
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
       # PG env vars
       - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
@@ -194,19 +277,14 @@ services:
 # CogStack Databank / Cogstack-DB, production database                      #
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
-    <<: *common-ulimits
-    image: postgres:17.5-alpine
+    <<: *db-common
+    image: postgres:17.7-alpine
     container_name: cogstack-production-databank-db
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
     platform: linux/amd64
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-admin}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
-      - POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-cogstack}
+      - POSTGRES_USER=${DATABASE_USER:-admin}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-admin}
+      - POSTGRES_DATABANK_DB=${DATABASE_DB_NAME:-cogstack}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/pgsql/schemas:/data/:ro
@@ -222,14 +300,9 @@ services:
       - cognet
   
   cogstack-databank-db-mssql:
-    <<: *common-ulimits
+    <<: *db-common
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: cogstack-production-databank-db-mssql
-    shm_size: ${POSTGRES_SHM_SIZE:-"1g"}
-    restart: always
-    env_file:
-      - ./database.env
-      - ../security/env/users_database.env
     environment:
       - ACCEPT_EULA=y
       - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
@@ -251,8 +324,8 @@ services:
 #---------------------------------------------------------------------------#
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
-    shm_size: ${ELASTICSEARCH_SHM_SIZE:-"1g"}
+    image: docker.elastic.co/elasticsearch/elasticsearch:latest
+    shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
     env_file: *es-env
     restart: "no"
     command: bash -c "bash /usr/share/elasticsearch/es_native_cert_generator.sh"
@@ -287,7 +360,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
-      - "${ELASTICSEARCH_NODE_1_ANALYZER_OUTPUT_PORT:-9600}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_1_ANALYZER_OUTPUT_PORT:-9600}:9600"
 
   elasticsearch-2:
     extends:
@@ -306,7 +379,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
-      - "${ELASTICSEARCH_NODE_2_ANALYZER_OUTPUT_PORT:-9601}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_2_ANALYZER_OUTPUT_PORT:-9601}:9600"
 
   elasticsearch-3:
     extends:
@@ -325,7 +398,7 @@ services:
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
-      - "${ELASTICSEARCH_NODE_3_ANALYZER_OUTPUT_PORT:-9602}:9600" # required for Performance Analyzer
+      - "${ELASTICSEARCH_NODE_3_ANALYZER_OUTPUT_PORT:-9602}:9600"
 
   metricbeat-1:
     <<: *metricbeat-common
@@ -350,9 +423,9 @@ services:
     container_name: cogstack-metricbeat-3
     volumes:
       - metricbeat-data-3:/usr/share/metricbeat/data
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
-      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/metricbeat/esnode.p12:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/metricbeat/esnode.crt:ro
+      - ../security/certificates/elastic/elasticsearch/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/metricbeat/esnode.key:ro
 
   filebeat-1:
     <<: *filebeat-common
@@ -389,19 +462,19 @@ services:
 #---------------------------------------------------------------------------#
   kibana:
     <<: *common-ulimits
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:3.2.0}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:latest}
     container_name: cogstack-kibana
-    shm_size: ${KIBANA_SHM_SIZE:-"1g"}
+    shm_size: ${KIBANA_DOCKER_SHM_SIZE:-1g}
     restart: always
     env_file: *es-env
-    environment:
-      # INFO: use HTTPS instead of HTTP when enabled SSL
-      OPENSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
-      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_HOSTS:-'["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]'}
-      # INFO: uncomment below to enable SSL keys
-      SERVER_SSL_ENABLED: ${ELASTICSEARCH_SSL_ENABLED:-"true"}
-      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-kibanaserver}
-
+    deploy:
+      resources:
+        limits:
+          cpus: "${KIBANA_DOCKER_CPU_MAX}"
+          memory: "${KIBANA_DOCKER_RAM}"
+        reservations:
+          cpus: "${KIBANA_DOCKER_CPU_MIN}"
+          memory: "${KIBANA_DOCKER_RAM}"
     volumes:
       # INFO: Kibana configuration mapped via volume (make sure to comment this and uncomment the next line if you are using NATIVE kibana deployment)
       - ../services/kibana/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/${KIBANA_CONFIG_FILE_VERSION:-opensearch_dashboards}.yml:ro
@@ -431,10 +504,10 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
-    image: cogstacksystems/cogstack-nifi:latest
+    image: ${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}
     container_name: cogstack-nifi
     hostname: nifi
-    shm_size: ${NIFI_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
@@ -443,48 +516,17 @@ services:
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
       - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
       - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
-    volumes:
-      # INFO: drivers folder
-      - ../nifi/drivers:/opt/nifi/drivers
-
-      # INFO: if there are  local changes, map these content from local host to container
-      #       (normally, these 3 directories  below are bundled with our NiFi image)
-      # N.B. The container user may not have the permission to read these directories/files.
-      - ../nifi/user-templates:/opt/nifi/nifi-current/conf/templates:rw
-      - ../nifi/user-scripts:/opt/nifi/user-scripts:rw
-      - ../nifi/user-schemas:/opt/nifi/user-schemas:rw
-
-      # this is a direct mapping to where we store the NiFi python processors as of NiFi 2.x.x
-      - ../nifi/user-python-extensions:/opt/nifi/nifi-current/python_extensions:rw
-      
-      # INFO: uncomment below to map security certificates if need to secure NiFi endpoints 
-      - ../security:/security:ro
-  
-      # Security credentials scripts
-      - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
-
-      # # Nifi properties file:
-      - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
-
-      # this is where you should place data to be ingested, under the form of symbolic
-      - ./${NIFI_DATA_PATH:-../data/}:/opt/data/:rw
-
-      # DB-schemas, from the services folder
-      - ../services/cogstack-db/:/opt/cogstack-db/:rw
-
-      # medcat models
-      - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
-
-      # rest of volumes to persist the state
-      - nifi-vol-logs:/opt/nifi/nifi-current/logs
-      - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
-      - nifi-vol-database:/opt/nifi/nifi-current/database_repository
-      - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
-      - nifi-vol-content:/opt/nifi/nifi-current/content_repository
-      - nifi-vol-state:/opt/nifi/nifi-current/state
-
-      # errors generated during data processing
-      - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_DOCKER_CPU_MAX}"
+          memory: "${NIFI_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_DOCKER_CPU_MIN}"
+          memory: "${NIFI_DOCKER_RAM}"
+    volumes: *nifi-volumes
 
     # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
     #        a bit messy this way as you will need to copy the credentials back
@@ -498,10 +540,10 @@ services:
  
   nifi-registry-flow:
     <<: *nifi-common
-    image: apache/nifi-registry:${NIFI_REGISTRY_VERSION:-2.7.2}
+    image: ${NIFI_REGISTRY_DOCKER_IMAGE:-apache/nifi-registry:${NIFI_REGISTRY_VERSION:-latest}}
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
-    shm_size: ${NIFI_REGISTRY_SHM_SIZE:-"1g"}
+    shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
     user: root
     environment:
       - http_proxy=$HTTP_PROXY
@@ -509,11 +551,11 @@ services:
       - no_proxy=$no_proxy
       - USER_ID=${NIFI_UID:-1000}
       - GROUP_ID=${NIFI_GID:-1000}
-      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-./conf/keystore.jks}
+      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-./conf/truststore.jks}
+      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
 
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
       - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
@@ -521,14 +563,15 @@ services:
       - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
       #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
       - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
-    volumes:
-      - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-keystore.jks:/opt/nifi-registry/nifi-registry-current/conf/keystore.jks:ro
-      - ./${NIFI_SECURITY_DIR:-../security/certificates/nifi/}nifi-truststore.jks://opt/nifi-registry/nifi-registry-current/conf/truststore.jks:ro
-      - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
-      - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
-      - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
-      - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
+    deploy:
+      resources:
+        limits:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MAX}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+        reservations:
+          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
+          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
+    volumes: *nifi-registry-volumes
     extra_hosts: *common-hosts
     tty: true
     ports:
@@ -545,19 +588,25 @@ services:
     image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
     restart: always
-    shm_size: 512mb
+    shm_size: ${NGINX_SHM_SIZE:-1g}
     env_file: *all-env
+    deploy:
+      resources:
+        limits:
+          cpus: "${NGINX_DOCKER_CPU_MAX}"
+          memory: "${NGINX_DOCKER_RAM}"
+        reservations:
+          cpus: "${NGINX_DOCKER_CPU_MIN}"
+          memory: "${NGINX_DOCKER_RAM}"
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/nginx/config/nginx.conf.template:/etc/nginx/config/nginx.conf.template:rw
-      - ../services/nginx/config/nginx.conf:/etc/nginx/nginx.conf:rw
+      - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ../security/certificates:/certificates:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
       - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
     networks:
       - cognet
-    command: /bin/bash -c "envsubst < /etc/nginx/config/nginx.conf.template > /etc/nginx/config/nginx.conf && nginx -g 'daemon off;'"
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
 
@@ -587,12 +636,20 @@ services:
     <<: *common-ulimits
     container_name: cogstack-gitea
     image:  gitea/gitea:1.23-rootless
-    shm_size: ${DOCKER_SHM_SIZE:-"1g"}
+    shm_size: ${GITEA_DOCKER_SHM_SIZE:-"1g"}
     restart: always
     environment:
       - http_proxy=$HTTP_PROXY
       - https_proxy=$HTTPS_PROXY
       - no_proxy=$no_proxy
+    deploy:
+      resources:
+        limits:
+          cpus: "${GITEA_DOCKER_CPU_MAX}"
+          memory: "${GITEA_DOCKER_RAM}"
+        reservations:
+          cpus: "${GITEA_DOCKER_CPU_MIN}"
+          memory: "${GITEA_DOCKER_RAM}"
     volumes:
       # app config
       - ../services/gitea/app.ini:/etc/gitea/app.ini:rw
@@ -656,19 +713,14 @@ volumes:
 
   nifi-vol-provenance:
     driver: local
-
   nifi-vol-database:
     driver: local
-
   nifi-vol-flowfiles:
     driver: local
-
   nifi-vol-content:
     driver: local
-  
   nifi-vol-state:
     driver: local
-
   nifi-vol-errors:
     driver: local
 

@@ -65,13 +65,14 @@ config:
     # Set filtered_alias_mode to 'nowarn' to allow more than 2 filtered aliases per index silently
     #filtered_alias_mode: warn
     #do_not_fail_on_forbidden: false
-    #kibana:
+    kibana:
+      # this must match whatver index name is in the 'opensearchDashboards.index' property in : services/kibana/config/opensearch.yml
+      index: '.opensearch_dashboards'
     # Kibana multitenancy
     #multitenancy_enabled: true
     #private_tenant_enabled: true
     #default_tenant: ""
     #server_username: kibanaserver
-    #index: '.kibana'
     http:
       anonymous_auth_enabled: false
       xff:

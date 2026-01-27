@@ -1,0 +1,33 @@
+name: shell-script-enforce-exec-check
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  exec-bit:
+    name: Enforce executable bit on tracked .sh scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify shell scripts are executable
+        run: |
+          set -euo pipefail
+          echo "Checking tracked .sh files are executable."
+          echo "This prevents CI/runtime failures when scripts are invoked."
+          fail=0
+          while IFS= read -r -d '' file; do
+            if [[ ! -x "$file" ]]; then
+              echo "Non-executable .sh: $file"
+              fail=1
+            fi
+          done < <(git ls-files -z '*.sh')
+          if [[ "$fail" -ne 0 ]]; then
+            echo "Fix with: git update-index --chmod=+x <file>"
+            exit 1
+          fi

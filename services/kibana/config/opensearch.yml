@@ -28,7 +28,7 @@ opensearch.hosts: ${ELASTICSEARCH_HOSTS}
 opensearch_security.multitenancy.enabled: true
 opensearch_security.multitenancy.tenants.enable_global: true
 opensearch_security.multitenancy.tenants.enable_private: true
-opensearch_security.multitenancy.tenants.preferred: ["Private", "Global"]
+opensearch_security.multitenancy.tenants.preferred: ["Global"]
 opensearch_security.readonly_mode.roles: ["kibana_read_only"]
 opensearch_security.multitenancy.enable_filter: true
 opensearch_security.cookie.secure: true
@@ -38,7 +38,7 @@ opensearch_security.cookie.secure: true
 
 # We changed this from .opensearch_dashboards to .kibana because of a permission bug in OpenSearch Dashboards 2.19.x and 3.0.0
 # report: https://github.com/opensearch-project/security/issues/5360
-opensearchDashboards.index: ".kibana"
+opensearchDashboards.index: ".opensearch_dashboards"
 
 # The default application to load.
 #opensearchDashboards.defaultAppId: "home"
@@ -81,11 +81,11 @@ opensearch.ssl.verificationMode: full
 
 # Time in milliseconds to wait for OpenSearch to respond to pings. Defaults to the value of
 # the opensearch.requestTimeout setting.
-opensearch.pingTimeout: 5000
+opensearch.pingTimeout: 10000
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-opensearch.requestTimeout: 30000
+opensearch.requestTimeout: 200000
 
 # List of OpenSearch Dashboards client-side headers to send to OpenSearch. To send *no* client-side
 # headers, set this value to [] (an empty list).
@@ -131,3 +131,16 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # Set the value of this setting to true to capture region blocked warnings and errors 
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
+
+
+savedObjects.permission.enabled: true
+
+# Set the value to true to enable multiple data source feature
+data_source.enabled: true
+# Set the value to true to enable workspace feature
+workspace.enabled: true
+# Set the value to true to enable explore feature
+explore.enabled: true
+
+opensearchDashboards.dashboardAdmin.users: ["admin"]
+opensearchDashboards.dashboardAdmin.groups: ["admin","all_access"]

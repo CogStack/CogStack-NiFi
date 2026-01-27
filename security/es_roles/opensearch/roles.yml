@@ -479,10 +479,20 @@ dashboards_system_access:
     - index_patterns:
         - ".opensearch_dashboards*"
       allowed_actions:
+        - "system:admin/system_index"
         - "indices:admin/*"
         - "indices:data/read/*"
         - "indices:data/write/*"
         - "indices:admin/create"
+    - index_patterns:
+        - ".opensearch-notifications*"
+      allowed_actions:
+        - "system:admin/system_index"
+        - "indices:admin/*"
+        - "indices:data/read/*"
+        - "indices:data/write/*"
+        - "indices:admin/create"
+
   tenant_permissions:
     - tenant_patterns:
         - "*"

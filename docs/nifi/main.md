@@ -1,13 +1,15 @@
 # 💧 NiFi
 
 This directory contains files related with our custom Apache NiFi image and example deployment templates with associated services.
-Apache NiFi is used as a customizable data pipeline engine for controlling and executing data flow between used services. 
+Apache NiFi is used as a customizable data pipeline engine for controlling and executing data flow between used services.
 There are multiple workflow templates provided with custom user scripts to work with NiFi.
 
 For more information about Apache NiFi please refer to [the official website](https://nifi.apache.org/) and the [guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi).
 
 ## Concepts you should understand in NiFi
+
 Before going deeper into the NiFi setup and workflows, a few key concepts need to be understood:
+
 - processor: main compontent responsible for executing tasks, this can be anything: custom scripts, DB queries, http queries, .etc
 - flowfiles: these represent the common datastructure used in a NiFi session to store data between two or more entities in the workflow, a flowfile will hold one or multiple records of data.
 - avro files: common data seralisation system that is used to store record data, the flowfile records that are created by most of the built-in processors are stored in this format, if you aim to use your own custom scripts with alongside the built-in processors, you will likely have to write your own code that converts your records to Avro.
@@ -19,29 +21,37 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 
 ## `NiFi directory layout : /nifi`
 
-```
-├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
-├── conf - NiFi configuration files, this folder is mounted on the NiFi service container at runtime, it needs to have read & write permissions by the user
-├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
-├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
-├── nifi-app.log - log file mounted directly from the container for easy log checking
-├── user-schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
-├── user-scripts - custom scripts used in workflows, you can put them here
-└── user-templates - here we store the fully exported templates of the workflows within NiFi
-```
+    ```
+    ├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
+    ├── conf - NiFi configuration files, this folder is mounted on the NiFi service container at runtime, it needs to have read & write permissions by the user
+    ├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
+    ├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
+    ├── nifi-app.log - log file mounted directly from the container for easy log checking
+    ├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
+    ├── user_scripts - custom scripts used in workflows, you can put them here
+    ├── user_python_extensions - Python FlowFileTransform processors exposed to NiFi's extension framework
+    └── user_templates - here we store the fully exported templates of the workflows within NiFi
+    ```
+
+For user script organization and usage guidelines, see [user scripts](user_scripts.md).
+For Python extension processors, see [Python extensions](user_python_extensions.md).
 
 ## Custom Docker image
+
 For any deployment it is recommended to build and use the custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows.
 
 The Docker image recipe is defined in `Dockerfile` file.
 There are two images being built as part of CI process:
+
 - `cogstacksystems/cogstack-nifi:latest` - the latest image built from `master` branch,
 - `cogstacksystems/cogstack-nifi:dev-latest` - the latest image built from `devel` branch.
 
 There are also release images built for each release, for example:
+
 - `cogstacksystems/cogstack-nifi:1.0.0` - release 1.0
 
 ## Apache NiFi configuration
+
 The main configuration files for NiFi are provided in [`conf`](https://github.com/CogStack/CogStack-Nifi/conf) directory.
 
 This section provides only a brief description of the most useful properties that you may need to modify to fit your own setup.
@@ -61,101 +71,106 @@ This NiFi custom image will use less resources and storage size for data provena
 The corresponding properties have been commented out in the file.
 
 <strong>Important properties to look for:</strong>
-```
-nifi.flow.configuration.archive.enabled=true
-nifi.flow.configuration.archive.max.time=1 days
-nifi.flow.configuration.archive.max.storage=32 GB
-```
+
+    ```
+    nifi.flow.configuration.archive.enabled=true
+    nifi.flow.configuration.archive.max.time=1 days
+    nifi.flow.configuration.archive.max.storage=32 GB
+    ```
 The above lines are used to specify if backups of the current flow-files should be kept, keep in mind that the archive size can get quite big depending on the number of files you attempt to put through a workflow. This can easily get over 32GB so it is recommended you modify depending on the workflows and of the filesizes of the flow-files, this setting is directly affected by `nifi.queue.backpressure.count` and `nifi.queue.backpressure.size`
 
-```
-nifi.queue.backpressure.count=10000
-nifi.queue.backpressure.size=1 GB
-```
+    ```
+    nifi.queue.backpressure.count=10000
+    nifi.queue.backpressure.size=1 GB
+    ```
+
 These settings specify how large can a queue's size be (any que between two processes), it is recommended to keep this as 1GB, the count is the ma number of flow-files a que can have, again 10000 is a reasonable number. <span style="color: red"> <strong>These values should be modified only if you are really certain flow-files are not being held in the queue for long as the queued flow-files are stored in RAM memory as well as on the disk. </strong>  </span> A much more safer way of doing things if you wish to change the above settings is to change the settings only for the queues you would need, this can be done during runtime, without the need to touch the `nifi.properties` file.
 
-```
-nifi.bored.yield.duration=100 millis
-```
+    ```
+    nifi.bored.yield.duration=100 millis
+    ```
+
 A timer that specifies how long should NiFi waits before checking for work, CPU dependent, the lower the time the higher the CPU usage, as it would do more frequent checks. The default is 10ms but it seems too excessive for most use cases, it would also result in significant CPU usage if a large number of workflows are running in parallel, so it has been set to 100ms instead.
 
-```
-nifi.flow.configuration.archive.enabled=true
-nifi.flow.configuration.archive.max.time=1 days
-nifi.flow.configuration.archive.max.storage=12 GB
-```
+    ```
+    nifi.flow.configuration.archive.enabled=true
+    nifi.flow.configuration.archive.max.time=1 days
+    nifi.flow.configuration.archive.max.storage=12 GB
+    ```
 
-By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The ```nifi.flow.configuration.archive.max.time``` sets the max duration, max size configurable via ```nifi.flow.configuration.archive.max.storage```, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
+By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The `nifi.flow.configuration.archive.max.time` sets the max duration, max size configurable via `nifi.flow.configuration.archive.max.storage`, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
 
 Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
 <br><br>
 
 #### IMPORTANT NOTE about nifi properties
 
-:::{admonition} IMPORTANT NOTE about `nifi.properties
+:::{admonition} IMPORTANT NOTE about `nifi.properties`
 :class: warning
 For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.
 :::
- 
+
 <span style="color:orange"><strong>Recommendation:</strong></span> If the account/group creation is not possible, you will need to build your own docker image on NiFi, but before you do this, you need to get hold of your group id and user id  of the account you are logged in with.
 To find out your GID and UID, you must do the following commands in terminal:
-```
-echo "user id (UID):"$(id -u $USER)
-echo "group id (GID):"$(id -g $USER)
-```
+
+    ```bash
+    echo "user id (UID):"$(id -u $USER)
+    echo "group id (GID):"$(id -g $USER)
+    ```
+
 You'd need to export your ENV vars:
 
-```
-export NIFI_UID=$(id -u $USER)
-export NIFI_GID=$(id -g $USER)
-```
+    ```bash
+    export NIFI_UID=$(id -u $USER)
+    export NIFI_GID=$(id -g $USER)
+    ```
 
 A better way is to also manually edit the `./deploy/nifi.env` file and change the default NIFI_UID and NIFI_GID variables there, after which you must execute the `export_env_vars.sh` script.
 
-```
-cd ./deploy/
-source export_env_vars.sh
-cd ../
-```
+    ```bash
+    cd ./deploy/
+    source export_env_vars.sh
+    cd ../
+    ```
 
 You should check if the env vars have been set after running the script:
 
-```
-echo $NIFI_UID
-echo $NIFI_GID
-```
+    ```bash
+    echo $NIFI_UID
+    echo $NIFI_GID
+    ```
 
 If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
 
-```
-    set -o allexport
-    source nifi.env
-    set +o allexport
-```
+    ```bash
+        set -o allexport
+        source nifi.env
+        set +o allexport
+    ```
 
 or, on Windows, via `git bash` terminal:
 
-```
-    set -a
-    source nifi.env
-    set +a
-```
+    ```bash
+        set -a
+        source nifi.env
+        set +a
+    ```
 
 Make sure to execute the above commands in the order they are mentioned.
 
 
 Delete the older docker image from the nifi repo:
 
-```
-docker image rm cogstacksystems/cogstack-nifi:latest -f
-```
+    ```bash
+    docker image rm cogstacksystems/cogstack-nifi:latest -f
+    ```
 
 Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` folder.
 
-```
-cd ./nifi
-bash recreate_nifi_docker_image.sh
-```
+    ```bash
+    cd ./nifi
+    bash recreate_nifi_docker_image.sh
+    ```
 
 Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute the `./deploy/export_env_vars.sh` so that the variables will be visible by docker at runtime, because it uses the GID/UID in the `services.yml` file , specifying in the service definition `user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"`.
 
@@ -164,10 +179,10 @@ Remember that the above export script and/or command are only visible in the cur
 <br>
 This file allows users to configure settings for how NiFi should be started, it deals with location of configuration folder, files, JVM heap and Java System Properties.
 
-```
-java.arg.2=-Xms8g
-java.arg.3=-Xmx16g
-```
+    ```text
+        java.arg.2=-Xms8g
+        java.arg.3=-Xmx16g
+    ```
 
 These properties specify the maximum memory that can be allocated to the JVM `-Xmx16g` and the initial memory allocation `-Xms8g`, values of 8g and 16g are used by default, however you may need to change these to fully utilise the memory of the machines you are spinning the service on.
 <br><br>
@@ -185,29 +200,34 @@ Possible log level settings: `OFF`(inside `logback.xml`) or `NONE` (inside the N
 
 ![nifi-process-log-level](../_static/img/process_log_level.png)
 
-
 The most useful log sections are:
-```
-<logger name="org.apache.nifi" level="WARN"/>
-```
+
+    ```
+        <logger name="org.apache.nifi" level="WARN"/>
+    ```
+
 - This refers to the overall NiFi log, useful for finding out what may cause startup issues.
 
-```
-<logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
-```
+    ```
+        <logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
+    ```
+
 - Security level logging, this controls certificate or authorisation issues here.
 
-```
-<logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
-```
+    ```
+        <logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
+    ```
+
 - This handles issues related to the startup parameters.
-```
-<root level="WARN">
-```
+
+    ```
+        <root level="WARN">
+    ```
+
 - This is controls that is logged into the `./nifi/nifi-app.log`
 
-
 ### <strong>`{zookeeper.conf}`</strong>
+
 Apache Zookeeper is a highly consistent, scalable and reliable cluster co-ordination service. 
 When deploying Apache NiFi, an exernal Apache Zookeper service can be used or embedeed within NiFi service (the default option).
 
@@ -220,9 +240,11 @@ In previous nifi versions by default there was no user assigned and authenticati
 Please use the guide provided in the [SECURITY.md](../security.md#apache-nifi) section to set up accounts and certificates.
 
 ## Drivers
+
 The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/drivers) directory.
 
-The key used ones are: 
+The key used ones are:
+
 - `mssql-jdbc-9.4.1.jre11.jar` \ `mssql-jdbc-9.4.1.jre8.jar` and `mssql-jdbc-11.2.0.jre11.jar` \ `mssql-jdbc-11.2.0.jre8.jar`  - MS SQL Server JDBC driver, older version of the driver for backwards compatibility across setups.
 - `postgresql-42.6.0.jar` - PostgreSQL JDBC driver.
 - `mysql-connector-j-8.1.0.jar` - MySQL JDBC driver.
@@ -230,20 +252,23 @@ The key used ones are:
 These drivers come bundled for both `jre8` and `jre11`.
 
 ## User resources
+
 With our custom image there are bundled resources to get up and running example workflows.
 Please see [WORKFLOWS.md](../deploy/workflows.md) in the `deploy` directory for more details on the workflows.
 
 ## Workflow templates
+
 Workflow templates define example data workflows that can be tailored and executed by the user.
 The templates are stored in [user-templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) directory.
 
 ## User scripts
+
 Apache NiFi gives users the ability to execute custom scripts inside the data flow (supported languages: Python, Groovy, Clojure, Ruby, Lua, ECMAScript).
 [`user-scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-scripts) directory contains example scripts, these are mostly used when parsing the data from Flow Files.
 
 ## User schemas
-[`user-schemas`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
 
+[`user-schemas`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
 
 ## Performance settings
 
@@ -263,9 +288,7 @@ If you have proceessors that are based on events then feel free to change the va
 
 <span style="color:orange"><strong>Recommendation:</strong></span> set the value of this parameter to be anywhere from from 2-4 times the CPU count you have on the machine.
 
-
 ![nifi-process-time-driven-thread-count](../_static/img/process_threads.png)
-
 
 ### Process scheduling and task management
 
@@ -295,11 +318,12 @@ You can then select the type of history you wish to check by clicking the drop-d
 
 Certain methods can be executed via scripts, either python or shell. Python has the `nifi-api` package for this. Check this [article](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html) for more details on the methods available.
 
-
 ## Various data  type issues
+
 This section covers dealing with data type issues depending on DB types and/or other data structures to Apache AVRO format.
 
-
 ### MySQL
+
 Issues have been found with MySQL:
+
 - allows zero dates in DateTime fields  -> solution: can be overcome in the URL connection string using parameters
