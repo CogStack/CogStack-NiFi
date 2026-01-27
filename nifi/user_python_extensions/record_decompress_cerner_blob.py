@@ -143,33 +143,55 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             concatenated_blob_sequence_order = {}
             output_merged_record = {}
 
-            for record in records:
-                if self.blob_sequence_order_field_name in record:
-                    concatenated_blob_sequence_order[int(record[self.blob_sequence_order_field_name])] = \
-                        record[self.binary_field_name]
-                else:
-                    # If no sequence field, treat as single blob
-                    if 0 not in concatenated_blob_sequence_order:
-                        concatenated_blob_sequence_order[0] = record[self.binary_field_name]
+            have_any_sequence = any(self.blob_sequence_order_field_name in record for record in records)
+            have_any_no_sequence = any(self.blob_sequence_order_field_name not in record for record in records)
 
+            if have_any_sequence and have_any_no_sequence:
+                raise ValueError(
+                    f"Mixed records: some have '{self.blob_sequence_order_field_name}', some don't. "
+                    "Cannot safely reconstruct blob stream."
+                )
+
+            for record in records:
+                if self.binary_field_name not in record or record[self.binary_field_name] in (None, ""):
+                    raise ValueError(f"Missing '{self.binary_field_name}' in a record")
+
+                if have_any_sequence:
+                    seq = int(record[self.blob_sequence_order_field_name])
+                    if seq in concatenated_blob_sequence_order:
+                        raise ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}")
+                    concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+                else:
+                    # no sequence anywhere: preserve record order (0..n-1)
+                    seq = len(concatenated_blob_sequence_order)
+                    concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+    
             # take fields from the first record, doesn't matter which one,
             # as they are expected to be the same except for the binary data field
             for k, v in records[0].items():
                 if k not in output_merged_record and k != self.binary_field_name:
                     output_merged_record[k] = v
 
-            output_merged_record[self.binary_field_name] = b""
             full_compressed_blob = bytearray()
 
             for k in sorted(concatenated_blob_sequence_order.keys()):
                 v = concatenated_blob_sequence_order[k]
-                try:
-                    temporary_blob = v
-                    if self.binary_field_source_encoding == "base64":
-                        temporary_blob = base64.b64decode(temporary_blob)
-                    full_compressed_blob.extend(temporary_blob)
-                except Exception as e:
-                    self.logger.error(f"Error decoding b64 blob part {k}: {str(e)}")
+
+                if self.binary_field_source_encoding == "base64":
+                    if not isinstance(v, str):
+                        raise ValueError(f"Expected base64 string in {self.binary_field_name} for part {k}, got {type(v)}")
+                    try:
+                        temporary_blob = base64.b64decode(v, validate=True)
+                    except Exception as e:
+                        raise ValueError(f"Error decoding base64 blob part {k}: {e}")
+                else:
+                    # raw bytes path
+                    if isinstance(v, (bytes, bytearray)):
+                        temporary_blob = v
+                    else:
+                        raise ValueError(f"Expected bytes in {self.binary_field_name} for part {k}, got {type(v)}")
+
+                full_compressed_blob.extend(temporary_blob)
 
             try:
                 decompress_blob = DecompressLzwCernerBlob()
