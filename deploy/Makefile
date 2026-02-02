@@ -25,17 +25,23 @@ load-env:
 
 show-env:
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
+
+fix-nifi-registry-perms:
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh $(COMPOSE_FILE)
 	
 # start services
 
 start-nifi:
-	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.yml; \
+	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
 
 start-nifi-dev:
-	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
 
 start-nifi-dev-build:
-	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
 
 start-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
@@ -101,7 +107,7 @@ start-data-infra: start-nifi start-elastic start-samples
 
 start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter fix-nifi-registry-perms
 
 
 # stop services

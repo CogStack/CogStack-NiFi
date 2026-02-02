@@ -108,6 +108,7 @@ x-nifi-registry-volumes: &nifi-registry-volumes
   # Registry persistence
   - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
   - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
+  - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
   - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
 
 #---------------------------------------------------------------------------#
@@ -174,8 +175,6 @@ services:
           cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
           memory: "${NIFI_REGISTRY_DOCKER_RAM}"
     volumes: *nifi-registry-volumes
-    tmpfs:
-      - /opt/nifi-registry/nifi-registry-current/work
     extra_hosts: *common-hosts
     tty: true
     ports:
@@ -240,6 +239,8 @@ volumes:
   nifi-registry-vol-database:
     driver: local
   nifi-registry-vol-flow-storage:
+    driver: local
+  nifi-registry-vol-work:
     driver: local
   nifi-registry-vol-logs:
     driver: local
