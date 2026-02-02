@@ -535,7 +535,6 @@ services:
     hostname: nifi-registry
     container_name: cogstack-nifi-registry-flow
     shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
-    user: root
     environment:
       - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
@@ -563,11 +562,6 @@ services:
     ports:
       - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-8083}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
     
-    entrypoint: bash -c "chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/database && \
-      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/flow_storage && \
-      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/work && \
-      chown -R nifi:nifi /opt/nifi-registry/nifi-registry-current/logs && \
-      bash /opt/nifi-registry/scripts/start.sh"
     logging: *nifi-logging-common
   
   nifi-nginx:
