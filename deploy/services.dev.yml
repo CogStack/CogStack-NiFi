@@ -127,11 +127,6 @@ services:
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
-      - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"localhost:8443"}
-      - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/nifi"}
-      - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
-      - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
-      - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
       - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
       - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
     deploy:
@@ -170,9 +165,6 @@ services:
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
       - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
       - AUTH=${NIFI_AUTH:-"tls"}
-      - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
-      #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
-      - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
     deploy:
       resources:
         limits:

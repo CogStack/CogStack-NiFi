@@ -17,6 +17,14 @@ Make sure you have read the [Prerequisites](./main.md) section before proceeding
 
   These variables configure NiFi, Elasticsearch/OpenSearch, Kibana, Jupyter, Metricbeat, the sample DB, etc.
 
+> **Important:** If you run `docker compose` directly (instead of `make`), first load the envs with:
+>
+> ```bash
+> source ./deploy/export_env_vars.sh
+> ```
+>
+> The Makefile targets already do this for you.
+
 ## 🧩 Modular service design (important)
 
 This repository follows a **modular deployment model**:

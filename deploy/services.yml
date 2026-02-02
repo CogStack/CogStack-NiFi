@@ -96,7 +96,7 @@ x-nifi-volumes: &nifi-volumes
   - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
 
   # MedCAT models
-  - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
   # NiFi repositories/state
   - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -166,9 +166,6 @@ x-es-common: &es-common
   networks:
     - cognet
   extra_hosts: *common-hosts
-  environment:
-    ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
-    OPENSEARCH_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms2048m -Xmx2048m -Des.failure_store_feature_flag_enabled=true}
   logging: *es-logging-common
   deploy:
     resources:
@@ -213,11 +210,6 @@ x-filebeat-common: &filebeat-common
   env_file:
     - ./elasticsearch.env
     - ../security/env/users_elasticsearch.env
-  environment:
-    - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS:-["https://elasticsearch-1:9200","https://elasticsearch-2:9200"]}
-    - FILEBEAT_USER=${FILEBEAT_USER:-elastic}
-    - FILEBEAT_PASSWORD=${FILEBEAT_PASSWORD:-kibanaserver}
-    - KIBANA_HOST=${KIBANA_HOST:-"https://kibana:5601"}
   deploy:
     resources:
       limits:
@@ -244,7 +236,7 @@ services:
 #---------------------------------------------------------------------------#
   samples-db:
     <<: *db-common
-    image: postgres:17.7-alpine
+    image: postgres:18.1-trixie
     container_name: cogstack-samples-db
     platform: linux/amd64
     environment:
@@ -257,7 +249,7 @@ services:
       - ../services/pgsamples/schemas:/data/schemas:rw
       - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
-      - samples-vol:/var/lib/postgresql/data
+      - samples-vol:/var/lib/postgresql
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
       - 5554:5432
@@ -271,7 +263,7 @@ services:
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
     <<: *db-common
-    image: postgres:17.7-alpine
+    image: postgres:18.1-trixie
     container_name: cogstack-production-databank-db
     platform: linux/amd64
     environment:
@@ -283,7 +275,7 @@ services:
       - ../services/cogstack-db/pgsql/schemas:/data/:ro
       - ../services/cogstack-db/pgsql/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
       # data persistence
-      - databank-vol:/var/lib/postgresql/data
+      - databank-vol:/var/lib/postgresql
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
     ports:
       - 5558:5432
@@ -291,15 +283,13 @@ services:
       - 5432
     networks:
       - cognet
-  
+
   cogstack-databank-db-mssql:
     <<: *db-common
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: cogstack-production-databank-db-mssql
     environment:
       - ACCEPT_EULA=y
-      - MSSQL_SA_USER=${MSSQL_SA_USER:-sa}
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-admin!COGSTACK2022}
     volumes:
       # mapping postgres data dump and initialization
       - ../services/cogstack-db/mssql/schemas:/data/:ro
@@ -501,11 +491,6 @@ services:
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
-      - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"localhost:8443"}
-      - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/nifi"}
-      - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
-      - NIFI_OUTPUT_PORT=${NIFI_OUTPUT_PORT:-8082}
-      - NIFI_INPUT_SOCKET_PORT=${NIFI_INPUT_SOCKET_PORT:-10000}
       - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
       - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
     deploy:
@@ -540,13 +525,9 @@ services:
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
       - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
-
       - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
       - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
       - AUTH=${NIFI_AUTH:-"tls"}
-      - NIFI_REGISTRY_DB_DIR=${NIFI_REGISTRY_DB_DIR:-/opt/nifi-registry/nifi-registry-current/database}
-      #- NIFI_REGISTRY_FLOW_PROVIDER=${NIFI_REGISTRY_FLOW_PROVIDER:-file}
-      - NIFI_REGISTRY_FLOW_STORAGE_DIR=${NIFI_REGISTRY_FLOW_STORAGE_DIR:-/opt/nifi-registry/nifi-registry-current/flow_storage}
     deploy:
       resources:
         limits:
