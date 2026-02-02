@@ -63,11 +63,11 @@ x-nifi-common: &nifi-common
 
 x-nifi-volumes: &nifi-volumes
   # Drivers
-  - ../nifi/drivers:/opt/nifi/drivers
+  - ../nifi/drivers:/opt/nifi/drivers:ro
 
   # User overrides bundled in the image
   - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
-  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:ro
 
   # Python processors (NiFi 2.x)
   - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
@@ -83,9 +83,6 @@ x-nifi-volumes: &nifi-volumes
 
   # Ingest data directory
   - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
-
-  # DB schemas
-  - ../services/cogstack-db/:/opt/cogstack-db/:rw
 
   # MedCAT models
   - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
@@ -127,16 +124,10 @@ services:
     build:
        context: ..
        dockerfile: nifi/Dockerfile
-       args:
-           HTTP_PROXY: $HTTP_PROXY
-           HTTPS_PROXY: $HTTPS_PROXY
-           no_proxy: $no_proxy
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
-      - USER_ID=${NIFI_UID:-1000}
-      - GROUP_ID=${NIFI_GID:-1000}
       - NIFI_WEB_PROXY_HOST=${NIFI_WEB_PROXY_HOST:-"localhost:8443"}
       - NIFI_WEB_PROXY_CONTEXT_PATH=${NIFI_WEB_PROXY_CONTEXT_PATH:-"/nifi"}
       - NIFI_INTERNAL_PORT=${NIFI_INTERNAL_PORT:-8443}
@@ -172,11 +163,6 @@ services:
     shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
     user: root
     environment:
-      - http_proxy=$HTTP_PROXY
-      - https_proxy=$HTTPS_PROXY
-      - no_proxy=$no_proxy
-      - USER_ID=${NIFI_UID:-1000}
-      - GROUP_ID=${NIFI_GID:-1000}
       - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
       - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
       - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}

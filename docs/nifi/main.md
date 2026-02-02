@@ -172,7 +172,7 @@ Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` 
     bash recreate_nifi_docker_image.sh
     ```
 
-Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute the `./deploy/export_env_vars.sh` so that the variables will be visible by docker at runtime, because it uses the GID/UID in the `services.yml` file , specifying in the service definition `user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"`.
+Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute `./deploy/export_env_vars.sh` so the variables are visible to Docker at runtime. If you're using the `deploy/Makefile` targets, it handles this for you.
 
 ### <strong>`{bootstrap.conf}`</strong>
 
