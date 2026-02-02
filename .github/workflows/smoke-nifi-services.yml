@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           source deploy/export_env_vars.sh
           set -euo pipefail
+          ./nifi/fix_nifi_registry_perms.sh services.dev.yml
           docker compose -f deploy/services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
 
       - name: Smoke tests
