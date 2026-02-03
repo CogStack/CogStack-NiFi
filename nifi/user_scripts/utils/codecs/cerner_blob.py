@@ -8,6 +8,8 @@ class LzwItem:
 class DecompressLzwCernerBlob:
     def __init__(self) -> None:
         self.MAX_CODES: int = 8192
+        # Safety guard to avoid runaway prefix chains on corrupt inputs
+        self.MAX_PREFIX_EXPANSION: int = self.MAX_CODES * 4
         self.tmp_decompression_buffer: list[int] = [0] * self.MAX_CODES
         self.lzw_lookup_table: list[LzwItem] = [LzwItem() for _ in range(self.MAX_CODES)]
         self.tmp_buffer_index: int = 0
@@ -17,15 +19,29 @@ class DecompressLzwCernerBlob:
         self.code_count: int = 257
         self.output_stream = bytearray()
 
+    def _ensure_tmp_capacity(self, required_index: int) -> None:
+        if required_index < len(self.tmp_decompression_buffer):
+            return
+        new_len = max(required_index + 1, len(self.tmp_decompression_buffer) * 2)
+        self.tmp_decompression_buffer.extend([0] * (new_len - len(self.tmp_decompression_buffer)))
+
     def save_to_lookup_table(self, compressed_code: int):
         self.tmp_buffer_index = -1
+        steps = 0
         while compressed_code >= 258:
+            if steps > self.MAX_PREFIX_EXPANSION:
+                raise ValueError(
+                    "Invalid LZW stream: prefix chain too long (possible corrupt input)."
+                )
             self.tmp_buffer_index += 1
+            self._ensure_tmp_capacity(self.tmp_buffer_index)
             self.tmp_decompression_buffer[self.tmp_buffer_index] = \
                 self.lzw_lookup_table[compressed_code].suffix
             compressed_code = self.lzw_lookup_table[compressed_code].prefix
+            steps += 1
 
         self.tmp_buffer_index += 1
+        self._ensure_tmp_capacity(self.tmp_buffer_index)
         self.tmp_decompression_buffer[self.tmp_buffer_index] = compressed_code
 
         for i in reversed(list(range(self.tmp_buffer_index + 1))):
