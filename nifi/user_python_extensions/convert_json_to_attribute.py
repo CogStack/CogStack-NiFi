@@ -26,11 +26,13 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
 
     class ProcessorDetails:
         version = '0.0.1'
+        description = "Build ids_csv attribute from merged JSON records (dedupe, numeric-only)"
+        tags = ["ids", "sql", "in-clause"]
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
 
-        self.field_name: str = "base64"
+        self.field_name: str = "id"
 
         # this is directly mirrored to the UI
         self._properties: list[PropertyDescriptor] = [
@@ -39,9 +41,6 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
                                required=True, 
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR])
         ]
-
-        self.description = "Build ids_csv attribute from merged JSON records (dedupe, numeric-only)"
-        self.tags = ["ids", "sql", "in-clause"]
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
@@ -60,7 +59,6 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
                 parsed = json.loads(text) if text else []
             except Exception:
                 parsed = []
-
 
             records = parsed if isinstance(parsed, list) else parsed.get("records", [])
             if not isinstance(records, list):
