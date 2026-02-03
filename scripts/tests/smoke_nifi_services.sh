@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENV_LOADER="${ROOT_DIR}/deploy/export_env_vars.sh"
 
 if [[ -f "$ENV_LOADER" ]]; then

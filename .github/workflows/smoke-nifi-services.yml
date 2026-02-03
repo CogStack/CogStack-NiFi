@@ -33,10 +33,7 @@ jobs:
       - name: Start NiFi services (build)
         run: |
           set -euo pipefail
-          source deploy/export_env_vars.sh
-          set -euo pipefail
-          ./nifi/fix_nifi_registry_perms.sh services.dev.yml
-          docker compose -f deploy/services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+          make -C deploy start-nifi-dev-build
 
       - name: Smoke tests
         run: |
@@ -45,7 +42,7 @@ jobs:
           retries=30
           delay=15
           for attempt in $(seq 1 $retries); do
-            if ./scripts/smoke_nifi_services.sh; then
+            if ./scripts/tests/smoke_nifi_services.sh; then
               exit 0
             fi
             echo "Attempt ${attempt}/${retries} failed. Sleeping ${delay}s..."
