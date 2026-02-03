@@ -33,6 +33,8 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
     class ProcessorDetails:
         version = '0.0.1'
+        description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
+        tags = ["cerner", "oracle", "blob"]
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
@@ -118,7 +120,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             # read avro record
             input_raw_bytes: bytes | bytearray = flowFile.getContentsAsBytes()
 
-            records = []
+            records: list | dict = []
 
             try:
                 records = json.loads(input_raw_bytes.decode())
@@ -140,11 +142,16 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             if not records:
                 raise ValueError("No records found in JSON input")
 
-            concatenated_blob_sequence_order = {}
-            output_merged_record = {}
+            # sanity check:  blobs are from the same document_id
+            doc_ids: set  = {str(r.get(self.document_id_field_name, "")) for r in records}
+            if len(doc_ids) > 1:
+                raise ValueError(f"Multiple document IDs in one FlowFile: {list(doc_ids)[:5]}")
 
-            have_any_sequence = any(self.blob_sequence_order_field_name in record for record in records)
-            have_any_no_sequence = any(self.blob_sequence_order_field_name not in record for record in records)
+            concatenated_blob_sequence_order: dict = {}
+            output_merged_record: dict = {}
+
+            have_any_sequence: bool = any(self.blob_sequence_order_field_name in record for record in records)
+            have_any_no_sequence: bool = any(self.blob_sequence_order_field_name not in record for record in records)
 
             if have_any_sequence and have_any_no_sequence:
                 raise ValueError(
@@ -174,16 +181,27 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
             full_compressed_blob = bytearray()
 
-            for k in sorted(concatenated_blob_sequence_order.keys()):
+            # double check to make sure there is no gap in the blob sequence, i.e missing blob.
+            order_of_blobs_keys = sorted(concatenated_blob_sequence_order.keys())
+            for i in range(1, len(order_of_blobs_keys)):
+                if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
+                    raise ValueError(
+                        f"Sequence gap: missing {order_of_blobs_keys[i-1] + 1} "
+                        f"(have {order_of_blobs_keys[i-1]} then {order_of_blobs_keys[i]})"
+                    )
+    
+            for k in order_of_blobs_keys:
                 v = concatenated_blob_sequence_order[k]
 
                 if self.binary_field_source_encoding == "base64":
                     if not isinstance(v, str):
-                        raise ValueError(f"Expected base64 string in {self.binary_field_name} for part {k}, got {type(v)}")
+                        raise ValueError(
+                            f"Expected base64 string in {self.binary_field_name} for part {k}, got {type(v)}"
+                        )
                     try:
                         temporary_blob = base64.b64decode(v, validate=True)
                     except Exception as e:
-                        raise ValueError(f"Error decoding base64 blob part {k}: {e}")
+                        raise ValueError(f"Error decoding base64 blob part {k}: {e}") from e
                 else:
                     # raw bytes path
                     if isinstance(v, (bytes, bytearray)):
@@ -196,7 +214,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             try:
                 decompress_blob = DecompressLzwCernerBlob()
                 decompress_blob.decompress(full_compressed_blob)
-                output_merged_record[self.binary_field_name] = decompress_blob.output_stream
+                output_merged_record[self.binary_field_name] = bytes(decompress_blob.output_stream)
             except Exception as exception:
                 self.logger.error(f"Error decompressing cerner blob: {str(exception)} \n")
                 raise exception
@@ -209,11 +227,17 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
             attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
             attributes["document_id_field_name"] = str(self.document_id_field_name)
+            attributes["document_id"] = str(output_merged_record.get(self.document_id_field_name, ""))
             attributes["binary_field"] = str(self.binary_field_name)
             attributes["output_text_field_name"] = str(self.output_text_field_name)
             attributes["mime.type"] = "application/json"
+            attributes["blob_parts"] = str(len(order_of_blobs_keys))
+            attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
+            attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
+            attributes["compressed_len"] = str(len(full_compressed_blob))
+            attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
 
-            return FlowFileTransformResult(relationship="success",
+            return FlowFileTransformResult(relationship=self.REL_SUCCESS,
                                            attributes=attributes,
                                            contents=json.dumps(output_contents).encode("utf-8"))
         except Exception as exception:

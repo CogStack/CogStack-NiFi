@@ -58,7 +58,6 @@ class DecompressLzwCernerBlob:
         
         first_code = input_stream[byte_buffer_index]
 
-
         while True:
             if current_shift >= 9:
 
