@@ -193,7 +193,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     if seq in concatenated_blob_sequence_order:
                         return self.build_failure_result(
                             flowFile,
-                            ValueError(f"Invalid {self.blob_sequence_order_field_name}: {seq}"),
+                            ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}"),
                             attributes=attributes,
                             contents=input_raw_bytes,
                         )
@@ -283,13 +283,12 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 decompress_blob.decompress(full_compressed_blob)
                 output_merged_record[self.binary_field_name] = bytes(decompress_blob.output_stream)
             except Exception as exception:
-                self.logger.error(f"Error decompressing cerner blob: {str(exception)} \n")
                 return self.build_failure_result(
                     flowFile,
                     exception,
                     attributes=attributes,
                     contents=input_raw_bytes,
-                    include_flowfile_attributes=False,
+                    include_flowfile_attributes=False
                 )
 
             if self.output_mode == "base64":
@@ -308,5 +307,5 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 exception,
                 attributes=attributes,
                 contents=locals().get("input_raw_bytes", flowFile.getContentsAsBytes()),
-                include_flowfile_attributes=False,
+                include_flowfile_attributes=False
             )

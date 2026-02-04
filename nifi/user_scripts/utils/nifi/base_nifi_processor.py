@@ -163,6 +163,7 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         self,
         flowFile: JavaObject,
         exception: Exception,
+        *,
         attributes: dict | None = None,
         include_flowfile_attributes: bool = False,
         contents: bytes | bytearray | None = None,
