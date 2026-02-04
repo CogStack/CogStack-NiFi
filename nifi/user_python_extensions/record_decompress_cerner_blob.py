@@ -211,6 +211,20 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
                 full_compressed_blob.extend(temporary_blob)
 
+            # build / add new attributes to dict before doing anything else to have some trace.
+
+            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+            attributes["document_id_field_name"] = str(self.document_id_field_name)
+            attributes["document_id"] = str(output_merged_record.get(self.document_id_field_name, ""))
+            attributes["binary_field"] = str(self.binary_field_name)
+            attributes["output_text_field_name"] = str(self.output_text_field_name)
+            attributes["mime.type"] = "application/json"
+            attributes["blob_parts"] = str(len(order_of_blobs_keys))
+            attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
+            attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
+            attributes["compressed_len"] = str(len(full_compressed_blob))
+            attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
+
             try:
                 decompress_blob = DecompressLzwCernerBlob()
                 decompress_blob.decompress(full_compressed_blob)
@@ -224,18 +238,6 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     base64.b64encode(output_merged_record[self.binary_field_name]).decode(self.output_charset)
 
             output_contents.append(output_merged_record)
-
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["document_id_field_name"] = str(self.document_id_field_name)
-            attributes["document_id"] = str(output_merged_record.get(self.document_id_field_name, ""))
-            attributes["binary_field"] = str(self.binary_field_name)
-            attributes["output_text_field_name"] = str(self.output_text_field_name)
-            attributes["mime.type"] = "application/json"
-            attributes["blob_parts"] = str(len(order_of_blobs_keys))
-            attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
-            attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
-            attributes["compressed_len"] = str(len(full_compressed_blob))
-            attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
 
             return FlowFileTransformResult(relationship=self.REL_SUCCESS,
                                            attributes=attributes,
