@@ -1,4 +1,3 @@
-
 class LzwItem:
     def __init__(self, _prefix: int = 0, _suffix: int = 0) -> None:
         self.prefix = _prefix
@@ -57,7 +56,7 @@ class DecompressLzwCernerBlob:
                 current_shift -= 8
                 if first_code != 0:
                     byte_buffer_index += 1
-                    if byte_buffer_index >= len(input_stream): 
+                    if byte_buffer_index >= len(input_stream):
                         raise ValueError("Truncated input_stream")
 
                     middle_code = input_stream[byte_buffer_index]
@@ -66,7 +65,7 @@ class DecompressLzwCernerBlob:
 
                     byte_buffer_index += 1
 
-                    if byte_buffer_index >= len(input_stream): 
+                    if byte_buffer_index >= len(input_stream):
                         raise ValueError("Truncated input_stream")
 
                     middle_code = input_stream[byte_buffer_index]
@@ -76,16 +75,16 @@ class DecompressLzwCernerBlob:
                     skip_flag = True
                 else:
                     byte_buffer_index += 1
-                    if byte_buffer_index >= len(input_stream): 
+                    if byte_buffer_index >= len(input_stream):
                         raise ValueError("Truncated input_stream")
                     first_code = input_stream[byte_buffer_index]
                     byte_buffer_index += 1
-                    if byte_buffer_index >= len(input_stream): 
+                    if byte_buffer_index >= len(input_stream):
                         raise ValueError("Truncated input_stream")
                     middle_code = input_stream[byte_buffer_index]
             else:
                 byte_buffer_index += 1
-                if byte_buffer_index >= len(input_stream): 
+                if byte_buffer_index >= len(input_stream):
                     raise ValueError("Truncated input_stream")
                 middle_code = input_stream[byte_buffer_index]
 
@@ -97,7 +96,7 @@ class DecompressLzwCernerBlob:
                     current_shift = 1
                     previous_code = 0
                     skip_flag = False
-  
+ 
                     self.tmp_decompression_buffer = [0] * self.MAX_CODES
                     self.tmp_buffer_index = 0
                     self.lzw_lookup_table = [LzwItem() for _ in range(self.MAX_CODES)]
