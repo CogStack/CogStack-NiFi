@@ -163,10 +163,11 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         self,
         flowFile: JavaObject,
         exception: Exception,
-        *,
         attributes: dict | None = None,
         include_flowfile_attributes: bool = False,
         contents: bytes | bytearray | None = None,
+        *args,
+        **kwargs,
     ) -> FlowFileTransformResult:
         """
         Build a failure FlowFileTransformResult with exception metadata.
@@ -201,7 +202,7 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         return FlowFileTransformResult(
             relationship=self.REL_FAILURE,
             attributes=merged_attributes,
-            contents=contents,
+            contents=contents
         )
 
     def onScheduled(self, context: ProcessContext) -> None:

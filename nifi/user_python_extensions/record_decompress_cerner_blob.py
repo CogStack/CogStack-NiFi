@@ -285,10 +285,10 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             except Exception as exception:
                 return self.build_failure_result(
                     flowFile,
-                    exception,
+                    exception=exception,
                     attributes=attributes,
-                    contents=input_raw_bytes,
-                    include_flowfile_attributes=False
+                    include_flowfile_attributes=False,
+                    contents=input_raw_bytes
                 )
 
             if self.output_mode == "base64":
