@@ -134,10 +134,9 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     try:
                         records = json.loads(input_raw_bytes.decode("windows-1252"))
                     except json.JSONDecodeError as e:
-                        self.logger.error(f"Error decoding JSON: {str(e)} \n with windows-1252")
                         return self.build_failure_result(
                             flowFile,
-                            ValueError(f"Error decoding JSON: {e}"),
+                            ValueError(f"Error decoding JSON: {str(e)} \n with windows-1252"),
                             attributes=attributes,
                             contents=input_raw_bytes,
                         )
@@ -194,7 +193,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     if seq in concatenated_blob_sequence_order:
                         return self.build_failure_result(
                             flowFile,
-                            ValueError(f"Invalid {self.blob_sequence_order_field_name}: {e}"),
+                            ValueError(f"Invalid {self.blob_sequence_order_field_name}: {seq}"),
                             attributes=attributes,
                             contents=input_raw_bytes,
                         )
@@ -219,15 +218,18 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
                     return self.build_failure_result(
                         flowFile,
-                        ValueError(f"Missing '{self.binary_field_name}' in a record"),
+                        ValueError(
+                            f"Sequence gap: missing {order_of_blobs_keys[i-1] + 1} "
+                            f"(have {order_of_blobs_keys[i-1]} then {order_of_blobs_keys[i]})"
+                        ),
                         attributes=attributes,
                         contents=input_raw_bytes,
                     )
-    
+
             for k in order_of_blobs_keys:
                 v = concatenated_blob_sequence_order[k]
 
-                temporary_blob = bytearray()
+                temporary_blob: bytes = b""
 
                 if self.binary_field_source_encoding == "base64":
                     if not isinstance(v, str):
@@ -286,7 +288,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     flowFile,
                     exception,
                     attributes=attributes,
-                    contents=locals().get("input_raw_bytes", flowFile.getContentsAsBytes()),
+                    contents=input_raw_bytes,
                     include_flowfile_attributes=False,
                 )
 
