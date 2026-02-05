@@ -163,8 +163,11 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         self,
         flowFile: JavaObject,
         exception: Exception,
-        *,
+        attributes: dict | None = None,
         include_flowfile_attributes: bool = False,
+        contents: bytes | bytearray | None = None,
+        *args,
+        **kwargs,
     ) -> FlowFileTransformResult:
         """
         Build a failure FlowFileTransformResult with exception metadata.
@@ -172,7 +175,9 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         Args:
             flowFile: The FlowFile being processed.
             exception: The exception raised during processing.
-            include_flowfile_attributes: If true, include all FlowFile attributes.
+            attributes: Optional pre-built attributes dict to use/extend.
+            include_flowfile_attributes: If true, merge in all FlowFile attributes.
+            contents: Optional override for contents; defaults to the incoming FlowFile contents.
 
         Returns:
             A FlowFileTransformResult targeting the failure relationship.
@@ -180,19 +185,24 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
 
         exception_name = type(exception).__name__
         exception_message = str(exception)
-        exception_value = (
-            f"{exception_name}: {exception_message}" if exception_message else exception_name
-        )
+        exception_value = f"{exception_name}: {exception_message}" if exception_message else exception_name
 
-        attributes = {}
+        merged_attributes: dict[str, str] = {}
+        if attributes:
+            merged_attributes.update({k: str(v) for k, v in attributes.items()})
+
         if include_flowfile_attributes:
-            attributes = {k: str(v) for k, v in flowFile.getAttributes().items()}
-        attributes["exception"] = exception_value
+            merged_attributes.update({k: str(v) for k, v in flowFile.getAttributes().items()})
+
+        merged_attributes["exception"] = exception_value
+
+        if contents is None:
+            contents = flowFile.getContentsAsBytes()
 
         return FlowFileTransformResult(
-            relationship="failure",
-            attributes=attributes,
-            contents=flowFile.getContentsAsBytes(),
+            relationship=self.REL_FAILURE,
+            attributes=merged_attributes,
+            contents=contents
         )
 
     def onScheduled(self, context: ProcessContext) -> None:
