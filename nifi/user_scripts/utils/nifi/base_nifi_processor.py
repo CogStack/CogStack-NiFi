@@ -219,11 +219,11 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
         """
         pass
     
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Process a FlowFile and return a FlowFileTransformResult.
 
-        Subclasses must override this method to implement processor logic.
+        Subclasses should implement this method with processor logic.
 
         Args:
             context: The NiFi ProcessContext for this invocation.
@@ -233,3 +233,30 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
             NotImplementedError: Always, until overridden by a subclass.
         """
         raise NotImplementedError
+
+    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+        """
+        NiFi entrypoint. Calls process() and builds a failure result on exceptions.
+
+        Args:
+            context: The NiFi ProcessContext for this invocation.
+            flowFile: The FlowFile being processed.
+        """
+        self.process_context = context
+
+        try:
+            self.set_properties(context.getProperties())
+            result = self.process(context, flowFile)
+            if not isinstance(result, FlowFileTransformResult):
+                raise TypeError(
+                    f"{self.__class__.__name__}.process() must return FlowFileTransformResult, "
+                    f"got {type(result).__name__}"
+                )
+            return result
+        except Exception as exception:
+            self.logger.error("Exception during flowfile processing", exc_info=True)
+            return self.build_failure_result(
+                flowFile,
+                exception,
+                include_flowfile_attributes=True,
+            )
