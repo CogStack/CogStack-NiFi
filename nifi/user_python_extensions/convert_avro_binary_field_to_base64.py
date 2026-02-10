@@ -2,7 +2,6 @@ import base64
 import copy
 import io
 import json
-import traceback
 
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
@@ -84,9 +83,9 @@ class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
         self.relationships: list[Relationship] = self._relationships
 
     @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
-        Transforms an Avro flow file by converting a specified binary field to a base64-encoded string.
+        Processes an Avro flow file by converting a specified binary field to a base64-encoded string.
 
         Args:
             context (ProcessContext): The process context containing processor properties.
@@ -100,69 +99,64 @@ class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
             FlowFileTransformResult: The result containing the transformed flow file, updated attributes,
                 and relationship.
         """
-        try:
-            self.process_context = context
-            self.set_properties(context.getProperties())
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        input_byte_buffer: io.BytesIO = io.BytesIO(input_raw_bytes)
+        reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
-            reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
+        schema: Schema | None = reader.datum_reader.writers_schema
 
-            schema: Schema | None = reader.datum_reader.writers_schema
+        # change the datatype of the binary field from bytes to string
+        # (avoids headaches later on when converting avro to json)
+        # because if we dont change the schema the native NiFi converter will convert bytes to an array of integers.
+        output_schema = None
+        if schema is not None and isinstance(schema, RecordSchema):
+            schema_dict = copy.deepcopy(schema.to_json())
+            for field in schema_dict["fields"]:  # type: ignore
+                self.logger.info(str(field))
+                if field["name"] == self.binary_field_name:
+                    field["type"] = ["null", "string"]
+                    break
+            output_schema = parse(json.dumps(schema_dict))
 
-            # change the datatype of the binary field from bytes to string 
-            # (avoids headaches later on when converting avro to json)
-            # because if we dont change the schema the native NiFi converter will convert bytes to an array of integers.
-            output_schema = None
-            if schema is not None and isinstance(schema, RecordSchema):
-                schema_dict = copy.deepcopy(schema.to_json())
-                for field in schema_dict["fields"]: # type: ignore
-                    self.logger.info(str(field))
-                    if field["name"] == self.binary_field_name:
-                        field["type"] = ["null", "string"]
-                        break
-                output_schema = parse(json.dumps(schema_dict))
+        # Write them to a binary avro stream
+        output_byte_buffer = io.BytesIO()
+        writer = DataFileWriter(output_byte_buffer, DatumWriter(), output_schema)
 
-            # Write them to a binary avro stream
-            output_byte_buffer = io.BytesIO()
-            writer = DataFileWriter(output_byte_buffer, DatumWriter(), output_schema)
+        for record in reader:
+            if type(record) is dict:
+                record_document_binary_data = record.get(str(self.binary_field_name), None)
 
-            for record in reader:
-                if type(record) is dict:
-                    record_document_binary_data = record.get(str(self.binary_field_name), None)
-
-                    if record_document_binary_data is not None:
-                        if self.operation_mode == "base64":
-                            record_document_binary_data = base64.b64encode(record_document_binary_data).decode()
-                    else:
-                        self.logger.info("No binary data found in record, using empty content")
+                if record_document_binary_data is not None:
+                    if self.operation_mode == "base64":
+                        record_document_binary_data = base64.b64encode(record_document_binary_data).decode()
                 else:
-                    raise TypeError("Expected Avro record to be a dictionary, but got: " + str(type(record)))
+                    self.logger.info("No binary data found in record, using empty content")
+            else:
+                raise TypeError("Expected Avro record to be a dictionary, but got: " + str(type(record)))
 
-                _tmp_record = {}
-                _tmp_record[str(self.binary_field_name)] = record_document_binary_data
+            _tmp_record = {}
+            _tmp_record[str(self.binary_field_name)] = record_document_binary_data
 
-                for k, v in record.items():
-                    if k != str(self.binary_field_name):
-                        _tmp_record[k] = v
+            for k, v in record.items():
+                if k != str(self.binary_field_name):
+                    _tmp_record[k] = v
 
-                writer.append(_tmp_record)
+            writer.append(_tmp_record)
 
-            input_byte_buffer.close()
-            reader.close()
-            writer.flush()
-            output_byte_buffer.seek(0)
+        input_byte_buffer.close()
+        reader.close()
+        writer.flush()
+        output_byte_buffer.seek(0)
 
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["document_id_field_name"] = str(self.document_id_field_name)
-            attributes["binary_field"] = str(self.binary_field_name)
-            attributes["operation_mode"] = str(self.operation_mode)
-            attributes["mime.type"] = "application/avro-binary"
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["document_id_field_name"] = str(self.document_id_field_name)
+        attributes["binary_field"] = str(self.binary_field_name)
+        attributes["operation_mode"] = str(self.operation_mode)
+        attributes["mime.type"] = "application/avro-binary"
 
-            return FlowFileTransformResult(relationship="success",
-                                           attributes=attributes,
-                                           contents=output_byte_buffer.getvalue())
-        except Exception as exception:
-            self.logger.error("Exception during Avro processing: " + traceback.format_exc())
-            raise exception
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=output_byte_buffer.getvalue(),
+        )

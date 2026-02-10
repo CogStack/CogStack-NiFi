@@ -1,5 +1,4 @@
 import json
-import traceback
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
@@ -96,9 +95,9 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         self.relationships: list[Relationship] = self._relationships
 
     @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
-        Transforms the input FlowFile by parsing the service response and extracting relevant fields.
+        Processes the input FlowFile by parsing the service response and extracting relevant fields.
 
         Args:
             context (ProcessContext): The process context containing processor properties.
@@ -113,87 +112,83 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
 
         output_contents: list = []
 
-        try:
-            self.process_context: ProcessContext = context
-            self.set_properties(context.getProperties())
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
-            records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
+        if isinstance(records, dict):
+            records = [records]
 
-            if isinstance(records, dict):
-                records = [records]
+        if self.service_message_type == "ocr":
+            for record in records:
+                result = record.get("result", {})
 
-            if self.service_message_type == "ocr":
-                for record in records:
-                    result = record.get("result", {})
+                _record = {}
+                _record["metadata"] = result.get("metadata", {})
+                _record[self.output_text_field_name] = result.get("text", "")
+                _record["success"] = result.get("success", False)
+                _record["timestamp"] = result.get("timestamp", None)
 
-                    _record = {}
-                    _record["metadata"] = result.get("metadata", {})
-                    _record[self.output_text_field_name] = result.get("text", "")
-                    _record["success"] = result.get("success", False)
-                    _record["timestamp"] = result.get("timestamp", None)
+                if "footer" in result:
+                    for k, v in result["footer"].items():
+                        _record[k] = v
 
-                    if "footer" in result:
-                        for k, v in result["footer"].items():
-                            _record[k] = v
+                output_contents.append(_record)
 
-                    output_contents.append(_record)
+        elif self.service_message_type == "medcat" and "result" in records[0]:
+            result = records[0].get("result", [])
+            medcat_info = records[0].get("medcat_info", {})
 
-            elif self.service_message_type == "medcat" and "result" in records[0]:
-                    result = records[0].get("result", [])
-                    medcat_info = records[0].get("medcat_info", {})
+            if isinstance(result, dict):
+                result = [result]
 
-                    if isinstance(result, dict):
-                        result = [result]
+            for annotated_record in result:
+                annotations = annotated_record.get("annotations", [])
+                annotations = annotations[0] if len(annotations) > 0 else annotations
+                footer = annotated_record.get("footer", {})
 
-                    for annotated_record in result:
-                        annotations = annotated_record.get("annotations", [])
-                        annotations = annotations[0] if len(annotations) > 0 else annotations
-                        footer = annotated_record.get("footer", {})
+                if self.medcat_output_mode == "deid":
+                    _output_annotated_record = {}
+                    _output_annotated_record["service_model"] = medcat_info
+                    _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
+                    _output_annotated_record[self.output_text_field_name] = annotated_record.get("text", "")
 
-                        if self.medcat_output_mode == "deid":
-                            _output_annotated_record = {}
-                            _output_annotated_record["service_model"] = medcat_info
-                            _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)   
-                            _output_annotated_record[self.output_text_field_name] = annotated_record.get("text", "") 
+                    if self.medcat_deid_keep_annotations is True:
+                        _output_annotated_record["annotations"] = annotations
+                    else:
+                        _output_annotated_record["annotations"] = {}
 
-                            if self.medcat_deid_keep_annotations is True:
-                                _output_annotated_record["annotations"] = annotations
-                            else:
-                                _output_annotated_record["annotations"] = {}
+                    for k, v in footer.items():
+                        _output_annotated_record[k] = v
+                    output_contents.append(_output_annotated_record)
 
-                            for k, v in footer.items():
-                                _output_annotated_record[k] = v
-                            output_contents.append(_output_annotated_record)
+                else:
+                    for annotation_id, annotation_data in annotations.items():
+                        _output_annotated_record = {}
+                        _output_annotated_record["service_model"] = medcat_info
+                        _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
 
-                        else:
-                            for annotation_id, annotation_data in annotations.items():
-                                _output_annotated_record = {}
-                                _output_annotated_record["service_model"] = medcat_info
-                                _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
+                        for k, v in annotation_data.items():
+                            _output_annotated_record[k] = v
 
-                                for k, v in annotation_data.items():
-                                    _output_annotated_record[k] = v
+                        for k, v in footer.items():
+                            _output_annotated_record[k] = v
 
-                                for k, v in footer.items():
-                                    _output_annotated_record[k] = v
+                        if self.document_id_field_name in footer:
+                            _output_annotated_record["annotation_id"] = (
+                                str(footer[self.document_id_field_name]) + "_" + str(annotation_id)
+                            )
 
-                                if self.document_id_field_name in footer:
-                                    _output_annotated_record["annotation_id"] = \
-                                        str(footer[self.document_id_field_name]) + "_" + str(annotation_id)
+                        output_contents.append(_output_annotated_record)
 
-                                output_contents.append(_output_annotated_record)
+        # add properties to flowfile attributes
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["output_text_field_name"] = str(self.output_text_field_name)
+        attributes["mime.type"] = "application/json"
 
-            # add properties to flowfile attributes
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["output_text_field_name"] = str(self.output_text_field_name)
-            attributes["mime.type"] = "application/json"
-
-            return FlowFileTransformResult(relationship="success",
-                                           attributes=attributes,
-                                           contents=json.dumps(output_contents).encode('utf-8'))
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
-            raise exception
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=json.dumps(output_contents).encode("utf-8"),
+        )

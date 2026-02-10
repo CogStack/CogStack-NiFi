@@ -1,6 +1,5 @@
 import io
 import json
-import traceback
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
@@ -31,48 +30,43 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
 
     @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
  
         """
 
-        try:
-            self.process_context = context
-            self.set_properties(context.getProperties())
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        input_byte_buffer: io.BytesIO = io.BytesIO(input_raw_bytes)
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            input_byte_buffer: io.BytesIO = io.BytesIO(input_raw_bytes)
+        parquet_file = parquet.ParquetFile(input_byte_buffer)
 
-            parquet_file = parquet.ParquetFile(input_byte_buffer)
+        output_buffer: io.BytesIO = io.BytesIO()
+        record_count: int = 0
 
-            output_buffer: io.BytesIO = io.BytesIO() 
-            record_count: int = 0
+        for batch in parquet_file.iter_batches(batch_size=10000):
+            records: list[dict] = batch.to_pylist()
 
-            for batch in parquet_file.iter_batches(batch_size=10000):
-                records: list[dict] = batch.to_pylist()
+            for record in records:
+                json_record = json.dumps(
+                    record,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    default=parquet_json_data_type_convert,
+                )
 
-                for record in records:
-                    json_record = json.dumps(
-                        record,
-                        ensure_ascii=False,
-                        separators=(",", ":"),
-                        default=parquet_json_data_type_convert,
-                    )
+                output_buffer.write(json_record.encode("utf-8"))
+                output_buffer.write(b"\n")
+            record_count += len(records)
 
-                    output_buffer.write(json_record.encode("utf-8"))
-                    output_buffer.write(b"\n")
-                record_count += len(records)
+        input_byte_buffer.close()
 
-            input_byte_buffer.close()
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["mime.type"] = "application/x-ndjson"
+        attributes["record.count"] = str(record_count)
 
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["mime.type"] = "application/x-ndjson"
-            attributes["record.count"] = str(record_count)
-
-            return FlowFileTransformResult(relationship="success",
-                                           attributes=attributes,
-                                           contents=output_buffer.getvalue())
-        except Exception as exception:
-            self.logger.error("Exception during Avro processing: " + traceback.format_exc())
-            raise exception
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=output_buffer.getvalue(),
+        )

@@ -156,8 +156,8 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
         return file_found
 
     @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
-        """ Transforms the input FlowFile by adding geolocation data based on postcode lookup.
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+        """ Processes the input FlowFile by adding geolocation data based on postcode lookup.
         Args:
             context (ProcessContext): The process context.
             flowFile (JavaObject): The input FlowFile to be transformed.
@@ -171,54 +171,45 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
               Use SplitRecord processor to split large files into smaller chunks before processing.
         """
 
-        try:
-            self.process_context: ProcessContext = context
-            self.set_properties(context.getProperties())
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
-            records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
+        valid_records: list[dict] = []
+        error_records: list[dict] = []
 
-            valid_records: list[dict] = []
-            error_records: list[dict] = []
+        if isinstance(records, dict):
+            records = [records]
 
-            if isinstance(records, dict):
-                records = [records]
+        if self.postcode_lookup_index:
+            for record in records:
+                if self.postcode_field_name in record:
+                    _postcode = str(record[self.postcode_field_name]).replace(" ", "")
+                    _data_col_row_idx = self.postcode_lookup_index.get(_postcode, -1)
 
-            if self.postcode_lookup_index:
-                for record in records:
-                    if self.postcode_field_name in record:
-                        _postcode = str(record[self.postcode_field_name]).replace(" ", "")
-                        _data_col_row_idx = self.postcode_lookup_index.get(_postcode, -1)
-
-                        if _data_col_row_idx != -1:
-                            _selected_row = self.loaded_csv_file_rows[_data_col_row_idx]
-                            _lat, _long = str(_selected_row[7]).strip(), str(_selected_row[8]).strip()
-                            try:
-                                record[self.geolocation_field_name] = {
-                                    "lat": float(_lat),
-                                    "lon": float(_long)
-                                }
-                            except ValueError:
-                                self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
-                                error_records.append(record)
-                    valid_records.append(record)
-            else:
-                raise FileNotFoundError("geolocation lookup datafile is not available and data was not loaded, " \
-                                        "please check URLs")
-
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["mime.type"] = "application/json"
-
-            if error_records:
-                attributes["record.count.errors"] = str(len(error_records))
-            attributes["record.count"] = str(len(valid_records))
-
-            return FlowFileTransformResult(
-                relationship="success",
-                attributes=attributes,
-                contents=json.dumps(valid_records).encode("utf-8"),
+                    if _data_col_row_idx != -1:
+                        _selected_row = self.loaded_csv_file_rows[_data_col_row_idx]
+                        _lat, _long = str(_selected_row[7]).strip(), str(_selected_row[8]).strip()
+                        try:
+                            record[self.geolocation_field_name] = {"lat": float(_lat), "lon": float(_long)}
+                        except ValueError:
+                            self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
+                            error_records.append(record)
+                valid_records.append(record)
+        else:
+            raise FileNotFoundError(
+                "geolocation lookup datafile is not available and data was not loaded, please check URLs"
             )
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing:\n" + traceback.format_exc())
-            return self.build_failure_result(flowFile, exception)
+
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["mime.type"] = "application/json"
+
+        if error_records:
+            attributes["record.count.errors"] = str(len(error_records))
+        attributes["record.count"] = str(len(valid_records))
+
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=json.dumps(valid_records).encode("utf-8"),
+        )

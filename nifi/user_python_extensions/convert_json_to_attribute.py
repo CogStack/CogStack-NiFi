@@ -1,6 +1,5 @@
 import json
 import re
-import traceback
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValidators
@@ -45,45 +44,39 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
 
     @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         DIGITS = re.compile(r"^\d+$")
+
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        text = (input_raw_bytes.decode("utf-8", errors="replace").strip() if input_raw_bytes else "[]")
+
         try:
-            self.process_context = context
-            self.set_properties(context.getProperties())
+            parsed = json.loads(text) if text else []
+        except Exception:
+            parsed = []
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            text = (input_raw_bytes.decode("utf-8", errors="replace").strip() if input_raw_bytes else "[]")
+        records = parsed if isinstance(parsed, list) else parsed.get("records", [])
+        if not isinstance(records, list):
+            records = []
 
-            try:
-                parsed = json.loads(text) if text else []
-            except Exception:
-                parsed = []
+        ids = []
+        for r in records:
+            if not isinstance(r, dict):
+                continue
+            v = r.get(self.field_name)
+            if v is None:
+                continue
+            s = str(v).strip()
+            if DIGITS.match(s):
+                ids.append(s)
 
-            records = parsed if isinstance(parsed, list) else parsed.get("records", [])
-            if not isinstance(records, list):
-                records = []
-
-            ids = []
-            for r in records:
-                if not isinstance(r, dict):
-                    continue
-                v = r.get(self.field_name)
-                if v is None:
-                    continue
-                s = str(v).strip()
-                if DIGITS.match(s):
-                    ids.append(s)
-
-            ids_csv = ",".join(ids)
-            return FlowFileTransformResult(
-                relationship="success",
-                attributes={
-                    "ids_csv": ids_csv,
-                    "ids_count": str(len(ids)),
-                    "ids_len": str(len(ids_csv)),
-                },
-            )
-        except Exception as exception:
-            self.logger.error("Exception during Avro processing: " + traceback.format_exc())
-            raise exception
+        ids_csv = ",".join(ids)
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes={
+                "ids_csv": ids_csv,
+                "ids_count": str(len(ids)),
+                "ids_len": str(len(ids_csv)),
+            },
+        )
