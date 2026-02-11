@@ -64,9 +64,9 @@ jobs:
         with:
           images: ${{ inputs.image }}
           tags: |
-            # vX.Y.Z -> X.Y.Z and X.Y (strip leading "v")
-            type=semver,pattern={{version}},prefix=v
-            type=semver,pattern={{major}}.{{minor}},prefix=v
+            # vX.Y.Z -> X.Y.Z and X.Y (strip leading "v" if present)
+            type=semver,pattern={{version}},value={{tag}},match=^v?(.+)$
+            type=semver,pattern={{major}}.{{minor}},value={{tag}},match=^v?(.+)$
             # latest on main and on v-tags
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
             # branch tag for non-PR branches
@@ -119,8 +119,8 @@ jobs:
         with:
           images: ${{ inputs.image }}
           tags: |
-            type=semver,pattern={{version}},prefix=v
-            type=semver,pattern={{major}}.{{minor}},prefix=v
+            type=semver,pattern={{version}},value={{tag}},match=^v?(.+)$
+            type=semver,pattern={{major}}.{{minor}},value={{tag}},match=^v?(.+)$
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
             type=ref,event=branch,enable=${{ github.event_name != 'pull_request' }}
             type=sha,format=short
