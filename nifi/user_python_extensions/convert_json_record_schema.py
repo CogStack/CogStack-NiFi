@@ -5,7 +5,6 @@ from typing import Any
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValidators
 from nifiapi.relationship import Relationship
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -321,7 +320,6 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
 
         return new_record
 
-    @overrides
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         output_contents: list[dict[Any, Any]] = []
 

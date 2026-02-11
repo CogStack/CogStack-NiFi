@@ -12,7 +12,6 @@ from nifiapi.properties import (
     StandardValidators,
 )
 from nifiapi.relationship import Relationship
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -77,7 +76,6 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
 
-    @overrides
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
 
         output_contents: list = []

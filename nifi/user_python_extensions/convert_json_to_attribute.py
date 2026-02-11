@@ -3,7 +3,6 @@ import re
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValidators
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -43,7 +42,6 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @overrides
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         DIGITS = re.compile(r"^\d+$")
 

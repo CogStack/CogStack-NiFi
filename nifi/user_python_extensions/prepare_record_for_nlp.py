@@ -10,7 +10,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -54,7 +53,6 @@ class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @overrides
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """_summary_
 

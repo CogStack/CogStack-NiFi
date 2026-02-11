@@ -3,7 +3,6 @@ import json
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 from pyarrow import parquet
 
@@ -29,7 +28,6 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @overrides
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
  
