@@ -52,7 +52,6 @@ x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_3_HOST_NAME:-test-3:0.0.0.0}
   - ${KIBANA_HOST_NAME:-test-4:0.0.0.0}
   - ${NIFI_HOST_NAME:-test-5:0.0.0.0}
-  - ${NIFI_REGISTRY_HOST_NAME:-test-6:0.0.0.0}
 
 x-common-ulimits: &common-ulimits
   ulimits:
@@ -108,19 +107,6 @@ x-nifi-volumes: &nifi-volumes
 
   # Flowfile error output
   - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-
-x-nifi-registry-volumes: &nifi-registry-volumes
-  # Registry configuration
-  - ../nifi/nifi-registry/:/opt/nifi-registry/nifi-registry-current/conf/:rw
-
-  # Security certificates
-  - ../security:/security:ro
-
-  # Registry persistence
-  - nifi-registry-vol-database:/opt/nifi-registry/nifi-registry-current/database
-  - nifi-registry-vol-flow-storage:/opt/nifi-registry/nifi-registry-current/flow_storage
-  - nifi-registry-vol-logs:/opt/nifi-registry/nifi-registry-current/logs
-  - nifi-registry-vol-work:/opt/nifi-registry/nifi-registry-current/work
 
 x-db-common: &db-common
   <<: *common-ulimits
@@ -513,38 +499,7 @@ services:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     logging: *nifi-logging-common
- 
-  nifi-registry-flow:
-    <<: *nifi-common
-    image: ${NIFI_REGISTRY_DOCKER_IMAGE:-apache/nifi-registry:${NIFI_REGISTRY_VERSION:-latest}}
-    hostname: nifi-registry
-    container_name: cogstack-nifi-registry-flow
-    shm_size: ${NIFI_DOCKER_REGISTRY_SHM_SIZE:-1g}
-    environment:
-      - KEYSTORE_PATH=${NIFI_REGISTRY_KEYSTORE_PATH:-/security/certificates/nifi/nifi-keystore.jks}
-      - KEYSTORE_TYPE=${NIFI_KEYSTORE_TYPE:-jks}
-      - KEYSTORE_PASSWORD=${NIFI_KEYSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PASSWORD=${NIFI_TRUSTSTORE_PASSWORD:-"cogstackNifi"}
-      - TRUSTSTORE_PATH=${NIFI_REGISTRY_TRUSTSTORE_PATH:-/security/certificates/nifi/nifi-truststore.jks}
-      - TRUSTSTORE_TYPE=${NIFI_TRUSTSTORE_TYPE:-jks}
-      - INITIAL_ADMIN_IDENTITY=${NIFI_INITIAL_ADMIN_IDENTITY:-"cogstack"}
-      - AUTH=${NIFI_AUTH:-"tls"}
-    deploy:
-      resources:
-        limits:
-          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MAX}"
-          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
-        reservations:
-          cpus: "${NIFI_REGISTRY_DOCKER_CPU_MIN}"
-          memory: "${NIFI_REGISTRY_DOCKER_RAM}"
-    volumes: *nifi-registry-volumes
-    extra_hosts: *common-hosts
-    tty: true
-    ports:
-      - "${NIFI_REGISTRY_FLOW_OUTPUT_PORT:-8083}:${NIFI_REGISTRY_FLOW_INPUT_PORT:-18443}"
-    
-    logging: *nifi-logging-common
-  
+
   nifi-nginx:
     image: cogstacksystems/nifi-nginx:latest
     container_name: cogstack-nifi-nginx
@@ -565,7 +520,6 @@ services:
       - ../security/certificates:/certificates:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
-      - "${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}:${NIFI_REGISTRY_INTERNAL_PORT_NGINX:-18443}"
     networks:
       - cognet
     extra_hosts: *common-hosts
@@ -679,15 +633,6 @@ volumes:
   nifi-vol-state:
     driver: local
   nifi-vol-errors:
-    driver: local
-
-  nifi-registry-vol-database:
-    driver: local
-  nifi-registry-vol-flow-storage:
-    driver: local
-  nifi-registry-vol-logs:
-    driver: local
-  nifi-registry-vol-work:
     driver: local
 
   # Gitea
