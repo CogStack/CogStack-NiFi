@@ -38,7 +38,7 @@ jobs:
       - name: Smoke tests
         run: |
           set -euo pipefail
-          echo "Running smoke checks against NiFi, NiFi Registry, and nginx."
+          echo "Running smoke checks against NiFi and nginx."
           retries=30
           delay=15
           for attempt in $(seq 1 $retries); do
@@ -58,7 +58,7 @@ jobs:
           source deploy/export_env_vars.sh
           set -euo pipefail
           docker compose -f deploy/services.dev.yml ps
-          docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx nifi-registry-flow
+          docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx
 
       - name: Shutdown stack
         if: always()

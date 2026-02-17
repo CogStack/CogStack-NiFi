@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke checks for NiFi, NiFi Registry, and the nginx reverse proxy.
+# Smoke checks for NiFi and the nginx reverse proxy.
 
 set -euo pipefail
 
@@ -18,7 +18,6 @@ fi
 
 HOST="${NIFI_SMOKE_HOST:-localhost}"
 NIFI_PORT="${NIFI_EXTERNAL_PORT_NGINX:-8443}"
-REGISTRY_PORT="${NIFI_REGISTRY_EXTERNAL_PORT_NGINX:-18443}"
 
 ALLOWED_CODES=(200 301 302 303 307 308 401 403)
 
@@ -45,5 +44,4 @@ check_url() {
 }
 
 check_url "nifi" "https://${HOST}:${NIFI_PORT}/nifi/"
-check_url "nifi-registry" "https://${HOST}:${REGISTRY_PORT}/nifi-registry/"
 check_url "nifi-nginx" "https://${HOST}:${NIFI_PORT}/"
