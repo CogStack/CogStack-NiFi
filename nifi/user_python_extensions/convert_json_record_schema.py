@@ -1,12 +1,10 @@
 import json
-import traceback
 from collections import defaultdict
 from typing import Any
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import ProcessContext, PropertyDescriptor, StandardValidators
 from nifiapi.relationship import Relationship
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -322,35 +320,29 @@ class ConvertJsonRecordSchema(BaseNiFiProcessor):
 
         return new_record
 
-    @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         output_contents: list[dict[Any, Any]] = []
 
-        try:
-            self.process_context: ProcessContext = context
-            self.set_properties(context.getProperties())
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
+        if isinstance(records, dict):
+            records = [records]
 
-            if isinstance(records, dict):
-                records = [records]
+        json_mapper_schema: dict = {}
+        with open(self.json_mapper_schema_path) as file:
+            json_mapper_schema = json.load(file)
 
-            json_mapper_schema: dict = {}
-            with open(self.json_mapper_schema_path) as file:
-                json_mapper_schema = json.load(file)
+        for record in records:
+            output_contents.append(self.map_record(record, json_mapper_schema))
 
-            for record in records:
-                output_contents.append(self.map_record(record, json_mapper_schema))
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["json_mapper_schema_path"] = str(self.json_mapper_schema_path)
+        attributes["mime.type"] = "application/json"
 
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["json_mapper_schema_path"] = str(self.json_mapper_schema_path)
-            attributes["mime.type"] = "application/json"
-
-            return FlowFileTransformResult(relationship="success",
-                                           attributes=attributes,
-                                           contents=json.dumps(output_contents).encode('utf-8'))
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
-            raise exception
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=json.dumps(output_contents).encode("utf-8"),
+        )

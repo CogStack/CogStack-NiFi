@@ -41,22 +41,6 @@ env_files=(
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
 )
 
-LINT_SCRIPT="$SCRIPT_DIR/../nifi/user_scripts/utils/lint_env.py"
-
-if [ -e "$LINT_SCRIPT" ]; then
-    chmod +x $LINT_SCRIPT
-fi
-
-if [ -x "$LINT_SCRIPT" ]; then
-  echo "🔍 Validating env files..."
-  if ! python3 "$LINT_SCRIPT" "${env_files[@]}"; then
-    echo "❌ Env validation failed. Fix the errors above before continuing."
-    exit 1
-  fi
-else
-  echo "⚠️  Skipping env validation; $LINT_SCRIPT not found or not executable."
-fi
-
 for env_file in "${env_files[@]}"; do
   if [ -f "$env_file" ]; then
     echo "✅ Sourcing $env_file"

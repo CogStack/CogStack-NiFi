@@ -25,17 +25,23 @@ load-env:
 
 show-env:
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
+
+fix-nifi-registry-perms:
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh $(COMPOSE_FILE)
 	
 # start services
 
 start-nifi:
-	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.yml; \
+	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev:
-	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev-build:
-	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 start-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
@@ -101,16 +107,38 @@ start-data-infra: start-nifi start-elastic start-samples
 
 start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter fix-nifi-registry-perms
 
 
 # stop services
 #
 stop-nifi:
-	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx 
 
 stop-nifi-dev:
-	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx 
+
+delete-nifi-containers:
+	$(WITH_ENV) docker compose -f services.yml rm -f -s nifi nifi-nginx 
+
+delete-nifi-dev-containers:
+	$(WITH_ENV) docker compose -f services.dev.yml rm -f -s nifi nifi-nginx 
+
+delete-nifi-images:
+	$(WITH_ENV) images="$$(docker compose -f services.yml config --images nifi nifi-nginx  | sort -u)"; \
+	if [ -n "$$images" ]; then \
+		docker image rm -f $$images; \
+	else \
+		echo "No NiFi images found in services.yml"; \
+	fi
+
+delete-nifi-dev-images:
+	$(WITH_ENV) images="$$(docker compose -f services.dev.yml config --images nifi nifi-nginx  | sort -u)"; \
+	if [ -n "$$images" ]; then \
+		docker image rm -f $$images; \
+	else \
+		echo "No NiFi images found in services.dev.yml"; \
+	fi
 
 stop-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
@@ -173,7 +201,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images stop-elastic stop-samples stop-jupyter
 
 
 # cleanup

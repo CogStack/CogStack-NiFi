@@ -1,6 +1,5 @@
 import io
 import json
-import traceback
 from typing import Any
 
 from avro.datafile import DataFileReader
@@ -11,7 +10,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -55,8 +53,7 @@ class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """_summary_
 
         Args:
@@ -73,49 +70,46 @@ class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
 
         output_contents: list = []
 
-        try:
-            self.process_context = context
-            self.set_properties(context.getProperties())
+        self.process_flow_file_type = str(self.process_flow_file_type).lower()
 
-            self.process_flow_file_type = str(self.process_flow_file_type).lower()
+        # read avro record
+        input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+        input_byte_buffer: io.BytesIO = io.BytesIO(input_raw_bytes)
 
-            # read avro record
-            input_raw_bytes: bytes = flowFile.getContentsAsBytes()
-            input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
+        reader: DataFileReader | (list[dict[str, Any]] | list[Any])
 
-            reader: DataFileReader | (list[dict[str, Any]] | list[Any])
+        if self.process_flow_file_type == "avro":
+            reader = DataFileReader(input_byte_buffer, DatumReader())
+        else:
+            json_obj = json.loads(input_byte_buffer.read().decode("utf-8"))
+            reader = [json_obj] if isinstance(json_obj, dict) else json_obj if isinstance(json_obj, list) else []
 
-            if self.process_flow_file_type == "avro":
-                reader = DataFileReader(input_byte_buffer, DatumReader())
+        for record in reader:
+            if type(record) is dict:
+                record_document_text = record.get(str(self.document_text_field_name), "")
             else:
-                json_obj = json.loads(input_byte_buffer.read().decode("utf-8"))
-                reader = [json_obj] if isinstance(json_obj, dict) else json_obj if isinstance(json_obj, list) else []
+                raise TypeError("Expected record to be a dictionary, but got: " + str(type(record)))
 
-            for record in reader:
-                if type(record) is dict:
-                    record_document_text = record.get(str(self.document_text_field_name), "")
-                else:
-                    raise TypeError("Expected record to be a dictionary, but got: " + str(type(record)))
-
-                output_contents.append({
+            output_contents.append(
+                {
                     "text": record_document_text,
-                    "footer": {k: v for k, v in record.items() if k != str(self.document_text_field_name)}
-                })
+                    "footer": {k: v for k, v in record.items() if k != str(self.document_text_field_name)},
+                }
+            )
 
-            input_byte_buffer.close()
+        input_byte_buffer.close()
 
-            if isinstance(reader, DataFileReader):
-                reader.close()
+        if isinstance(reader, DataFileReader):
+            reader.close()
 
-            attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-            attributes["document_id_field_name"] = str(self.document_id_field_name)
-            attributes["mime.type"] = "application/json"
+        attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+        attributes["document_id_field_name"] = str(self.document_id_field_name)
+        attributes["mime.type"] = "application/json"
 
-            output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
+        output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
 
-            return FlowFileTransformResult(relationship="success", 
-                                           attributes=attributes,
-                                           contents=json.dumps({"content": output_contents}).encode("utf-8"))
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
-            raise exception
+        return FlowFileTransformResult(
+            relationship="success",
+            attributes=attributes,
+            contents=json.dumps({"content": output_contents}).encode("utf-8"),
+        )

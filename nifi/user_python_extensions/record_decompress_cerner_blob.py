@@ -1,6 +1,5 @@
 import base64
 import json
-import traceback
 
 from nifiapi.flowfiletransform import FlowFileTransformResult
 from nifiapi.properties import (
@@ -8,7 +7,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from overrides import overrides
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.codecs.cerner_blob import DecompressLzwCernerBlob
@@ -95,8 +93,24 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
 
-    @overrides
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def _load_json_records(self, input_raw_bytes: bytes | bytearray) -> list | dict:
+        try:
+            return json.loads(input_raw_bytes.decode())
+        except json.JSONDecodeError as exc:
+            self.logger.error(f"Error decoding JSON: {exc} \nAttempting to decode as {self.input_charset}")
+            try:
+                return json.loads(input_raw_bytes.decode(self.input_charset))
+            except json.JSONDecodeError as exc2:
+                self.logger.error(f"Error decoding JSON: {exc2} \nAttempting to decode as windows-1252")
+                try:
+                    return json.loads(input_raw_bytes.decode("windows-1252"))
+                except json.JSONDecodeError as exc3:
+                    raise ValueError(
+                        "Error decoding JSON after trying utf-8, "
+                        f"{self.input_charset}, and windows-1252: {exc3}"
+                    ) from exc3
+
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
 
@@ -114,198 +128,117 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         output_contents: list = []
         attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
 
-        try:
-            self.process_context = context
-            self.set_properties(context.getProperties())
+        # read avro record
+        input_raw_bytes: bytes | bytearray = flowFile.getContentsAsBytes()
 
-            # read avro record
-            input_raw_bytes: bytes | bytearray = flowFile.getContentsAsBytes()
+        records: list | dict = self._load_json_records(input_raw_bytes)
 
-            records: list | dict = []
+        if not isinstance(records, list):
+            records = [records]
 
-            try:
-                records = json.loads(input_raw_bytes.decode())
-            except json.JSONDecodeError as e:
-                self.logger.error(f"Error decoding JSON: {str(e)} \nAttempting to decode as {self.input_charset}")
-                try:
-                    records = json.loads(input_raw_bytes.decode(self.input_charset))
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Error decoding JSON: {str(e)} \nAttempting to decode as windows-1252")
-                    try:
-                        records = json.loads(input_raw_bytes.decode("windows-1252"))
-                    except json.JSONDecodeError as e:
-                        return self.build_failure_result(
-                            flowFile,
-                            ValueError(f"Error decoding JSON: {str(e)} \n with windows-1252"),
-                            attributes=attributes,
-                            contents=input_raw_bytes,
-                        )
+        if not records:
+            raise ValueError("No records found in JSON input")
 
-            if not isinstance(records, list):
-                records = [records]
+        # sanity check:  blobs are from the same document_id
+        doc_ids: set = {str(r.get(self.document_id_field_name, "")) for r in records}
+        if len(doc_ids) > 1:
+            raise ValueError(f"Multiple document IDs in one FlowFile: {list(doc_ids)}")
 
-            if not records:
-                return self.build_failure_result(
-                    flowFile,
-                    ValueError("No records found in JSON input"),
-                    attributes=attributes,
-                    contents=input_raw_bytes,
-                )
+        concatenated_blob_sequence_order: dict = {}
+        output_merged_record: dict = {}
 
-            # sanity check:  blobs are from the same document_id
-            doc_ids: set  = {str(r.get(self.document_id_field_name, "")) for r in records}
-            if len(doc_ids) > 1:
-                return self.build_failure_result(
-                    flowFile,
-                    ValueError(f"Multiple document IDs in one FlowFile: {list(doc_ids)}"),
-                    attributes=attributes,
-                    contents=input_raw_bytes,
-                )
+        have_any_sequence: bool = any(self.blob_sequence_order_field_name in record for record in records)
+        have_any_no_sequence: bool = any(self.blob_sequence_order_field_name not in record for record in records)
 
-            concatenated_blob_sequence_order: dict = {}
-            output_merged_record: dict = {}
-
-            have_any_sequence: bool = any(self.blob_sequence_order_field_name in record for record in records)
-            have_any_no_sequence: bool = any(self.blob_sequence_order_field_name not in record for record in records)
-
-            if have_any_sequence and have_any_no_sequence:
-                return self.build_failure_result(
-                    flowFile,
-                    ValueError(
-                        f"Mixed records: some have '{self.blob_sequence_order_field_name}', some don't. "
-                        "Cannot safely reconstruct blob stream."
-                    ),
-                    attributes=attributes,
-                    contents=input_raw_bytes,
-                )
-
-            for record in records:
-                if self.binary_field_name not in record or record[self.binary_field_name] in (None, ""):
-                    return self.build_failure_result(
-                        flowFile,
-                        ValueError(f"Missing '{self.binary_field_name}' in a record"),
-                        attributes=attributes,
-                        contents=input_raw_bytes,
-                    )
-
-                if have_any_sequence:
-                    seq = int(record[self.blob_sequence_order_field_name])
-                    if seq in concatenated_blob_sequence_order:
-                        return self.build_failure_result(
-                            flowFile,
-                            ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}"),
-                            attributes=attributes,
-                            contents=input_raw_bytes,
-                        )
-
-                    concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
-                else:
-                    # no sequence anywhere: preserve record order (0..n-1)
-                    seq = len(concatenated_blob_sequence_order)
-                    concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
-    
-            # take fields from the first record, doesn't matter which one,
-            # as they are expected to be the same except for the binary data field
-            for k, v in records[0].items():
-                if k not in output_merged_record and k != self.binary_field_name:
-                    output_merged_record[k] = v
-
-            full_compressed_blob = bytearray()
-
-            # double check to make sure there is no gap in the blob sequence, i.e missing blob.
-            order_of_blobs_keys = sorted(concatenated_blob_sequence_order.keys())
-            for i in range(1, len(order_of_blobs_keys)):
-                if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
-                    return self.build_failure_result(
-                        flowFile,
-                        ValueError(
-                            f"Sequence gap: missing {order_of_blobs_keys[i-1] + 1} "
-                            f"(have {order_of_blobs_keys[i-1]} then {order_of_blobs_keys[i]})"
-                        ),
-                        attributes=attributes,
-                        contents=input_raw_bytes,
-                    )
-
-            for k in order_of_blobs_keys:
-                v = concatenated_blob_sequence_order[k]
-
-                temporary_blob: bytes = b""
-
-                if self.binary_field_source_encoding == "base64":
-                    if not isinstance(v, str):
-                        return self.build_failure_result(
-                            flowFile,
-                            ValueError(
-                                f"Expected base64 string in {self.binary_field_name} for part {k}, got {type(v)}"
-                            ),
-                            attributes=attributes,
-                            contents=input_raw_bytes,
-                        )
-                    try:
-                        temporary_blob = base64.b64decode(v, validate=True)
-                    except Exception as e:
-                        return self.build_failure_result(
-                            flowFile,
-                            ValueError(f"Error decoding base64 blob part {k}: {e}"),
-                            attributes=attributes,
-                            contents=input_raw_bytes,
-                        )
-                else:
-                    # raw bytes path
-                    if isinstance(v, (bytes, bytearray)):
-                        temporary_blob = v
-                    else:
-                        return self.build_failure_result(
-                            flowFile,
-                            ValueError(
-                                f"Expected bytes in {self.binary_field_name} for part {k}, got {type(v)}"
-                            ),
-                            attributes=attributes,
-                            contents=input_raw_bytes,
-                        )
-                    
-                full_compressed_blob.extend(temporary_blob)
-
-            # build / add new attributes to dict before doing anything else to have some trace.
-            attributes["document_id_field_name"] = str(self.document_id_field_name)
-            attributes["document_id"] = str(output_merged_record.get(self.document_id_field_name, ""))
-            attributes["binary_field"] = str(self.binary_field_name)
-            attributes["output_text_field_name"] = str(self.output_text_field_name)
-            attributes["mime.type"] = "application/json"
-            attributes["blob_parts"] = str(len(order_of_blobs_keys))
-            attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
-            attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
-            attributes["compressed_len"] = str(len(full_compressed_blob))
-            attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
-
-            try:
-                decompress_blob = DecompressLzwCernerBlob()
-                decompress_blob.decompress(full_compressed_blob)
-                output_merged_record[self.binary_field_name] = bytes(decompress_blob.output_stream)
-            except Exception as exception:
-                return self.build_failure_result(
-                    flowFile,
-                    exception=exception,
-                    attributes=attributes,
-                    include_flowfile_attributes=False,
-                    contents=input_raw_bytes
-                )
-
-            if self.output_mode == "base64":
-                output_merged_record[self.binary_field_name] = \
-                    base64.b64encode(output_merged_record[self.binary_field_name]).decode(self.output_charset)
-
-            output_contents.append(output_merged_record)
-
-            return FlowFileTransformResult(relationship=self.REL_SUCCESS,
-                                           attributes=attributes,
-                                           contents=json.dumps(output_contents).encode("utf-8"))
-        except Exception as exception:
-            self.logger.error("Exception during flowfile processing: " + traceback.format_exc())
-            return self.build_failure_result(
-                flowFile,
-                exception,
-                attributes=attributes,
-                contents=locals().get("input_raw_bytes", flowFile.getContentsAsBytes()),
-                include_flowfile_attributes=False
+        if have_any_sequence and have_any_no_sequence:
+            raise ValueError(
+                f"Mixed records: some have '{self.blob_sequence_order_field_name}', some don't. "
+                "Cannot safely reconstruct blob stream."
             )
+
+        for record in records:
+            if self.binary_field_name not in record or record[self.binary_field_name] in (None, ""):
+                raise ValueError(f"Missing '{self.binary_field_name}' in a record")
+
+            if have_any_sequence:
+                seq = int(record[self.blob_sequence_order_field_name])
+                if seq in concatenated_blob_sequence_order:
+                    raise ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}")
+
+                concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+            else:
+                # no sequence anywhere: preserve record order (0..n-1)
+                seq = len(concatenated_blob_sequence_order)
+                concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+
+        # take fields from the first record, doesn't matter which one,
+        # as they are expected to be the same except for the binary data field
+        for k, v in records[0].items():
+            if k not in output_merged_record and k != self.binary_field_name:
+                output_merged_record[k] = v
+
+        full_compressed_blob = bytearray()
+
+        # double check to make sure there is no gap in the blob sequence, i.e missing blob.
+        order_of_blobs_keys = sorted(concatenated_blob_sequence_order.keys())
+        for i in range(1, len(order_of_blobs_keys)):
+            if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
+                raise ValueError(
+                    f"Sequence gap: missing {order_of_blobs_keys[i-1] + 1} "
+                    f"(have {order_of_blobs_keys[i-1]} then {order_of_blobs_keys[i]})"
+                )
+
+        for k in order_of_blobs_keys:
+            v = concatenated_blob_sequence_order[k]
+
+            temporary_blob: bytes = b""
+
+            if self.binary_field_source_encoding == "base64":
+                if not isinstance(v, str):
+                    raise ValueError(
+                        f"Expected base64 string in {self.binary_field_name} for part {k}, got {type(v)}"
+                    )
+                try:
+                    temporary_blob = base64.b64decode(v, validate=True)
+                except Exception as exc:
+                    raise ValueError(f"Error decoding base64 blob part {k}: {exc}") from exc
+            else:
+                # raw bytes path
+                if isinstance(v, (bytes, bytearray)):
+                    temporary_blob = v
+                else:
+                    raise ValueError(
+                        f"Expected bytes in {self.binary_field_name} for part {k}, got {type(v)}"
+                    )
+
+            full_compressed_blob.extend(temporary_blob)
+
+        # build / add new attributes to dict before doing anything else to have some trace.
+        attributes["document_id_field_name"] = str(self.document_id_field_name)
+        attributes["document_id"] = str(output_merged_record.get(self.document_id_field_name, ""))
+        attributes["binary_field"] = str(self.binary_field_name)
+        attributes["output_text_field_name"] = str(self.output_text_field_name)
+        attributes["mime.type"] = "application/json"
+        attributes["blob_parts"] = str(len(order_of_blobs_keys))
+        attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
+        attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
+        attributes["compressed_len"] = str(len(full_compressed_blob))
+        attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
+
+        try:
+            decompress_blob = DecompressLzwCernerBlob()
+            decompress_blob.decompress(full_compressed_blob)
+            output_merged_record[self.binary_field_name] = bytes(decompress_blob.output_stream)
+
+        except Exception as exception:
+            raise RuntimeError("Error decompressing Cerner LZW blob") from exception
+
+        if self.output_mode == "base64":
+            output_merged_record[self.binary_field_name] = \
+                base64.b64encode(output_merged_record[self.binary_field_name]).decode(self.output_charset)
+
+        output_contents.append(output_merged_record)
+
+        return FlowFileTransformResult(relationship=self.REL_SUCCESS,
+                                       attributes=attributes,
+                                       contents=json.dumps(output_contents).encode("utf-8"))

@@ -140,6 +140,16 @@ You should check if the env vars have been set after running the script:
     echo $NIFI_GID
     ```
 
+### NiFi Registry permissions helper
+
+If NiFi Registry fails to start due to permission issues on its persistent volumes, run the helper script once to fix ownership:
+
+    ```bash
+    ./nifi/fix_nifi_registry_perms.sh
+    ```
+
+This script runs the registry container as root only long enough to `chown` the registry `database`, `flow_storage`, `work`, and `logs` directories, then exits. Subsequent starts can run as the default non-root user.
+
 If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
 
     ```bash
@@ -172,7 +182,7 @@ Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` 
     bash recreate_nifi_docker_image.sh
     ```
 
-Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must execute the `./deploy/export_env_vars.sh` so that the variables will be visible by docker at runtime, because it uses the GID/UID in the `services.yml` file , specifying in the service definition `user: "${USER_ID:-${NIFI_UID:-1000}}:${GROUP_ID:-${NIFI_GID:-1000}}"`.
+Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must `source ./deploy/export_env_vars.sh` so the variables are visible to Docker at runtime. If you're using the `deploy/Makefile` targets, it handles this for you.
 
 ### <strong>`{bootstrap.conf}`</strong>
 

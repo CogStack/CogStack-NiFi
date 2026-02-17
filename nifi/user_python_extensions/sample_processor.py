@@ -1,6 +1,5 @@
 import io
 import json
-import traceback
 from typing import Any
 
 from avro.datafile import DataFileReader, DataFileWriter
@@ -92,7 +91,7 @@ class CogStackSampleTestProcessor(BaseNiFiProcessor):
         """
         pass
 
-    def transform(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
+    def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
 
        """ 
            NOTE: This is a sample method meant to be overridden and reimplemented by subclasses.
@@ -115,48 +114,42 @@ class CogStackSampleTestProcessor(BaseNiFiProcessor):
 
        output_contents: list[Any] = []
   
-       try:
-           self.process_context: ProcessContext = context
-           self.set_properties(context.getProperties())
-           # add properties to flowfile attributes
-           attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-           self.logger.info("Successfully transformed Avro content for OCR")
-           
-           input_raw_bytes: bytes = flowFile.getContentsAsBytes()
+       # add properties to flowfile attributes
+       attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+       self.logger.info("Successfully transformed Avro content for OCR")
 
-            # read avro record
-           self.logger.debug("Reading flowfile content as bytes")
-           input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
-           reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
-           
-           # below is an example of how to handle avro records, each record
-           schema: Schema | None = reader.datum_reader.writers_schema
+       input_raw_bytes: bytes = flowFile.getContentsAsBytes()
 
-           for record in reader:
-               #do stuff
-               pass
-               
-           # streams need to be closed
-           input_byte_buffer.close()
-           reader.close()
+        # read avro record
+       self.logger.debug("Reading flowfile content as bytes")
+       input_byte_buffer: io.BytesIO  = io.BytesIO(input_raw_bytes)
+       reader: DataFileReader = DataFileReader(input_byte_buffer, DatumReader())
 
-           # Write them to a binary avro stre
-           output_byte_buffer = io.BytesIO()
-           writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
+       # below is an example of how to handle avro records, each record
+       schema: Schema | None = reader.datum_reader.writers_schema
 
-           writer.flush()
-           writer.close()
-           output_byte_buffer.seek(0)
+       for record in reader:
+           #do stuff
+           pass
 
-           # add properties to flowfile attributes
-           attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
-           attributes["sample_property_one"] = str(self.sample_property_one)
-           attributes["sample_property_two"] = str(self.sample_property_two)
-           attributes["sample_property_three"] = str(self.sample_property_three)
+       # streams need to be closed
+       input_byte_buffer.close()
+       reader.close()
 
-           return FlowFileTransformResult(relationship="success", 
-                                          attributes=attributes,
-                                          contents=json.dumps(output_contents))
-       except Exception as exception:
-           self.logger.error("Exception during Avro processing: " + traceback.format_exc())
-           raise exception
+       # Write them to a binary avro stre
+       output_byte_buffer = io.BytesIO()
+       writer = DataFileWriter(output_byte_buffer, DatumWriter(), schema)
+
+       writer.flush()
+       writer.close()
+       output_byte_buffer.seek(0)
+
+       # add properties to flowfile attributes
+       attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
+       attributes["sample_property_one"] = str(self.sample_property_one)
+       attributes["sample_property_two"] = str(self.sample_property_two)
+       attributes["sample_property_three"] = str(self.sample_property_three)
+
+       return FlowFileTransformResult(relationship="success",
+                                      attributes=attributes,
+                                      contents=json.dumps(output_contents))
