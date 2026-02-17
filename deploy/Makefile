@@ -33,15 +33,15 @@ fix-nifi-registry-perms:
 
 start-nifi:
 	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.yml; \
-	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev:
 	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
-	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx nifi-registry-flow
+	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev-build:
 	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
-	docker compose -f services.dev.yml up -d --build nifi nifi-nginx nifi-registry-flow
+	docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 start-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
@@ -113,19 +113,19 @@ start-all: start-data-infra start-jupyter start-medcat-service start-ocr-service
 # stop services
 #
 stop-nifi:
-	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) nifi nifi-nginx 
 
 stop-nifi-dev:
-	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx 
 
 delete-nifi-containers:
-	$(WITH_ENV) docker compose -f services.yml rm -f -s nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.yml rm -f -s nifi nifi-nginx 
 
 delete-nifi-dev-containers:
-	$(WITH_ENV) docker compose -f services.dev.yml rm -f -s nifi nifi-nginx nifi-registry-flow
+	$(WITH_ENV) docker compose -f services.dev.yml rm -f -s nifi nifi-nginx 
 
 delete-nifi-images:
-	$(WITH_ENV) images="$$(docker compose -f services.yml config --images nifi nifi-nginx nifi-registry-flow | sort -u)"; \
+	$(WITH_ENV) images="$$(docker compose -f services.yml config --images nifi nifi-nginx  | sort -u)"; \
 	if [ -n "$$images" ]; then \
 		docker image rm -f $$images; \
 	else \
@@ -133,7 +133,7 @@ delete-nifi-images:
 	fi
 
 delete-nifi-dev-images:
-	$(WITH_ENV) images="$$(docker compose -f services.dev.yml config --images nifi nifi-nginx nifi-registry-flow | sort -u)"; \
+	$(WITH_ENV) images="$$(docker compose -f services.dev.yml config --images nifi nifi-nginx  | sort -u)"; \
 	if [ -n "$$images" ]; then \
 		docker image rm -f $$images; \
 	else \
