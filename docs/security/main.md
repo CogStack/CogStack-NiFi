@@ -22,7 +22,6 @@ Security is achieved through:
 | Service | HTTPS/TLS Enabled | Certificate Location | Script(s) Used |
 |----------|------------------|----------------------|----------------|
 | NiFi | ✅ | `security/certificates/nifi/` | `nifi_toolkit_security.sh` |
-| NiFi Registry Flow | ✅ | `security/certificates/nifi/` | `nifi_toolkit_security.sh` |
 | Elasticsearch / OpenSearch | ✅ | `security/certificates/elastic/(elasticsearch or opensearch)/` | `create_es_native_certs.sh`, `create_opensearch_node_cert.sh` |
 | Kibana / OpenSearch Dashboards | ✅ | `security/certificates/elastic/(elasticsearch or opensearch)/` | `create_opensearch_client_admin_certs.sh` |
 | JupyterHub | ✅ | `security/certificates/root/` | `create_root_ca_cert.sh` |

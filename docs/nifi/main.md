@@ -140,16 +140,6 @@ You should check if the env vars have been set after running the script:
     echo $NIFI_GID
     ```
 
-### NiFi Registry permissions helper
-
-If NiFi Registry fails to start due to permission issues on its persistent volumes, run the helper script once to fix ownership:
-
-    ```bash
-    ./nifi/fix_nifi_registry_perms.sh
-    ```
-
-This script runs the registry container as root only long enough to `chown` the registry `database`, `flow_storage`, `work`, and `logs` directories, then exits. Subsequent starts can run as the default non-root user.
-
 If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
 
     ```bash

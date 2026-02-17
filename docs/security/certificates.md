@@ -70,7 +70,7 @@ All certificate-generation scripts source variables from `.env` files under `sec
 
 Set up a reusable certificate config to define SANs and subject. This is used globally for all services except ES native.
 Feel free to add custom DNS
-Note that the settings here will impact certain services (like NiFi Registry flow) which rely on Distinguished Names (DN) attributes for authentication.
+Note that the settings here impact services that rely on Distinguished Names (DN) attributes for authentication.
 
 ```ini
 # =========================================================================================
@@ -95,31 +95,27 @@ authorityKeyIdentifier = keyid,issuer
 
 [alt_names]
 DNS.1 = nifi
-DNS.2 = nifi-registry-flow
-DNS.3 = nifi-registry
-
-DNS.4 = nifi-nginx
-DNS.5 = elasticsearch-1
-DNS.6 = elasticsearch-2
-DNS.7 = elasticsearch-3
-DNS.8 = ocr-service
-DNS.9 = ocr-service-text-only
-DNS.10 = medcat-trainer-nginx
-DNS.11 = medcat-trainer-ui 
-DNS.12 = nlp-medcat-service-production
-DNS.13 = nlp-medcat-service-production-deid
-DNS.14 = cogstack-kibana
-DNS.15 = cogstack-cohort
-DNS.16 = cogstack-elasticsearch-1
-DNS.17 = cogstack-elasticsearch-2
-DNS.18 = cogstack-elasticsearch-3
-DNS.19 = cogstack-nifi
-DNS.20 = cogstack-nifi-nginx
-DNS.21 = cogstack-nifi-registry-flow
-DNS.22 = cogstack-auth-service
-DNS.23 = cogstack
-DNS.24 = *.cogstack
-DNS.25 = localhost
+DNS.2 = nifi-nginx
+DNS.3 = elasticsearch-1
+DNS.4 = elasticsearch-2
+DNS.5 = elasticsearch-3
+DNS.6 = ocr-service
+DNS.7 = ocr-service-text-only
+DNS.8 = medcat-trainer-nginx
+DNS.9 = medcat-trainer-ui 
+DNS.10 = nlp-medcat-service-production
+DNS.11 = nlp-medcat-service-production-deid
+DNS.12 = cogstack-kibana
+DNS.13 = cogstack-cohort
+DNS.14 = cogstack-elasticsearch-1
+DNS.15 = cogstack-elasticsearch-2
+DNS.16 = cogstack-elasticsearch-3
+DNS.17 = cogstack-nifi
+DNS.18 = cogstack-nifi-nginx
+DNS.19 = cogstack-auth-service
+DNS.20 = cogstack
+DNS.21 = *.cogstack
+DNS.22 = localhost
 IP.1 = 127.0.0.1
 email.1 = admin@cogstack.net
 

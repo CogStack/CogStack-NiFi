@@ -24,7 +24,7 @@ For NiFI:
 
 ## 🚀 01-10-2025 NiFi 2.0 Release
 
-New version of NiFi along with the long awaited NiFi registry flow released:
+New version of NiFi released:
 
       - massive repository structure changes.
       - new scripts and cert generation

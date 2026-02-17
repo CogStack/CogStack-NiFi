@@ -80,7 +80,7 @@ All commands automatically load environment variables via `export_env_vars.sh`.
 
 | Command                         | Description |
 |---------------------------------|-------------|
-| `make start-nifi`               | Start NiFi, NiFi-Nginx, NiFi Registry |
+| `make start-nifi`               | Start NiFi and NiFi-Nginx |
 | `make start-elastic`            | Start ES-1, ES-2, Kibana             |
 | `make start-elastic-cluster`    | Start ES-1, ES-2, ES-3               |
 | `make start-elastic-1/2/3`      | Start individual Elasticsearch nodes |
@@ -173,7 +173,6 @@ Starts:
 
 - **nifi** — the Apache NiFi instance (main ETL/orchestration engine)  
 - **nifi-nginx** — reverse proxy/front-end for NiFi  
-- **nifi-registry-flow** — NiFi Registry backend that stores flow versions
 
 Use when you want to run, debug, or modify NiFi workflows without bringing up the entire ecosystem.
 
@@ -188,7 +187,6 @@ make start-data-infra
 Starts:
 
 - NiFi
-- NiFi Registry Flow
 - NiFi Nginx
 - Elasticsearch  
 - Samples DB  

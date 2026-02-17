@@ -248,7 +248,7 @@ Where `<DB_PROVIDER>` can be: `mssql`,`pgsql`.
 
 ---
 
-## 💧 Apache NiFi & NiFi Registry
+## 💧 Apache NiFi
 
 Primary ETL/processing engine.
 
@@ -265,14 +265,13 @@ This service is complex and is completely described in [this section](../nifi/ma
 ### Containers
 
 - NiFi: `cogstack-nifi`
-- NiFi-Registry-flow: `cogstack-nifi-registry-flow`
 
 ### Service location & files
 
 - docker compose file: `services.yml`
 - dir: `nifi/`
 - env:
-  - `/deploy/nifi.env` - general NiFi & NiFi Registry flow settings, JVM memory, etc.
+  - `/deploy/nifi.env` - general NiFi settings, JVM memory, etc.
   - `/security/nifi_users.env`  - controlers DB user credentials
   - `/security/certificates_nifi.env`
 
@@ -281,7 +280,6 @@ This service is complex and is completely described in [this section](../nifi/ma
 | Component            | External Port | Internal Port |
 |---------------------|---------------|----------------|
 | NiFi                | `8443`        | `8082`, `10000` |
-| NiFi Registry Flow  | `18443`       | `8083`        |
 
 ---
 
@@ -592,7 +590,7 @@ Routing rules are defined in the NGINX configuration files.
 
 ### Containers
 
-- `nifi-nginx` — main proxy for NiFi & NiFi Registry
+- `nifi-nginx` — main proxy for NiFi
 - `medcat-trainer-nginx` — proxy dedicated to MedCAT Trainer
 
 ### Service Location & Files
@@ -612,7 +610,6 @@ Routing rules are defined in the NGINX configuration files.
 | Proxy Target     | External | Internal |
 |------------------|----------|----------|
 | NiFi             | `8443`   | `8443`   |
-| NiFi Registry Flow      | `18443`   | `18443`   |
 
 ### Notes
 
