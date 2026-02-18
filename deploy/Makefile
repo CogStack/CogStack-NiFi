@@ -140,6 +140,27 @@ delete-nifi-dev-images:
 		echo "No NiFi images found in services.dev.yml"; \
 	fi
 
+delete-nifi-volumes:
+	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v nifi nifi-nginx
+
+delete-elastic:
+	$(WITH_ENV) docker compose -f services.yml rm -f -s elasticsearch-1 elasticsearch-2 elasticsearch-3 kibana
+
+delete-elastic-volumes:
+	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v elasticsearch-1 elasticsearch-2 elasticsearch-3 kibana
+
+delete-databank:
+	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql
+
+delete-databank-volumes:
+	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v cogstack-databank-db cogstack-databank-db-mssql
+
+delete-samples-db:
+	$(WITH_ENV) docker compose -f services.yml rm -f -s samples-db
+
+delete-samples-db-volumes:
+	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v samples-db
+
 stop-elastic:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -201,7 +222,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes stop-elastic stop-samples stop-jupyter
 
 
 # cleanup
