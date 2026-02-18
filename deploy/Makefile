@@ -118,6 +118,8 @@ stop-nifi:
 stop-nifi-dev:
 	$(WITH_ENV) docker compose -f services.dev.yml $(DC_STOP_CMD) nifi nifi-nginx 
 
+delete-nifi: delete-nifi-containers
+
 delete-nifi-containers:
 	$(WITH_ENV) docker compose -f services.yml rm -f -s nifi nifi-nginx 
 
@@ -222,7 +224,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes stop-elastic stop-samples stop-jupyter
 
 
 # cleanup
