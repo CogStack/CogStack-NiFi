@@ -1,11 +1,11 @@
-ARG NIFI_VERSION=2.7.2
+ARG NIFI_VERSION=2.8.0
 
 FROM apache/nifi:${NIFI_VERSION}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG NIFI_VERSION=2.7.2
-ARG GROOVY_VERSION=5.0.2
+ARG NIFI_VERSION=2.8.0
+ARG GROOVY_VERSION=5.0.4
 
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
@@ -142,7 +142,7 @@ RUN set -eux; \
     || curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url2"; \
   unzip groovy.zip; rm groovy.zip
 
-ENV GROOVY_BIN=/opt/nifi/groovy/groovy-5.0.2/bin
+ENV GROOVY_BIN=/opt/nifi/groovy/groovy-${GROOVY_VERSION}/bin
 RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 
 ####################################### NAR INSTALL SECTION ##########################################
