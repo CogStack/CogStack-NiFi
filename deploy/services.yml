@@ -311,6 +311,8 @@ services:
   elasticsearch-base:
     <<: *es-common
     profiles: ["_elasticsearch_base"]
+    security_opt:
+      - seccomp=unconfined
     volumes: *es-common-volumes
 
   elasticsearch-1:
@@ -327,6 +329,8 @@ services:
       - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+      # OpenSearch performance analyzer
+      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugin-stats-metadata:rw
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
@@ -346,6 +350,8 @@ services:
       - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+      # OpenSearch performance analyzer
+      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
@@ -365,6 +371,8 @@ services:
       - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
+      # OpenSearch performance analyzer
+      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
@@ -602,6 +610,13 @@ volumes:
   elasticsearch-vol-log-2:
     driver: local
   elasticsearch-vol-log-3:
+    driver: local
+
+  elasticsearch-vol-performance-analyzer-1:
+    driver: local
+  elasticsearch-vol-performance-analyzer-2:
+    driver: local
+  elasticsearch-vol-performance-analyzer-3:
     driver: local
 
   metricbeat-data-1:

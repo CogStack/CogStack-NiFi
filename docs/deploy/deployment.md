@@ -81,6 +81,8 @@ All commands automatically load environment variables via `export_env_vars.sh`.
 | Command                         | Description |
 |---------------------------------|-------------|
 | `make start-nifi`               | Start NiFi and NiFi-Nginx |
+| `make start-nifi-dev`           | Start NiFi dev services from `services.dev.yml` |
+| `make start-nifi-dev-build`     | Build and start NiFi dev services from `services.dev.yml` |
 | `make start-elastic`            | Start ES-1, ES-2, Kibana             |
 | `make start-elastic-cluster`    | Start ES-1, ES-2, ES-3               |
 | `make start-elastic-1/2/3`      | Start individual Elasticsearch nodes |
@@ -105,6 +107,7 @@ All commands automatically load environment variables via `export_env_vars.sh`.
 | Command                         | Description |
 |---------------------------------|-------------|
 | `make stop-nifi`                | Stop NiFi stack                     |
+| `make stop-nifi-dev`            | Stop NiFi dev services (`services.dev.yml`) |
 | `make stop-elastic`             | Stop ES-1, ES-2, Kibana             |
 | `make stop-elastic-cluster`     | Stop ES-1, ES-2                     |
 | `make stop-elastic-1/2/3`       | Stop individual ES nodes            |
@@ -121,6 +124,25 @@ All commands automatically load environment variables via `export_env_vars.sh`.
 | `make stop-production-db`       | Stop Databank DB                    |
 | **`make stop-data-infra`**      | Stop NiFi + Elastic + Samples       |
 | **`make stop-all`**             | Stop entire stack                   |
+
+---
+
+### 🗑️ Delete Services
+
+| Command                         | Description |
+|---------------------------------|-------------|
+| `make delete-nifi`              | Delete NiFi and NiFi-Nginx containers |
+| `make delete-nifi-containers`   | Delete NiFi and NiFi-Nginx containers |
+| `make delete-nifi-dev-containers` | Delete NiFi dev containers (`services.dev.yml`) |
+| `make delete-nifi-images`       | Delete NiFi/NiFi-Nginx images from `services.yml` |
+| `make delete-nifi-dev-images`   | Delete NiFi/NiFi-Nginx images from `services.dev.yml` |
+| `make delete-nifi-volumes`      | Remove NiFi-related volumes (via compose down `-v`) |
+| `make delete-elastic`           | Delete Elasticsearch and Kibana containers |
+| `make delete-elastic-volumes`   | Remove Elasticsearch and Kibana volumes (via compose down `-v`) |
+| `make delete-databank`          | Delete Databank DB containers |
+| `make delete-databank-volumes`  | Remove Databank DB volumes (via compose down `-v`) |
+| `make delete-samples-db`        | Delete samples DB container |
+| `make delete-samples-db-volumes`| Remove samples DB volumes (via compose down `-v`) |
 
 ---
 

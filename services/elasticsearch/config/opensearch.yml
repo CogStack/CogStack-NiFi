@@ -3,6 +3,8 @@ network.publish_host: ${ELASTICSEARCH_NETWORK_PUBLISH_HOST}
 
 ###### CLUSTER CONFIGURATION ######
 
+bootstrap.system_call_filter: false
+
 # To allow multiple nodes add the node"s IP addresses to the discovery pool. 
 # ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
 discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
