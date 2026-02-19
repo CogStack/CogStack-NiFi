@@ -76,6 +76,52 @@ make -C deploy help
 make help
 ```
 
+### 🌐 Manage a specific service on a specific machine
+
+Use remote targets to run Docker Compose on a remote host over SSH.
+
+Prerequisites:
+
+- SSH access to the target machine
+- this repository checked out on the target machine
+- Docker + Docker Compose available on the target machine
+
+```bash
+# deploy (up -d)
+make -C deploy remote-deploy-service \
+  REMOTE_HOST=ubuntu@10.20.0.15 \
+  REMOTE_REPO_DIR=/opt/cogstack_nifi \
+  REMOTE_SERVICES="nifi nifi-nginx" \
+  REMOTE_SSH_KEY=$HOME/.ssh/cogstack_prod.pem \
+  REMOTE_COMPOSE_FILE=services.yml
+```
+
+```bash
+# stop
+make -C deploy remote-stop-service \
+  REMOTE_HOST=ubuntu@10.20.0.15 \
+  REMOTE_REPO_DIR=/opt/cogstack_nifi \
+  REMOTE_SERVICES="nifi nifi-nginx" \
+  REMOTE_SSH_KEY=$HOME/.ssh/cogstack_prod.pem \
+  REMOTE_COMPOSE_FILE=services.yml
+```
+
+```bash
+# delete containers (docker compose rm -f -s)
+make -C deploy remote-delete-service \
+  REMOTE_HOST=ubuntu@10.20.0.15 \
+  REMOTE_REPO_DIR=/opt/cogstack_nifi \
+  REMOTE_SERVICES="nifi nifi-nginx" \
+  REMOTE_SSH_KEY=$HOME/.ssh/cogstack_prod.pem \
+  REMOTE_COMPOSE_FILE=services.yml
+```
+
+- Set `REMOTE_SERVICES` to one service (for example `kibana`) or multiple services.
+- Use `services.dev.yml` by setting `REMOTE_COMPOSE_FILE=services.dev.yml`.
+- `REMOTE_SSH_KEY` is optional; if omitted, normal SSH config/agent auth is used.
+- `REMOTE_SSH_OPTS` is optional for extra flags (for example `-p 2222 -o StrictHostKeyChecking=accept-new`).
+- `remote-delete-service` removes containers; it does not remove volumes.
+
 ---
 
 ### 🔧 Utilities

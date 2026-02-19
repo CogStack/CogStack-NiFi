@@ -4,6 +4,10 @@ SHELL := /usr/bin/env bash
 DC_START_CMD := up -d
 DC_STOP_CMD := stop
 DC_DOWN_CMD := down
+REMOTE_COMPOSE_FILE ?= services.yml
+REMOTE_SSH_KEY ?=
+REMOTE_SSH_OPTS ?=
+REMOTE_SSH_KEY_ARG = $(if $(strip $(REMOTE_SSH_KEY)),-i $(REMOTE_SSH_KEY),)
 
 define WITH_ENV
 set -a && source ./export_env_vars.sh;
@@ -68,6 +72,34 @@ show-env: ## Print sorted environment variables after loading export_env_vars.sh
 
 fix-nifi-registry-perms: ## Fix NiFi registry permissions for a compose file
 	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh $(COMPOSE_FILE)
+
+remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose
+remote-deploy-service: _check-remote-params
+	@ssh $(REMOTE_SSH_KEY_ARG) $(REMOTE_SSH_OPTS) "$(REMOTE_HOST)" 'cd "$(REMOTE_REPO_DIR)/deploy" && set -a && source ./export_env_vars.sh && docker compose -f "$(REMOTE_COMPOSE_FILE)" up -d $(REMOTE_SERVICES)'
+
+remote-stop-service: ## Stop one or more services on a remote machine via SSH + docker compose
+remote-stop-service: _check-remote-params
+	@ssh $(REMOTE_SSH_KEY_ARG) $(REMOTE_SSH_OPTS) "$(REMOTE_HOST)" 'cd "$(REMOTE_REPO_DIR)/deploy" && set -a && source ./export_env_vars.sh && docker compose -f "$(REMOTE_COMPOSE_FILE)" stop $(REMOTE_SERVICES)'
+
+remote-delete-service: ## Delete one or more remote service containers via SSH + docker compose rm
+remote-delete-service: _check-remote-params
+	@ssh $(REMOTE_SSH_KEY_ARG) $(REMOTE_SSH_OPTS) "$(REMOTE_HOST)" 'cd "$(REMOTE_REPO_DIR)/deploy" && set -a && source ./export_env_vars.sh && docker compose -f "$(REMOTE_COMPOSE_FILE)" rm -f -s $(REMOTE_SERVICES)'
+
+_check-remote-params:
+	@if [ -z "$(REMOTE_HOST)" ]; then \
+		echo "REMOTE_HOST is required (example: REMOTE_HOST=user@machine)"; \
+		exit 1; \
+	fi
+	@if [ -z "$(REMOTE_REPO_DIR)" ]; then \
+		echo "REMOTE_REPO_DIR is required (example: REMOTE_REPO_DIR=/opt/cogstack_nifi)"; \
+		exit 1; \
+	fi
+	@if [ -z "$(REMOTE_SERVICES)" ]; then \
+		echo "REMOTE_SERVICES is required (example: REMOTE_SERVICES='nifi nifi-nginx')"; \
+		exit 1; \
+	fi
+
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params
 	
 # start services
 
