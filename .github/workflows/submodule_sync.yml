@@ -31,59 +31,26 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-    # Update references
-    - name: Init submodules (shallow, fast)
-      run: |
-        git submodule update --init --recursive --depth 1 --filter=blob:none
-
-    - name: Pin submodules to latest release on main (fallback to main)
+    - name: Sync submodules using repository script
+      id: sync_submodules
       run: |
         set -euo pipefail
-        # find submodule paths
-        paths=$(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}')
-        [ -z "$paths" ] && { echo "No submodules."; exit 0; }
+        before_sha="$(git rev-parse HEAD)"
 
-        changed=0
-        for p in $paths; do
-          echo "==> $p"
-          (
-            cd "$p"
-            # fetch only main and tags (shallow fetch is fine)
-            git fetch --no-recurse-submodules --force origin \
-              +refs/heads/main:refs/remotes/origin/main
-            git fetch --no-recurse-submodules --force --tags origin
+        # script may create a commit when submodule pointers change
+        git config user.name  "Git bot"
+        git config user.email "bot@noreply.github.com"
+        ./scripts/git_update_submodules_in_repo.sh
 
-            # pick newest semver-like tag reachable from main; else main
-            latest=$(git tag --merged origin/main --sort=-v:refname | head -n1 || true)
-            if [ -n "${latest:-}" ]; then
-              echo "   using tag: $latest"
-              git checkout -q --detach "tags/$latest"
-            else
-              echo "   no tag on main; using origin/main"
-              git checkout -q --detach origin/main
-            fi
-          )
-          # stage the new pointer in the superproject
-          git add "$p" && changed=1
-        done
-
-        if [ "$changed" -eq 1 ]; then
-          git status --porcelain
+        after_sha="$(git rev-parse HEAD)"
+        if [ "$before_sha" != "$after_sha" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git show --no-patch --oneline "$after_sha"
         else
+          echo "changed=false" >> "$GITHUB_OUTPUT"
           echo "No submodule pointer changes."
         fi
 
-    - name: Commit & push (if changed)
-      if: startsWith(github.ref, 'refs/heads/')
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        set -e
-        if ! git diff --cached --quiet; then
-          git config user.name  "Git bot"
-          git config user.email "bot@noreply.github.com"
-          git commit -m "Pin submodules to latest release tags (or main)"
-          git push origin HEAD:${GITHUB_REF##refs/heads/}
-        else
-          echo "No changes to commit."
-        fi
+    - name: Push sync commit
+      if: startsWith(github.ref, 'refs/heads/') && steps.sync_submodules.outputs.changed == 'true'
+      run: git push origin HEAD:${GITHUB_REF##refs/heads/}
