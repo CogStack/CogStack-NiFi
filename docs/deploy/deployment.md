@@ -62,6 +62,20 @@ This design allows each service to be:
 A concise reference for controlling the full CogStack deployment stack (NiFi, Elasticsearch, JupyterHub, MedCAT, OCR-service, GitEA, Beats, DB, etc.).  
 All commands automatically load environment variables via `export_env_vars.sh`.
 
+### 🔎 Discover available Make targets
+
+You can list all available `deploy/Makefile` targets with descriptions:
+
+```bash
+# from repository root
+make -C deploy help
+```
+
+```bash
+# from ./deploy
+make help
+```
+
 ---
 
 ### 🔧 Utilities
