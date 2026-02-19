@@ -132,6 +132,7 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
 
+ml_commons_dashboards.enabled: true
 
 savedObjects.permission.enabled: true
 
