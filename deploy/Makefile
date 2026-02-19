@@ -235,6 +235,12 @@ delete-samples-db:
 delete-samples-db-volumes:
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v samples-db
 
+delete-medcat-trainer: ## Remove MedCAT Trainer containers
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml rm -f -s medcattrainer nginx solr
+
+delete-medcat-trainer-volumes: ## Delete MedCAT Trainer volumes
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_DOWN_CMD) -v medcattrainer nginx solr
+
 stop-elastic: ## Stop elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -296,7 +302,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastru
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services ## Stop all major services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes stop-elastic stop-samples stop-jupyter
 
 
 # cleanup
