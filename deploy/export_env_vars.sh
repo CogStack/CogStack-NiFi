@@ -39,6 +39,7 @@ env_files=(
   "$SERVICES_DIR/ocr-service/env/ocr_service.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/app.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
+  "$SERVICES_DIR/cogstack-nlp/medcat-trainer/envs/env-prod"
 )
 
 for env_file in "${env_files[@]}"; do
