@@ -35,6 +35,15 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 
 For user script organization and usage guidelines, see [user scripts](user_scripts.md).
 For Python extension processors, see [Python extensions](user_python_extensions.md).
+For end-to-end scripting patterns (including `ExecuteStreamCommand` stdin/stdout and args), see [processor scripting guide](processor_scripting.md).
+
+```{toctree}
+:maxdepth: 1
+
+processor_scripting.md
+user_scripts.md
+user_python_extensions.md
+```
 
 ## Custom Docker image
 

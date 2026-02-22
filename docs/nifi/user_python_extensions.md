@@ -66,4 +66,5 @@ during the custom image build. Add new dependencies there if your extension need
 
 ## Related docs
 
+- `docs/nifi/processor_scripting.md` for a side-by-side guide of extension processors vs `ExecuteStreamCommand`.
 - `docs/nifi/user_scripts.md` for stdin/stdout processors and script layout.

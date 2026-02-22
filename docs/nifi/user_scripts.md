@@ -1,6 +1,8 @@
 # NiFi user scripts
 
 This page describes how scripts under `nifi/user_scripts/` are organized and when to use each folder.
+For a full scripting walkthrough (processor scripting approaches, `ExecuteStreamCommand`, and args handling),
+see [processor scripting guide](processor_scripting.md).
 
 ## Layout
 
@@ -24,16 +26,19 @@ This page describes how scripts under `nifi/user_scripts/` are organized and whe
 
 Use `ExecuteStreamCommand` when you want to run a script that reads from stdin and writes to stdout.
 The FlowFile content becomes the script input, and the script output becomes the new FlowFile content.
+For full details and more patterns, see [processor scripting guide](processor_scripting.md).
 
 Example configuration using `clean_doc.py`:
 
 ```text
 Processor: ExecuteStreamCommand
-Command: python3
-Command Arguments: /opt/nifi/user_scripts/processors/clean_doc.py
-Script args: text_field_name=text
-Working Directory: /opt/nifi/user_scripts
-Environment Variables: PYTHONPATH=/opt/nifi/nifi-current/python/framework
+Command Path: python3.11
+Command Arguments Strategy: Command Arguments Property
+Working Directory: /opt/nifi/user_scripts/processors/
+Argument Delimiter: ;
+Command Arguments: clean_doc.py;text_field_name=text
+Ignore STDIN: false
+Output Destination Attribute: (empty)
 ```
 
 Notes:
