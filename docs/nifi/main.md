@@ -246,7 +246,7 @@ This custom image will use embedeed Zookeeper within NiFi service and will use t
 
 In previous nifi versions by default there was no user assigned and authentication was anonymous. Since 1.14.0 this changed. So now we have HTTPS enabled by default via port 8443 (configurable in nifi.properties and the services.yml file).
 
-Please use the guide provided in the [SECURITY.md](../security.md#apache-nifi) section to set up accounts and certificates.
+Please use the [security guide](../security/main.md) section to set up accounts and certificates.
 
 ## Drivers
 
@@ -254,11 +254,10 @@ The drivers are provided in [`drivers`](https://github.com/CogStack/CogStack-NiF
 
 The key used ones are:
 
-- `mssql-jdbc-9.4.1.jre11.jar` \ `mssql-jdbc-9.4.1.jre8.jar` and `mssql-jdbc-11.2.0.jre11.jar` \ `mssql-jdbc-11.2.0.jre8.jar`  - MS SQL Server JDBC driver, older version of the driver for backwards compatibility across setups.
-- `postgresql-42.6.0.jar` - PostgreSQL JDBC driver.
-- `mysql-connector-j-8.1.0.jar` - MySQL JDBC driver.
-
-These drivers come bundled for both `jre8` and `jre11`.
+- `mssql-jdbc-13.2.0.jre11.jar` - MS SQL Server JDBC driver.
+- `postgresql-42.7.7.jar` - PostgreSQL JDBC driver.
+- `mysql-connector-j-9.4.0.jar` - MySQL JDBC driver.
+- `duckdb_jdbc-1.4.4.0.jar` - DuckDB JDBC driver.
 
 ## User resources
 
@@ -268,16 +267,16 @@ Please see [WORKFLOWS.md](../deploy/workflows.md) in the `deploy` directory for 
 ## Workflow templates
 
 Workflow templates define example data workflows that can be tailored and executed by the user.
-The templates are stored in [user-templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) directory.
+The templates are stored in [`user_templates`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_templates) directory.
 
 ## User scripts
 
 Apache NiFi gives users the ability to execute custom scripts inside the data flow (supported languages: Python, Groovy, Clojure, Ruby, Lua, ECMAScript).
-[`user-scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-scripts) directory contains example scripts, these are mostly used when parsing the data from Flow Files.
+[`user_scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_scripts) directory contains example scripts, these are mostly used when parsing the data from Flow Files.
 
 ## User schemas
 
-[`user-schemas`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
+[`user_schemas`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_schemas) directory contains example AVRO type schemas that can be used by data parsers and processor.
 
 ## Performance settings
 

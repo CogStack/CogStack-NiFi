@@ -1,8 +1,29 @@
 # Workflows
 
-<span style="color: red"><strong> IMPORTANT: This section will be revised as Workflow formats and some settings changed since the NiFi 2.0 Update</strong></span>
+## Current status (NiFi 2.x)
 
-Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) in `./nifi` directory.
+This page contains legacy workflow walkthroughs that are still useful for reference, but some processor names, properties, and template formats have changed in NiFi 2.x.
+
+For current and maintained guidance, use:
+
+- [Prerequisites and deployment overview](./main.md)
+- [Deployment operations guide](./deployment.md)
+- [Services reference](./services.md)
+- [NiFi guide](../nifi/main.md)
+- [Processor scripting guide](../nifi/processor_scripting.md)
+
+Template locations:
+
+- `nifi/user_templates/` for current templates (JSON).
+- `nifi/user_templates/legacy/` for older templates (XML/reference).
+
+## Legacy workflow examples (reference)
+
+:::{warning}
+These examples are maintained as historical reference material. Validate processor configuration and controller-service properties against your currently deployed NiFi version.
+:::
+
+Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_templates) in `./nifi` directory.
 These are:
 
 1. `OpenSearch_ingest_DB_to_ES` - performing ingestion of free-text notes from database to Elasticsearch, no pre-processing involved.
@@ -14,7 +35,7 @@ If you are using Nifi with SSL mode (which is on by default as of the upgrade to
 
 There are more workflows available in the sections below
 
-<span style="color: red"><strong> IMPORTANT:</strong></span> if you do not see some workflows in the NiFi Template Web interface then you will have to manually go to the `./nifi/user-templates` folder and upload whatever templates are missing, the reason for this is that NiFi keep its own available template(s) file separately and we do not update this as it will overwrite the user's own file.
+<span style="color: red"><strong> IMPORTANT:</strong></span> if you do not see some workflows in the NiFi Template Web interface then you will have to manually go to the `./nifi/user_templates` folder and upload whatever templates are missing, the reason for this is that NiFi keep its own available template(s) file separately and we do not update this as it will overwrite the user's own file.
 
 <br>
 
@@ -32,7 +53,7 @@ In the workflow examples, the following services are used:
 To deploy the above services, one can type in the `deploy` directory: 
 ```
 make start-data-infra
-make start-nlp-medcat
+make start-medcat-service
 ```
 
 Please note that all the above services will be accessible by services within internal `cognet` Docker network while only some of them will be accessible from host machine.
@@ -45,14 +66,14 @@ Before start, please see [the official Apache NiFi guide on using the web user i
 
 In this doc only the key aspects will be covered on using the bundled user templates with configuring and executing the flows.
 
-Once deployed, the Apache-NiFi web interface will be accessible from the host (e.g. localhost) machine at `http://localhost:8443`.
+Once deployed, the Apache-NiFi web interface will be accessible from the host (e.g. localhost) machine at `https://localhost:8443`.
 
 To see all available user workflow templates navigate to **Templates** window by clicking the corresponding list item as presented on the figure below.
 Following, to select an example workflow template to run, drag and drop the **template** button from the components toolbar panel to the main notepad window.
 ![template-w1](../_static/img/nifi-templates-w1.png)
 
 
-Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user templates`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user-templates) directory.
+Please note that all the available workflow templates that are bundled with our custom Apache NiFi image are available in [`../nifi/user_templates`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_templates) directory.
 During normal work, the user has possibility to create and store own template workflows.
 These workflows are represented as XML files and so can be easily further shared or modified.
 
@@ -94,13 +115,13 @@ The `DBCConnectionPool` controller service can be configured to operate with mul
   PgSQL:
     - Database Connection URL: jdbc:postgresql://samples-db:5432/db_samples
     - Database Driver Class Name: org.postgresql.Driver
-    - Database Driver Location(s): /opt/nifi/drivers/postgresql-42.6.0.jar
+    - Database Driver Location(s): /opt/nifi/drivers/postgresql-42.7.7.jar
 ``` 
 ```
   MSSQL:
     - Database Connection URL: jdbc:sqlserver://cogstack-databank-db-mssql:1433;DatabaseName=MTSamples;encrypt=true;trustServerCertificate=true; 
     - Database Driver Class Name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    - Database Driver Location(s): /opt/nifi/drivers/mssql-jdbc-11.2.0.jre8.jar
+    - Database Driver Location(s): /opt/nifi/drivers/mssql-jdbc-13.2.0.jre11.jar
 ```
 
 <b>Reminder:</b> the datbase driver location path is mounted on the NiFi container by default on service startup, `./nifi/drivers/:/opt/nifi/drivers/`, you may want to check the [nifi drivers folder](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/drivers) for available drivers, and if you require other drivers, please copy the .jar files there and they will be available on the NiFi container during runtime (no NiFi service restart is required)
@@ -219,7 +240,7 @@ There are 4 NiFi components involved in this process:
 4. `ExecuteGroovyScript-ConvertJsonToAvro` - parses the JSON content into AVRO record format.
 
 Components (1), (3) and (4) execute custom Groovy scripts to parse the records (Flow Files).
-These scripts are bundled with our custom Apache NiFi image and are available in [`./nifi/user-scripts`](https://github.com/CogStack/CogStack-Nifi/nifi/user-scripts).
+These scripts are bundled with our custom Apache NiFi image and are available in [`./nifi/user_scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_scripts).
 
 The key component (2) is a generic HTTP client for communication with RESTful services.
 It sends the binary payload using `POST` method to `http://tika-service:8090/api/process` endpoint.
@@ -262,7 +283,7 @@ There are several NiFi components involved in this process which stand out:
 2. `ExecuteScript-ConvertRecordToMedCATinput` - prepares the JSON payload for MedCAT Service, this is Jython script, it has several configurable process properties:
   - `document_id_field` = `docid`, the exact name of the unique Id column for the DB/ES record
   - `document_text_field` = `document`, field/column name containing free text 
-  - `log_file_name` = `nlp_request_bulk_parse_medical_text.log`, creates a log file in the repo folder `/nifi/user-scripts/`
+  - `log_file_name` = `nlp_request_bulk_parse_medical_text.log`, creates a log file in the repo folder `/nifi/user_scripts/`
   - `log_invalid_records_to_file` = `True`, enable/disable logging errors to logfile with the above mentioned file name
 
   -  <span style="color: red">IMPORTANT:</span> all the original fields aside from doc id and text field that were returned by the ES search query will be placed in the "footer" dict key of each generated json record. 
@@ -283,7 +304,7 @@ The script creates an unique annotation ID field by concatenating the document_i
 
 
 Components (2) and (4) execute custom Jython scripts to parse the records (Flow Files).
-These scripts are bundled with our custom Apache NiFi image and are available in [`../nifi/user-scripts`](https://github.com/CogStack/CogStack-Nifi/nifi/user-scripts).
+These scripts are bundled with our custom Apache NiFi image and are available in [`../nifi/user_scripts`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_scripts).
 
 The key component (3) is a generic HTTP client for communication with RESTful services.
 It sends the JSON payload using `POST` method to `http://nlp-medcat-service-production:5000/api/process_bulk` endpoint.
@@ -385,7 +406,7 @@ The result of the script is a JSON with all the records within a folder passted 
 6. execute another custom python script to format the JSON response to contain the original record data fields too, at this stage the record is ready for ingestion into ES!
 
 Prerequisite if you want to test this template for testing, please run the following commands:
-- `cd nifi/user-scripts/tests`
+- `cd nifi/user_scripts/tests`
 - `python3 generate_files.py`
 
 The above assumes that you already have the NiFi container running, the script just generates some sample files.
@@ -402,4 +423,4 @@ Prerequisites for this workflow:
 3. you have the required fields in your patient records: age, ethnicity, date of death, date of birth, patient_id, doc_id, gender.
 4. datetime fields must have the same format.
 
-The script used for this process is located here: `nifi/user-scripts/cogstack_cohort_generate_data.py`. Please read all the info provided in the NiFi template.
+The script used for this process is located here: `nifi/user_scripts/processors/cogstack_cohort_generate_data.py`. Please read all the info provided in the NiFi template.

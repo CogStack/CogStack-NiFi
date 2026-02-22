@@ -10,7 +10,7 @@ This repository proposes a possible next step in the evolution of free-text data
 
 **CogStack-NiFi** demonstrates how to use [Apache NiFi](https://nifi.apache.org/) as the central data workflow engine for clinical document processing, integrating services such as text extraction and natural language processing (NLP). Each component runs as a standalone service, with NiFi handling data routing between components and data sources/sinks.
 
-All NLP/ML/DATA services are expected to implement a uniform RESTful API, allowing seamless integration into existing pipelines—making it easy to incorporate any NLP application into the stack.
+All NLP/ML/data services are expected to implement a uniform RESTful API, allowing seamless integration into existing pipelines and making it easy to incorporate any NLP application into the stack.
 
 ---
 
@@ -31,6 +31,8 @@ Need help? Feel free to:
 
 ## 🗂️ Project
 
+This table describes repository layout. For setup and operations, use the deployment and NiFi docs linked below.
+
 | Folder         | Description |
 |----------------|-------------|
 | [`nifi`](./nifi)         | Custom Apache NiFi Docker image with workflows, configs, drivers, and user resources. |
@@ -45,10 +47,35 @@ Need help? Feel free to:
 
 ## 📚 Documentation & Getting Started
 
+### Quick Start (5 minutes)
+
+```bash
+# from repository root
+git lfs pull
+make -C deploy git-update-submodules
+make -C deploy help
+make -C deploy start-data-infra
+```
+
+After services start:
+
+- NiFi: `https://localhost:8443`
+- Elasticsearch: `http://localhost:9200`
+- Kibana/OpenSearch Dashboards: `https://localhost:5601`
+
+Stop the core stack with:
+
+```bash
+make -C deploy stop-data-infra
+```
+
 **Prerequisites**:
 
-- Docker (mandatory)  
-- Basic knowledge of Python and Linux/UNIX systems (Bash (simple commands only, we promise))
+- Docker + Docker Compose (mandatory)
+- `make`
+- `git` + `git-lfs`
+- `python3.11`
+- Basic Linux/UNIX shell familiarity
 
 📖 Official documentation: [cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/)
 
@@ -60,7 +87,7 @@ Need help? Feel free to:
 
 ## 🛑 Important Updates
 
-Check the [IMPORTANT_NEWS](https://cogstack-nifi.readthedocs.io/en/latest/news.html) section regularly for:
+Check the [release notes](https://cogstack-nifi.readthedocs.io/en/latest/news.html) section regularly for:
 
 - Major changes to project structure or configuration
 - Security advisories or vulnerabilities affecting deployments
