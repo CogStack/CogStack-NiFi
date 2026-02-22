@@ -203,6 +203,8 @@ make -C deploy remote-delete-service \
 | `make delete-databank-volumes`  | Remove Databank DB volumes (via compose down `-v`) |
 | `make delete-samples-db`        | Delete samples DB container |
 | `make delete-samples-db-volumes`| Remove samples DB volumes (via compose down `-v`) |
+| `make delete-medcat-trainer`    | Delete MedCAT Trainer containers (`medcattrainer`, `nginx`, `solr`) |
+| `make delete-medcat-trainer-volumes`| Remove MedCAT Trainer volumes (via compose down `-v`) |
 
 ---
 
