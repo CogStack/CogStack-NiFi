@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Run docs QA checks
+        run: |
+          python3 scripts/tests/lint_markdown.py
+          python3 scripts/tests/check_docs_links.py
+
       - name: Build docs
         run: |
           cd docs
