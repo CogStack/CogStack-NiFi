@@ -1,8 +1,8 @@
 # CogStack-NiFi
 
-[![nifi](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-nifi.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-nifi.yml)
-[![doc-build](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc-build.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc-build.yml)
-[![elasticsearch-stack](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-elasticsearch-stack.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker-elasticsearch-stack.yml)
+[![nifi](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker_nifi.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker_nifi.yml)
+[![doc-build](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc_build.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/doc_build.yml)
+[![elasticsearch-stack](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker_elasticsearch_stack.yml/badge.svg?branch=main)](https://github.com/CogStack/CogStack-NiFi/actions/workflows/docker_elasticsearch_stack.yml)
 
 ## 💡 Introduction
 

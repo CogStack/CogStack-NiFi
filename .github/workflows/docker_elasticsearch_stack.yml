@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   elasticsearch:
-    uses: ./.github/workflows/_docker-template.yml
+    uses: ./.github/workflows/_docker_template.yml
     with:
       image: cogstacksystems/elasticsearch
       context: services/elasticsearch
@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
 
   kibana:
-    uses: ./.github/workflows/_docker-template.yml
+    uses: ./.github/workflows/_docker_template.yml
     with:
       image: cogstacksystems/kibana
       context: services/kibana

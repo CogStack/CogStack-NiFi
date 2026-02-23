@@ -1,0 +1,50 @@
+name: python-quality
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - "pyproject.toml"
+      - "nifi/**/*.py"
+      - "scripts/tests/**/*.py"
+      - "typings/**/*.pyi"
+      - ".github/workflows/python_quality.yml"
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "nifi/**/*.py"
+      - "scripts/tests/**/*.py"
+      - "typings/**/*.pyi"
+      - ".github/workflows/python_quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Ruff + MyPy
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install quality tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff mypy pydantic
+
+      - name: Ruff (critical rules)
+        run: |
+          python -m ruff check scripts/tests nifi/user_python_extensions --select F,E9
+
+      - name: MyPy
+        run: |
+          python -m mypy --config-file pyproject.toml nifi/user_python_extensions scripts/tests

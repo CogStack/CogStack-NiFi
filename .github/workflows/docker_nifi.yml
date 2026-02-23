@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/workflows/_docker-template.yml
+    uses: ./.github/workflows/_docker_template.yml
     with:
       image: cogstacksystems/cogstack-nifi
       context: .
