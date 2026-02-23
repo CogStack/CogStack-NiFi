@@ -84,7 +84,7 @@ x-nifi-volumes: &nifi-volumes
   - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
 
   # MedCAT models
-  - ./${RES_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
   # NiFi repositories/state
   - nifi-vol-logs:/opt/nifi/nifi-current/logs
