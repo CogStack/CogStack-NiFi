@@ -558,7 +558,7 @@ services:
   gitea:
     <<: *common-ulimits
     container_name: cogstack-gitea
-    image:  gitea/gitea:1.23-rootless
+    image: ${GITEA_DOCKER_IMAGE:-gitea/gitea:rootless-latest}
     shm_size: ${GITEA_DOCKER_SHM_SIZE:-"1g"}
     restart: always
     deploy:
