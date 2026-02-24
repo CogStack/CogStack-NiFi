@@ -7,7 +7,7 @@ Make sure you have read the [Prerequisites](./main.md) section before proceeding
 
 ## 🗂️ Key files
 
-- **`services.yml`** – defines the *core* services that are orchestrated directly from this repository via Docker Compose.   (Kubernetes-based multi-container deployments are coming soon.)
+- **`services.yml`** – defines the *core* services that are orchestrated directly from this repository via Docker Compose.
 
 - **`Makefile`** – provides convenient commands for starting, stopping, and managing the deployment.
 
@@ -56,6 +56,27 @@ This design allows each service to be:
   [`./services`](https://github.com/CogStack/CogStack-NiFi/tree/main/services/)
 - NiFi-specific configuration (properties, custom processors, drivers, Python scripts, etc.) is under:  
   [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/)
+
+## ⎈ Helm (OpenSearch)
+
+An initial Helm chart for OpenSearch + OpenSearch Dashboards is available at:
+
+```bash
+./deploy/charts/opensearch
+```
+
+Quick usage:
+
+```bash
+# render manifests
+helm template cogstack-opensearch ./deploy/charts/opensearch
+
+# install or upgrade
+helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --namespace cogstack --create-namespace
+```
+
+> The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
 
 ## 🧰 Makefile Command Overview
 
