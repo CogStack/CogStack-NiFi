@@ -1,6 +1,22 @@
 nameOverride: ""
 fullnameOverride: ""
 
+envFile:
+  # Pass deploy/elasticsearch.env via:
+  #   --set-file envFile.raw=./deploy/elasticsearch.env
+  raw: ""
+  # Only these keys are imported into a ConfigMap (avoid leaking secrets from env files).
+  includeKeys:
+    - ELASTICSEARCH_NETWORK_HOST
+    - ELASTICSEARCH_NETWORK_PUBLISH_HOST
+    - ELASTICSEARCH_CLUSTER_NAME
+    - ELASTICSEARCH_SEED_HOSTS
+    - ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES
+    - ELASTICSEARCH_HOSTS
+    - ELASTICSEARCH_JAVA_OPTS
+    - OPENSEARCH_JAVA_OPTS
+    - KIBANA_SERVER_NAME
+
 opensearch:
   replicas: 3
   image:

@@ -64,6 +64,11 @@ app.kubernetes.io/component: dashboards
 {{- end -}}
 {{- end -}}
 
+{{/* Env ConfigMap name */}}
+{{- define "cogstack-opensearch.envConfigMapName" -}}
+{{- printf "%s-elasticsearch-env" (include "cogstack-opensearch.fullname" .) -}}
+{{- end -}}
+
 {{/* CSV of StatefulSet pod DNS names used for discovery.seed_hosts */}}
 {{- define "cogstack-opensearch.seedHosts" -}}
 {{- $fullname := include "cogstack-opensearch.fullname" . -}}

@@ -42,6 +42,11 @@ spec:
             - name: analyzer
               containerPort: {{ .Values.opensearch.service.analyzerPort }}
               protocol: TCP
+          {{- if .Values.envFile.raw }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "cogstack-opensearch.envConfigMapName" . }}
+          {{- end }}
           env:
             - name: POD_IP
               valueFrom:

@@ -69,14 +69,18 @@ Quick usage:
 
 ```bash
 # render manifests
-helm template cogstack-opensearch ./deploy/charts/opensearch
+helm template cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file envFile.raw=./deploy/elasticsearch.env
 
 # install or upgrade
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file envFile.raw=./deploy/elasticsearch.env \
   --namespace cogstack --create-namespace
 ```
 
 > The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
+> The `--set-file envFile.raw=...` flag injects values from `deploy/elasticsearch.env` into pod environment variables.
+> Only keys in `envFile.includeKeys` are imported into the chart ConfigMap.
 
 ## 🧰 Makefile Command Overview
 

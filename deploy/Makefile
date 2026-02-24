@@ -8,6 +8,9 @@ REMOTE_COMPOSE_FILE ?= services.yml
 REMOTE_SSH_KEY ?=
 REMOTE_SSH_OPTS ?=
 REMOTE_SSH_KEY_ARG = $(if $(strip $(REMOTE_SSH_KEY)),-i $(REMOTE_SSH_KEY),)
+HELM_OPENSEARCH_RELEASE ?= cogstack-opensearch
+HELM_OPENSEARCH_NAMESPACE ?= cogstack
+HELM_OPENSEARCH_CHART ?= ./charts/opensearch
 
 define WITH_ENV
 set -a && source ./export_env_vars.sh;
@@ -70,6 +73,12 @@ load-env: ## Load variables from export_env_vars.sh in a subshell
 show-env: ## Print sorted environment variables after loading export_env_vars.sh
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
 
+helm-template-opensearch: ## Render OpenSearch chart using deploy/elasticsearch.env
+	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) --set-file envFile.raw=./elasticsearch.env
+
+helm-install-opensearch: ## Install/upgrade OpenSearch chart using deploy/elasticsearch.env
+	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) --set-file envFile.raw=./elasticsearch.env --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
+
 fix-nifi-registry-perms: ## Fix NiFi registry permissions for a compose file
 	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh $(COMPOSE_FILE)
 
@@ -99,7 +108,7 @@ _check-remote-params:
 		exit 1; \
 	fi
 
-.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch
 	
 # start services
 

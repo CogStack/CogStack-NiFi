@@ -1,0 +1,29 @@
+{{- if .Values.envFile.raw }}
+{{- $envData := dict -}}
+{{- $renderedEnv := tpl .Values.envFile.raw . -}}
+{{- range $line := splitList "\n" $renderedEnv }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $.Values.envFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- $_ := set $envData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cogstack-opensearch.envConfigMapName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+data:
+  {{- toYaml $envData | nindent 2 }}
+{{- end }}

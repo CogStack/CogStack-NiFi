@@ -38,16 +38,20 @@ Secret keys are mapped via:
 
 ```bash
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file envFile.raw=./deploy/elasticsearch.env \
   --namespace cogstack --create-namespace
 ```
 
 ## Render templates
 
 ```bash
-helm template cogstack-opensearch ./deploy/charts/opensearch
+helm template cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file envFile.raw=./deploy/elasticsearch.env
 ```
 
 ## Notes
 
 - The chart packages current repository config files under `files/`.
+- `envFile.raw` can be set from `deploy/elasticsearch.env` and is loaded via `envFrom` into OpenSearch and Dashboards.
+- Only keys listed in `envFile.includeKeys` are imported (to avoid leaking secrets from env files into ConfigMaps).
 - Review security and certificate settings before production use.
