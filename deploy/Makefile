@@ -241,6 +241,26 @@ delete-medcat-trainer: ## Remove MedCAT Trainer containers
 delete-medcat-trainer-volumes: ## Delete MedCAT Trainer volumes
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_DOWN_CMD) -v medcattrainer nginx solr
 
+delete-jupyter: ## Remove Jupyter container
+	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml rm -f -s cogstack-jupyter-hub
+
+delete-medcat-service: ## Remove MedCAT service container
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production
+
+delete-medcat-service-deid: ## Remove MedCAT service (deid) container
+	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production-deid
+
+delete-ocr-services: ## Remove OCR service containers
+	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml rm -f -s ocr-service ocr-service-text-only
+
+make-delete-jupyter: delete-jupyter ## Alias for delete-jupyter
+
+make-delete-medcat-service: delete-medcat-service ## Alias for delete-medcat-service
+
+make-delete-medcat-service-deid: delete-medcat-service-deid ## Alias for delete-medcat-service-deid
+
+make-delete-ocr-services: delete-ocr-services ## Alias for delete-ocr-services
+
 stop-elastic: ## Stop elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -302,7 +322,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastru
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services ## Stop all major services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes delete-jupyter delete-medcat-service delete-medcat-service-deid delete-ocr-services make-delete-jupyter make-delete-medcat-service make-delete-medcat-service-deid make-delete-ocr-services stop-elastic stop-samples stop-jupyter
 
 
 # cleanup

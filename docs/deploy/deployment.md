@@ -205,6 +205,10 @@ make -C deploy remote-delete-service \
 | `make delete-samples-db-volumes`| Remove samples DB volumes (via compose down `-v`) |
 | `make delete-medcat-trainer`    | Delete MedCAT Trainer containers (`medcattrainer`, `nginx`, `solr`) |
 | `make delete-medcat-trainer-volumes`| Remove MedCAT Trainer volumes (via compose down `-v`) |
+| `make delete-jupyter`           | Delete JupyterHub container (alias: `make make-delete-jupyter`) |
+| `make delete-medcat-service`    | Delete MedCAT service container (alias: `make make-delete-medcat-service`) |
+| `make delete-medcat-service-deid`| Delete DE-ID MedCAT service container (alias: `make make-delete-medcat-service-deid`) |
+| `make delete-ocr-services`      | Delete OCR-service containers (alias: `make make-delete-ocr-services`) |
 
 ---
 
