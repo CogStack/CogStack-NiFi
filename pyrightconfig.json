@@ -1,0 +1,12 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    "nifi/user_python_extensions",
+    "./typings"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingTypeStubs": "none",
+  "reportMissingImports": "warning"
+}
+
