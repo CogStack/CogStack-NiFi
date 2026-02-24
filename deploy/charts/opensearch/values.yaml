@@ -1,0 +1,90 @@
+nameOverride: ""
+fullnameOverride: ""
+
+opensearch:
+  replicas: 3
+  image:
+    repository: opensearchproject/opensearch
+    tag: "3.5.0"
+    pullPolicy: IfNotPresent
+  clusterName: elasticsearch-cogstack-cluster
+  javaOpts: "-Xms512m -Xmx512m -Des.failure_store_feature_flag_enabled=true"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    storageClassName: ""
+  service:
+    type: ClusterIP
+    httpPort: 9200
+    transportPort: 9300
+    analyzerPort: 9600
+    annotations: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext:
+    fsGroup: 1000
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+dashboards:
+  enabled: true
+  replicas: 1
+  image:
+    repository: opensearchproject/opensearch-dashboards
+    tag: "3.5.0"
+    pullPolicy: IfNotPresent
+  serverName: cogstack-kibana
+  service:
+    type: ClusterIP
+    port: 5601
+    annotations: {}
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+credentials:
+  create: true
+  existingSecret: ""
+  adminPassword: "Kibanaserver!1"
+  kibanaUser: kibanaserver
+  kibanaPassword: kibanaserver
+
+certificates:
+  opensearchSecretName: opensearch-certs
+  dashboardsSecretName: opensearch-certs
+  opensearchFiles:
+    rootCA: root-ca.crt
+    nodeCert: esnode.crt
+    nodeKey: esnode.key
+    adminCert: admin.crt
+    adminKey: admin.key.pem
+  dashboardsFiles:
+    rootCA: elastic-stack-ca.crt.pem
+    adminCert: admin.crt
+    adminKey: admin.key.pem
+    serverCert: es_kibana_client.pem
+    serverKey: es_kibana_client.key

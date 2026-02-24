@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cogstack-opensearch.fullname" . }}-opensearch-security
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+data:
+  config.yml: |
+{{ .Files.Get "files/opensearch-security/config.yml" | indent 4 }}
+  internal_users.yml: |
+{{ .Files.Get "files/opensearch-security/internal_users.yml" | indent 4 }}
+  roles.yml: |
+{{ .Files.Get "files/opensearch-security/roles.yml" | indent 4 }}
+  roles_mapping.yml: |
+{{ .Files.Get "files/opensearch-security/roles_mapping.yml" | indent 4 }}

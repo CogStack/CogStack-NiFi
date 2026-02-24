@@ -1,0 +1,90 @@
+# In this file users, backendroles and hosts can be mapped to Security roles.
+# Permissions for OpenSearch roles are configured in roles.yml
+
+_meta:
+  type: "rolesmapping"
+  config_version: 2
+
+admin:
+  reserved: true
+  backend_roles:
+  - admin
+  hosts: []
+  users:
+  - admin
+  and_backend_roles: []
+
+dashboards_system_access:
+  users:
+    - "admin"
+  backend_roles:
+    - "admin"
+    - "all_access"
+
+all_access:
+  reserved: true
+  hidden: false
+  backend_roles:
+  - "admin"
+  hosts: []
+  users: [ "admin" ]
+  and_backend_roles: [""]
+  description: "Maps admin to all_access"
+
+own_index:
+  reserved: false
+  hidden: false
+  backend_roles: []
+  hosts: []
+  users:
+  - "*"
+  and_backend_roles: []
+  description: "Allow full access to an index named like the username"
+
+logstash:
+  reserved: false
+  backend_roles:
+  - "logstash"
+
+kibana_user:
+  reserved: false
+  backend_roles:
+  - "kibanauser"
+  description: "Maps kibanauser to kibana_user"
+
+readall:
+  reserved: true
+  hidden: false
+  backend_roles:
+    - "readall"
+  hosts: []
+  users: []
+  and_backend_roles: []
+
+manage_snapshots:
+  reserved: true
+  hidden: false
+  backend_roles:
+  - "snapshotrestore"
+  hosts: []
+  users: []
+  and_backend_roles: []
+
+kibana_server:
+  reserved: true
+  hidden: false
+  backend_roles: []
+  hosts: []
+  users: ["kibanaserver"]
+  and_backend_roles: []
+
+# sample role
+complex-role:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "ldap-analyst"
+  hosts: []
+  users:
+  - "new-user"
+  and_backend_roles: []

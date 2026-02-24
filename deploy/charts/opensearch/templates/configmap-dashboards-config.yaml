@@ -1,0 +1,11 @@
+{{- if .Values.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cogstack-opensearch.fullname" . }}-dashboards-config
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+data:
+  opensearch_dashboards.yml: |
+{{ .Files.Get "files/opensearch_dashboards.yml" | indent 4 }}
+{{- end }}

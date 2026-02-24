@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cogstack-opensearch
+description: Helm chart for deploying CogStack OpenSearch and OpenSearch Dashboards
+type: application
+version: 0.1.0
+appVersion: "3.5.0"

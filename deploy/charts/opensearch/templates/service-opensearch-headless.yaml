@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cogstack-opensearch.headlessServiceName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: {{ .Values.opensearch.service.httpPort }}
+      targetPort: http
+    - name: transport
+      port: {{ .Values.opensearch.service.transportPort }}
+      targetPort: transport
+    - name: analyzer
+      port: {{ .Values.opensearch.service.analyzerPort }}
+      targetPort: analyzer
+  selector:
+    {{- include "cogstack-opensearch.opensearchSelectorLabels" . | nindent 4 }}

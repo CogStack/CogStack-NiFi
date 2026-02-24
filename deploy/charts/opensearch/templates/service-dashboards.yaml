@@ -1,0 +1,22 @@
+{{- if .Values.dashboards.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cogstack-opensearch.dashboardsServiceName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboards
+  {{- with .Values.dashboards.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.dashboards.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.dashboards.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "cogstack-opensearch.dashboardsSelectorLabels" . | nindent 4 }}
+{{- end }}

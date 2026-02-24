@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cogstack-opensearch.clientServiceName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+  {{- with .Values.opensearch.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.opensearch.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.opensearch.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: transport
+      port: {{ .Values.opensearch.service.transportPort }}
+      targetPort: transport
+      protocol: TCP
+    - name: analyzer
+      port: {{ .Values.opensearch.service.analyzerPort }}
+      targetPort: analyzer
+      protocol: TCP
+  selector:
+    {{- include "cogstack-opensearch.opensearchSelectorLabels" . | nindent 4 }}

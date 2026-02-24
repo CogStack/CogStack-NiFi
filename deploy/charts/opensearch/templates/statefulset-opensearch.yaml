@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "cogstack-opensearch.fullname" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+spec:
+  serviceName: {{ include "cogstack-opensearch.headlessServiceName" . }}
+  replicas: {{ .Values.opensearch.replicas }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "cogstack-opensearch.opensearchSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cogstack-opensearch.opensearchSelectorLabels" . | nindent 8 }}
+        {{- with .Values.opensearch.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.opensearch.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.opensearch.podSecurityContext | nindent 8 }}
+      containers:
+        - name: opensearch
+          image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
+          imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.opensearch.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.opensearch.service.httpPort }}
+              protocol: TCP
+            - name: transport
+              containerPort: {{ .Values.opensearch.service.transportPort }}
+              protocol: TCP
+            - name: analyzer
+              containerPort: {{ .Values.opensearch.service.analyzerPort }}
+              protocol: TCP
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_NETWORK_HOST
+              value: "0.0.0.0"
+            - name: ELASTICSEARCH_NETWORK_PUBLISH_HOST
+              value: "$(POD_IP)"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: {{ .Values.opensearch.clusterName | quote }}
+            - name: ELASTICSEARCH_SEED_HOSTS
+              value: {{ include "cogstack-opensearch.seedHosts" . | quote }}
+            - name: ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES
+              value: {{ include "cogstack-opensearch.clusterManagerNodes" . | quote }}
+            - name: ELASTICSEARCH_HOSTS
+              value: {{ include "cogstack-opensearch.elasticsearchHostsJson" . | quote }}
+            - name: OPENSEARCH_JAVA_OPTS
+              value: {{ .Values.opensearch.javaOpts | quote }}
+            - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
+                  key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+            {{- with .Values.opensearch.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.opensearch.resources | nindent 12 }}
+          volumeMounts:
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config/opensearch.yml
+              subPath: opensearch.yml
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config/log4j2.properties
+              subPath: log4j2.properties
+            - name: opensearch-security
+              mountPath: /usr/share/opensearch/config/opensearch-security/config.yml
+              subPath: config.yml
+            - name: opensearch-security
+              mountPath: /usr/share/opensearch/config/opensearch-security/internal_users.yml
+              subPath: internal_users.yml
+            - name: opensearch-security
+              mountPath: /usr/share/opensearch/config/opensearch-security/roles.yml
+              subPath: roles.yml
+            - name: opensearch-security
+              mountPath: /usr/share/opensearch/config/opensearch-security/roles_mapping.yml
+              subPath: roles_mapping.yml
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch/config/root-ca.crt
+              subPath: {{ .Values.certificates.opensearchFiles.rootCA }}
+              readOnly: true
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch/config/esnode.crt
+              subPath: {{ .Values.certificates.opensearchFiles.nodeCert }}
+              readOnly: true
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch/config/esnode.key
+              subPath: {{ .Values.certificates.opensearchFiles.nodeKey }}
+              readOnly: true
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch/config/admin.crt
+              subPath: {{ .Values.certificates.opensearchFiles.adminCert }}
+              readOnly: true
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch/config/admin.key.pem
+              subPath: {{ .Values.certificates.opensearchFiles.adminKey }}
+              readOnly: true
+            - name: data
+              mountPath: /usr/share/opensearch/data
+            - name: logs
+              mountPath: /usr/share/opensearch/logs
+            - name: performance-analyzer
+              mountPath: /usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata
+      volumes:
+        - name: opensearch-config
+          configMap:
+            name: {{ include "cogstack-opensearch.fullname" . }}-opensearch-config
+        - name: opensearch-security
+          configMap:
+            name: {{ include "cogstack-opensearch.fullname" . }}-opensearch-security
+        - name: opensearch-certs
+          secret:
+            secretName: {{ .Values.certificates.opensearchSecretName }}
+        {{- if not .Values.opensearch.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        - name: logs
+          emptyDir: {}
+        - name: performance-analyzer
+          emptyDir: {}
+      {{- with .Values.opensearch.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.opensearch.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.opensearch.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.opensearch.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{- toYaml .Values.opensearch.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.opensearch.persistence.size }}
+        {{- if .Values.opensearch.persistence.storageClassName }}
+        storageClassName: {{ .Values.opensearch.persistence.storageClassName | quote }}
+        {{- end }}
+  {{- end }}

@@ -1,0 +1,218 @@
+network.host: ${ELASTICSEARCH_NETWORK_HOST}
+network.publish_host: ${ELASTICSEARCH_NETWORK_PUBLISH_HOST}
+
+###### CLUSTER CONFIGURATION ######
+
+bootstrap.system_call_filter: false
+
+# To allow multiple nodes add the node"s IP addresses to the discovery pool. 
+# ["<private IP of opensearch-d1>", "<private IP of opensearch-d2>", "<private IP of opensearch-c1>"]
+discovery.seed_hosts: ${ELASTICSEARCH_SEED_HOSTS}
+cluster.initial_cluster_manager_nodes: ${ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES}
+discovery.type: zen
+
+# WARNING: revise all the lines below before you go into production
+plugins.security.ssl.transport.pemcert_filepath: esnode.crt
+plugins.security.ssl.transport.pemkey_filepath: esnode.key
+plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.crt
+plugins.security.ssl.transport.enforce_hostname_verification: false
+#plugins.security.ssl.transport.keystore_filepath: esnode-pcks12.key
+#plugins.security.ssl.transport.truststore_filepath: esnode-pcks12.key
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.transport.enabled: true
+#plugins.security.ssl.http.keystore_type: PKCS12
+plugins.security.ssl.http.pemcert_filepath: esnode.crt
+plugins.security.ssl.http.pemkey_filepath: esnode.key
+plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.crt
+plugins.security.allow_unsafe_democertificates: false
+plugins.security.allow_default_init_securityindex: true
+
+plugins.security.authcz.admin_dn:
+  - "CN=admin,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=cogstack,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-1,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-2,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-3,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - CN=admin
+  - CN=localhost
+  - CN=nifi
+  - CN=cogstack
+
+# IMPORTANT: Make sure you define the CN (Company Name) settings correctly, below you can see they match the server addresses of the containers i.e: elasticsearch-1, elasticsearch-2,
+# and also extra patterns defined, these could also be domain names etc.
+plugins.security.nodes_dn:
+  - "CN=cogstack,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-1,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-2,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=elasticsearch-3,OU=cogstack,O=cogstack,L=UK,ST=London,C=UK"
+  - "CN=nifi"
+  - "CN=esnode*"
+  - "CN=localhost"
+  - "CN=cogstack"
+  - "CN=elasticsearch"
+
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+cluster.routing.allocation.disk.threshold_enabled: true
+
+plugins.security.ssl.http.clientauth_mode : OPTIONAL
+
+plugins.security.roles_mapping_resolution: MAPPING_ONLY
+
+############## REST Management API configuration settings ##############
+# Enable or disable role based access to the REST management API
+# Default is that no role is allowed to access the REST management API.
+plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+
+# Disable particular endpoints and their HTTP methods for roles. 
+# By default all endpoints/methods are allowed.
+#plugins.security.restapi.endpoints_disabled.<role>.<endpoint>: <array of http methods>
+# Example:
+#plugins.security.restapi.endpoints_disabled.all_access.ACTIONGROUPS: ["PUT","POST","DELETE"]
+#plugins.security.restapi.endpoints_disabled.xyz_role.LICENSE: ["DELETE"]
+
+# The following endpoints exist:
+# ACTIONGROUPS
+# CACHE
+# CONFIG
+# ROLES
+# ROLESMAPPING
+# INTERNALUSERS
+# SYSTEMINFO
+# PERMISSIONSINFO
+
+############## Auditlog configuration settings ##############
+
+# Destination of the auditlog events
+plugins.security.audit.type: internal_opensearch
+plugins.security.audit.config.http_endpoints: ${ELASTICSEARCH_HOSTS}
+plugins.security.audit.config.enable_ssl_client_auth: true
+
+#plugins.security.audit.enable_rest: false
+#plugins.security.audit.enable_transport: false
+#plugins.security.audit.config.disabled_rest_categories: NONE
+#plugins.security.audit.config.disabled_transport_categories: NONE
+#plugins.security.audit.config.index: auditlog6 # make sure you secure this index properly
+#plugins.security.audit.config.index: "'auditlog6-'YYYY.MM.dd" #rotates index daily - make sure you secure this index properly
+#plugins.security.audit.config.type: auditlog
+#plugins.security.audit.config.username: auditloguser
+#plugins.security.audit.config.password: auditlogpassword
+#plugins.security.audit.config.enable_ssl: false
+#plugins.security.audit.config.verify_hostnames: false
+#plugins.security.audit.config.cert_alias: mycert
+#plugins.security.audit.config.pemkey_filepath: key.pem
+#plugins.security.audit.config.pemkey_content: <...pem base 64 content>
+#plugins.security.audit.config.pemkey_password: secret
+#plugins.security.audit.config.pemcert_filepath: cert.pem
+#plugins.security.audit.config.pemcert_content: <...pem base 64 content>
+#plugins.security.audit.config.pemtrustedcas_filepath: ca.pem
+#plugins.security.audit.config.pemtrustedcas_content: <...pem base 64 content>
+
+# webhook settings
+#plugins.security.audit.config.webhook.url: "http://mywebhook/endpoint"
+# One of URL_PARAMETER_GET,URL_PARAMETER_POST,TEXT,JSON,SLACK
+#plugins.security.audit.config.webhook.format: JSON
+#plugins.security.audit.config.webhook.ssl.verify: false
+#plugins.security.audit.config.webhook.ssl.pemtrustedcas_filepath: ca.pem
+#plugins.security.audit.config.webhook.ssl.pemtrustedcas_content: <...pem base 64 content>
+
+# log4j settings
+#plugins.security.audit.config.log4j.logger_name: auditlogger
+#plugins.security.audit.config.log4j.level: INFO
+
+############## Kerberos configuration settings ##############
+# If Kerberos authentication should be used you have to configure:
+
+# The Path to the krb5.conf file
+# Can be absolute or relative to the OpenSearch config directory
+#plugins.security.kerberos.krb5_filepath: '/etc/krb5.conf'
+            
+# The Path to the keytab where the acceptor_principal credentials are stored.           
+# Must be relative to the OpenSearch config directory
+#plugins.security.kerberos.acceptor_keytab_filepath: 'eskeytab.tab'
+
+# Acceptor (Server) Principal name, must be present in acceptor_keytab_path file
+#plugins.security.kerberos.acceptor_principal: 'HTTP/localhost'
+
+
+############## Expert settings ##############
+# WARNING: Expert settings, do only use if you know what you are doing
+# If you set wrong values here this this could be a security risk
+# or make OpenSearch Security stop working
+
+# Name of the index where .opendistro_security stores its configuration.
+
+#plugins.security.config_index_name: .opendistro_security
+
+# This defines the OID of server node certificates
+#plugins.security.cert.oid: '1.2.3.4.5.5'
+
+# This specifies the implementation of org.opensearch.security.transport.InterClusterRequestEvaluator
+# that is used to determine inter-cluster request.
+# Instances of org.opensearch.security.transport.InterClusterRequestEvaluator must implement a single argument
+# constructor that takes an org.opensearch.common.settings.Settings
+#plugins.security.cert.intercluster_request_evaluator_class: org.opensearch.security.transport.DefaultInterClusterRequestEvaluator
+
+# By default, normal users can restore snapshots if they have the priviliges 'cluster:admin/snapshot/restore', 
+# 'indices:admin/create', and 'indices:data/write/index' for the indices to be restored.
+# To disable snapshot restore for normal users set 'plugins.security.enable_snapshot_restore_privilege: false'.
+# This makes it so that only snapshot restore requests signed by an admin TLS certificate are accepted.
+# A snapshot can only be restored when it does not contain global state and does not restore the '.opendistro_security' index
+# If 'plugins.security.check_snapshot_restore_write_privileges: false' is set then the additional indices checks are omitted.
+#plugins.security.enable_snapshot_restore_privilege: true
+#plugins.security.check_snapshot_restore_write_privileges: true
+
+# Authentication cache timeout in minutes (A value of 0 disables caching, default is 60)
+#plugins.security.cache.ttl_minutes: 60
+
+# Disable OpenSearch Security
+# WARNING: This can expose your configuration (including passwords) to the public.
+#plugins.security.disabled: false
+
+# Protected indices are even more secure than normal indices. These indices require a role to access like any other index, but they require an additional role
+# to be visible, listed in the plugins.security.protected_indices.roles setting.
+# Enable protected indices
+# plugins.security.protected_indices.enabled: true
+# Specify a list of roles a user must be member of to touch any protected index.
+# plugins.security.protected_indices.roles: ['all_access']
+
+# System indices are similar to security index, except the contents are not encrypted.
+# Indices configured as system indices can be accessed by only super-admin and no role will provide access to these indices.
+# Enable system indices
+plugins.security.system_indices.enabled: true
+plugins.security.system_indices.permission.enabled: true
+
+
+# Enable SQL-like queries, allows you to join across indices etc.
+plugins.sql.enabled: true
+plugins.ppl.enabled: true
+
+# Calcite (SQL v3 engine)
+plugins.calcite.enabled: true
+# WARNING: exists only in OpenSearch > 3.4, please DISABLE if you are not on this version as this setting doesn't exist.
+plugins.calcite.all_join_types.allowed: true
+
+# Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
+plugins.security.system_indices.indices: [
+  ".opensearch_dashboards*",
+  ".opensearch-alerting-config",
+  ".opensearch-notifications-*",
+  ".opendistro-ism-*",
+  ".opendistro-reports-*",
+  ".opendistro-asynchronous-search-response*",
+  ".replication-metadata-store",
+  ".opendistro-notebooks",
+  ".opendistro-anomaly-results*", 
+  ".opendistro-anomaly-detector*", 
+  ".opendistro-anomaly-checkpoints",
+  ".opendistro-anomaly-detection-state"
+]
+
+# coordinator-level kill switch for searches
+search.cancel_after_time_interval: 5m
+
+# shard-level default timeout (can be overridden per request via "timeout")
+search.default_search_timeout: 5m
+
+# relevant if SQL is paging via PIT
+search.default_keep_alive: 10m

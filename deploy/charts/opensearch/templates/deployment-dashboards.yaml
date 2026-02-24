@@ -1,0 +1,111 @@
+{{- if .Values.dashboards.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cogstack-opensearch.dashboardsServiceName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboards
+spec:
+  replicas: {{ .Values.dashboards.replicas }}
+  selector:
+    matchLabels:
+      {{- include "cogstack-opensearch.dashboardsSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cogstack-opensearch.dashboardsSelectorLabels" . | nindent 8 }}
+        {{- with .Values.dashboards.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.dashboards.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: dashboards
+          image: "{{ .Values.dashboards.image.repository }}:{{ .Values.dashboards.image.tag }}"
+          imagePullPolicy: {{ .Values.dashboards.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.dashboards.service.port }}
+              protocol: TCP
+          env:
+            - name: KIBANA_SERVER_NAME
+              value: {{ .Values.dashboards.serverName | quote }}
+            - name: ELASTICSEARCH_HOSTS
+              value: {{ include "cogstack-opensearch.elasticsearchHostsJson" . | quote }}
+            - name: KIBANA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
+                  key: KIBANA_USER
+            - name: KIBANA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
+                  key: KIBANA_PASSWORD
+            {{- with .Values.dashboards.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.dashboards.resources | nindent 12 }}
+          volumeMounts:
+            - name: dashboards-config
+              mountPath: /usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+            - name: dashboards-certs
+              mountPath: /certificates/elastic/opensearch/elastic-stack-ca.crt.pem
+              subPath: {{ .Values.certificates.dashboardsFiles.rootCA }}
+              readOnly: true
+            - name: dashboards-certs
+              mountPath: /certificates/elastic/opensearch/admin.crt
+              subPath: {{ .Values.certificates.dashboardsFiles.adminCert }}
+              readOnly: true
+            - name: dashboards-certs
+              mountPath: /certificates/elastic/opensearch/admin.key.pem
+              subPath: {{ .Values.certificates.dashboardsFiles.adminKey }}
+              readOnly: true
+            - name: dashboards-certs
+              mountPath: /certificates/elastic/opensearch/es_kibana_client.pem
+              subPath: {{ .Values.certificates.dashboardsFiles.serverCert }}
+              readOnly: true
+            - name: dashboards-certs
+              mountPath: /certificates/elastic/opensearch/es_kibana_client.key
+              subPath: {{ .Values.certificates.dashboardsFiles.serverKey }}
+              readOnly: true
+      volumes:
+        - name: dashboards-config
+          configMap:
+            name: {{ include "cogstack-opensearch.fullname" . }}-dashboards-config
+        - name: dashboards-certs
+          secret:
+            secretName: {{ .Values.certificates.dashboardsSecretName }}
+      {{- with .Values.dashboards.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dashboards.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dashboards.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
