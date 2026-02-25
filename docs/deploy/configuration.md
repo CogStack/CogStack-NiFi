@@ -73,7 +73,7 @@ These data flows can be later saved as workflow *templates*, exported into XML f
 We provide few example templates for ingesting the records from a database into Elasticsearch and to perform extraction of NLP annotations from documents.
 
 ### Deployment using Makefile
-For deployments based on the example workflows, please see [example workflows](./workflows.md) for more details.
+For deployments based on the example workflows, please see [example workflows](./workflows_legacy.md) for more details.
 
 ### Deployment using a custom Docker-compose
 When using a fork of this repository for a customized deployments, it can be useful to copy `services.yml` to a deployment-specific `docker-compose.yml`. In this Compose file you can specify the services you need for your instance and configure all parameters per service, as well as track this file in a branch in your own fork. This way you can use your own version control and rebase on `CogStack/CogStack-NiFi` master without running into merge conflicts.
