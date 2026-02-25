@@ -40,6 +40,8 @@ For end-to-end scripting patterns (including `ExecuteStreamCommand` stdin/stdout
 ```{toctree}
 :maxdepth: 1
 
+development_guide.md
+processors_catalog.md
 processor_scripting.md
 user_scripts.md
 user_python_extensions.md
