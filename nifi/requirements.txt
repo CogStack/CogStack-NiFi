@@ -1,7 +1,7 @@
 wheel==0.46.2
 
 # data science pkgs
-nltk==3.9.2
+nltk==3.9.3
 numpy==2.4.2
 pandas==2.3.3
 dill>=0.4.0,<1.0.0
