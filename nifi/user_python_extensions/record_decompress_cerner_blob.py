@@ -173,6 +173,8 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         # take fields from the first record, doesn't matter which one,
         # as they are expected to be the same except for the binary data field
+        # e.g: take fields like id, dates etc, non-binary/blob fields...
+
         for k, v in records[0].items():
             if k not in output_merged_record and k != self.binary_field_name:
                 output_merged_record[k] = v
@@ -181,6 +183,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         # double check to make sure there is no gap in the blob sequence, i.e missing blob.
         order_of_blobs_keys = sorted(concatenated_blob_sequence_order.keys())
+         
         for i in range(1, len(order_of_blobs_keys)):
             if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
                 raise ValueError(
@@ -220,15 +223,40 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         attributes["output_text_field_name"] = str(self.output_text_field_name)
         attributes["mime.type"] = "application/json"
         attributes["blob_parts"] = str(len(order_of_blobs_keys))
+        attributes["blob_sequence"] = str(order_of_blobs_keys)
         attributes["blob_seq_min"] = str(order_of_blobs_keys[0]) if order_of_blobs_keys else ""
         attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
         attributes["compressed_len"] = str(len(full_compressed_blob))
         attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
 
         try:
-            decompress_blob = DecompressLzwCernerBlob()
-            decompress_blob.decompress(full_compressed_blob)
-            output_merged_record[self.binary_field_name] = bytes(decompress_blob.output_stream)
+            
+            # attempt to see if not a proper compressed blob 
+            output_bytes_decompressed = None
+            try:
+                if full_compressed_blob.find(b"%PDF") != -1:
+                    pdf_start = full_compressed_blob.find(b"%PDF-")
+                    pdf_end = full_compressed_blob.rfind(b"%%EOF")
+                    if pdf_end == -1:
+                        raise ValueError("Not a valid PDF stream - no %%EOF byte")
+                    
+                    # +5 to include %%EOF flag
+                    pdf_bytes = full_compressed_blob[pdf_start:pdf_end + 5]
+                
+                    # clean ocf wrapper headers if present
+                    output_bytes_decompressed = pdf_bytes.replace(b"\nocf_blob\x00", b"")
+                    output_bytes_decompressed = output_bytes_decompressed.replace(b"ocr_blob\x00", b"")
+                elif full_compressed_blob.find(b"{\\rtf") != -1:
+                    rtf_start = full_compressed_blob.find(b"{\\rtf")
+                    rtf_end = full_compressed_blob.rfind(b"}") + 1
+                    
+                    output_bytes_decompressed = full_compressed_blob[rtf_start:rtf_end]
+            except Exception as exc:
+                decompress_blob = DecompressLzwCernerBlob()
+                decompress_blob.decompress(full_compressed_blob)
+                output_bytes_decompressed = bytes(decompress_blob.output_stream)
+            
+            output_merged_record[self.binary_field_name] = output_bytes_decompressed
 
         except Exception as exception:
             raise RuntimeError("Error decompressing Cerner LZW blob") from exception
