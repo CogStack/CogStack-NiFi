@@ -4,7 +4,7 @@
 # 🔐 Generate OpenSearch node certificate signed by Root CA
 #
 # Usage:
-#     ./create_opensearch_node_cert.sh <cert_name>
+#     ./create_opensearch_node_cert.sh <cert_name> [cert_name...]
 #
 # Requires:
 #     - ../env/certificates_general.env
@@ -37,11 +37,11 @@ source "${SECURITY_ENV_FOLDER}certificates_elasticsearch.env"
 source "${SECURITY_ENV_FOLDER}users_elasticsearch.env"
 
 # === Required Input ===
-CERT_NAME="${1:-}"
-if [[ -z "$CERT_NAME" ]]; then
-  echo "❌ Usage: $0 <cert_name>"
+if [[ "$#" -lt 1 ]]; then
+  echo "❌ Usage: $0 <cert_name> [cert_name...]"
   exit 1
 fi
+CERT_NAMES=("$@")
 
 # === Required ENV Vars ===
 : "${ROOT_CERTIFICATE_NAME:?ROOT_CERTIFICATE_NAME must be set in certificates_general.env}"
@@ -52,7 +52,7 @@ fi
 : "${ES_KEY_SIZE:?Must be set in certificates_elasticsearch.env}"
 
 echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
-echo "CERT_NAME: $CERT_NAME"
+echo "CERT_NAMES: ${CERT_NAMES[*]}"
 echo "ES_NODE_SUBJ_LINE: $ES_NODE_SUBJ_LINE"
 echo "ES_NODE_SUBJ_ALT_NAMES: $ES_NODE_SUBJ_ALT_NAMES"
 echo "ES_KEY_SIZE: $ES_KEY_SIZE"
@@ -73,52 +73,67 @@ if [[ ! -f "$CA_ROOT_CERT" || ! -f "$CA_ROOT_KEY" ]]; then
   exit 1
 fi
 
-# === Update Subject lines with CN & SAN ===
-SUBJECT_LINE="${ES_NODE_SUBJ_LINE}/CN=${CERT_NAME}"
-SUBJECT_ALT_NAME="subjectAltName=DNS:${CERT_NAME},${ES_NODE_SUBJ_ALT_NAMES}"
+generate_node_cert() {
+  local cert_name="$1"
 
-# === Logging ===
-echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
-echo "CERT_NAME: $CERT_NAME"
-echo "SUBJECT_LINE: $SUBJECT_LINE"
-echo "SUBJECT_ALT_NAME: $SUBJECT_ALT_NAME"
-echo "CA_ROOT_CERT: $CA_ROOT_CERT"
-echo "--------------------------------------------------------------------------------------------------"
+  if [[ -z "$cert_name" ]]; then
+    echo "❌ Empty cert name provided."
+    exit 1
+  fi
 
-# === Generate Private Key ===
-echo "🔑 Generating private RSA key..."
-openssl genrsa -out "${CERT_NAME}.raw.key" "$ES_KEY_SIZE"
+  # === Update Subject lines with CN & SAN ===
+  local subject_line="${ES_NODE_SUBJ_LINE}/CN=${cert_name}"
+  local subject_alt_name="subjectAltName=DNS:${cert_name},${ES_NODE_SUBJ_ALT_NAMES}"
 
-echo "🔄 Converting key to PKCS#8 format..."
-openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "${CERT_NAME}.raw.key" -topk8 -out "${CERT_NAME}.key" -nocrypt
+  # === Logging ===
+  echo "====================================== CREATE_OPENSEARCH_NODE_CERT =============================="
+  echo "CERT_NAME: $cert_name"
+  echo "SUBJECT_LINE: $subject_line"
+  echo "SUBJECT_ALT_NAME: $subject_alt_name"
+  echo "CA_ROOT_CERT: $CA_ROOT_CERT"
+  echo "--------------------------------------------------------------------------------------------------"
 
-# === Generate CSR ===
-echo "📨 Generating Certificate Signing Request (CSR)..."
-openssl req -new -key "${CERT_NAME}.key" -out "${CERT_NAME}.csr" -subj "$SUBJECT_LINE" -addext "$SUBJECT_ALT_NAME"
+  # === Generate Private Key ===
+  echo "🔑 Generating private RSA key..."
+  openssl genrsa -out "${cert_name}.raw.key" "$ES_KEY_SIZE"
 
-# === Sign CSR ===
-echo "✅ Signing certificate with Root CA..."
-openssl x509 -req \
-  -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
-  -in "${CERT_NAME}.csr" \
-  -CA "$CA_ROOT_CERT" \
-  -CAkey "$CA_ROOT_KEY" \
-  -CAcreateserial \
-  -out "${CERT_NAME}.crt" \
-  -extensions v3_leaf \
-  -extfile "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
+  echo "🔄 Converting key to PKCS#8 format..."
+  openssl pkcs8 -v1 "PBE-SHA1-3DES" -in "${cert_name}.raw.key" -topk8 -out "${cert_name}.key" -nocrypt
 
-# === Create Java Keystore ===
-echo "🔐 Creating Java Keystore (.jks)..."
-./create_keystore.sh "$CERT_NAME" "${CERT_NAME}-keystore" "$ES_CERTIFICATE_PASSWORD"
+  # === Generate CSR ===
+  echo "📨 Generating Certificate Signing Request (CSR)..."
+  openssl req -new -key "${cert_name}.key" -out "${cert_name}.csr" -subj "$subject_line" -addext "$subject_alt_name"
 
-# === Move Files to Target Folder ===
-mkdir -p "${ES_CERTIFICATES_FOLDER}${CERT_NAME}"
-mv "${CERT_NAME}.crt" "${CERT_NAME}.key" "${CERT_NAME}.csr" "${CERT_NAME}.p12" \
-   "${CERT_NAME}-keystore.jks" "${CERT_NAME}-truststore.key" \
-   "${ES_CERTIFICATES_FOLDER}${CERT_NAME}/"
+  # === Sign CSR ===
+  echo "✅ Signing certificate with Root CA..."
+  openssl x509 -req \
+    -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
+    -in "${cert_name}.csr" \
+    -CA "$CA_ROOT_CERT" \
+    -CAkey "$CA_ROOT_KEY" \
+    -CAcreateserial \
+    -out "${cert_name}.crt" \
+    -extensions v3_leaf \
+    -extfile "${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
-rm -f "${CERT_NAME}.raw.key"
+  # === Create Java Keystore ===
+  echo "🔐 Creating Java Keystore (.jks)..."
+  ./create_keystore.sh "$cert_name" "${cert_name}-keystore" "$ES_CERTIFICATE_PASSWORD"
+
+  # === Move Files to Target Folder ===
+  mkdir -p "${ES_CERTIFICATES_FOLDER}${cert_name}"
+  mv "${cert_name}.crt" "${cert_name}.key" "${cert_name}.csr" "${cert_name}.p12" \
+     "${cert_name}-keystore.jks" "${cert_name}-truststore.key" \
+     "${ES_CERTIFICATES_FOLDER}${cert_name}/"
+
+  rm -f "${cert_name}.raw.key"
+
+  echo "✅ Finished generating certificate for node: $cert_name"
+}
+
+for cert_name in "${CERT_NAMES[@]}"; do
+  generate_node_cert "$cert_name"
+done
 
 # === Copy Root CA files to opensearch folder ===
 ELASTIC_CA_PREFIX="elastic-stack-ca"
@@ -126,4 +141,4 @@ cp "$CA_ROOT_KEY" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.key.pem"
 cp "$CA_ROOT_CERT" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.crt.pem"
 cp "$CA_ROOT_KEYSTORE" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.p12"
 
-echo "✅ Finished generating certificate for node: $CERT_NAME"
+echo "✅ Finished generating certificates for nodes: ${CERT_NAMES[*]}"
