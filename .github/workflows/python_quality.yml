@@ -6,14 +6,14 @@ on:
     paths:
       - "pyproject.toml"
       - "nifi/**/*.py"
-      - "scripts/tests/**/*.py"
+      - "scripts/**/*.py"
       - "typings/**/*.pyi"
       - ".github/workflows/python_quality.yml"
   pull_request:
     paths:
       - "pyproject.toml"
       - "nifi/**/*.py"
-      - "scripts/tests/**/*.py"
+      - "scripts/**/*.py"
       - "typings/**/*.pyi"
       - ".github/workflows/python_quality.yml"
   workflow_dispatch:
@@ -43,8 +43,8 @@ jobs:
 
       - name: Ruff (critical rules)
         run: |
-          python -m ruff check scripts/tests nifi/user_python_extensions --select F,E9
+          python -m ruff check scripts nifi/user_python_extensions --select F,E9
 
       - name: MyPy
         run: |
-          python -m mypy --config-file pyproject.toml nifi/user_python_extensions scripts/tests
+          python -m mypy --config-file pyproject.toml nifi/user_python_extensions scripts
