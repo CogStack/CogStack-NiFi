@@ -44,6 +44,10 @@ exclude = [
     "nifi/user_templates*",
 ]
 
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
 [project]
 name = "cogstack_nifi"
 version = "0.0.1"
