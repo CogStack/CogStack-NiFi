@@ -1,4 +1,4 @@
-# Workflows
+# 🔀 Workflows
 
 ## Current status (NiFi 2.x)
 
