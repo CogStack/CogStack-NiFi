@@ -27,7 +27,6 @@ help: ## List available targets with descriptions
 		if (target ~ /^git-/) return "Run a git helper script"; \
 		if (target == "load-env") return "Load variables from export_env_vars.sh"; \
 		if (target == "show-env") return "Print current environment variables"; \
-		if (target == "fix-nifi-registry-perms") return "Fix NiFi registry file permissions"; \
 		if (target == "down-all") return "Stop all services from services.yml"; \
 		if (target == "cleanup") return "Stop all services and remove volumes"; \
 		return "(no description)"; \
@@ -79,8 +78,6 @@ helm-template-opensearch: ## Render OpenSearch chart using deploy/elasticsearch.
 helm-install-opensearch: ## Install/upgrade OpenSearch chart using deploy/elasticsearch.env
 	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) --set-file envFile.raw=./elasticsearch.env --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
 
-fix-nifi-registry-perms: ## Fix NiFi registry permissions for a compose file
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh $(COMPOSE_FILE)
 
 remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose
 remote-deploy-service: _check-remote-params
@@ -113,15 +110,15 @@ _check-remote-params:
 # start services
 
 start-nifi: ## Start NiFi and NiFi nginx (services.yml)
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.yml; \
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.yml; \
 	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.dev.yml; \
 	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev-build: ## Build and start NiFi dev services
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 ../nifi/fix_nifi_registry_perms.sh services.dev.yml; \
+	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.dev.yml; \
 	docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
@@ -188,7 +185,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter fix-nifi-registry-perms
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
 
 
 # stop services
