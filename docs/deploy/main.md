@@ -70,6 +70,8 @@ If Docker fails to install or `docker pull hello-world` does not work:
 
 :::
 
+
+
 ## ⚠️ Essential Elasticsearch Requirement
 
 :::{warning}
