@@ -110,16 +110,13 @@ _check-remote-params:
 # start services
 
 start-nifi: ## Start NiFi and NiFi nginx (services.yml)
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.yml; \
-	docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.dev.yml; \
-	docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
+	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
 start-nifi-dev-build: ## Build and start NiFi dev services
-	$(WITH_ENV) SKIP_EXPORT_ENV=1 services.dev.yml; \
-	docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
+	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
