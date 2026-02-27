@@ -1,0 +1,57 @@
+name: smoke-gitea-service
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke-test Gitea service
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Generate certificates
+        working-directory: security/scripts
+        run: |
+          set -euo pipefail
+          ./create_root_ca_cert.sh
+
+      - name: Start Gitea service
+        run: |
+          set -euo pipefail
+          make -C deploy start-git-ea
+
+      - name: Smoke tests
+        env:
+          GITEA_SMOKE_START_SERVICES: "0"
+        run: |
+          set -euo pipefail
+          ./scripts/tests/smoke_gitea_service.sh
+
+      - name: Dump container logs
+        if: failure()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml ps
+          docker compose -f deploy/services.yml logs --no-color gitea
+
+      - name: Shutdown stack
+        if: always()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml down -v

@@ -12,6 +12,7 @@ PY_REQS=(
 
 PY_REQS_NIFI=(
   "nifi/requirements.txt"
+  "nifi/requirements-dev.txt"
 )
 
 INCLUDE_NIFI=false
