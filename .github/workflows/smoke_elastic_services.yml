@@ -1,0 +1,64 @@
+name: smoke-elastic-services
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke-test Elasticsearch cluster and Kibana
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Generate certificates
+        working-directory: security/scripts
+        run: |
+          set -euo pipefail
+          ./create_root_ca_cert.sh
+          ./create_opensearch_node_cert.sh elasticsearch-1 elasticsearch-2 elasticsearch-3
+          ./create_opensearch_client_admin_certs.sh
+
+      - name: Start Elasticsearch cluster
+        run: |
+          set -euo pipefail
+          make -C deploy start-elastic-cluster
+
+      - name: Start Kibana
+        run: |
+          set -euo pipefail
+          make -C deploy start-kibana
+
+      - name: Smoke tests
+        env:
+          ELASTICSEARCH_SMOKE_START_SERVICES: "0"
+        run: |
+          set -euo pipefail
+          ./scripts/tests/smoke_elastic_services.sh
+
+      - name: Dump container logs
+        if: failure()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml ps
+          docker compose -f deploy/services.yml logs --no-color elasticsearch-1 elasticsearch-2 elasticsearch-3 kibana
+
+      - name: Shutdown stack
+        if: always()
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml down -v

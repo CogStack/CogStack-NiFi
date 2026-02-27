@@ -31,3 +31,4 @@ jobs:
             echo "Fix with: git update-index --chmod=+x <file>"
             exit 1
           fi
+
