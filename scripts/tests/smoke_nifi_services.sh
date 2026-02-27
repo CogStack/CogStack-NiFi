@@ -18,6 +18,9 @@ fi
 
 HOST="${NIFI_SMOKE_HOST:-localhost}"
 NIFI_PORT="${NIFI_EXTERNAL_PORT_NGINX:-8443}"
+START_SERVICES="${NIFI_SMOKE_START_SERVICES:-1}"
+RETRIES="${NIFI_SMOKE_RETRIES:-30}"
+DELAY_SECONDS="${NIFI_SMOKE_DELAY_SECONDS:-15}"
 
 ALLOWED_CODES=(200 301 302 303 307 308 401 403)
 
@@ -43,5 +46,31 @@ check_url() {
   return 1
 }
 
-check_url "nifi" "https://${HOST}:${NIFI_PORT}/nifi/"
-check_url "nifi-nginx" "https://${HOST}:${NIFI_PORT}/"
+run_checks() {
+  check_url "nifi" "https://${HOST}:${NIFI_PORT}/nifi/" &&
+    check_url "nifi-nginx" "https://${HOST}:${NIFI_PORT}/"
+}
+
+if [[ "$START_SERVICES" != "0" ]]; then
+  if ! command -v make >/dev/null 2>&1; then
+    echo "make is required to start NiFi services via the Makefile." >&2
+    exit 1
+  fi
+
+  echo "Starting NiFi services using 'make -C deploy start-nifi-dev'."
+  make -C "${ROOT_DIR}/deploy" start-nifi-dev
+fi
+
+echo "Running smoke checks against NiFi and nginx."
+for attempt in $(seq 1 "$RETRIES"); do
+  if run_checks; then
+    exit 0
+  fi
+  if [[ "$attempt" -lt "$RETRIES" ]]; then
+    echo "Attempt ${attempt}/${RETRIES} failed. Sleeping ${DELAY_SECONDS}s..."
+    sleep "$DELAY_SECONDS"
+  fi
+done
+
+echo "Smoke checks failed after ${RETRIES} attempts."
+exit 1

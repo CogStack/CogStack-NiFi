@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Generate certificates
         working-directory: security/scripts
@@ -30,26 +30,10 @@ jobs:
           ./create_root_ca_cert.sh
           ./create_nifi_certs.sh
 
-      - name: Start NiFi services (build)
-        run: |
-          set -euo pipefail
-          make -C deploy start-nifi-dev-build
-
       - name: Smoke tests
         run: |
           set -euo pipefail
-          echo "Running smoke checks against NiFi and nginx."
-          retries=30
-          delay=15
-          for attempt in $(seq 1 $retries); do
-            if ./scripts/tests/smoke_nifi_services.sh; then
-              exit 0
-            fi
-            echo "Attempt ${attempt}/${retries} failed. Sleeping ${delay}s..."
-            sleep "$delay"
-          done
-          echo "Smoke tests failed after ${retries} attempts."
-          exit 1
+          ./scripts/tests/smoke_nifi_services.sh
 
       - name: Dump container logs
         if: failure()
@@ -67,3 +51,4 @@ jobs:
           source deploy/export_env_vars.sh
           set -euo pipefail
           docker compose -f deploy/services.dev.yml down -v
+
