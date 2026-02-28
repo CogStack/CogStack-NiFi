@@ -141,4 +141,9 @@ cp "$CA_ROOT_KEY" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.key.pem"
 cp "$CA_ROOT_CERT" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.crt.pem"
 cp "$CA_ROOT_KEYSTORE" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.p12"
 
+# Ensure generated cert artifacts are readable and directories are traversable.
+# Note: certificate/key files should not be executable.
+find "$OPENSEARCH_FOLDER" -type d -exec chmod 755 {} \;
+find "$OPENSEARCH_FOLDER" -type f -exec chmod 644 {} \;
+
 echo "✅ Finished generating certificates for nodes: ${CERT_NAMES[*]}"

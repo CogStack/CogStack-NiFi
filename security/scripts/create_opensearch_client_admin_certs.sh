@@ -83,9 +83,11 @@ openssl req -new -key admin.key.pem -subj "$ES_ADMIN_SUBJ_LINE" -out admin.csr
 echo "Signing admin certificate"
 openssl x509 -req -in admin.csr -CA "$CA_ROOT_CERT" -CAkey "$CA_ROOT_KEY" -CAcreateserial -sha256 -out admin.crt -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS"
 
-mv admin.crt admin.csr admin.key.pem admin-key-temp.pem "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
+mv admin.crt admin.csr admin.key.pem "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
+rm -f admin-key-temp.pem
 
 # === Final permissions ===
+# Directories need read+execute to be traversable by mounted services.
 find "$OPENSEARCH_ES_CERTIFICATES_FOLDER" -type f -exec chmod 644 {} \;
 find "$OPENSEARCH_ES_CERTIFICATES_FOLDER" -type d -exec chmod 755 {} \;
 
