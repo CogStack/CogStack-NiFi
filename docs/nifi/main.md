@@ -68,6 +68,36 @@ The main configuration files for NiFi are provided in [`conf`](https://github.co
 This section provides only a brief description of the most useful properties that you may need to modify to fit your own setup.
 <br>
 
+## Critical `deploy/nifi.env` settings
+
+Before tuning `nifi/conf/*`, review the runtime env vars in [`deploy/nifi.env`](../deploy/nifi.env). These are loaded into the NiFi container through `env_file` in `deploy/services.yml`.
+
+Most important variables:
+
+- `NIFI_JVM_HEAP_INIT` and `NIFI_JVM_HEAP_MAX`: JVM `-Xms` / `-Xmx` heap targets for NiFi.
+- `NIFI_DOCKER_RAM`: Docker memory limit for the NiFi container.
+- `NIFI_DOCKER_SHM_SIZE`: shared memory size (`/dev/shm`) for the NiFi container.
+- `NIFI_DOCKER_CPU_MIN` and `NIFI_DOCKER_CPU_MAX`: CPU reservation/limit for NiFi.
+
+Sizing guidance:
+
+- Keep `NIFI_JVM_HEAP_MAX` lower than `NIFI_DOCKER_RAM`.
+- Do not set heap equal to container RAM. NiFi also needs memory outside heap (metaspace, direct buffers, thread stacks, native libs, Python/Groovy extensions, OS overhead).
+- As a practical baseline, keep container RAM around 1.3x to 1.6x of max heap.
+- Keep `NIFI_JVM_HEAP_INIT` less than or equal to `NIFI_JVM_HEAP_MAX`.
+- Increase `NIFI_DOCKER_SHM_SIZE` for heavier workloads (many concurrent processors, larger records, OCR/NLP/native integrations). `1g` can be too small for sustained high-throughput flows.
+
+Example profile:
+
+```bash
+NIFI_JVM_HEAP_INIT=2g
+NIFI_JVM_HEAP_MAX=4g
+NIFI_DOCKER_RAM=6g
+NIFI_DOCKER_SHM_SIZE=2g
+```
+
+Note: the current defaults in `deploy/nifi.env` are small development-oriented values, so production deployments should usually increase these settings.
+
 For much more detailed information please refer to the official [Apache NiFi System Administrator's Guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html). Another good reference for these properties is the [Cloudera Doc](https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.3.1/nifi-system-properties/hdf-nifi-system-properties.pdf) which describes everything in detail.
 <br>
 
