@@ -251,7 +251,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     rtf_end = full_compressed_blob.rfind(b"}") + 1
                     
                     output_bytes_decompressed = full_compressed_blob[rtf_start:rtf_end]
-            except Exception as exc:
+            except Exception:
                 decompress_blob = DecompressLzwCernerBlob()
                 decompress_blob.decompress(full_compressed_blob)
                 output_bytes_decompressed = bytes(decompress_blob.output_stream)

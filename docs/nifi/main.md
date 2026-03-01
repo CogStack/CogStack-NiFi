@@ -70,7 +70,7 @@ This section provides only a brief description of the most useful properties tha
 
 ## Critical `deploy/nifi.env` settings
 
-Before tuning `nifi/conf/*`, review the runtime env vars in [`deploy/nifi.env`](../deploy/nifi.env). These are loaded into the NiFi container through `env_file` in `deploy/services.yml`.
+Before tuning `nifi/conf/*`, review the runtime env vars in [`deploy/nifi.env`](../../deploy/nifi.env). These are loaded into the NiFi container through `env_file` in `deploy/services.yml`.
 
 Most important variables:
 
