@@ -10,7 +10,7 @@ from py4j.java_gateway import JavaObject, JVMView
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
 
 
-class ConvertJsonRecordSchema(BaseNiFiProcessor):
+class CogStackConvertJsonRecordSchema(BaseNiFiProcessor):
     """
         Remaps each incoming JSON record (single dict or list of dicts) using a lookup loaded from
         json_mapper_schema_path.
