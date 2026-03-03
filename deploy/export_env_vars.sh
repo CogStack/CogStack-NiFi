@@ -34,6 +34,7 @@ env_files=(
   "$DEPLOY_DIR/project.env"
   "$DEPLOY_DIR/gitea.env"
   "$DEPLOY_DIR/nginx.env"
+  "$DEPLOY_DIR/telemetry.env"
 
   "$SERVICES_DIR/cogstack-jupyter-hub/env/jupyter.env"
   "$SERVICES_DIR/ocr-service/env/ocr_service.env"

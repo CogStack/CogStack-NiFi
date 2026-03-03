@@ -25,6 +25,7 @@ x-all-env: &all-env
   - ./nifi.env
   - ./gitea.env
   - ./nginx.env
+  - ./telemetry.env
   - ./database.env
   - ./elasticsearch.env
   - ./network_settings.env

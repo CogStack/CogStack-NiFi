@@ -14,6 +14,7 @@ x-all-env: &all-env
   - ./nifi.env
   - ./gitea.env
   - ./nginx.env
+  - ./telemetry.env
   - ./database.env
   - ./elasticsearch.env
   - ./network_settings.env
@@ -158,6 +159,42 @@ services:
       - ../security/certificates:/certificates:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
+    networks:
+      - cognet
+    extra_hosts: *common-hosts
+    logging: *nifi-logging-common
+
+#---------------------------------------------------------------------------#
+# Observability stack                                                       #
+#---------------------------------------------------------------------------#
+  otel-collector:
+    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:-otel/opentelemetry-collector-contrib:0.132.0}
+    container_name: cogstack-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    env_file: *all-env
+    volumes:
+      - ./observability/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "${OTEL_COLLECTOR_OTLP_GRPC_PORT:-4317}:4317"
+      - "${OTEL_COLLECTOR_OTLP_HTTP_PORT:-4318}:4318"
+      - "${OTEL_COLLECTOR_HEALTH_PORT:-13133}:13133"
+    networks:
+      - cognet
+    extra_hosts: *common-hosts
+    logging: *nifi-logging-common
+
+  data-prepper:
+    image: ${DATA_PREPPER_DOCKER_IMAGE:-opensearchproject/data-prepper:2.11.0}
+    container_name: cogstack-data-prepper
+    restart: unless-stopped
+    env_file: *all-env
+    volumes:
+      - ./observability/data-prepper/config/data-prepper-config.yaml:/usr/share/data-prepper/config/data-prepper-config.yaml:ro
+      - ./observability/data-prepper/pipelines:/usr/share/data-prepper/pipelines:ro
+    ports:
+      - "${DATA_PREPPER_API_PORT:-4900}:4900"
+      - "${DATA_PREPPER_OTEL_TRACE_PORT:-21890}:21890"
     networks:
       - cognet
     extra_hosts: *common-hosts
