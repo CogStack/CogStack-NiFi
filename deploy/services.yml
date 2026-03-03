@@ -465,8 +465,6 @@ services:
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.csr:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.csr:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/http-${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/http-esnode1.key:ro
 
       # OpenSearch uses some default certs
       - ../security/certificates:/certificates:ro
