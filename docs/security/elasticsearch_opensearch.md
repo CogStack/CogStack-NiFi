@@ -167,7 +167,54 @@ All certificate references in `services/kibana/config/kibana_opensearch.yml` or 
    docker compose up -d
    ```
 
-4. Use `create_opensearch_users.sh` to populate roles and user mappings.
+4. Populate tenants, roles, users, and role mappings:
+
+   ```bash
+   cd security/scripts
+   bash create_opensearch_users.sh elasticsearch-1 --use-ssl
+   ```
+
+   - `<es_hostname>` is the OpenSearch node hostname (for this stack, usually `elasticsearch-1`).
+   - `--use-ssl` switches the script endpoint from `http` to `https` (recommended for this stack).
+   - Run the script from `security/scripts/` because it loads env files via relative paths.
+
+##### `create_opensearch_users.sh` reference
+
+Script: `security/scripts/create_opensearch_users.sh`  
+Usage:
+
+```bash
+bash create_opensearch_users.sh <es_hostname> [--use-ssl]
+```
+
+Required inputs are loaded from:
+
+- `deploy/general.env`
+- `deploy/elasticsearch.env`
+- `security/env/certificates_elasticsearch.env`
+- `security/env/certificates_general.env`
+- `security/env/users_elasticsearch.env`
+
+What it creates/updates:
+
+- Tenants: `nifi_tenant`, `cogstack_tenant`
+- Roles: `cogstack_ingest`, `cogstack_access`
+- Internal users: `cogstack_user`, `cogstack_pipeline`, `nifi`
+- Role mappings for `cogstack_access` and `cogstack_ingest`
+- Passwords for built-in users: `logstash`, `kibanaro`, `readall`, `snapshotrestore`
+
+Verification example:
+
+```bash
+curl -k -u admin:${ELASTIC_PASSWORD} \
+  https://elasticsearch-1:9200/_opendistro/_security/api/roles/cogstack_ingest
+```
+
+Troubleshooting:
+
+- If you see authentication failures, confirm `ELASTIC_PASSWORD` in `security/env/users_elasticsearch.env` matches the running OpenSearch admin password.
+- If you see `404` on security API paths, your OpenSearch version may require `_plugins/_security/api/...` instead of `_opendistro/_security/api/...`.
+- The script is idempotent (`PUT` calls), so it can be re-run safely after credential or role changes.
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
 
