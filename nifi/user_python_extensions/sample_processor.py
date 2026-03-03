@@ -145,11 +145,10 @@ class CogStackSampleTestProcessor(BaseNiFiProcessor):
        output_byte_buffer.seek(0)
 
        # add properties to flowfile attributes
-       attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
        attributes["sample_property_one"] = str(self.sample_property_one)
        attributes["sample_property_two"] = str(self.sample_property_two)
        attributes["sample_property_three"] = str(self.sample_property_three)
 
        return FlowFileTransformResult(relationship="success",
                                       attributes=attributes,
-                                      contents=json.dumps(output_contents))
+                                      contents=json.dumps(output_contents).encode("utf-8"))

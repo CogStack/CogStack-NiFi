@@ -232,7 +232,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         try:
             
             # attempt to see if not a proper compressed blob 
-            output_bytes_decompressed = None
+            output_bytes_decompressed: bytes | bytearray | None = None
             try:
                 if full_compressed_blob.find(b"%PDF") != -1:
                     pdf_start = full_compressed_blob.find(b"%PDF-")
@@ -256,7 +256,10 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 decompress_blob.decompress(full_compressed_blob)
                 output_bytes_decompressed = bytes(decompress_blob.output_stream)
             
-            output_merged_record[self.binary_field_name] = output_bytes_decompressed
+            if output_bytes_decompressed is None:
+                raise ValueError("Could not locate or decompress blob payload")
+
+            output_merged_record[self.binary_field_name] = bytes(output_bytes_decompressed)
 
         except Exception as exception:
             raise RuntimeError("Error decompressing Cerner LZW blob") from exception

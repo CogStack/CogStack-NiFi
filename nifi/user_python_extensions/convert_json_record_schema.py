@@ -293,7 +293,7 @@ class CogStackConvertJsonRecordSchema(BaseNiFiProcessor):
                     parts: list[str] = []
                     for sub_field in old_field:
                         rendered = self._value_for_composite(record, sub_field)
-                        if rendered not in (None, ""):
+                        if rendered is not None and rendered != "":
                             parts.append(rendered)
                     self._set_field(new_record, new_field, "\n".join(parts) if parts else None)
 

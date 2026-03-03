@@ -14,9 +14,9 @@ import nifiapi.relationship  # noqa: F401
 from .flowfiletransform import (
     FlowFileTransform,
     FlowFileTransformResult,
-    ProcessContext,
 )
 from .properties import (
+    ProcessContext,
     PropertyDescriptor,
     StandardValidators,
 )
