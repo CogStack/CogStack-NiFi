@@ -201,7 +201,7 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
             contents = flowFile.getContentsAsBytes()
 
         return FlowFileTransformResult(
-            relationship=self.REL_FAILURE,
+            relationship=self.REL_FAILURE.name,
             attributes=merged_attributes,
             contents=contents
         )

@@ -270,6 +270,6 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         output_contents.append(output_merged_record)
 
-        return FlowFileTransformResult(relationship=self.REL_SUCCESS,
+        return FlowFileTransformResult(relationship=self.REL_SUCCESS.name,
                                        attributes=attributes,
                                        contents=json.dumps(output_contents).encode("utf-8"))

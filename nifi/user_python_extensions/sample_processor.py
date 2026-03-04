@@ -149,6 +149,6 @@ class CogStackSampleTestProcessor(BaseNiFiProcessor):
        attributes["sample_property_two"] = str(self.sample_property_two)
        attributes["sample_property_three"] = str(self.sample_property_three)
 
-       return FlowFileTransformResult(relationship="success",
+       return FlowFileTransformResult(relationship=self.REL_SUCCESS.name,
                                       attributes=attributes,
                                       contents=json.dumps(output_contents).encode("utf-8"))
