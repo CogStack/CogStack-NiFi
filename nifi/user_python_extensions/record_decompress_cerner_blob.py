@@ -229,40 +229,39 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         attributes["compressed_len"] = str(len(full_compressed_blob))
         attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
 
-        try:
-            
-            # attempt to see if not a proper compressed blob 
-            output_bytes_decompressed: bytes | bytearray | None = None
-            try:
-                if full_compressed_blob.find(b"%PDF") != -1:
-                    pdf_start = full_compressed_blob.find(b"%PDF-")
-                    pdf_end = full_compressed_blob.rfind(b"%%EOF")
-                    if pdf_end == -1:
-                        raise ValueError("Not a valid PDF stream - no %%EOF byte")
-                    
-                    # +5 to include %%EOF flag
-                    pdf_bytes = full_compressed_blob[pdf_start:pdf_end + 5]
-                
-                    # clean ocf wrapper headers if present
-                    output_bytes_decompressed = pdf_bytes.replace(b"\nocf_blob\x00", b"")
-                    output_bytes_decompressed = output_bytes_decompressed.replace(b"ocr_blob\x00", b"")
-                elif full_compressed_blob.find(b"{\\rtf") != -1:
-                    rtf_start = full_compressed_blob.find(b"{\\rtf")
-                    rtf_end = full_compressed_blob.rfind(b"}") + 1
-                    
-                    output_bytes_decompressed = full_compressed_blob[rtf_start:rtf_end]
-            except Exception:
-                decompress_blob = DecompressLzwCernerBlob()
-                decompress_blob.decompress(full_compressed_blob)
-                output_bytes_decompressed = bytes(decompress_blob.output_stream)
-            
-            if output_bytes_decompressed is None:
-                raise ValueError("Could not locate or decompress blob payload")
+        # If payload already contains an embedded PDF/RTF stream, extract it directly.
+        # Otherwise run the Cerner LZW decompressor. Any error bubbles to transform(),
+        # which handles routing to failure.
+        output_bytes_decompressed: bytes | bytearray | None = None
 
-            output_merged_record[self.binary_field_name] = bytes(output_bytes_decompressed)
+        if b"%PDF" in full_compressed_blob:
+            pdf_start = full_compressed_blob.find(b"%PDF-")
+            pdf_end = full_compressed_blob.rfind(b"%%EOF")
+            if pdf_start == -1 or pdf_end == -1 or pdf_end < pdf_start:
+                raise ValueError("Invalid PDF stream in blob payload")
 
-        except Exception as exception:
-            raise RuntimeError("Error decompressing Cerner LZW blob") from exception
+            # +5 to include %%EOF marker
+            pdf_bytes = full_compressed_blob[pdf_start:pdf_end + 5]
+
+            # clean known wrapper headers if present
+            output_bytes_decompressed = pdf_bytes.replace(b"\nocf_blob\x00", b"")
+            output_bytes_decompressed = output_bytes_decompressed.replace(b"ocr_blob\x00", b"")
+        elif b"{\\rtf" in full_compressed_blob:
+            rtf_start = full_compressed_blob.find(b"{\\rtf")
+            rtf_end = full_compressed_blob.rfind(b"}")
+            if rtf_end == -1 or rtf_end < rtf_start:
+                raise ValueError("Invalid RTF stream in blob payload")
+
+            output_bytes_decompressed = full_compressed_blob[rtf_start:rtf_end + 1]
+        else:
+            decompress_blob = DecompressLzwCernerBlob()
+            decompress_blob.decompress(full_compressed_blob)
+            output_bytes_decompressed = bytes(decompress_blob.output_stream)
+
+        if not output_bytes_decompressed:
+            raise ValueError("Could not locate or decompress blob payload")
+
+        output_merged_record[self.binary_field_name] = bytes(output_bytes_decompressed)
 
         if self.output_mode == "base64":
             output_merged_record[self.binary_field_name] = \
