@@ -1,4 +1,5 @@
 import logging
+import traceback
 from logging import Logger
 from typing import Generic, TypeVar
 
@@ -254,7 +255,9 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
                 )
             return result
         except Exception as exception:
-            self.logger.error("Exception during flowfile processing", exc_info=True)
+            self.logger.error(
+                "Exception during flowfile processing:\n" + traceback.format_exc()
+            )
             return self.build_failure_result(
                 flowFile,
                 exception,
