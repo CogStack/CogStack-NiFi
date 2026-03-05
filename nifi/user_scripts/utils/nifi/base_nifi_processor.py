@@ -197,13 +197,18 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
 
         merged_attributes["exception"] = exception_value
 
+        # Keep existing FlowFile content by default to avoid rewriting large payloads
+        # on every failure path. Callers can still override `contents` explicitly.
         if contents is None:
-            contents = flowFile.getContentsAsBytes()
+            return FlowFileTransformResult(
+                relationship=self.REL_FAILURE.name,
+                attributes=merged_attributes,
+            )
 
         return FlowFileTransformResult(
             relationship=self.REL_FAILURE.name,
             attributes=merged_attributes,
-            contents=contents
+            contents=contents,
         )
 
     def onScheduled(self, context: ProcessContext) -> None:
