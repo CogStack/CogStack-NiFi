@@ -186,7 +186,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         attributes["mime.type"] = "application/json"
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=json.dumps(output_contents).encode("utf-8"),
         )

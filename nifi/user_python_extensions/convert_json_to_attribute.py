@@ -71,7 +71,7 @@ class CogStackConvertJsonToAttribute(BaseNiFiProcessor):
 
         ids_csv = ",".join(ids)
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes={
                 "ids_csv": ids_csv,
                 "ids_count": str(len(ids)),

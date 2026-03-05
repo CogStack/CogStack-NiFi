@@ -206,7 +206,7 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
         attributes["record.count"] = str(len(valid_records))
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=json.dumps(valid_records).encode("utf-8"),
         )

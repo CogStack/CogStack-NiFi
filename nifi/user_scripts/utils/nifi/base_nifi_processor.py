@@ -1,4 +1,5 @@
 import logging
+import traceback
 from logging import Logger
 from typing import Generic, TypeVar
 
@@ -196,13 +197,18 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
 
         merged_attributes["exception"] = exception_value
 
+        # Keep existing FlowFile content by default to avoid rewriting large payloads
+        # on every failure path. Callers can still override `contents` explicitly.
         if contents is None:
-            contents = flowFile.getContentsAsBytes()
+            return FlowFileTransformResult(
+                relationship=self.REL_FAILURE.name,
+                attributes=merged_attributes,
+            )
 
         return FlowFileTransformResult(
-            relationship=self.REL_FAILURE,
+            relationship=self.REL_FAILURE.name,
             attributes=merged_attributes,
-            contents=contents
+            contents=contents,
         )
 
     def onScheduled(self, context: ProcessContext) -> None:
@@ -254,7 +260,9 @@ class BaseNiFiProcessor(FlowFileTransform, Generic[T]):
                 )
             return result
         except Exception as exception:
-            self.logger.error("Exception during flowfile processing", exc_info=True)
+            self.logger.error(
+                "Exception during flowfile processing:\n" + traceback.format_exc()
+            )
             return self.build_failure_result(
                 flowFile,
                 exception,
