@@ -170,12 +170,12 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 seq = int(record[self.blob_sequence_order_field_name])
                 if seq in concatenated_blob_sequence_order:
                     if self.blob_sequence_order_resolve_duplicate_policy == "keep_first":
-                        self.logger.warning(
+                        self.logger.info(
                             f"Duplicate record found '{self.blob_sequence_order_field_name}': {seq} "
                             "| handling via 'keep_first' policy"
                         )
                     elif self.blob_sequence_order_resolve_duplicate_policy == "keep_last":
-                        self.logger.warning(
+                        self.logger.info(
                             f"Duplicate record found '{self.blob_sequence_order_field_name}': {seq} "
                             "| handling via 'keep_last' policy"
                         )
