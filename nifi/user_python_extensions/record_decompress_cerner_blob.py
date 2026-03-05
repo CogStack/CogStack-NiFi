@@ -30,7 +30,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.1'
+        version = '0.0.2'
         description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
         tags = ["cerner", "oracle", "blob"]
 
@@ -46,6 +46,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         self.output_mode: str = "base64"
         self.binary_field_source_encoding: str = "base64"
         self.blob_sequence_order_field_name: str = "blob_sequence_num"
+        self.blob_sequence_order_resolve_duplicate_policy: str = "fail"
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -89,6 +90,11 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                                   if the blob is split across multiple records",
                                required=False,
                                default_value="blob_sequence_num"),
+            PropertyDescriptor(name="blob_sequence_order_resolve_duplicate_policy",
+                               description="What to do when duplicate blob sequences are detected ? fail? continue going ?",
+                               required=False,
+                               default_value="fail",
+                               allowable_values=["fail", "keep_first", "keep_last"]),
         ]
 
         self.descriptors: list[PropertyDescriptor] = self._properties
@@ -163,9 +169,21 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             if have_any_sequence:
                 seq = int(record[self.blob_sequence_order_field_name])
                 if seq in concatenated_blob_sequence_order:
-                    raise ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}")
-
-                concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+                    if self.blob_sequence_order_resolve_duplicate_policy == "keep_first":
+                        self.logger.warning(
+                            f"Duplicate record found '{self.blob_sequence_order_field_name}': {seq} "
+                            "| handling via 'keep_first' policy"
+                        )
+                    elif self.blob_sequence_order_resolve_duplicate_policy == "keep_last":
+                        self.logger.warning(
+                            f"Duplicate record found '{self.blob_sequence_order_field_name}': {seq} "
+                            "| handling via 'keep_last' policy"
+                        )
+                        concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
+                    else:
+                        raise ValueError(f"Duplicate {self.blob_sequence_order_field_name}: {seq}")
+                else:
+                    concatenated_blob_sequence_order[seq] = record[self.binary_field_name]
             else:
                 # no sequence anywhere: preserve record order (0..n-1)
                 seq = len(concatenated_blob_sequence_order)
