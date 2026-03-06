@@ -17,7 +17,18 @@ envFile:
     - OPENSEARCH_JAVA_OPTS
     - KIBANA_SERVER_NAME
 
+usersEnvFile:
+  # Pass security/env/users_elasticsearch.env via:
+  #   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env
+  raw: ""
+  # Only these keys are imported into the credentials Secret.
+  includeKeys:
+    - OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    - KIBANA_USER
+    - KIBANA_PASSWORD
+
 opensearch:
+  enabled: true
   replicas: 3
   image:
     repository: opensearchproject/opensearch
@@ -59,6 +70,11 @@ opensearch:
 dashboards:
   enabled: true
   replicas: 1
+  # When opensearch.enabled=false, set external OpenSearch URLs here.
+  # Example:
+  # opensearchHosts:
+  #   - https://opensearch-client.cogstack.svc:9200
+  opensearchHosts: []
   image:
     repository: opensearchproject/opensearch-dashboards
     tag: "3.5.0"
@@ -88,6 +104,18 @@ credentials:
   adminPassword: "Kibanaserver!1"
   kibanaUser: kibanaserver
   kibanaPassword: kibanaserver
+
+securityFiles:
+  # Optional overrides. If empty, chart falls back to files/opensearch-security/*.
+  # Use:
+  #   --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml
+  #   --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml
+  #   --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml
+  #   --set-file securityFiles.rolesMappingRaw=./security/es_roles/opensearch/roles_mapping.yml
+  configRaw: ""
+  internalUsersRaw: ""
+  rolesRaw: ""
+  rolesMappingRaw: ""
 
 certificates:
   opensearchSecretName: opensearch-certs

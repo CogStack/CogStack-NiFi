@@ -91,7 +91,15 @@ app.kubernetes.io/component: dashboards
 
 {{/* JSON array for ELASTICSEARCH_HOSTS */}}
 {{- define "cogstack-opensearch.elasticsearchHostsJson" -}}
+{{- if .Values.opensearch.enabled -}}
 {{- $svc := include "cogstack-opensearch.clientServiceName" . -}}
 {{- $ns := .Release.Namespace -}}
 {{- printf "[\"https://%s.%s.svc:%d\"]" $svc $ns (int .Values.opensearch.service.httpPort) -}}
+{{- else -}}
+{{- if .Values.dashboards.opensearchHosts -}}
+{{ toJson .Values.dashboards.opensearchHosts }}
+{{- else -}}
+{{- fail "dashboards.opensearchHosts must be set when opensearch.enabled=false" -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
