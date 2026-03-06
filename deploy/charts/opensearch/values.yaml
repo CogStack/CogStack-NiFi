@@ -27,6 +27,14 @@ usersEnvFile:
     - KIBANA_USER
     - KIBANA_PASSWORD
 
+certificatesEnvFile:
+  # Pass security/env/certificates_elasticsearch.env via:
+  #   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env
+  raw: ""
+  # Only keys listed here are imported from certificates env.
+  includeKeys:
+    - ES_CLIENT_CERT_NAME
+
 opensearch:
   enabled: true
   replicas: 3

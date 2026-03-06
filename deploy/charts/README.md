@@ -18,6 +18,7 @@ This directory contains Helm charts owned by this repository's deployment layer.
 helm template cogstack-opensearch ./deploy/charts/opensearch \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
+  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
   --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
   --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
   --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
@@ -27,6 +28,7 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
+  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
   --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
   --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
   --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \

@@ -13,9 +13,11 @@ HELM_OPENSEARCH_NAMESPACE ?= cogstack
 HELM_OPENSEARCH_CHART ?= ./charts/opensearch
 HELM_OPENSEARCH_ENV_FILE ?= ./elasticsearch.env
 HELM_OPENSEARCH_USERS_ENV_FILE ?= ../security/env/users_elasticsearch.env
+HELM_OPENSEARCH_CERTS_ENV_FILE ?= ../security/env/certificates_elasticsearch.env
 HELM_OPENSEARCH_SECURITY_DIR ?= ../security/es_roles/opensearch
 HELM_OPENSEARCH_SET_FILES = --set-file envFile.raw=$(HELM_OPENSEARCH_ENV_FILE) \
 	--set-file usersEnvFile.raw=$(HELM_OPENSEARCH_USERS_ENV_FILE) \
+	--set-file certificatesEnvFile.raw=$(HELM_OPENSEARCH_CERTS_ENV_FILE) \
 	--set-file securityFiles.configRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/config.yml \
 	--set-file securityFiles.internalUsersRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/internal_users.yml \
 	--set-file securityFiles.rolesRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/roles.yml \

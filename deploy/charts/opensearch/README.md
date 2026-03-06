@@ -40,6 +40,7 @@ Secret keys are mapped via:
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
+  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
   --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
   --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
   --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
@@ -65,6 +66,7 @@ helm upgrade --install cogstack-dashboards ./deploy/charts/opensearch \
 helm template cogstack-opensearch ./deploy/charts/opensearch \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
+  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
   --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
   --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
   --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
@@ -76,6 +78,7 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 - The chart packages current repository config files under `files/`.
 - `envFile.raw` can be set from `deploy/elasticsearch.env` and is loaded via `envFrom` into OpenSearch and Dashboards.
 - `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds the credentials Secret (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`).
+- `certificatesEnvFile.raw` can be set from `security/env/certificates_elasticsearch.env`; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
 - `securityFiles.*Raw` can be set from `security/es_roles/opensearch/*.yml` and overrides the chart-bundled OpenSearch security files.
 - Only keys listed in `envFile.includeKeys` are imported (to avoid leaking secrets from env files into ConfigMaps).
 - Review security and certificate settings before production use.
