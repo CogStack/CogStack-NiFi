@@ -1,0 +1,6 @@
+# Data Prepper control API (dev profile, no TLS)
+ssl: false
+serverPort: 4900
+peer_forwarder:
+  ssl: false
+  discovery_mode: local_node
