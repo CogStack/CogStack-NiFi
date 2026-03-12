@@ -60,7 +60,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image }}
           tags: |
@@ -115,7 +115,7 @@ jobs:
 
       - name: Docker metadata (again)
         id: meta_manifest
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image }}
           tags: |
