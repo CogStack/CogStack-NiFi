@@ -135,7 +135,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                         _record[k] = v
                 
                 if self.document_id_field_name in _record:
-                    additional_attributes[self.document_id_field_name] = _record[self.document_id_field_name]
+                    additional_attributes[self.document_id_field_name] = str(_record[self.document_id_field_name])
 
                 output_contents.append(_record)
 
