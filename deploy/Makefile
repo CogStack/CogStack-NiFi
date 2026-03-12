@@ -11,6 +11,17 @@ REMOTE_SSH_KEY_ARG = $(if $(strip $(REMOTE_SSH_KEY)),-i $(REMOTE_SSH_KEY),)
 HELM_OPENSEARCH_RELEASE ?= cogstack-opensearch
 HELM_OPENSEARCH_NAMESPACE ?= cogstack
 HELM_OPENSEARCH_CHART ?= ./charts/opensearch
+HELM_OPENSEARCH_ENV_FILE ?= ./elasticsearch.env
+HELM_OPENSEARCH_USERS_ENV_FILE ?= ../security/env/users_elasticsearch.env
+HELM_OPENSEARCH_CERTS_ENV_FILE ?= ../security/env/certificates_elasticsearch.env
+HELM_OPENSEARCH_SECURITY_DIR ?= ../security/es_roles/opensearch
+HELM_OPENSEARCH_SET_FILES = --set-file envFile.raw=$(HELM_OPENSEARCH_ENV_FILE) \
+	--set-file usersEnvFile.raw=$(HELM_OPENSEARCH_USERS_ENV_FILE) \
+	--set-file certificatesEnvFile.raw=$(HELM_OPENSEARCH_CERTS_ENV_FILE) \
+	--set-file securityFiles.configRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/config.yml \
+	--set-file securityFiles.internalUsersRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/internal_users.yml \
+	--set-file securityFiles.rolesRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/roles.yml \
+	--set-file securityFiles.rolesMappingRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/roles_mapping.yml
 
 define WITH_ENV
 set -a && source ./export_env_vars.sh;
@@ -72,11 +83,11 @@ load-env: ## Load variables from export_env_vars.sh in a subshell
 show-env: ## Print sorted environment variables after loading export_env_vars.sh
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
 
-helm-template-opensearch: ## Render OpenSearch chart using deploy/elasticsearch.env
-	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) --set-file envFile.raw=./elasticsearch.env
+helm-template-opensearch: ## Render OpenSearch chart using deploy/security env + opensearch role files
+	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_SET_FILES)
 
-helm-install-opensearch: ## Install/upgrade OpenSearch chart using deploy/elasticsearch.env
-	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) --set-file envFile.raw=./elasticsearch.env --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
+helm-install-opensearch: ## Install/upgrade OpenSearch chart using deploy/security env + opensearch role files
+	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_SET_FILES) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
 
 
 remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose

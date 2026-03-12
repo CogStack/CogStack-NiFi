@@ -410,10 +410,22 @@ Web UI for exploring indexed data, visualising documents, managing index templat
 
 - URL: **https://localhost:5601**
 
-#### credentials
+#### Credentials
 
 - **OpenSearch Dashboards:** `admin` / `admin`  
 - **Elasticsearch Native:** `elastic` / `kibanaserver`  
+
+#### First login setup (OpenSearch Dashboards)
+
+After signing in to OpenSearch Dashboards:
+
+1. Open the user menu and choose **Switch tenant**.
+2. Select `Global` so saved objects are shared across users/roles.
+3. Go to **Stack Management** → **Workspaces** and click **Create workspace**.
+4. Create a workspace (for example `cogstack-main`) in the `Global` tenant.
+5. Create data views/dashboards in that workspace.
+
+`Private` tenant is isolated per user and should be avoided for shared environments.
 
 #### Containers
 

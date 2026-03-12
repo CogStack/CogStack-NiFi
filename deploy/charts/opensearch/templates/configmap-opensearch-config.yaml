@@ -1,3 +1,4 @@
+{{- if .Values.opensearch.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +10,4 @@ data:
 {{ .Files.Get "files/opensearch.yml" | indent 4 }}
   log4j2.properties: |
 {{ .Files.Get "files/log4j2.properties" | indent 4 }}
+{{- end }}

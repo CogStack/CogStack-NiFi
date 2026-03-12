@@ -145,7 +145,7 @@ security/certificates/elastic/opensearch/
 | **Kibana** | `elasticsearch-{1,2,3}.crt`, `elasticsearch-{1,2,3}.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/elasticsearch/` |
 | **OpenDashboard (OpenSearch)** | `admin.pem`, `admin-key.pem`, `es_kibana_client.pem`, `es_kibana_client.key` | `security/certificates/elastic/opensearch/` |
 
-All certificate references in `services/kibana/config/kibana_opensearch.yml` or `services.yml` must point to these locations.
+All certificate references in `services/kibana/config/opensearch.yml` or `services.yml` must point to these locations.
 
 ---
 
@@ -217,6 +217,28 @@ Troubleshooting:
 - The script is idempotent (`PUT` calls), so it can be re-run safely after credential or role changes.
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
+
+##### OpenSearch Dashboards post-login setup (Global tenant + workspace)
+
+After your first login to `https://localhost:5601` (default: `admin` / `admin`):
+
+1. Open the user menu (top-right) and select **Switch tenant**.
+2. Select `Global`, then apply the change.
+3. Open **Stack Management** → **Workspaces** (or the workspace switcher in the header) and click **Create workspace**.
+4. Enter a workspace name (for example `cogstack-main`) and keep it in the `Global` tenant.
+5. Save, then create data views and dashboards inside this workspace.
+
+Use `Global` for shared dashboards and saved objects.  
+`Private` tenant content is user-specific and not visible to other users.
+
+If tenant switching or workspace creation is not available in the UI, verify these settings in `services/kibana/config/opensearch.yml`:
+
+```yaml
+opensearch_security.multitenancy.enabled: true
+opensearch_security.multitenancy.tenants.enable_global: true
+opensearch_security.multitenancy.tenants.preferred: ["Global"]
+workspace.enabled: true
+```
 
 ---
 
