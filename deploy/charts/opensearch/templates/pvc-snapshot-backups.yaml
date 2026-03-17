@@ -1,0 +1,41 @@
+{{- if and .Values.opensearch.enabled .Values.opensearch.snapshotBackups.enabled }}
+{{- if not .Values.opensearch.snapshotBackups.data.existingClaim }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cogstack-opensearch.snapshotBackupDataPvcName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+spec:
+  accessModes:
+    {{- toYaml .Values.opensearch.snapshotBackups.data.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.opensearch.snapshotBackups.data.size }}
+  {{- if .Values.opensearch.snapshotBackups.data.storageClassName }}
+  storageClassName: {{ .Values.opensearch.snapshotBackups.data.storageClassName | quote }}
+  {{- end }}
+{{- end }}
+{{- if and (not .Values.opensearch.snapshotBackups.data.existingClaim) (not .Values.opensearch.snapshotBackups.config.existingClaim) }}
+---
+{{- end }}
+{{- if not .Values.opensearch.snapshotBackups.config.existingClaim }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cogstack-opensearch.snapshotBackupConfigPvcName" . }}
+  labels:
+    {{- include "cogstack-opensearch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+spec:
+  accessModes:
+    {{- toYaml .Values.opensearch.snapshotBackups.config.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.opensearch.snapshotBackups.config.size }}
+  {{- if .Values.opensearch.snapshotBackups.config.storageClassName }}
+  storageClassName: {{ .Values.opensearch.snapshotBackups.config.storageClassName | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

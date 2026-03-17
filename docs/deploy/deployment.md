@@ -98,8 +98,8 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 
 > The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
 > The `--set-file configFiles.*Raw=...` flags point Helm at the same OpenSearch and Dashboards config files used by Docker Compose.
-> The `--set-file envFile.raw=...` flag injects values from `deploy/elasticsearch.env` into pod environment variables.
-> The `--set-file usersEnvFile.raw=...` flag feeds credentials (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`) into the chart Secret.
+> The `--set-file envFile.raw=...` flag lets the chart read shared values from `deploy/elasticsearch.env` while still generating Kubernetes-specific discovery and publish-host settings itself.
+> The `--set-file usersEnvFile.raw=...` flag feeds only the credential keys required by the enabled chart components into the chart Secret.
 > The `--set-file certificatesEnvFile.raw=...` flag loads certificate metadata from `security/env/certificates_elasticsearch.env` (`ES_CLIENT_CERT_NAME` currently).
 > The `--set-file securityFiles.*Raw=...` flags use `security/es_roles/opensearch/*.yml` as the source of OpenSearch security config.
 

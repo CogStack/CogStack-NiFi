@@ -43,4 +43,4 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 ```
 
 The OpenSearch and Dashboards config files should come from `services/`, and the security files from `security/`, so Docker and Kubernetes use the same source files.
-Only keys in `envFile.includeKeys` and `usersEnvFile.includeKeys` are imported.
+Only keys in `envFile.includeKeys`, `usersEnvFile.includeKeys`, and `certificatesEnvFile.includeKeys` are imported.

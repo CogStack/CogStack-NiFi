@@ -64,9 +64,13 @@ app.kubernetes.io/component: dashboards
 {{- end -}}
 {{- end -}}
 
-{{/* Env ConfigMap name */}}
-{{- define "cogstack-opensearch.envConfigMapName" -}}
-{{- printf "%s-elasticsearch-env" (include "cogstack-opensearch.fullname" .) -}}
+{{/* Snapshot backup PVC names */}}
+{{- define "cogstack-opensearch.snapshotBackupDataPvcName" -}}
+{{- printf "%s-snapshot-backup-data" (include "cogstack-opensearch.fullname" .) -}}
+{{- end -}}
+
+{{- define "cogstack-opensearch.snapshotBackupConfigPvcName" -}}
+{{- printf "%s-snapshot-backup-config" (include "cogstack-opensearch.fullname" .) -}}
 {{- end -}}
 
 {{/* Parse deploy/elasticsearch.env into a filtered YAML map */}}

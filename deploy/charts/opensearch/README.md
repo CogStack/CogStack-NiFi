@@ -12,15 +12,15 @@ Helm chart for deploying OpenSearch and/or OpenSearch Dashboards using the CogSt
   - `log4j2.properties` (when `opensearch.enabled=true`)
   - OpenSearch Security files (`config.yml`, `internal_users.yml`, `roles.yml`, `roles_mapping.yml`) (when `opensearch.enabled=true`)
   - `opensearch_dashboards.yml`
+- PVC-backed `data`, `logs`, and performance-analyzer storage for OpenSearch by default
 
 ## Prerequisites
 
 1. Kubernetes cluster with dynamic PV provisioning (if `opensearch.enabled=true` and `persistence.enabled=true`).
 2. Kubernetes Secrets containing TLS materials for enabled components.
 3. If `credentials.create=false`, an existing Secret with:
-   - `OPENSEARCH_INITIAL_ADMIN_PASSWORD`
-   - `KIBANA_USER`
-   - `KIBANA_PASSWORD`
+   - `OPENSEARCH_INITIAL_ADMIN_PASSWORD` when `opensearch.enabled=true`
+   - `KIBANA_USER` and `KIBANA_PASSWORD` when `dashboards.enabled=true`
 
 ## Required certificate secrets
 
@@ -120,14 +120,15 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 - In this repo, the chart `files/` entries are symlinked to the shared `services/` and `security/` sources so Docker and Kubernetes stay aligned.
 - The standard install/render commands still use `--set-file` explicitly to make the source-of-truth paths obvious at invocation time.
 - If you run Helm from `deploy/charts/opensearch`, the equivalent relative paths are `../../../services/...` and `../../../security/...`.
-- `envFile.raw` can be set from `deploy/elasticsearch.env` and is loaded via `envFrom` into OpenSearch and Dashboards.
-- `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds the credentials Secret (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`).
+- `envFile.raw` can be set from `deploy/elasticsearch.env`; the chart reads shared values from it (`ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`) and still generates Kubernetes-specific discovery and publish-host settings itself.
+- `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds only the credential keys required by the enabled components.
 - `certificatesEnvFile.raw` can be set from `security/env/certificates_elasticsearch.env`; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
-- `deploy/elasticsearch.env` shared values are used where they make sense on Kubernetes (`ELASTICSEARCH_CLUSTER_NAME`, `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`), while pod IP and discovery hosts remain Kubernetes-specific.
+- `deploy/elasticsearch.env` shared values are used where they make sense on Kubernetes (`ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`), while pod IP and discovery hosts remain Kubernetes-specific.
 - By default, `certificates.opensearchNodeFiles[*]` maps pod ordinals `0/1/2` to repo-style node cert keys `elasticsearch-1/2/3`.
+- `opensearch.logPersistence` and `opensearch.performanceAnalyzerPersistence` default to PVC-backed storage to stay closer to the Docker Compose deployment.
+- `opensearch.snapshotBackups` adds shared PVC-backed mounts for `/mnt/es_data_backups` and `/mnt/es_config_backups`; use RWX storage or set `existingClaim` values, and still set `path.repo` in the shared OpenSearch config if you want the cluster to use them.
 - `configFiles.opensearchRaw` can be set from `services/elasticsearch/config/opensearch.yml`.
 - `configFiles.log4jRaw` can be set from `services/elasticsearch/config/log4j2_opensearch.properties`.
 - `configFiles.dashboardsRaw` can be set from `services/kibana/config/opensearch.yml`.
 - `securityFiles.*Raw` can be set from `security/es_roles/opensearch/*.yml` and overrides the chart-bundled OpenSearch security files.
-- Only keys listed in `envFile.includeKeys` are imported (to avoid leaking secrets from env files into ConfigMaps).
 - Review security and certificate settings before production use.
