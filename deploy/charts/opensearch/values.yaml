@@ -139,12 +139,25 @@ certificates:
   opensearchSecretName: opensearch-certs
   dashboardsSecretName: opensearch-certs
   opensearchFiles:
-    rootCA: root-ca.crt
+    # Secret key names for shared OpenSearch cert material.
+    # These align with files under security/certificates/elastic/opensearch/.
+    rootCA: elastic-stack-ca.crt.pem
     nodeCert: esnode.crt
     nodeKey: esnode.key
     adminCert: admin.crt
     adminKey: admin.key.pem
+  opensearchNodeFiles:
+    # Optional per-pod node cert/key mapping using repo-style file names.
+    # Pod ordinal 0 uses the first entry, 1 uses the second, etc.
+    # If you set this to an empty list, the chart falls back to opensearchFiles.nodeCert/nodeKey.
+    - cert: elasticsearch-1.crt
+      key: elasticsearch-1.key
+    - cert: elasticsearch-2.crt
+      key: elasticsearch-2.key
+    - cert: elasticsearch-3.crt
+      key: elasticsearch-3.key
   dashboardsFiles:
+    # Secret key names for Dashboards cert material.
     rootCA: elastic-stack-ca.crt.pem
     adminCert: admin.crt
     adminKey: admin.key.pem

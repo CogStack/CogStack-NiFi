@@ -69,6 +69,93 @@ app.kubernetes.io/component: dashboards
 {{- printf "%s-elasticsearch-env" (include "cogstack-opensearch.fullname" .) -}}
 {{- end -}}
 
+{{/* Parse deploy/elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedEnvFile" -}}
+{{- $root := . -}}
+{{- $envData := dict -}}
+{{- if $root.Values.envFile.raw -}}
+{{- $renderedEnv := tpl $root.Values.envFile.raw $root -}}
+{{- range $line := splitList "\n" $renderedEnv }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.envFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- if regexMatch "^\\$[A-Za-z_][A-Za-z0-9_]*$" $val -}}
+          {{- $refKey := trimPrefix "$" $val -}}
+          {{- if hasKey $envData $refKey -}}
+            {{- $val = index $envData $refKey -}}
+          {{- end -}}
+        {{- end -}}
+        {{- $_ := set $envData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $envData }}
+{{- end -}}
+
+{{/* Parse security/env/users_elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedUsersEnvFile" -}}
+{{- $root := . -}}
+{{- $usersData := dict -}}
+{{- if $root.Values.usersEnvFile.raw -}}
+{{- $renderedUsers := tpl $root.Values.usersEnvFile.raw $root -}}
+{{- range $line := splitList "\n" $renderedUsers }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.usersEnvFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- $_ := set $usersData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $usersData }}
+{{- end -}}
+
+{{/* Parse security/env/certificates_elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedCertificatesEnvFile" -}}
+{{- $root := . -}}
+{{- $certData := dict -}}
+{{- if $root.Values.certificatesEnvFile.raw -}}
+{{- $renderedCerts := tpl $root.Values.certificatesEnvFile.raw $root -}}
+{{- range $line := splitList "\n" $renderedCerts }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.certificatesEnvFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- $_ := set $certData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $certData }}
+{{- end -}}
+
 {{/* CSV of StatefulSet pod DNS names used for discovery.seed_hosts */}}
 {{- define "cogstack-opensearch.seedHosts" -}}
 {{- $fullname := include "cogstack-opensearch.fullname" . -}}

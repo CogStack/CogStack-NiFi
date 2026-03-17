@@ -1,25 +1,10 @@
 {{- if .Values.dashboards.enabled }}
-{{- $certData := dict -}}
-{{- if .Values.certificatesEnvFile.raw }}
-{{- $renderedCerts := tpl .Values.certificatesEnvFile.raw . -}}
-{{- range $line := splitList "\n" $renderedCerts }}
-  {{- $clean := trim (replace "\r" "" $line) -}}
-  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
-    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
-      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
-      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
-      {{- if has $key $.Values.certificatesEnvFile.includeKeys -}}
-        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
-          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
-        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
-          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
-        {{- end -}}
-        {{- $_ := set $certData $key $val -}}
-      {{- end -}}
-    {{- end -}}
-  {{- end -}}
-{{- end }}
-{{- end }}
+{{- $envData := include "cogstack-opensearch.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $certData := include "cogstack-opensearch.parsedCertificatesEnvFile" . | fromYaml | default (dict) -}}
+{{- $serverName := .Values.dashboards.serverName -}}
+{{- if hasKey $envData "KIBANA_SERVER_NAME" -}}
+{{- $serverName = index $envData "KIBANA_SERVER_NAME" -}}
+{{- end -}}
 {{- $dashboardsServerCert := .Values.certificates.dashboardsFiles.serverCert -}}
 {{- $dashboardsServerKey := .Values.certificates.dashboardsFiles.serverKey -}}
 {{- if hasKey $certData "ES_CLIENT_CERT_NAME" -}}
@@ -66,7 +51,7 @@ spec:
           {{- end }}
           env:
             - name: KIBANA_SERVER_NAME
-              value: {{ .Values.dashboards.serverName | quote }}
+              value: {{ $serverName | quote }}
             - name: ELASTICSEARCH_HOSTS
               value: {{ include "cogstack-opensearch.elasticsearchHostsJson" . | quote }}
             - name: KIBANA_USER

@@ -32,7 +32,42 @@ Set these in `values.yaml` for enabled components:
 Secret keys are mapped via:
 
 - `certificates.opensearchFiles.*` (if `opensearch.enabled=true`)
+- `certificates.opensearchNodeFiles[*]` for per-pod node cert/key selection (if `opensearch.enabled=true`)
 - `certificates.dashboardsFiles.*` (if `dashboards.enabled=true`)
+
+Repo-aligned certificate source paths:
+
+- OpenSearch shared certs:
+  - `security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem`
+  - `security/certificates/elastic/opensearch/admin.crt`
+  - `security/certificates/elastic/opensearch/admin.key.pem`
+- OpenSearch node certs:
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.crt`
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.key`
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.crt`
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.key`
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-3/elasticsearch-3.crt`
+  - `security/certificates/elastic/opensearch/elasticsearch/elasticsearch-3/elasticsearch-3.key`
+- Dashboards certs:
+  - `security/certificates/elastic/opensearch/es_kibana_client.pem`
+  - `security/certificates/elastic/opensearch/es_kibana_client.key`
+
+Example secret creation from the repo layout:
+
+```bash
+kubectl create secret generic opensearch-certs \
+  --from-file=elastic-stack-ca.crt.pem=./security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem \
+  --from-file=admin.crt=./security/certificates/elastic/opensearch/admin.crt \
+  --from-file=admin.key.pem=./security/certificates/elastic/opensearch/admin.key.pem \
+  --from-file=elasticsearch-1.crt=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.crt \
+  --from-file=elasticsearch-1.key=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-1/elasticsearch-1.key \
+  --from-file=elasticsearch-2.crt=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.crt \
+  --from-file=elasticsearch-2.key=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-2/elasticsearch-2.key \
+  --from-file=elasticsearch-3.crt=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-3/elasticsearch-3.crt \
+  --from-file=elasticsearch-3.key=./security/certificates/elastic/opensearch/elasticsearch/elasticsearch-3/elasticsearch-3.key \
+  --from-file=es_kibana_client.pem=./security/certificates/elastic/opensearch/es_kibana_client.pem \
+  --from-file=es_kibana_client.key=./security/certificates/elastic/opensearch/es_kibana_client.key
+```
 
 ## Install
 
@@ -88,6 +123,8 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 - `envFile.raw` can be set from `deploy/elasticsearch.env` and is loaded via `envFrom` into OpenSearch and Dashboards.
 - `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds the credentials Secret (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`).
 - `certificatesEnvFile.raw` can be set from `security/env/certificates_elasticsearch.env`; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
+- `deploy/elasticsearch.env` shared values are used where they make sense on Kubernetes (`ELASTICSEARCH_CLUSTER_NAME`, `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`), while pod IP and discovery hosts remain Kubernetes-specific.
+- By default, `certificates.opensearchNodeFiles[*]` maps pod ordinals `0/1/2` to repo-style node cert keys `elasticsearch-1/2/3`.
 - `configFiles.opensearchRaw` can be set from `services/elasticsearch/config/opensearch.yml`.
 - `configFiles.log4jRaw` can be set from `services/elasticsearch/config/log4j2_opensearch.properties`.
 - `configFiles.dashboardsRaw` can be set from `services/kibana/config/opensearch.yml`.
