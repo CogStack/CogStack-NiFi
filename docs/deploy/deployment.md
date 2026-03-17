@@ -70,6 +70,9 @@ Quick usage:
 ```bash
 # render manifests
 helm template cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -80,6 +83,9 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 
 # install or upgrade
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -91,6 +97,7 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 ```
 
 > The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
+> The `--set-file configFiles.*Raw=...` flags point Helm at the same OpenSearch and Dashboards config files used by Docker Compose.
 > The `--set-file envFile.raw=...` flag injects values from `deploy/elasticsearch.env` into pod environment variables.
 > The `--set-file usersEnvFile.raw=...` flag feeds credentials (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`) into the chart Secret.
 > The `--set-file certificatesEnvFile.raw=...` flag loads certificate metadata from `security/env/certificates_elasticsearch.env` (`ES_CLIENT_CERT_NAME` currently).

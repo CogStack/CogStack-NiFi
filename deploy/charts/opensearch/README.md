@@ -38,6 +38,9 @@ Secret keys are mapped via:
 
 ```bash
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -64,6 +67,9 @@ helm upgrade --install cogstack-dashboards ./deploy/charts/opensearch \
 
 ```bash
 helm template cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -75,10 +81,16 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 
 ## Notes
 
-- The chart packages current repository config files under `files/`.
+- Helm templates cannot read arbitrary `../../...` paths directly; `.Files.Get` only sees files packaged inside the chart.
+- In this repo, the chart `files/` entries are symlinked to the shared `services/` and `security/` sources so Docker and Kubernetes stay aligned.
+- The standard install/render commands still use `--set-file` explicitly to make the source-of-truth paths obvious at invocation time.
+- If you run Helm from `deploy/charts/opensearch`, the equivalent relative paths are `../../../services/...` and `../../../security/...`.
 - `envFile.raw` can be set from `deploy/elasticsearch.env` and is loaded via `envFrom` into OpenSearch and Dashboards.
 - `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds the credentials Secret (`OPENSEARCH_INITIAL_ADMIN_PASSWORD`, `KIBANA_USER`, `KIBANA_PASSWORD`).
 - `certificatesEnvFile.raw` can be set from `security/env/certificates_elasticsearch.env`; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
+- `configFiles.opensearchRaw` can be set from `services/elasticsearch/config/opensearch.yml`.
+- `configFiles.log4jRaw` can be set from `services/elasticsearch/config/log4j2_opensearch.properties`.
+- `configFiles.dashboardsRaw` can be set from `services/kibana/config/opensearch.yml`.
 - `securityFiles.*Raw` can be set from `security/es_roles/opensearch/*.yml` and overrides the chart-bundled OpenSearch security files.
 - Only keys listed in `envFile.includeKeys` are imported (to avoid leaking secrets from env files into ConfigMaps).
 - Review security and certificate settings before production use.

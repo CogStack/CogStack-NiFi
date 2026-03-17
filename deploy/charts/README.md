@@ -16,6 +16,9 @@ This directory contains Helm charts owned by this repository's deployment layer.
 ```bash
 # Render manifests
 helm template cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -26,6 +29,9 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 
 # Install/upgrade
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
+  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
+  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
+  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
   --set-file envFile.raw=./deploy/elasticsearch.env \
   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
@@ -36,4 +42,5 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
   --namespace cogstack --create-namespace
 ```
 
+The OpenSearch and Dashboards config files should come from `services/`, and the security files from `security/`, so Docker and Kubernetes use the same source files.
 Only keys in `envFile.includeKeys` and `usersEnvFile.includeKeys` are imported.

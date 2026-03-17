@@ -1,4 +1,6 @@
 {{- if .Values.opensearch.enabled }}
+{{- $opensearchConfigRaw := .Values.configFiles.opensearchRaw | default (.Files.Get "files/opensearch.yml") -}}
+{{- $log4jRaw := .Values.configFiles.log4jRaw | default (.Files.Get "files/log4j2.properties") -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,7 +9,7 @@ metadata:
     {{- include "cogstack-opensearch.labels" . | nindent 4 }}
 data:
   opensearch.yml: |
-{{ .Files.Get "files/opensearch.yml" | indent 4 }}
+{{ $opensearchConfigRaw | indent 4 }}
   log4j2.properties: |
-{{ .Files.Get "files/log4j2.properties" | indent 4 }}
+{{ $log4jRaw | indent 4 }}
 {{- end }}

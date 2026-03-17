@@ -1,6 +1,16 @@
 nameOverride: ""
 fullnameOverride: ""
 
+configFiles:
+  # Optional overrides. If empty, chart falls back to files/*.yml and files/log4j2.properties.
+  # Use:
+  #   --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml
+  #   --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties
+  #   --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml
+  opensearchRaw: ""
+  log4jRaw: ""
+  dashboardsRaw: ""
+
 envFile:
   # Pass deploy/elasticsearch.env via:
   #   --set-file envFile.raw=./deploy/elasticsearch.env

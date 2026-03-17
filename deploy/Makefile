@@ -11,11 +11,17 @@ REMOTE_SSH_KEY_ARG = $(if $(strip $(REMOTE_SSH_KEY)),-i $(REMOTE_SSH_KEY),)
 HELM_OPENSEARCH_RELEASE ?= cogstack-opensearch
 HELM_OPENSEARCH_NAMESPACE ?= cogstack
 HELM_OPENSEARCH_CHART ?= ./charts/opensearch
+HELM_OPENSEARCH_CONFIG_FILE ?= ../services/elasticsearch/config/opensearch.yml
+HELM_OPENSEARCH_LOG4J_FILE ?= ../services/elasticsearch/config/log4j2_opensearch.properties
+HELM_DASHBOARDS_CONFIG_FILE ?= ../services/kibana/config/opensearch.yml
 HELM_OPENSEARCH_ENV_FILE ?= ./elasticsearch.env
 HELM_OPENSEARCH_USERS_ENV_FILE ?= ../security/env/users_elasticsearch.env
 HELM_OPENSEARCH_CERTS_ENV_FILE ?= ../security/env/certificates_elasticsearch.env
 HELM_OPENSEARCH_SECURITY_DIR ?= ../security/es_roles/opensearch
-HELM_OPENSEARCH_SET_FILES = --set-file envFile.raw=$(HELM_OPENSEARCH_ENV_FILE) \
+HELM_OPENSEARCH_SET_FILES = --set-file configFiles.opensearchRaw=$(HELM_OPENSEARCH_CONFIG_FILE) \
+	--set-file configFiles.log4jRaw=$(HELM_OPENSEARCH_LOG4J_FILE) \
+	--set-file configFiles.dashboardsRaw=$(HELM_DASHBOARDS_CONFIG_FILE) \
+	--set-file envFile.raw=$(HELM_OPENSEARCH_ENV_FILE) \
 	--set-file usersEnvFile.raw=$(HELM_OPENSEARCH_USERS_ENV_FILE) \
 	--set-file certificatesEnvFile.raw=$(HELM_OPENSEARCH_CERTS_ENV_FILE) \
 	--set-file securityFiles.configRaw=$(HELM_OPENSEARCH_SECURITY_DIR)/config.yml \
@@ -83,10 +89,10 @@ load-env: ## Load variables from export_env_vars.sh in a subshell
 show-env: ## Print sorted environment variables after loading export_env_vars.sh
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
 
-helm-template-opensearch: ## Render OpenSearch chart using deploy/security env + opensearch role files
+helm-template-opensearch: ## Render OpenSearch chart using shared services/security config files
 	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_SET_FILES)
 
-helm-install-opensearch: ## Install/upgrade OpenSearch chart using deploy/security env + opensearch role files
+helm-install-opensearch: ## Install/upgrade OpenSearch chart using shared services/security config files
 	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_SET_FILES) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
 
 
