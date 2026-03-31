@@ -12,7 +12,8 @@ configFiles:
   dashboardsRaw: ""
 
 envFile:
-  # Pass deploy/elasticsearch.env via:
+  # Optional override. If empty, chart falls back to files/deploy-elasticsearch.envfile.
+  # Use:
   #   --set-file envFile.raw=./deploy/elasticsearch.env
   raw: ""
   # Only these shared values are read from deploy/elasticsearch.env.
@@ -24,7 +25,8 @@ envFile:
     - KIBANA_SERVER_NAME
 
 usersEnvFile:
-  # Pass security/env/users_elasticsearch.env via:
+  # Optional override. If empty, chart falls back to files/users-elasticsearch.envfile.
+  # Use:
   #   --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env
   raw: ""
   # Only these keys are imported into the credentials Secret.
@@ -34,7 +36,8 @@ usersEnvFile:
     - KIBANA_PASSWORD
 
 certificatesEnvFile:
-  # Pass security/env/certificates_elasticsearch.env via:
+  # Optional override. If empty, chart falls back to files/certificates-elasticsearch.envfile.
+  # Use:
   #   --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env
   raw: ""
   # Only keys listed here are imported from certificates env.

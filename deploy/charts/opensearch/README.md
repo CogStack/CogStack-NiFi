@@ -73,16 +73,7 @@ kubectl create secret generic opensearch-certs \
 
 ```bash
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
-  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
-  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
-  --set-file envFile.raw=./deploy/elasticsearch.env \
-  --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
-  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
-  --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
-  --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
-  --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
-  --set-file securityFiles.rolesMappingRaw=./security/es_roles/opensearch/roles_mapping.yml \
+  -f ./deploy/helm/opensearch.values.yaml \
   --namespace cogstack --create-namespace
 ```
 
@@ -102,27 +93,18 @@ helm upgrade --install cogstack-dashboards ./deploy/charts/opensearch \
 
 ```bash
 helm template cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
-  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
-  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
-  --set-file envFile.raw=./deploy/elasticsearch.env \
-  --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
-  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
-  --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
-  --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
-  --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
-  --set-file securityFiles.rolesMappingRaw=./security/es_roles/opensearch/roles_mapping.yml
+  -f ./deploy/helm/opensearch.values.yaml
 ```
 
 ## Notes
 
 - Helm templates cannot read arbitrary `../../...` paths directly; `.Files.Get` only sees files packaged inside the chart.
-- In this repo, the chart `files/` entries are symlinked to the shared `services/` and `security/` sources so Docker and Kubernetes stay aligned.
-- The standard install/render commands still use `--set-file` explicitly to make the source-of-truth paths obvious at invocation time.
-- If you run Helm from `deploy/charts/opensearch`, the equivalent relative paths are `../../../services/...` and `../../../security/...`.
-- `envFile.raw` can be set from `deploy/elasticsearch.env`; the chart reads shared values from it (`ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`) and still generates Kubernetes-specific discovery and publish-host settings itself.
-- `usersEnvFile.raw` can be set from `security/env/users_elasticsearch.env` and feeds only the credential keys required by the enabled components.
-- `certificatesEnvFile.raw` can be set from `security/env/certificates_elasticsearch.env`; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
+- In this repo, the chart `files/` entries are symlinked to the shared `deploy/`, `services/`, and `security/` sources so Docker and Kubernetes stay aligned.
+- The standard install/render commands now use `-f ./deploy/helm/opensearch.values.yaml`; that file is for cluster-specific overrides only.
+- The shared `services/`, `security/`, and selected `deploy/` env files are consumed automatically by the chart defaults; you do not need to repeat those paths in the values file.
+- `envFile.raw` defaults to `deploy/elasticsearch.env` and can still be overridden; the chart reads only `ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, and `KIBANA_SERVER_NAME`, while pod IP and discovery hosts remain Kubernetes-specific.
+- `usersEnvFile.raw` defaults to `security/env/users_elasticsearch.env` and can still be overridden; only the credential keys required by the enabled components are imported.
+- `certificatesEnvFile.raw` defaults to `security/env/certificates_elasticsearch.env` and can still be overridden; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
 - `deploy/elasticsearch.env` shared values are used where they make sense on Kubernetes (`ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`), while pod IP and discovery hosts remain Kubernetes-specific.
 - By default, `certificates.opensearchNodeFiles[*]` maps pod ordinals `0/1/2` to repo-style node cert keys `elasticsearch-1/2/3`.
 - `opensearch.logPersistence` and `opensearch.performanceAnalyzerPersistence` default to PVC-backed storage to stay closer to the Docker Compose deployment.

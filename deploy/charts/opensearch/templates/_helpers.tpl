@@ -77,8 +77,9 @@ app.kubernetes.io/component: dashboards
 {{- define "cogstack-opensearch.parsedEnvFile" -}}
 {{- $root := . -}}
 {{- $envData := dict -}}
-{{- if $root.Values.envFile.raw -}}
-{{- $renderedEnv := tpl $root.Values.envFile.raw $root -}}
+{{- $rawEnv := $root.Values.envFile.raw | default ($root.Files.Get "files/deploy-elasticsearch.envfile") -}}
+{{- if $rawEnv -}}
+{{- $renderedEnv := tpl $rawEnv $root -}}
 {{- range $line := splitList "\n" $renderedEnv }}
   {{- $clean := trim (replace "\r" "" $line) -}}
   {{- if and $clean (not (hasPrefix "#" $clean)) -}}
@@ -110,8 +111,9 @@ app.kubernetes.io/component: dashboards
 {{- define "cogstack-opensearch.parsedUsersEnvFile" -}}
 {{- $root := . -}}
 {{- $usersData := dict -}}
-{{- if $root.Values.usersEnvFile.raw -}}
-{{- $renderedUsers := tpl $root.Values.usersEnvFile.raw $root -}}
+{{- $rawUsers := $root.Values.usersEnvFile.raw | default ($root.Files.Get "files/users-elasticsearch.envfile") -}}
+{{- if $rawUsers -}}
+{{- $renderedUsers := tpl $rawUsers $root -}}
 {{- range $line := splitList "\n" $renderedUsers }}
   {{- $clean := trim (replace "\r" "" $line) -}}
   {{- if and $clean (not (hasPrefix "#" $clean)) -}}
@@ -137,8 +139,9 @@ app.kubernetes.io/component: dashboards
 {{- define "cogstack-opensearch.parsedCertificatesEnvFile" -}}
 {{- $root := . -}}
 {{- $certData := dict -}}
-{{- if $root.Values.certificatesEnvFile.raw -}}
-{{- $renderedCerts := tpl $root.Values.certificatesEnvFile.raw $root -}}
+{{- $rawCerts := $root.Values.certificatesEnvFile.raw | default ($root.Files.Get "files/certificates-elasticsearch.envfile") -}}
+{{- if $rawCerts -}}
+{{- $renderedCerts := tpl $rawCerts $root -}}
 {{- range $line := splitList "\n" $renderedCerts }}
   {{- $clean := trim (replace "\r" "" $line) -}}
   {{- if and $clean (not (hasPrefix "#" $clean)) -}}

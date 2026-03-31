@@ -70,38 +70,17 @@ Quick usage:
 ```bash
 # render manifests
 helm template cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
-  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
-  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
-  --set-file envFile.raw=./deploy/elasticsearch.env \
-  --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
-  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
-  --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
-  --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
-  --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
-  --set-file securityFiles.rolesMappingRaw=./security/es_roles/opensearch/roles_mapping.yml
+  -f ./deploy/helm/opensearch.values.yaml
 
 # install or upgrade
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file configFiles.opensearchRaw=./services/elasticsearch/config/opensearch.yml \
-  --set-file configFiles.log4jRaw=./services/elasticsearch/config/log4j2_opensearch.properties \
-  --set-file configFiles.dashboardsRaw=./services/kibana/config/opensearch.yml \
-  --set-file envFile.raw=./deploy/elasticsearch.env \
-  --set-file usersEnvFile.raw=./security/env/users_elasticsearch.env \
-  --set-file certificatesEnvFile.raw=./security/env/certificates_elasticsearch.env \
-  --set-file securityFiles.configRaw=./security/es_roles/opensearch/config.yml \
-  --set-file securityFiles.internalUsersRaw=./security/es_roles/opensearch/internal_users.yml \
-  --set-file securityFiles.rolesRaw=./security/es_roles/opensearch/roles.yml \
-  --set-file securityFiles.rolesMappingRaw=./security/es_roles/opensearch/roles_mapping.yml \
+  -f ./deploy/helm/opensearch.values.yaml \
   --namespace cogstack --create-namespace
 ```
 
 > The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
-> The `--set-file configFiles.*Raw=...` flags point Helm at the same OpenSearch and Dashboards config files used by Docker Compose.
-> The `--set-file envFile.raw=...` flag lets the chart read shared values from `deploy/elasticsearch.env` while still generating Kubernetes-specific discovery and publish-host settings itself.
-> The `--set-file usersEnvFile.raw=...` flag feeds only the credential keys required by the enabled chart components into the chart Secret.
-> The `--set-file certificatesEnvFile.raw=...` flag loads certificate metadata from `security/env/certificates_elasticsearch.env` (`ES_CLIENT_CERT_NAME` currently).
-> The `--set-file securityFiles.*Raw=...` flags use `security/es_roles/opensearch/*.yml` as the source of OpenSearch security config.
+> The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
+> The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
 
 ## 🧰 Makefile Command Overview
 
