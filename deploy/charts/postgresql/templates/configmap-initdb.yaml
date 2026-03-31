@@ -1,0 +1,16 @@
+{{- if .Values.cluster.enabled }}
+{{- $sqlFiles := .Files.Glob "files/initdb/*.sql" -}}
+{{- if $sqlFiles }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cogstack-postgresql.initdbConfigMapName" . }}
+  labels:
+    {{- include "cogstack-postgresql.labels" . | nindent 4 }}
+data:
+  {{- range $path, $_ := $sqlFiles }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

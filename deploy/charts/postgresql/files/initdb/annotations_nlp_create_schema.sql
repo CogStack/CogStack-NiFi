@@ -1,0 +1,1 @@
+../../../../../services/cogstack-db/pgsql/schemas/annotations_nlp_create_schema.sql

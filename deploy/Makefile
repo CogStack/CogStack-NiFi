@@ -13,6 +13,14 @@ HELM_OPENSEARCH_NAMESPACE ?= cogstack
 HELM_OPENSEARCH_CHART ?= ./charts/opensearch
 HELM_OPENSEARCH_VALUES_FILE ?= ./helm/opensearch.values.yaml
 HELM_OPENSEARCH_VALUES_ARG = -f $(HELM_OPENSEARCH_VALUES_FILE)
+HELM_POSTGRESQL_RELEASE ?= cogstack-postgresql
+HELM_POSTGRESQL_NAMESPACE ?= cogstack
+HELM_POSTGRESQL_CHART ?= ./charts/postgresql
+HELM_POSTGRESQL_VALUES_FILE ?= ./helm/postgresql.values.yaml
+HELM_POSTGRESQL_VALUES_ARG = -f $(HELM_POSTGRESQL_VALUES_FILE)
+CNPG_OPERATOR_MINOR ?= 1.28
+CNPG_OPERATOR_VERSION ?= 1.28.1
+CNPG_OPERATOR_MANIFEST ?= https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$(CNPG_OPERATOR_MINOR)/releases/cnpg-$(CNPG_OPERATOR_VERSION).yaml
 
 define WITH_ENV
 set -a && source ./export_env_vars.sh;
@@ -80,6 +88,15 @@ helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus .
 helm-install-opensearch: ## Install/upgrade OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
 	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
 
+kube-install-cnpg-operator: ## Install CloudNativePG operator/CRDs from the pinned upstream manifest
+	kubectl apply --server-side -f $(CNPG_OPERATOR_MANIFEST)
+
+helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
+	helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE)
+
+helm-install-postgresql: ## Install/upgrade CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
+	helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace
+
 
 remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose
 remote-deploy-service: _check-remote-params
@@ -107,7 +124,7 @@ _check-remote-params:
 		exit 1; \
 	fi
 
-.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-postgresql helm-install-postgresql
 	
 # start services
 

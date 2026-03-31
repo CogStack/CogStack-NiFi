@@ -10,6 +10,7 @@ This directory contains Helm charts owned by this repository's deployment layer.
 ## Current charts
 
 - `opensearch/` - OpenSearch and/or OpenSearch Dashboards chart used by this repo.
+- `postgresql/` - CloudNativePG-backed PostgreSQL cluster chart used by this repo.
 
 ## Quick usage
 
