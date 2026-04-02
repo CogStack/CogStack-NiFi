@@ -18,6 +18,14 @@ HELM_POSTGRESQL_NAMESPACE ?= cogstack
 HELM_POSTGRESQL_CHART ?= ./charts/postgresql
 HELM_POSTGRESQL_VALUES_FILE ?= ./helm/postgresql.values.yaml
 HELM_POSTGRESQL_VALUES_ARG = -f $(HELM_POSTGRESQL_VALUES_FILE)
+HELM_GITEA_RELEASE ?= cogstack-gitea
+HELM_GITEA_NAMESPACE ?= cogstack
+HELM_GITEA_REPO_NAME ?= gitea-charts
+HELM_GITEA_REPO_URL ?= https://dl.gitea.com/charts/
+HELM_GITEA_CHART ?= $(HELM_GITEA_REPO_NAME)/gitea
+HELM_GITEA_CHART_VERSION ?= 12.5.0
+HELM_GITEA_VALUES_FILE ?= ./helm/gitea.values.yaml
+HELM_GITEA_VALUES_ARG = -f $(HELM_GITEA_VALUES_FILE)
 CNPG_OPERATOR_MINOR ?= 1.28
 CNPG_OPERATOR_VERSION ?= 1.28.1
 CNPG_OPERATOR_MANIFEST ?= https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$(CNPG_OPERATOR_MINOR)/releases/cnpg-$(CNPG_OPERATOR_VERSION).yaml
@@ -97,6 +105,18 @@ helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart d
 helm-install-postgresql: ## Install/upgrade CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
 	helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace
 
+helm-repo-add-gitea: ## Add/update the official Gitea Helm repository
+	@if ! helm repo list | awk '$$1 == "$(HELM_GITEA_REPO_NAME)" { found=1 } END { exit !found }'; then \
+		helm repo add $(HELM_GITEA_REPO_NAME) $(HELM_GITEA_REPO_URL); \
+	fi
+	helm repo update $(HELM_GITEA_REPO_NAME)
+
+helm-template-gitea: helm-repo-add-gitea ## Render the official Gitea chart using ./helm/gitea.values.yaml
+	helm template $(HELM_GITEA_RELEASE) $(HELM_GITEA_CHART) --version $(HELM_GITEA_CHART_VERSION) $(HELM_GITEA_VALUES_ARG) --namespace $(HELM_GITEA_NAMESPACE)
+
+helm-install-gitea: helm-repo-add-gitea ## Install/upgrade the official Gitea chart using ./helm/gitea.values.yaml
+	helm upgrade --install $(HELM_GITEA_RELEASE) $(HELM_GITEA_CHART) --version $(HELM_GITEA_CHART_VERSION) $(HELM_GITEA_VALUES_ARG) --namespace $(HELM_GITEA_NAMESPACE) --create-namespace
+
 
 remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose
 remote-deploy-service: _check-remote-params
@@ -124,7 +144,7 @@ _check-remote-params:
 		exit 1; \
 	fi
 
-.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-postgresql helm-install-postgresql
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
 	
 # start services
 

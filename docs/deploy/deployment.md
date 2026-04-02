@@ -82,6 +82,41 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 > The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
 > The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
 
+## ⎈ Helm (GitEA / Gitea)
+
+GitEA can be deployed with the official Gitea Helm chart. The Makefile adds the
+upstream repo automatically and pins a chart version for reproducible installs.
+
+Quick usage:
+
+```bash
+# render manifests
+make -C deploy helm-template-gitea
+
+# install or upgrade
+make -C deploy helm-install-gitea
+```
+
+Key defaults live in:
+
+```bash
+./deploy/helm/gitea.values.yaml
+```
+
+Current defaults keep the Helm deployment close to the existing Docker Compose
+service:
+
+- single replica
+- embedded SQLite
+- bundled PostgreSQL/Valkey disabled
+- ClusterIP services on ports `3000` and `2222`
+- direct HTTPS inside the Gitea pod using the shared root CA
+
+Before install, create:
+
+- `gitea-root-ca` Secret with `root-ca.pem` and `root-ca.key` from `security/certificates/root/`
+- optionally `gitea-admin-credentials` with `username` and `password` if you want Helm to bootstrap an admin user
+
 ## 🧰 Makefile Command Overview
 
 A concise reference for controlling the full CogStack deployment stack (NiFi, Elasticsearch, JupyterHub, MedCAT, OCR-service, GitEA, Beats, DB, etc.).  
