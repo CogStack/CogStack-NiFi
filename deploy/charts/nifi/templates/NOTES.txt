@@ -1,0 +1,16 @@
+NiFi has been rendered for release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+Service:
+  {{ include "cogstack-nifi.serviceName" . }}:{{ .Values.service.httpsPort }}
+
+Default local access:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "cogstack-nifi.serviceName" . }} 8443:{{ .Values.service.httpsPort }}
+  https://localhost:8443{{ .Values.nifi.web.proxyContextPath }}
+
+Required TLS Secret:
+  {{ .Values.certificates.existingSecret }}
+
+Create it from the repo defaults before install if it does not already exist:
+  kubectl -n {{ .Release.Namespace }} create secret generic {{ .Values.certificates.existingSecret }} \
+    --from-file={{ .Values.certificates.files.keystore }}=./security/certificates/nifi/{{ .Values.certificates.files.keystore }} \
+    --from-file={{ .Values.certificates.files.truststore }}=./security/certificates/nifi/{{ .Values.certificates.files.truststore }}

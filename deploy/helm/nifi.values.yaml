@@ -1,0 +1,32 @@
+# Cluster-specific overrides for the NiFi Helm chart.
+#
+# The chart bootstraps NiFi conf, drivers, schemas, user scripts, and Python
+# extensions from the custom CogStack NiFi image. Keep this file focused on
+# cluster-specific overrides such as storage classes, ingress, certificates,
+# image tags, and replica counts.
+
+certificates:
+  existingSecret: nifi-certs
+
+# Example storage override:
+# persistence:
+#   storageClassName: standard
+
+# For a clustered NiFi deployment, first review certs and authorizers:
+# replicaCount: 3
+# nifi:
+#   cluster:
+#     enabled: true
+
+# Example ingress:
+# ingress:
+#   enabled: true
+#   className: nginx
+#   annotations:
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#     nginx.ingress.kubernetes.io/affinity: cookie
+#   hosts:
+#     - host: nifi.example.org
+#       paths:
+#         - path: /nifi
+#           pathType: Prefix

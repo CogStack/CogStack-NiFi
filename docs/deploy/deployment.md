@@ -57,6 +57,52 @@ This design allows each service to be:
 - NiFi-specific configuration (properties, custom processors, drivers, Python scripts, etc.) is under:  
   [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/)
 
+## ⎈ Helm (NiFi)
+
+A default Helm chart for the customised CogStack NiFi image is available at:
+
+```bash
+./deploy/charts/nifi
+```
+
+Quick usage:
+
+```bash
+# render manifests
+make -C deploy helm-template-nifi
+
+# install or upgrade
+make -C deploy helm-install-nifi
+```
+
+Key defaults live in:
+
+```bash
+./deploy/helm/nifi.values.yaml
+```
+
+Before install, create a NiFi TLS Secret from the repo-generated keystore and truststore:
+
+```bash
+kubectl create namespace cogstack --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl -n cogstack create secret generic nifi-certs \
+  --from-file=nifi-keystore.jks=./security/certificates/nifi/nifi-keystore.jks \
+  --from-file=nifi-truststore.jks=./security/certificates/nifi/nifi-truststore.jks \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Current defaults keep the deployment conservative:
+
+- single NiFi replica
+- TLS on port `8443`
+- `/nifi` proxy context path
+- per-pod PVCs for NiFi configuration, logs, repositories, state, Python working directories, and flowfile error output
+- runtime config/assets bootstrapped from the custom CogStack NiFi image into writable volumes
+- Kubernetes Lease/ConfigMap clustering support available but disabled by default
+
+For clustered NiFi, set `replicaCount > 1` and `nifi.cluster.enabled=true` only after reviewing certificate and authorizer configuration. The repo defaults use single-user authentication and a shared NiFi certificate, which are appropriate for a default single-node deployment rather than a production NiFi cluster.
+
 ## ⎈ Helm (OpenSearch)
 
 An initial Helm chart for OpenSearch + OpenSearch Dashboards is available at:

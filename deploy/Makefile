@@ -18,6 +18,11 @@ HELM_POSTGRESQL_NAMESPACE ?= cogstack
 HELM_POSTGRESQL_CHART ?= ./charts/postgresql
 HELM_POSTGRESQL_VALUES_FILE ?= ./helm/postgresql.values.yaml
 HELM_POSTGRESQL_VALUES_ARG = -f $(HELM_POSTGRESQL_VALUES_FILE)
+HELM_NIFI_RELEASE ?= cogstack-nifi
+HELM_NIFI_NAMESPACE ?= cogstack
+HELM_NIFI_CHART ?= ./charts/nifi
+HELM_NIFI_VALUES_FILE ?= ./helm/nifi.values.yaml
+HELM_NIFI_VALUES_ARG = -f $(HELM_NIFI_VALUES_FILE)
 HELM_GITEA_RELEASE ?= cogstack-gitea
 HELM_GITEA_NAMESPACE ?= cogstack
 HELM_GITEA_REPO_NAME ?= gitea-charts
@@ -99,6 +104,12 @@ helm-install-opensearch: ## Install/upgrade OpenSearch chart using chart default
 kube-install-cnpg-operator: ## Install CloudNativePG operator/CRDs from the pinned upstream manifest
 	kubectl apply --server-side -f $(CNPG_OPERATOR_MANIFEST)
 
+helm-template-nifi: ## Render CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
+	helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE)
+
+helm-install-nifi: ## Install/upgrade CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
+	helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace
+
 helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
 	helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE)
 
@@ -144,7 +155,7 @@ _check-remote-params:
 		exit 1; \
 	fi
 
-.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-nifi helm-install-nifi helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
 	
 # start services
 

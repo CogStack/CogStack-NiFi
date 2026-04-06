@@ -1,0 +1,43 @@
+{{- if and .Values.rbac.create .Values.nifi.cluster.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cogstack-nifi.fullname" . }}
+  labels:
+    {{- include "cogstack-nifi.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cogstack-nifi.fullname" . }}
+  labels:
+    {{- include "cogstack-nifi.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cogstack-nifi.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "cogstack-nifi.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

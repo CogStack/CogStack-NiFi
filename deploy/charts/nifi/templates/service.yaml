@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cogstack-nifi.serviceName" . }}
+  labels:
+    {{- include "cogstack-nifi.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  {{- end }}
+  ports:
+    - name: https
+      port: {{ .Values.service.httpsPort }}
+      targetPort: https
+      protocol: TCP
+    - name: site-to-site
+      port: {{ .Values.service.siteToSitePort }}
+      targetPort: site-to-site
+      protocol: TCP
+  selector:
+    {{- include "cogstack-nifi.selectorLabels" . | nindent 4 }}

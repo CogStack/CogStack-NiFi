@@ -1,0 +1,180 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: cogstacksystems/cogstack-nifi
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+
+initSecurityContext: {}
+
+resources:
+  requests:
+    cpu: "1"
+    memory: 1Gi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+terminationGracePeriodSeconds: 120
+
+nifi:
+  home: /opt/nifi/nifi-current
+  bootstrapFromImage:
+    enabled: true
+    # The CogStack image keeps the repository NiFi assets here because the Dockerfile
+    # copies the local nifi/ package before installing it.
+    sourceRoot: /tmp/cogstack_nifi/nifi
+    # Keep false for normal persistent deployments. Set true to refresh conf/scripts
+    # from a new image when you are prepared to overwrite runtime edits in the PVCs.
+    overwriteExistingConfig: false
+    overwriteExistingResources: false
+  sensitivePropsKey: cogstackNiFipass
+  jvm:
+    heapInit: 768m
+    heapMax: 1g
+  web:
+    httpsPort: 8443
+    proxyContextPath: /nifi
+    proxyHost: localhost:8443
+    additionalProxyHosts: []
+  remoteInput:
+    socketPort: 10000
+  python:
+    frameworkSourceDirectory: /opt/nifi/nifi-current/python/framework
+    extensionsSourceDirectory: /opt/nifi/nifi-current/python_extensions
+    workingDirectory: /opt/nifi/user_scripts
+  security:
+    authorizer: single-user-authorizer
+    loginIdentityProvider: single-user-provider
+    keystoreType: JKS
+    truststoreType: JKS
+    keystorePassword: cogstackNifi
+    keyPassword: cogstackNifi
+    truststorePassword: cogstackNifi
+  cluster:
+    enabled: false
+    nodeProtocolPort: 11443
+    loadBalancePort: 6342
+    leasePrefix: ""
+    configMapNamePrefix: ""
+    flowElectionMaxWaitTime: "5 mins"
+    flowElectionMaxCandidates: ""
+
+certificates:
+  enabled: true
+  existingSecret: nifi-certs
+  mountPath: /security/certificates/nifi
+  files:
+    keystore: nifi-keystore.jks
+    truststore: nifi-truststore.jks
+
+service:
+  type: ClusterIP
+  httpsPort: 8443
+  siteToSitePort: 10000
+  annotations: {}
+  sessionAffinity: ClientIP
+
+headlessService:
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: nifi.local
+      paths:
+        - path: /nifi
+          pathType: Prefix
+  tls: []
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  conf:
+    enabled: true
+    size: 1Gi
+    storageClassName: ""
+  logs:
+    enabled: true
+    size: 10Gi
+    storageClassName: ""
+  provenance:
+    enabled: true
+    size: 20Gi
+    storageClassName: ""
+  database:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  flowfile:
+    enabled: true
+    size: 20Gi
+    storageClassName: ""
+  content:
+    enabled: true
+    size: 50Gi
+    storageClassName: ""
+  state:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  flowfileErrors:
+    enabled: true
+    size: 10Gi
+    storageClassName: ""
+  userScripts:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  pythonExtensions:
+    enabled: true
+    size: 1Gi
+    storageClassName: ""
+
+dataVolume:
+  enabled: true
+  mountPath: /data
+  existingClaim: ""
+  emptyDir: {}
+
+modelsVolume:
+  enabled: false
+  mountPath: /opt/models
+  existingClaim: ""
+  emptyDir: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
