@@ -26,7 +26,13 @@ Generated `user_scripts/extensions/` virtualenv content is not copied from the i
 
 ## Required TLS Secret
 
-Create a Kubernetes Secret containing the NiFi keystore and truststore before installing:
+The chart reads selected defaults from:
+
+- `deploy/nifi.env`
+- `security/env/certificates_nifi.env`
+- `security/env/users_nifi.env`
+
+Create a Kubernetes Secret containing the NiFi keystore and truststore files before installing:
 
 ```bash
 kubectl create namespace cogstack --dry-run=client -o yaml | kubectl apply -f -
@@ -37,6 +43,10 @@ kubectl -n cogstack create secret generic nifi-certs \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
+By default, the chart generates a separate sensitive-config Secret from `security/env/certificates_nifi.env` and `security/env/users_nifi.env`. That Secret contains the keystore/truststore passwords, `nifi.sensitive.props.key`, and single-user credentials. Do not bake these values into images.
+
+For production, if you do not want these sensitive values rendered into Helm manifests and stored in Helm release metadata, pre-create the sensitive-config Secret and set `sensitiveConfig.create=false` plus `sensitiveConfig.existingSecret=<secret-name>`.
+
 If you use different key names, update:
 
 ```yaml
@@ -45,6 +55,16 @@ certificates:
   files:
     keystore: nifi-keystore.jks
     truststore: nifi-truststore.jks
+sensitiveConfig:
+  create: true
+  existingSecret: ""
+  keys:
+    sensitivePropsKey: nifi-sensitive-props-key
+    keystorePassword: nifi-keystore-password
+    keyPassword: nifi-key-password
+    truststorePassword: nifi-truststore-password
+    singleUserUsername: nifi-single-user-username
+    singleUserPassword: nifi-single-user-password
 ```
 
 ## Install
@@ -96,4 +116,4 @@ Before using cluster mode in production, also review the NiFi authentication and
 - `nifi.bootstrapFromImage.overwriteExistingConfig` defaults to `false`, so chart upgrades do not overwrite an existing config PVC. Set it to `true` only when you intentionally want to refresh config from the image.
 - `nifi.bootstrapFromImage.overwriteExistingResources` controls refreshes for drivers, schemas, user scripts, and Python extensions.
 - The service uses `sessionAffinity: ClientIP` by default. If you expose clustered NiFi through an Ingress, configure sticky sessions at the Ingress/load-balancer layer too.
-- The default chart values keep the TLS keystore and truststore passwords aligned with `security/env/certificates_nifi.env`.
+- TLS files, TLS passwords, `nifi.sensitive.props.key`, and single-user credentials are read from Kubernetes Secret data, not from the image.

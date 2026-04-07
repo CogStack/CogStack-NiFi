@@ -81,7 +81,9 @@ Key defaults live in:
 ./deploy/helm/nifi.values.yaml
 ```
 
-Before install, create a NiFi TLS Secret from the repo-generated keystore and truststore:
+The chart reads selected defaults from `deploy/nifi.env`, `security/env/certificates_nifi.env`, and `security/env/users_nifi.env`.
+
+Before install, create a NiFi TLS Secret from the repo-generated keystore and truststore files. The chart generates a separate sensitive-config Secret from the security env files for the keystore/truststore passwords, `nifi.sensitive.props.key`, and single-user credentials:
 
 ```bash
 kubectl create namespace cogstack --dry-run=client -o yaml | kubectl apply -f -
@@ -91,6 +93,8 @@ kubectl -n cogstack create secret generic nifi-certs \
   --from-file=nifi-truststore.jks=./security/certificates/nifi/nifi-truststore.jks \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
+
+For production, pre-create the sensitive-config Secret and set `sensitiveConfig.create=false` plus `sensitiveConfig.existingSecret=<secret-name>` if you do not want sensitive values rendered into Helm manifests and release metadata.
 
 Current defaults keep the deployment conservative:
 

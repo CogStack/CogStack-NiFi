@@ -8,6 +8,50 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+envFile:
+  # Optional override. If empty, chart falls back to files/deploy-nifi.envfile.
+  # Only the allow-listed keys below are imported from deploy/nifi.env.
+  raw: ""
+  includeKeys:
+    - NIFI_DOCKER_IMAGE
+    - NIFI_DOCKER_CPU_MIN
+    - NIFI_DOCKER_CPU_MAX
+    - NIFI_DOCKER_RAM
+    - NIFI_JVM_OPTS
+    - NIFI_JVM_HEAP_INIT
+    - NIFI_JVM_HEAP_MAX
+    - NIFI_WEB_PROXY_CONTEXT_PATH
+    - NIFI_WEB_PROXY_HOST
+    - NIFI_INTERNAL_PORT
+    - NIFI_INPUT_SOCKET_PORT
+    - NIFI_UID
+    - NIFI_GID
+    - NIFI_KEYSTORE_PATH
+    - NIFI_TRUSTSTORE_PATH
+    - NIFI_KEYSTORE_TYPE
+    - NIFI_TRUSTSTORE_TYPE
+    - NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY
+    - NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT
+    - NIFI_PYTHON_WORKING_DIRECTORY
+    - NIFI_PYTHONPATH
+    - NIFI_LOG_LEVEL
+
+certificatesEnvFile:
+  # Optional override. If empty, chart falls back to files/certificates-nifi.envfile.
+  raw: ""
+  includeKeys:
+    - NIFI_KEYSTORE_PASSWORD
+    - NIFI_KEY_PASSWORD
+    - NIFI_TRUSTSTORE_PASSWORD
+    - NIFI_SENSITIVE_PROPS_KEY
+
+usersEnvFile:
+  # Optional override. If empty, chart falls back to files/users-nifi.envfile.
+  raw: ""
+  includeKeys:
+    - NIFI_SINGLE_USER_CREDENTIALS_USERNAME
+    - NIFI_SINGLE_USER_CREDENTIALS_PASSWORD
+
 imagePullSecrets: []
 
 serviceAccount:
@@ -52,7 +96,6 @@ nifi:
     # from a new image when you are prepared to overwrite runtime edits in the PVCs.
     overwriteExistingConfig: false
     overwriteExistingResources: false
-  sensitivePropsKey: cogstackNiFipass
   jvm:
     heapInit: 768m
     heapMax: 1g
@@ -72,9 +115,6 @@ nifi:
     loginIdentityProvider: single-user-provider
     keystoreType: JKS
     truststoreType: JKS
-    keystorePassword: cogstackNifi
-    keyPassword: cogstackNifi
-    truststorePassword: cogstackNifi
   cluster:
     enabled: false
     nodeProtocolPort: 11443
@@ -91,6 +131,19 @@ certificates:
   files:
     keystore: nifi-keystore.jks
     truststore: nifi-truststore.jks
+
+sensitiveConfig:
+  # Keep TLS passwords and nifi.sensitive.props.key in Kubernetes Secret data,
+  # not in chart values and not in container images.
+  create: true
+  existingSecret: ""
+  keys:
+    sensitivePropsKey: nifi-sensitive-props-key
+    keystorePassword: nifi-keystore-password
+    keyPassword: nifi-key-password
+    truststorePassword: nifi-truststore-password
+    singleUserUsername: nifi-single-user-username
+    singleUserPassword: nifi-single-user-password
 
 service:
   type: ClusterIP

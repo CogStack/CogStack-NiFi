@@ -4,6 +4,9 @@
 # extensions from the custom CogStack NiFi image. Keep this file focused on
 # cluster-specific overrides such as storage classes, ingress, certificates,
 # image tags, and replica counts.
+#
+# Shared NiFi env defaults are consumed automatically from deploy/nifi.env,
+# security/env/certificates_nifi.env, and security/env/users_nifi.env.
 
 certificates:
   existingSecret: nifi-certs

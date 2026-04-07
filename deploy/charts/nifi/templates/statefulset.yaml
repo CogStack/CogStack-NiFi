@@ -1,6 +1,104 @@
 {{- if and (gt (int .Values.replicaCount) 1) (not .Values.nifi.cluster.enabled) -}}
 {{- fail "nifi.cluster.enabled must be true when replicaCount is greater than 1" -}}
 {{- end -}}
+{{- $envData := include "cogstack-nifi.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $imageRepository := .Values.image.repository -}}
+{{- $imageTag := .Values.image.tag -}}
+{{- if hasKey $envData "NIFI_DOCKER_IMAGE" -}}
+{{- $image := index $envData "NIFI_DOCKER_IMAGE" -}}
+{{- $repoWithoutTag := regexReplaceAll ":[^:/]+$" $image "" -}}
+{{- if ne $repoWithoutTag $image -}}
+{{- $imageRepository = $repoWithoutTag -}}
+{{- $imageTag = regexFind "[^:]+$" $image -}}
+{{- else -}}
+{{- $imageRepository = $image -}}
+{{- end -}}
+{{- end -}}
+{{- $nifiHome := .Values.nifi.home -}}
+{{- $httpsPort := int .Values.nifi.web.httpsPort -}}
+{{- if hasKey $envData "NIFI_INTERNAL_PORT" -}}
+{{- $httpsPort = int (index $envData "NIFI_INTERNAL_PORT") -}}
+{{- end -}}
+{{- $siteToSitePort := int .Values.nifi.remoteInput.socketPort -}}
+{{- if hasKey $envData "NIFI_INPUT_SOCKET_PORT" -}}
+{{- $siteToSitePort = int (index $envData "NIFI_INPUT_SOCKET_PORT") -}}
+{{- end -}}
+{{- $proxyContextPath := .Values.nifi.web.proxyContextPath -}}
+{{- if hasKey $envData "NIFI_WEB_PROXY_CONTEXT_PATH" -}}
+{{- $proxyContextPath = index $envData "NIFI_WEB_PROXY_CONTEXT_PATH" -}}
+{{- end -}}
+{{- $keystorePath := printf "%s/%s" .Values.certificates.mountPath .Values.certificates.files.keystore -}}
+{{- if hasKey $envData "NIFI_KEYSTORE_PATH" -}}
+{{- $keystorePath = index $envData "NIFI_KEYSTORE_PATH" -}}
+{{- end -}}
+{{- $truststorePath := printf "%s/%s" .Values.certificates.mountPath .Values.certificates.files.truststore -}}
+{{- if hasKey $envData "NIFI_TRUSTSTORE_PATH" -}}
+{{- $truststorePath = index $envData "NIFI_TRUSTSTORE_PATH" -}}
+{{- end -}}
+{{- $keystoreType := .Values.nifi.security.keystoreType -}}
+{{- if hasKey $envData "NIFI_KEYSTORE_TYPE" -}}
+{{- $keystoreType = index $envData "NIFI_KEYSTORE_TYPE" -}}
+{{- end -}}
+{{- $truststoreType := .Values.nifi.security.truststoreType -}}
+{{- if hasKey $envData "NIFI_TRUSTSTORE_TYPE" -}}
+{{- $truststoreType = index $envData "NIFI_TRUSTSTORE_TYPE" -}}
+{{- end -}}
+{{- $pythonFrameworkDir := .Values.nifi.python.frameworkSourceDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY" -}}
+{{- $pythonFrameworkDir = index $envData "NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY" -}}
+{{- end -}}
+{{- $pythonExtensionsDir := .Values.nifi.python.extensionsSourceDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT" -}}
+{{- $pythonExtensionsDir = index $envData "NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT" -}}
+{{- end -}}
+{{- $pythonWorkingDir := .Values.nifi.python.workingDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_WORKING_DIRECTORY" -}}
+{{- $pythonWorkingDir = index $envData "NIFI_PYTHON_WORKING_DIRECTORY" -}}
+{{- end -}}
+{{- $pythonPath := $pythonFrameworkDir -}}
+{{- if hasKey $envData "NIFI_PYTHONPATH" -}}
+{{- $pythonPath = index $envData "NIFI_PYTHONPATH" -}}
+{{- end -}}
+{{- $heapInit := .Values.nifi.jvm.heapInit -}}
+{{- if hasKey $envData "NIFI_JVM_HEAP_INIT" -}}
+{{- $heapInit = index $envData "NIFI_JVM_HEAP_INIT" -}}
+{{- end -}}
+{{- $heapMax := .Values.nifi.jvm.heapMax -}}
+{{- if hasKey $envData "NIFI_JVM_HEAP_MAX" -}}
+{{- $heapMax = index $envData "NIFI_JVM_HEAP_MAX" -}}
+{{- end -}}
+{{- $jvmOpts := "" -}}
+{{- if hasKey $envData "NIFI_JVM_OPTS" -}}
+{{- $jvmOpts = index $envData "NIFI_JVM_OPTS" -}}
+{{- end -}}
+{{- $logLevel := "" -}}
+{{- if hasKey $envData "NIFI_LOG_LEVEL" -}}
+{{- $logLevel = index $envData "NIFI_LOG_LEVEL" -}}
+{{- end -}}
+{{- $runAsUser := int .Values.securityContext.runAsUser -}}
+{{- if hasKey $envData "NIFI_UID" -}}
+{{- $runAsUser = int (index $envData "NIFI_UID") -}}
+{{- end -}}
+{{- $runAsGroup := int .Values.securityContext.runAsGroup -}}
+{{- if hasKey $envData "NIFI_GID" -}}
+{{- $runAsGroup = int (index $envData "NIFI_GID") -}}
+{{- end -}}
+{{- $cpuRequest := .Values.resources.requests.cpu -}}
+{{- if hasKey $envData "NIFI_DOCKER_CPU_MIN" -}}
+{{- $cpuRequest = index $envData "NIFI_DOCKER_CPU_MIN" -}}
+{{- end -}}
+{{- $cpuLimit := .Values.resources.limits.cpu -}}
+{{- if hasKey $envData "NIFI_DOCKER_CPU_MAX" -}}
+{{- $cpuLimit = index $envData "NIFI_DOCKER_CPU_MAX" -}}
+{{- end -}}
+{{- $memoryRequest := .Values.resources.requests.memory -}}
+{{- if hasKey $envData "NIFI_DOCKER_RAM" -}}
+{{- $memoryRequest = include "cogstack-nifi.normalizeMemory" (index $envData "NIFI_DOCKER_RAM") -}}
+{{- end -}}
+{{- $memoryLimit := .Values.resources.limits.memory -}}
+{{- if hasKey $envData "NIFI_DOCKER_RAM" -}}
+{{- $memoryLimit = include "cogstack-nifi.normalizeMemory" (index $envData "NIFI_DOCKER_RAM") -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -34,16 +132,23 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- with omit .Values.podSecurityContext "fsGroup" }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        fsGroup: {{ $runAsGroup }}
       initContainers:
         - name: bootstrap-nifi-runtime
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- if .Values.initSecurityContext }}
             {{- toYaml .Values.initSecurityContext | nindent 12 }}
             {{- else }}
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- with omit .Values.securityContext "runAsUser" "runAsGroup" }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            runAsUser: {{ $runAsUser }}
+            runAsGroup: {{ $runAsGroup }}
             {{- end }}
           command:
             - /bin/bash
@@ -123,28 +228,32 @@ spec:
               set_prop /work/conf/nifi.properties "nifi.web.http.host" ""
               set_prop /work/conf/nifi.properties "nifi.web.http.port" ""
               set_prop /work/conf/nifi.properties "nifi.web.https.host" "0.0.0.0"
-              set_prop /work/conf/nifi.properties "nifi.web.https.port" {{ .Values.nifi.web.httpsPort | quote }}
-              set_prop /work/conf/nifi.properties "nifi.web.proxy.context.path" {{ .Values.nifi.web.proxyContextPath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.web.https.port" {{ $httpsPort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.web.proxy.context.path" {{ $proxyContextPath | quote }}
               set_prop /work/conf/nifi.properties "nifi.web.proxy.host" "$PROXY_HOSTS"
               set_prop /work/conf/nifi.properties "nifi.remote.input.host" "$SERVICE_DNS"
-              set_prop /work/conf/nifi.properties "nifi.remote.input.socket.port" {{ .Values.nifi.remoteInput.socketPort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.remote.input.socket.port" {{ $siteToSitePort | quote }}
               set_prop /work/conf/nifi.properties "nifi.remote.input.secure" "true"
-              set_prop /work/conf/nifi.properties "nifi.sensitive.props.key" {{ .Values.nifi.sensitivePropsKey | quote }}
-              set_prop /work/conf/nifi.properties "nifi.security.keystore" "{{ .Values.certificates.mountPath }}/{{ .Values.certificates.files.keystore }}"
-              set_prop /work/conf/nifi.properties "nifi.security.keystoreType" {{ .Values.nifi.security.keystoreType | quote }}
-              set_prop /work/conf/nifi.properties "nifi.security.keystorePasswd" {{ .Values.nifi.security.keystorePassword | quote }}
-              set_prop /work/conf/nifi.properties "nifi.security.keyPasswd" {{ .Values.nifi.security.keyPassword | quote }}
-              set_prop /work/conf/nifi.properties "nifi.security.truststore" "{{ .Values.certificates.mountPath }}/{{ .Values.certificates.files.truststore }}"
-              set_prop /work/conf/nifi.properties "nifi.security.truststoreType" {{ .Values.nifi.security.truststoreType | quote }}
-              set_prop /work/conf/nifi.properties "nifi.security.truststorePasswd" {{ .Values.nifi.security.truststorePassword | quote }}
+              set_prop /work/conf/nifi.properties "nifi.sensitive.props.key" "$NIFI_SENSITIVE_PROPS_KEY"
+              set_prop /work/conf/nifi.properties "nifi.security.keystore" {{ $keystorePath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.keystoreType" {{ $keystoreType | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.keystorePasswd" "$NIFI_KEYSTORE_PASSWORD"
+              set_prop /work/conf/nifi.properties "nifi.security.keyPasswd" "$NIFI_KEY_PASSWORD"
+              set_prop /work/conf/nifi.properties "nifi.security.truststore" {{ $truststorePath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.truststoreType" {{ $truststoreType | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.truststorePasswd" "$NIFI_TRUSTSTORE_PASSWORD"
               set_prop /work/conf/nifi.properties "nifi.security.user.authorizer" {{ .Values.nifi.security.authorizer | quote }}
               set_prop /work/conf/nifi.properties "nifi.security.user.login.identity.provider" {{ .Values.nifi.security.loginIdentityProvider | quote }}
-              set_prop /work/conf/nifi.properties "nifi.python.framework.source.directory" {{ .Values.nifi.python.frameworkSourceDirectory | quote }}
-              set_prop /work/conf/nifi.properties "nifi.python.extensions.source.directory.default" {{ .Values.nifi.python.extensionsSourceDirectory | quote }}
-              set_prop /work/conf/nifi.properties "nifi.python.working.directory" {{ .Values.nifi.python.workingDirectory | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.framework.source.directory" {{ $pythonFrameworkDir | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.extensions.source.directory.default" {{ $pythonExtensionsDir | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.working.directory" {{ $pythonWorkingDir | quote }}
 
-              set_prop /work/conf/bootstrap.conf "java.arg.2" "-Xms{{ .Values.nifi.jvm.heapInit }}"
-              set_prop /work/conf/bootstrap.conf "java.arg.3" "-Xmx{{ .Values.nifi.jvm.heapMax }}"
+              set_prop /work/conf/bootstrap.conf "java.arg.2" "-Xms{{ $heapInit }}"
+              set_prop /work/conf/bootstrap.conf "java.arg.3" "-Xmx{{ $heapMax }}"
+
+              if [ -n "${NIFI_SINGLE_USER_CREDENTIALS_USERNAME:-}" ] && [ -n "${NIFI_SINGLE_USER_CREDENTIALS_PASSWORD:-}" ]; then
+                {{ $nifiHome }}/bin/nifi.sh set-single-user-credentials "$NIFI_SINGLE_USER_CREDENTIALS_USERNAME" "$NIFI_SINGLE_USER_CREDENTIALS_PASSWORD"
+              fi
 
               {{- if .Values.nifi.cluster.enabled }}
               NODE_ADDRESS="${POD_NAME}.${HEADLESS_SERVICE}.${POD_NAMESPACE}.svc"
@@ -194,9 +303,41 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: NIFI_SENSITIVE_PROPS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.sensitivePropsKey }}
+            - name: NIFI_KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.keystorePassword }}
+            - name: NIFI_KEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.keyPassword }}
+            - name: NIFI_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.truststorePassword }}
+            - name: NIFI_SINGLE_USER_CREDENTIALS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.singleUserUsername }}
+            - name: NIFI_SINGLE_USER_CREDENTIALS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.singleUserPassword }}
           volumeMounts:
             - name: conf
               mountPath: /work/conf
+            - name: conf
+              mountPath: {{ printf "%s/conf" $nifiHome }}
             - name: logs
               mountPath: /work/logs
             - name: provenance
@@ -221,16 +362,20 @@ spec:
               mountPath: /work/user_schemas
       containers:
         - name: nifi
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- with omit .Values.securityContext "runAsUser" "runAsGroup" }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            runAsUser: {{ $runAsUser }}
+            runAsGroup: {{ $runAsGroup }}
           ports:
             - name: https
-              containerPort: {{ .Values.nifi.web.httpsPort }}
+              containerPort: {{ $httpsPort }}
               protocol: TCP
             - name: site-to-site
-              containerPort: {{ .Values.nifi.remoteInput.socketPort }}
+              containerPort: {{ $siteToSitePort }}
               protocol: TCP
             {{- if .Values.nifi.cluster.enabled }}
             - name: cluster
@@ -250,7 +395,13 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: PYTHONPATH
-              value: {{ .Values.nifi.python.frameworkSourceDirectory | quote }}
+              value: {{ $pythonPath | quote }}
+            - name: NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY
+              value: {{ $pythonFrameworkDir | quote }}
+            - name: NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT
+              value: {{ $pythonExtensionsDir | quote }}
+            - name: NIFI_PYTHON_WORKING_DIRECTORY
+              value: {{ $pythonWorkingDir | quote }}
             - name: NIFI_WEB_HTTP_PORT
               value: ""
             - name: NIFI_WEB_HTTP_HOST
@@ -258,11 +409,19 @@ spec:
             - name: NIFI_WEB_HTTPS_HOST
               value: "0.0.0.0"
             - name: NIFI_WEB_HTTPS_PORT
-              value: {{ .Values.nifi.web.httpsPort | quote }}
+              value: {{ $httpsPort | quote }}
             - name: NIFI_WEB_PROXY_HOST
               value: {{ include "cogstack-nifi.proxyHosts" . | quote }}
             - name: NIFI_WEB_PROXY_CONTEXT_PATH
-              value: {{ .Values.nifi.web.proxyContextPath | quote }}
+              value: {{ $proxyContextPath | quote }}
+            {{- if $jvmOpts }}
+            - name: JVM_OPTS
+              value: {{ $jvmOpts | quote }}
+            {{- end }}
+            {{- if $logLevel }}
+            - name: NIFI_LOG_LEVEL
+              value: {{ $logLevel | quote }}
+            {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -287,28 +446,33 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 6
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: {{ $cpuRequest | quote }}
+              memory: {{ $memoryRequest | quote }}
+            limits:
+              cpu: {{ $cpuLimit | quote }}
+              memory: {{ $memoryLimit | quote }}
           volumeMounts:
             - name: conf
-              mountPath: {{ printf "%s/conf" .Values.nifi.home }}
+              mountPath: {{ printf "%s/conf" $nifiHome }}
             - name: logs
-              mountPath: {{ printf "%s/logs" .Values.nifi.home }}
+              mountPath: {{ printf "%s/logs" $nifiHome }}
             - name: provenance
-              mountPath: {{ printf "%s/provenance_repository" .Values.nifi.home }}
+              mountPath: {{ printf "%s/provenance_repository" $nifiHome }}
             - name: database
-              mountPath: {{ printf "%s/database_repository" .Values.nifi.home }}
+              mountPath: {{ printf "%s/database_repository" $nifiHome }}
             - name: flowfile
-              mountPath: {{ printf "%s/flowfile_repository" .Values.nifi.home }}
+              mountPath: {{ printf "%s/flowfile_repository" $nifiHome }}
             - name: content
-              mountPath: {{ printf "%s/content_repository" .Values.nifi.home }}
+              mountPath: {{ printf "%s/content_repository" $nifiHome }}
             - name: state
-              mountPath: {{ printf "%s/state" .Values.nifi.home }}
+              mountPath: {{ printf "%s/state" $nifiHome }}
             - name: flowfile-errors
               mountPath: /opt/nifi/pipeline/flowfile-errors
             - name: user-scripts
-              mountPath: {{ .Values.nifi.python.workingDirectory }}
+              mountPath: {{ $pythonWorkingDir }}
             - name: python-extensions
-              mountPath: {{ .Values.nifi.python.extensionsSourceDirectory }}
+              mountPath: {{ $pythonExtensionsDir }}
             - name: drivers
               mountPath: /opt/nifi/drivers
             - name: user-schemas

@@ -36,6 +36,6 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
   --namespace cogstack --create-namespace
 ```
 
-The NiFi chart bootstraps runtime configuration and local assets from the custom CogStack NiFi image into writable Kubernetes volumes.
+The NiFi chart reads selected defaults from `deploy/nifi.env`, `security/env/certificates_nifi.env`, and `security/env/users_nifi.env`, then bootstraps runtime configuration and local assets from the custom CogStack NiFi image into writable Kubernetes volumes.
 
 The OpenSearch and Dashboards chart reads config files from `services/`, and security/env files from `security/` and `deploy/`, so Docker and Kubernetes use the same source files. Its values file is for cluster-specific overrides only; it does not need to repeat the shared YAML or env file paths. Only keys in `envFile.includeKeys`, `usersEnvFile.includeKeys`, and `certificatesEnvFile.includeKeys` are imported.
