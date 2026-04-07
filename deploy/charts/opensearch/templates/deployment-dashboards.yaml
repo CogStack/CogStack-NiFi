@@ -1,4 +1,17 @@
 {{- if .Values.dashboards.enabled }}
+{{- $envData := include "cogstack-opensearch.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $certData := include "cogstack-opensearch.parsedCertificatesEnvFile" . | fromYaml | default (dict) -}}
+{{- $serverName := .Values.dashboards.serverName -}}
+{{- if hasKey $envData "KIBANA_SERVER_NAME" -}}
+{{- $serverName = index $envData "KIBANA_SERVER_NAME" -}}
+{{- end -}}
+{{- $dashboardsServerCert := .Values.certificates.dashboardsFiles.serverCert -}}
+{{- $dashboardsServerKey := .Values.certificates.dashboardsFiles.serverKey -}}
+{{- if hasKey $certData "ES_CLIENT_CERT_NAME" -}}
+{{- $clientCertName := index $certData "ES_CLIENT_CERT_NAME" -}}
+{{- $dashboardsServerCert = printf "%s.pem" $clientCertName -}}
+{{- $dashboardsServerKey = printf "%s.key" $clientCertName -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,14 +44,9 @@ spec:
             - name: http
               containerPort: {{ .Values.dashboards.service.port }}
               protocol: TCP
-          {{- if .Values.envFile.raw }}
-          envFrom:
-            - configMapRef:
-                name: {{ include "cogstack-opensearch.envConfigMapName" . }}
-          {{- end }}
           env:
             - name: KIBANA_SERVER_NAME
-              value: {{ .Values.dashboards.serverName | quote }}
+              value: {{ $serverName | quote }}
             - name: ELASTICSEARCH_HOSTS
               value: {{ include "cogstack-opensearch.elasticsearchHostsJson" . | quote }}
             - name: KIBANA_USER
@@ -88,11 +96,11 @@ spec:
               readOnly: true
             - name: dashboards-certs
               mountPath: /certificates/elastic/opensearch/es_kibana_client.pem
-              subPath: {{ .Values.certificates.dashboardsFiles.serverCert }}
+              subPath: {{ $dashboardsServerCert }}
               readOnly: true
             - name: dashboards-certs
               mountPath: /certificates/elastic/opensearch/es_kibana_client.key
-              subPath: {{ .Values.certificates.dashboardsFiles.serverKey }}
+              subPath: {{ $dashboardsServerKey }}
               readOnly: true
       volumes:
         - name: dashboards-config

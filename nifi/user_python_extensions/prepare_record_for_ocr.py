@@ -11,7 +11,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor

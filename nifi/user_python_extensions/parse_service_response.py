@@ -24,7 +24,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.1'
+        version = '0.0.2'
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
@@ -115,6 +115,8 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
 
         records: dict | list[dict] = json.loads(input_raw_bytes.decode("utf-8"))
 
+        additional_attributes: dict = {}
+
         if isinstance(records, dict):
             records = [records]
 
@@ -131,6 +133,9 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                 if "footer" in result:
                     for k, v in result["footer"].items():
                         _record[k] = v
+                
+                if self.document_id_field_name in _record:
+                    additional_attributes[self.document_id_field_name] = str(_record[self.document_id_field_name])
 
                 output_contents.append(_record)
 
@@ -178,12 +183,15 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                                 str(footer[self.document_id_field_name]) + "_" + str(annotation_id)
                             )
 
+                            additional_attributes["annotation_id"] = _output_annotated_record["annotation_id"]
+
                         output_contents.append(_output_annotated_record)
 
         # add properties to flowfile attributes
         attributes: dict = {k: str(v) for k, v in flowFile.getAttributes().items()}
         attributes["output_text_field_name"] = str(self.output_text_field_name)
         attributes["mime.type"] = "application/json"
+        attributes.update(additional_attributes)
 
         return FlowFileTransformResult(
             relationship=self.REL_SUCCESS.name,

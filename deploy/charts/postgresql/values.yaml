@@ -1,0 +1,55 @@
+nameOverride: ""
+fullnameOverride: ""
+
+envFile:
+  # Optional override. If empty, chart falls back to files/deploy-database.envfile.
+  # Use:
+  #   --set-file envFile.raw=./deploy/database.env
+  raw: ""
+  includeKeys:
+    - POSTGRES_DB_MAX_CONNECTIONS
+    - POSTGRES_DB_SCHEMA_PREFIX
+    - DATABASE_DB_NAME
+    - DATABASE_DOCKER_CPU_MIN
+    - DATABASE_DOCKER_CPU_MAX
+    - DATABASE_DOCKER_RAM
+
+usersEnvFile:
+  # Optional override. If empty, chart falls back to files/users-database.envfile.
+  # Use:
+  #   --set-file usersEnvFile.raw=./security/env/users_database.env
+  raw: ""
+  includeKeys:
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+
+cluster:
+  enabled: true
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+  imagePullPolicy: IfNotPresent
+  databaseName: ""
+  ownerName: ""
+  ownerSuperuser: false
+  enableSuperuserAccess: false
+  storage:
+    size: 20Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: ""
+      memory: ""
+    limits:
+      cpu: ""
+      memory: ""
+  postgresql:
+    maxConnections: ""
+
+credentials:
+  existingAppSecret: ""
+  password: ""
+
+initdb:
+  annotationsSchemaKey: annotations_nlp_create_schema.sql
+  extraConfigMapRefs: []
+  extraSecretRefs: []

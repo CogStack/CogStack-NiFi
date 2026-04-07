@@ -26,7 +26,7 @@ All scripts reference the following environment configuration files:
 |------|----------|
 | `certificates_elasticsearch.env` | Hostnames, instance names, and certificate parameters for ES / OpenSearch nodes |
 | `certificates_general.env` | Root CA configuration |
-| `elasticsearch_users.env` | Internal user credentials |
+| `users_elasticsearch.env` | Internal user credentials |
 
 Reload them before running any security-related script:
 
@@ -73,7 +73,7 @@ security/certificates/elastic/
 │       ├── sample-kibana.yml
 │       └── README.txt
 └── opensearch/
-    ├── admin.*, es_kibana_client.*, root-ca.*
+    ├── admin.*, es_kibana_client.*, elastic-stack-ca.*, root-ca.*
     └── elasticsearch/{1,2,3}/...
 ```
 
@@ -126,7 +126,7 @@ This produces:
 
 | File | Purpose |
 |------|----------|
-| `admin.pem`, `admin-key.pem` | Admin dashboard certificate |
+| `admin.crt`, `admin.key.pem` | Admin dashboard certificate |
 | `es_kibana_client.pem`, `es_kibana_client.key` | Client certificate for Kibana/OpenDashboard |
 | `*.jks` | Node keystores/truststores for HTTPS and inter-node encryption |
 
@@ -143,9 +143,9 @@ security/certificates/elastic/opensearch/
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
 | **Kibana** | `elasticsearch-{1,2,3}.crt`, `elasticsearch-{1,2,3}.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/elasticsearch/` |
-| **OpenDashboard (OpenSearch)** | `admin.pem`, `admin-key.pem`, `es_kibana_client.pem`, `es_kibana_client.key` | `security/certificates/elastic/opensearch/` |
+| **OpenDashboard (OpenSearch)** | `admin.crt`, `admin.key.pem`, `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
 
-All certificate references in `services/kibana/config/kibana_opensearch.yml` or `services.yml` must point to these locations.
+All certificate references in `services/kibana/config/opensearch.yml` or `services.yml` must point to these locations.
 
 ---
 
@@ -218,6 +218,28 @@ Troubleshooting:
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
 
+##### OpenSearch Dashboards post-login setup (Global tenant + workspace)
+
+After your first login to `https://localhost:5601` (default: `admin` / `admin`):
+
+1. Open the user menu (top-right) and select **Switch tenant**.
+2. Select `Global`, then apply the change.
+3. Open **Stack Management** → **Workspaces** (or the workspace switcher in the header) and click **Create workspace**.
+4. Enter a workspace name (for example `cogstack-main`) and keep it in the `Global` tenant.
+5. Save, then create data views and dashboards inside this workspace.
+
+Use `Global` for shared dashboards and saved objects.  
+`Private` tenant content is user-specific and not visible to other users.
+
+If tenant switching or workspace creation is not available in the UI, verify these settings in `services/kibana/config/opensearch.yml`:
+
+```yaml
+opensearch_security.multitenancy.enabled: true
+opensearch_security.multitenancy.tenants.enable_global: true
+opensearch_security.multitenancy.tenants.preferred: ["Global"]
+workspace.enabled: true
+```
+
 ---
 
 #### Elasticsearch (native)
@@ -230,7 +252,7 @@ bash ./create_es_native_credentials.sh
 
 This script creates system users, roles, and a service account token for Kibana.
 
-You can modify credentials in `security/env/elasticsearch_users.env`.
+You can modify credentials in `security/env/users_elasticsearch.env`.
 
 **New roles** created:
 
