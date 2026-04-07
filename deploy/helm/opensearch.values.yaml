@@ -1,0 +1,29 @@
+# Cluster-specific overrides for the OpenSearch Helm chart.
+#
+# Shared OpenSearch, Dashboards, security YAML, and selected env files are not
+# listed here: the chart already consumes the repo's canonical files from
+# deploy/, services/, and security/ via its bundled defaults.
+
+certificates:
+  opensearchSecretName: opensearch-certs
+  dashboardsSecretName: opensearch-certs
+
+# Uncomment to use a pre-created credentials Secret instead of chart defaults.
+# credentials:
+#   create: false
+#   existingSecret: opensearch-credentials
+
+# Example storage overrides:
+# opensearch:
+#   persistence:
+#     storageClassName: standard
+#   logPersistence:
+#     storageClassName: standard
+#   performanceAnalyzerPersistence:
+#     storageClassName: standard
+#   snapshotBackups:
+#     enabled: true
+#     data:
+#       existingClaim: shared-es-data-backups
+#     config:
+#       existingClaim: shared-es-config-backups

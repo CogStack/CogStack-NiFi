@@ -1,0 +1,44 @@
+{{- $envData := include "cogstack-nifi.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $httpsPort := int .Values.service.httpsPort -}}
+{{- if hasKey $envData "NIFI_INTERNAL_PORT" -}}
+{{- $httpsPort = int (index $envData "NIFI_INTERNAL_PORT") -}}
+{{- end -}}
+{{- $siteToSitePort := int .Values.service.siteToSitePort -}}
+{{- if hasKey $envData "NIFI_INPUT_SOCKET_PORT" -}}
+{{- $siteToSitePort = int (index $envData "NIFI_INPUT_SOCKET_PORT") -}}
+{{- end -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cogstack-nifi.headlessServiceName" . }}
+  labels:
+    {{- include "cogstack-nifi.labels" . | nindent 4 }}
+  {{- with .Values.headlessService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: https
+      port: {{ $httpsPort }}
+      targetPort: https
+      protocol: TCP
+    - name: site-to-site
+      port: {{ $siteToSitePort }}
+      targetPort: site-to-site
+      protocol: TCP
+    {{- if .Values.nifi.cluster.enabled }}
+    - name: cluster
+      port: {{ .Values.nifi.cluster.nodeProtocolPort }}
+      targetPort: cluster
+      protocol: TCP
+    - name: load-balance
+      port: {{ .Values.nifi.cluster.loadBalancePort }}
+      targetPort: load-balance
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "cogstack-nifi.selectorLabels" . | nindent 4 }}

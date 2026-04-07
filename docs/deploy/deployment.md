@@ -57,6 +57,56 @@ This design allows each service to be:
 - NiFi-specific configuration (properties, custom processors, drivers, Python scripts, etc.) is under:  
   [`./nifi`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/)
 
+## ⎈ Helm (NiFi)
+
+A default Helm chart for the customised CogStack NiFi image is available at:
+
+```bash
+./deploy/charts/nifi
+```
+
+Quick usage:
+
+```bash
+# render manifests
+make -C deploy helm-template-nifi
+
+# install or upgrade
+make -C deploy helm-install-nifi
+```
+
+Key defaults live in:
+
+```bash
+./deploy/helm/nifi.values.yaml
+```
+
+The chart reads selected defaults from `deploy/nifi.env`, `security/env/certificates_nifi.env`, and `security/env/users_nifi.env`.
+
+Before install, create a NiFi TLS Secret from the repo-generated keystore and truststore files. The chart generates a separate sensitive-config Secret from the security env files for the keystore/truststore passwords, `nifi.sensitive.props.key`, and single-user credentials:
+
+```bash
+kubectl create namespace cogstack --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl -n cogstack create secret generic nifi-certs \
+  --from-file=nifi-keystore.jks=./security/certificates/nifi/nifi-keystore.jks \
+  --from-file=nifi-truststore.jks=./security/certificates/nifi/nifi-truststore.jks \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+For production, pre-create the sensitive-config Secret and set `sensitiveConfig.create=false` plus `sensitiveConfig.existingSecret=<secret-name>` if you do not want sensitive values rendered into Helm manifests and release metadata.
+
+Current defaults keep the deployment conservative:
+
+- single NiFi replica
+- TLS on port `8443`
+- `/nifi` proxy context path
+- per-pod PVCs for NiFi configuration, logs, repositories, state, Python working directories, and flowfile error output
+- runtime config/assets bootstrapped from the custom CogStack NiFi image into writable volumes
+- Kubernetes Lease/ConfigMap clustering support available but disabled by default
+
+For clustered NiFi, set `replicaCount > 1` and `nifi.cluster.enabled=true` only after reviewing certificate and authorizer configuration. The repo defaults use single-user authentication and a shared NiFi certificate, which are appropriate for a default single-node deployment rather than a production NiFi cluster.
+
 ## ⎈ Helm (OpenSearch)
 
 An initial Helm chart for OpenSearch + OpenSearch Dashboards is available at:
@@ -70,17 +120,52 @@ Quick usage:
 ```bash
 # render manifests
 helm template cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file envFile.raw=./deploy/elasticsearch.env
+  -f ./deploy/helm/opensearch.values.yaml
 
 # install or upgrade
 helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
-  --set-file envFile.raw=./deploy/elasticsearch.env \
+  -f ./deploy/helm/opensearch.values.yaml \
   --namespace cogstack --create-namespace
 ```
 
 > The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
-> The `--set-file envFile.raw=...` flag injects values from `deploy/elasticsearch.env` into pod environment variables.
-> Only keys in `envFile.includeKeys` are imported into the chart ConfigMap.
+> The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
+> The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
+
+## ⎈ Helm (GitEA / Gitea)
+
+GitEA can be deployed with the official Gitea Helm chart. The Makefile adds the
+upstream repo automatically and pins a chart version for reproducible installs.
+
+Quick usage:
+
+```bash
+# render manifests
+make -C deploy helm-template-gitea
+
+# install or upgrade
+make -C deploy helm-install-gitea
+```
+
+Key defaults live in:
+
+```bash
+./deploy/helm/gitea.values.yaml
+```
+
+Current defaults keep the Helm deployment close to the existing Docker Compose
+service:
+
+- single replica
+- embedded SQLite
+- bundled PostgreSQL/Valkey disabled
+- ClusterIP services on ports `3000` and `2222`
+- direct HTTPS inside the Gitea pod using the shared root CA
+
+Before install, create:
+
+- `gitea-root-ca` Secret with `root-ca.pem` and `root-ca.key` from `security/certificates/root/`
+- optionally `gitea-admin-credentials` with `username` and `password` if you want Helm to bootstrap an admin user
 
 ## 🧰 Makefile Command Overview
 

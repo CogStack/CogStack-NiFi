@@ -26,7 +26,7 @@ All scripts reference the following environment configuration files:
 |------|----------|
 | `certificates_elasticsearch.env` | Hostnames, instance names, and certificate parameters for ES / OpenSearch nodes |
 | `certificates_general.env` | Root CA configuration |
-| `elasticsearch_users.env` | Internal user credentials |
+| `users_elasticsearch.env` | Internal user credentials |
 
 Reload them before running any security-related script:
 
@@ -73,7 +73,7 @@ security/certificates/elastic/
 │       ├── sample-kibana.yml
 │       └── README.txt
 └── opensearch/
-    ├── admin.*, es_kibana_client.*, root-ca.*
+    ├── admin.*, es_kibana_client.*, elastic-stack-ca.*, root-ca.*
     └── elasticsearch/{1,2,3}/...
 ```
 
@@ -126,7 +126,7 @@ This produces:
 
 | File | Purpose |
 |------|----------|
-| `admin.pem`, `admin-key.pem` | Admin dashboard certificate |
+| `admin.crt`, `admin.key.pem` | Admin dashboard certificate |
 | `es_kibana_client.pem`, `es_kibana_client.key` | Client certificate for Kibana/OpenDashboard |
 | `*.jks` | Node keystores/truststores for HTTPS and inter-node encryption |
 
@@ -143,7 +143,7 @@ security/certificates/elastic/opensearch/
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
 | **Kibana** | `elasticsearch-{1,2,3}.crt`, `elasticsearch-{1,2,3}.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/elasticsearch/` |
-| **OpenDashboard (OpenSearch)** | `admin.pem`, `admin-key.pem`, `es_kibana_client.pem`, `es_kibana_client.key` | `security/certificates/elastic/opensearch/` |
+| **OpenDashboard (OpenSearch)** | `admin.crt`, `admin.key.pem`, `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
 
 All certificate references in `services/kibana/config/opensearch.yml` or `services.yml` must point to these locations.
 
@@ -252,7 +252,7 @@ bash ./create_es_native_credentials.sh
 
 This script creates system users, roles, and a service account token for Kibana.
 
-You can modify credentials in `security/env/elasticsearch_users.env`.
+You can modify credentials in `security/env/users_elasticsearch.env`.
 
 **New roles** created:
 

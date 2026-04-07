@@ -1,0 +1,21 @@
+# Cluster-specific overrides for the CloudNativePG PostgreSQL chart.
+#
+# Shared database env, database user env, and bootstrap SQL files are not listed
+# here: the chart already consumes the repo's canonical files from deploy/,
+# security/, and services/ via its bundled defaults.
+
+cluster:
+  instances: 3
+  storage:
+    size: 20Gi
+    # storageClass: local-path
+  ownerSuperuser: false
+  enableSuperuserAccess: false
+
+# For a single-node dev cluster only:
+# cluster:
+#   instances: 1
+
+# To use a pre-created Secret instead of users_database.env defaults:
+# credentials:
+#   existingAppSecret: cogstack-postgresql-app
