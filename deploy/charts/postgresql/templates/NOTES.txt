@@ -1,0 +1,9 @@
+CloudNativePG operator resources must already be installed before this chart can be applied.
+
+PostgreSQL services created by the operator:
+- read/write primary service: {{ include "cogstack-postgresql.fullname" . }}-rw
+- read-only replicas service: {{ include "cogstack-postgresql.fullname" . }}-ro
+- any-instance service: {{ include "cogstack-postgresql.fullname" . }}-r
+
+Application credentials secret:
+- {{ include "cogstack-postgresql.appSecretName" . }}

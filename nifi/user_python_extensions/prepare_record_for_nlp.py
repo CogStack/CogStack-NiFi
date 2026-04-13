@@ -109,7 +109,7 @@ class CogStackPrepareRecordForNlp(BaseNiFiProcessor):
         output_contents = output_contents[0] if len(output_contents) == 1 else output_contents
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=json.dumps({"content": output_contents}).encode("utf-8"),
         )

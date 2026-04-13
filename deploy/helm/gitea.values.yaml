@@ -1,0 +1,109 @@
+# Cluster-specific overrides for the official Gitea Helm chart.
+#
+# The Makefile targets add/update the `gitea-charts` repo automatically and pin
+# the chart version. This file keeps only the overrides needed to stay close to
+# the current Docker Compose GitEA service.
+
+replicaCount: 1
+
+service:
+  http:
+    type: ClusterIP
+    port: 3000
+    clusterIP: ""
+  ssh:
+    type: ClusterIP
+    port: 2222
+    clusterIP: ""
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+
+persistence:
+  size: 10Gi
+
+# Keep the initial Helm migration close to the current Compose deployment:
+# single pod, embedded SQLite, and no bundled database/cache subcharts.
+valkey-cluster:
+  enabled: false
+
+valkey:
+  enabled: false
+
+postgresql-ha:
+  enabled: false
+
+postgresql:
+  enabled: false
+
+# Create this Secret before install if you want Helm to bootstrap an admin user:
+# kubectl create secret generic gitea-admin-credentials \
+#   --from-literal=username=admin \
+#   --from-literal=password='change-me'
+#
+# Create this Secret before install to preserve the current direct-HTTPS setup:
+# kubectl create secret generic gitea-root-ca \
+#   --from-file=root-ca.pem=./security/certificates/root/root-ca.pem \
+#   --from-file=root-ca.key=./security/certificates/root/root-ca.key
+gitea:
+  admin:
+    # existingSecret: gitea-admin-credentials
+    username: ""
+    password: ""
+    email: "gitea@localhost"
+    passwordMode: initialOnlyNoReset
+  config:
+    APP_NAME: "Gitea: Git with a cup of tea"
+    RUN_MODE: prod
+    server:
+      PROTOCOL: https
+      DOMAIN: localhost
+      ROOT_URL: https://localhost:3000/
+      HTTP_PORT: 3000
+      START_SSH_SERVER: true
+      SSH_DOMAIN: localhost
+      SSH_PORT: 2222
+      SSH_LISTEN_HOST: 0.0.0.0
+      SSH_LISTEN_PORT: 2222
+      CERT_FILE: /certificates/root/root-ca.pem
+      KEY_FILE: /certificates/root/root-ca.key
+    database:
+      DB_TYPE: sqlite3
+      PATH: /data/gitea/gitea.db
+      HOST: localhost
+      SSL_MODE: disable
+      LOG_SQL: false
+    oauth2:
+      ENABLED: true
+    mailer:
+      ENABLED: false
+    repository:
+      ENABLE_PUSH_CREATE_USER: true
+      ENABLE_PUSH_CREATE_ORG: true
+      DEFAULT_PUSH_CREATE_PRIVATE: true
+    "cron.update_checker":
+      ENABLED: false
+    "repository.pull-request":
+      DEFAULT_MERGE_STYLE: merge
+    "repository.signing":
+      DEFAULT_TRUST_MODEL: committer
+
+extraVolumes:
+  - name: gitea-root-ca
+    secret:
+      secretName: gitea-root-ca
+
+extraInitVolumeMounts:
+  - name: gitea-root-ca
+    mountPath: /certificates/root
+    readOnly: true
+
+extraContainerVolumeMounts:
+  - name: gitea-root-ca
+    mountPath: /certificates/root
+    readOnly: true

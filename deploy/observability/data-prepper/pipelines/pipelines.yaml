@@ -1,0 +1,44 @@
+entry-pipeline:
+  source:
+    otel_trace_source:
+      port: 21890
+      ssl: false
+      authentication:
+        unauthenticated:
+  buffer:
+    bounded_blocking:
+      buffer_size: 500000
+      batch_size: 10000
+  sink:
+    - pipeline:
+        name: raw-trace-pipeline
+    - pipeline:
+        name: service-map-pipeline
+
+raw-trace-pipeline:
+  source:
+    pipeline:
+      name: entry-pipeline
+  processor:
+    - otel_traces:
+  sink:
+    - opensearch:
+        hosts: ["https://elasticsearch-1:9200"]
+        insecure: true
+        username: "admin"
+        password: "Kibanaserver!1"
+        index_type: trace-analytics-raw
+
+service-map-pipeline:
+  source:
+    pipeline:
+      name: entry-pipeline
+  processor:
+    - service_map:
+  sink:
+    - opensearch:
+        hosts: ["https://elasticsearch-1:9200"]
+        insecure: true
+        username: "admin"
+        password: "Kibanaserver!1"
+        index_type: trace-analytics-service-map

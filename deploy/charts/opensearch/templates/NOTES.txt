@@ -1,13 +1,21 @@
+{{- if .Values.opensearch.enabled }}
 1. OpenSearch client service:
    {{ include "cogstack-opensearch.clientServiceName" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
 
+{{- if .Values.dashboards.enabled }}
 2. OpenSearch Dashboards service (if enabled):
    {{ include "cogstack-opensearch.dashboardsServiceName" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
 
 3. This chart expects TLS and security cert files in Kubernetes Secrets.
    Configure:
+{{- if .Values.opensearch.enabled }}
    - .Values.certificates.opensearchSecretName
+{{- end }}
+{{- if .Values.dashboards.enabled }}
    - .Values.certificates.dashboardsSecretName
+{{- end }}
 
 4. Credentials are read from Secret:
    {{ include "cogstack-opensearch.credentialsSecretName" . }}

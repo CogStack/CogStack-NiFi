@@ -134,14 +134,17 @@ These settings specify how large can a queue's size be (any que between two proc
 A timer that specifies how long should NiFi waits before checking for work, CPU dependent, the lower the time the higher the CPU usage, as it would do more frequent checks. The default is 10ms but it seems too excessive for most use cases, it would also result in significant CPU usage if a large number of workflows are running in parallel, so it has been set to 100ms instead.
 
     ```
-    nifi.flow.configuration.archive.enabled=true
-    nifi.flow.configuration.archive.max.time=1 days
-    nifi.flow.configuration.archive.max.storage=12 GB
+    nifi.content.repository.archive.enabled=false
+    nifi.content.repository.archive.max.retention.period=1 mins
+    nifi.content.repository.archive.cleanup.frequency=30 secs
+    nifi.content.repository.archive.max.usage.percentage=15%
+    nifi.content.repository.archive.backpressure.percentage=50%
     ```
 
-By default, the flowfiles thar are out of the processing queues will be archived for a set period of time. The `nifi.flow.configuration.archive.max.time` sets the max duration, max size configurable via `nifi.flow.configuration.archive.max.storage`, take note of these properties, the storage limit can quickly be hit if you have a high flow-file throughput.
+For production we currently disable content claim archiving (`nifi.content.repository.archive.enabled=false`) to avoid uncontrolled growth in `content_repository`.
+The tradeoff is that old content claims are not retained for replay/forensics once they are no longer referenced.
 
-Make sure to check the archive storage and flowfile storage settings as these will be the first to impact the space used for logging.
+If you enable content archive, keep retention short and monitor disk usage closely. Content repository size can remain high even when queue size is low, because claims may still be active or waiting for archive cleanup.
 <br><br>
 
 #### IMPORTANT NOTE about nifi properties

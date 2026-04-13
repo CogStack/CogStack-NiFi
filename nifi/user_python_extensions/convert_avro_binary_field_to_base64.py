@@ -12,7 +12,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -67,19 +66,7 @@ class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
         ]
 
-        self._relationships = [
-            Relationship(
-                name="success",
-                description="All FlowFiles processed successfully."
-            ),
-            Relationship(
-                name="failure",
-                description="FlowFiles that failed processing."
-            )
-        ]
-
         self.descriptors: list[PropertyDescriptor] = self._properties
-        self.relationships: list[Relationship] = self._relationships
 
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
@@ -154,7 +141,7 @@ class CogStackConvertAvroBinaryRecordFieldToBase64(BaseNiFiProcessor):
         attributes["mime.type"] = "application/avro-binary"
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=output_byte_buffer.getvalue(),
         )

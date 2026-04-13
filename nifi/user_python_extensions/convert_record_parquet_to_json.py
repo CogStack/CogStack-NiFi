@@ -64,7 +64,7 @@ class CogStackConvertParquetToJson(BaseNiFiProcessor):
         attributes["record.count"] = str(record_count)
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=output_buffer.getvalue(),
         )

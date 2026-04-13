@@ -1,0 +1,723 @@
+{{- if and (gt (int .Values.replicaCount) 1) (not .Values.nifi.cluster.enabled) -}}
+{{- fail "nifi.cluster.enabled must be true when replicaCount is greater than 1" -}}
+{{- end -}}
+{{- $envData := include "cogstack-nifi.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $imageRepository := .Values.image.repository -}}
+{{- $imageTag := .Values.image.tag -}}
+{{- if hasKey $envData "NIFI_DOCKER_IMAGE" -}}
+{{- $image := index $envData "NIFI_DOCKER_IMAGE" -}}
+{{- $repoWithoutTag := regexReplaceAll ":[^:/]+$" $image "" -}}
+{{- if ne $repoWithoutTag $image -}}
+{{- $imageRepository = $repoWithoutTag -}}
+{{- $imageTag = regexFind "[^:]+$" $image -}}
+{{- else -}}
+{{- $imageRepository = $image -}}
+{{- end -}}
+{{- end -}}
+{{- $nifiHome := .Values.nifi.home -}}
+{{- $httpsPort := int .Values.nifi.web.httpsPort -}}
+{{- if hasKey $envData "NIFI_INTERNAL_PORT" -}}
+{{- $httpsPort = int (index $envData "NIFI_INTERNAL_PORT") -}}
+{{- end -}}
+{{- $siteToSitePort := int .Values.nifi.remoteInput.socketPort -}}
+{{- if hasKey $envData "NIFI_INPUT_SOCKET_PORT" -}}
+{{- $siteToSitePort = int (index $envData "NIFI_INPUT_SOCKET_PORT") -}}
+{{- end -}}
+{{- $proxyContextPath := .Values.nifi.web.proxyContextPath -}}
+{{- if hasKey $envData "NIFI_WEB_PROXY_CONTEXT_PATH" -}}
+{{- $proxyContextPath = index $envData "NIFI_WEB_PROXY_CONTEXT_PATH" -}}
+{{- end -}}
+{{- $keystorePath := printf "%s/%s" .Values.certificates.mountPath .Values.certificates.files.keystore -}}
+{{- if hasKey $envData "NIFI_KEYSTORE_PATH" -}}
+{{- $keystorePath = index $envData "NIFI_KEYSTORE_PATH" -}}
+{{- end -}}
+{{- $truststorePath := printf "%s/%s" .Values.certificates.mountPath .Values.certificates.files.truststore -}}
+{{- if hasKey $envData "NIFI_TRUSTSTORE_PATH" -}}
+{{- $truststorePath = index $envData "NIFI_TRUSTSTORE_PATH" -}}
+{{- end -}}
+{{- $keystoreType := .Values.nifi.security.keystoreType -}}
+{{- if hasKey $envData "NIFI_KEYSTORE_TYPE" -}}
+{{- $keystoreType = index $envData "NIFI_KEYSTORE_TYPE" -}}
+{{- end -}}
+{{- $truststoreType := .Values.nifi.security.truststoreType -}}
+{{- if hasKey $envData "NIFI_TRUSTSTORE_TYPE" -}}
+{{- $truststoreType = index $envData "NIFI_TRUSTSTORE_TYPE" -}}
+{{- end -}}
+{{- $pythonFrameworkDir := .Values.nifi.python.frameworkSourceDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY" -}}
+{{- $pythonFrameworkDir = index $envData "NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY" -}}
+{{- end -}}
+{{- $pythonExtensionsDir := .Values.nifi.python.extensionsSourceDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT" -}}
+{{- $pythonExtensionsDir = index $envData "NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT" -}}
+{{- end -}}
+{{- $pythonWorkingDir := .Values.nifi.python.workingDirectory -}}
+{{- if hasKey $envData "NIFI_PYTHON_WORKING_DIRECTORY" -}}
+{{- $pythonWorkingDir = index $envData "NIFI_PYTHON_WORKING_DIRECTORY" -}}
+{{- end -}}
+{{- $pythonPath := $pythonFrameworkDir -}}
+{{- if hasKey $envData "NIFI_PYTHONPATH" -}}
+{{- $pythonPath = index $envData "NIFI_PYTHONPATH" -}}
+{{- end -}}
+{{- $heapInit := .Values.nifi.jvm.heapInit -}}
+{{- if hasKey $envData "NIFI_JVM_HEAP_INIT" -}}
+{{- $heapInit = index $envData "NIFI_JVM_HEAP_INIT" -}}
+{{- end -}}
+{{- $heapMax := .Values.nifi.jvm.heapMax -}}
+{{- if hasKey $envData "NIFI_JVM_HEAP_MAX" -}}
+{{- $heapMax = index $envData "NIFI_JVM_HEAP_MAX" -}}
+{{- end -}}
+{{- $jvmOpts := "" -}}
+{{- if hasKey $envData "NIFI_JVM_OPTS" -}}
+{{- $jvmOpts = index $envData "NIFI_JVM_OPTS" -}}
+{{- end -}}
+{{- $logLevel := "" -}}
+{{- if hasKey $envData "NIFI_LOG_LEVEL" -}}
+{{- $logLevel = index $envData "NIFI_LOG_LEVEL" -}}
+{{- end -}}
+{{- $runAsUser := int .Values.securityContext.runAsUser -}}
+{{- if hasKey $envData "NIFI_UID" -}}
+{{- $runAsUser = int (index $envData "NIFI_UID") -}}
+{{- end -}}
+{{- $runAsGroup := int .Values.securityContext.runAsGroup -}}
+{{- if hasKey $envData "NIFI_GID" -}}
+{{- $runAsGroup = int (index $envData "NIFI_GID") -}}
+{{- end -}}
+{{- $cpuRequest := .Values.resources.requests.cpu -}}
+{{- if hasKey $envData "NIFI_DOCKER_CPU_MIN" -}}
+{{- $cpuRequest = index $envData "NIFI_DOCKER_CPU_MIN" -}}
+{{- end -}}
+{{- $cpuLimit := .Values.resources.limits.cpu -}}
+{{- if hasKey $envData "NIFI_DOCKER_CPU_MAX" -}}
+{{- $cpuLimit = index $envData "NIFI_DOCKER_CPU_MAX" -}}
+{{- end -}}
+{{- $memoryRequest := .Values.resources.requests.memory -}}
+{{- if hasKey $envData "NIFI_DOCKER_RAM" -}}
+{{- $memoryRequest = include "cogstack-nifi.normalizeMemory" (index $envData "NIFI_DOCKER_RAM") -}}
+{{- end -}}
+{{- $memoryLimit := .Values.resources.limits.memory -}}
+{{- if hasKey $envData "NIFI_DOCKER_RAM" -}}
+{{- $memoryLimit = include "cogstack-nifi.normalizeMemory" (index $envData "NIFI_DOCKER_RAM") -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "cogstack-nifi.fullname" . }}
+  labels:
+    {{- include "cogstack-nifi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nifi
+spec:
+  serviceName: {{ include "cogstack-nifi.headlessServiceName" . }}
+  replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "cogstack-nifi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cogstack-nifi.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "cogstack-nifi.serviceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- with omit .Values.podSecurityContext "fsGroup" }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        fsGroup: {{ $runAsGroup }}
+      initContainers:
+        - name: bootstrap-nifi-runtime
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- if .Values.initSecurityContext }}
+            {{- toYaml .Values.initSecurityContext | nindent 12 }}
+            {{- else }}
+            {{- with omit .Values.securityContext "runAsUser" "runAsGroup" }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            runAsUser: {{ $runAsUser }}
+            runAsGroup: {{ $runAsGroup }}
+            {{- end }}
+          command:
+            - /bin/bash
+            - -ec
+          args:
+            - |
+              SOURCE_ROOT={{ .Values.nifi.bootstrapFromImage.sourceRoot | quote }}
+              BOOTSTRAP_ENABLED={{ ternary "true" "false" .Values.nifi.bootstrapFromImage.enabled | quote }}
+              OVERWRITE_CONFIG={{ ternary "true" "false" .Values.nifi.bootstrapFromImage.overwriteExistingConfig | quote }}
+              OVERWRITE_RESOURCES={{ ternary "true" "false" .Values.nifi.bootstrapFromImage.overwriteExistingResources | quote }}
+              SERVICE_DNS={{ printf "%s.%s.svc" (include "cogstack-nifi.serviceName" .) .Release.Namespace | quote }}
+              HEADLESS_SERVICE={{ include "cogstack-nifi.headlessServiceName" . | quote }}
+              PROXY_HOSTS={{ include "cogstack-nifi.proxyHosts" . | quote }}
+
+              copy_dir() {
+                src="$1"
+                dst="$2"
+                overwrite="$3"
+                mkdir -p "$dst"
+                if [ ! -d "$src" ]; then
+                  echo "Skipping bootstrap copy for $dst; source $src does not exist"
+                  return 0
+                fi
+                if [ "$overwrite" = "true" ] || [ -z "$(find "$dst" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
+                  cp -a "$src"/. "$dst"/
+                fi
+              }
+
+              copy_user_scripts() {
+                src="$1"
+                dst="$2"
+                overwrite="$3"
+                mkdir -p "$dst"
+                if [ ! -d "$src" ]; then
+                  echo "Skipping user script bootstrap; source $src does not exist"
+                  return 0
+                fi
+                if [ "$overwrite" = "true" ] || [ ! -e "$dst/__init__.py" ]; then
+                  for entry in __init__.py dto legacy_scripts processors tests utils; do
+                    if [ -e "$src/$entry" ]; then
+                      cp -a "$src/$entry" "$dst"/
+                    fi
+                  done
+                fi
+                mkdir -p "$dst/logs" "$dst/db" "$dst/tmp" "$dst/extensions"
+              }
+
+              set_prop() {
+                file="$1"
+                key="$2"
+                value="$3"
+                escaped_value="$(printf '%s' "$value" | sed -e 's/[\\&|]/\\&/g')"
+                if grep -q "^${key}=" "$file"; then
+                  sed -i "s|^${key}=.*|${key}=${escaped_value}|" "$file"
+                else
+                  printf '\n%s=%s\n' "$key" "$value" >> "$file"
+                fi
+              }
+
+              if [ "$BOOTSTRAP_ENABLED" = "true" ]; then
+                copy_dir "$SOURCE_ROOT/conf" /work/conf "$OVERWRITE_CONFIG"
+                copy_dir "$SOURCE_ROOT/drivers" /work/drivers "$OVERWRITE_RESOURCES"
+                copy_dir "$SOURCE_ROOT/user_schemas" /work/user_schemas "$OVERWRITE_RESOURCES"
+                copy_dir "$SOURCE_ROOT/user_python_extensions" /work/python_extensions "$OVERWRITE_RESOURCES"
+                copy_user_scripts "$SOURCE_ROOT/user_scripts" /work/user_scripts "$OVERWRITE_RESOURCES"
+              fi
+
+              mkdir -p /work/conf /work/logs /work/provenance_repository /work/database_repository /work/flowfile_repository
+              mkdir -p /work/content_repository /work/state /work/flowfile-errors /work/user_scripts /work/python_extensions
+              touch /work/logs/nifi-app.log
+
+              if [ ! -f /work/conf/nifi.properties ]; then
+                echo "Missing /work/conf/nifi.properties. Enable nifi.bootstrapFromImage or pre-populate the conf volume." >&2
+                exit 1
+              fi
+
+              set_prop /work/conf/nifi.properties "nifi.web.http.host" ""
+              set_prop /work/conf/nifi.properties "nifi.web.http.port" ""
+              set_prop /work/conf/nifi.properties "nifi.web.https.host" "0.0.0.0"
+              set_prop /work/conf/nifi.properties "nifi.web.https.port" {{ $httpsPort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.web.proxy.context.path" {{ $proxyContextPath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.web.proxy.host" "$PROXY_HOSTS"
+              set_prop /work/conf/nifi.properties "nifi.remote.input.host" "$SERVICE_DNS"
+              set_prop /work/conf/nifi.properties "nifi.remote.input.socket.port" {{ $siteToSitePort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.remote.input.secure" "true"
+              set_prop /work/conf/nifi.properties "nifi.sensitive.props.key" "$NIFI_SENSITIVE_PROPS_KEY"
+              set_prop /work/conf/nifi.properties "nifi.security.keystore" {{ $keystorePath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.keystoreType" {{ $keystoreType | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.keystorePasswd" "$NIFI_KEYSTORE_PASSWORD"
+              set_prop /work/conf/nifi.properties "nifi.security.keyPasswd" "$NIFI_KEY_PASSWORD"
+              set_prop /work/conf/nifi.properties "nifi.security.truststore" {{ $truststorePath | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.truststoreType" {{ $truststoreType | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.truststorePasswd" "$NIFI_TRUSTSTORE_PASSWORD"
+              set_prop /work/conf/nifi.properties "nifi.security.user.authorizer" {{ .Values.nifi.security.authorizer | quote }}
+              set_prop /work/conf/nifi.properties "nifi.security.user.login.identity.provider" {{ .Values.nifi.security.loginIdentityProvider | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.framework.source.directory" {{ $pythonFrameworkDir | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.extensions.source.directory.default" {{ $pythonExtensionsDir | quote }}
+              set_prop /work/conf/nifi.properties "nifi.python.working.directory" {{ $pythonWorkingDir | quote }}
+
+              set_prop /work/conf/bootstrap.conf "java.arg.2" "-Xms{{ $heapInit }}"
+              set_prop /work/conf/bootstrap.conf "java.arg.3" "-Xmx{{ $heapMax }}"
+
+              if [ -n "${NIFI_SINGLE_USER_CREDENTIALS_USERNAME:-}" ] && [ -n "${NIFI_SINGLE_USER_CREDENTIALS_PASSWORD:-}" ]; then
+                {{ $nifiHome }}/bin/nifi.sh set-single-user-credentials "$NIFI_SINGLE_USER_CREDENTIALS_USERNAME" "$NIFI_SINGLE_USER_CREDENTIALS_PASSWORD"
+              fi
+
+              {{- if .Values.nifi.cluster.enabled }}
+              NODE_ADDRESS="${POD_NAME}.${HEADLESS_SERVICE}.${POD_NAMESPACE}.svc"
+              set_prop /work/conf/nifi.properties "nifi.cluster.is.node" "true"
+              set_prop /work/conf/nifi.properties "nifi.cluster.node.address" "$NODE_ADDRESS"
+              set_prop /work/conf/nifi.properties "nifi.cluster.node.protocol.port" {{ .Values.nifi.cluster.nodeProtocolPort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.load.balance.host" "$NODE_ADDRESS"
+              set_prop /work/conf/nifi.properties "nifi.cluster.load.balance.port" {{ .Values.nifi.cluster.loadBalancePort | quote }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.flow.election.max.wait.time" {{ .Values.nifi.cluster.flowElectionMaxWaitTime | quote }}
+              {{- if .Values.nifi.cluster.flowElectionMaxCandidates }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.flow.election.max.candidates" {{ .Values.nifi.cluster.flowElectionMaxCandidates | quote }}
+              {{- else }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.flow.election.max.candidates" {{ .Values.replicaCount | quote }}
+              {{- end }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.leader.election.implementation" "KubernetesLeaderElectionManager"
+              set_prop /work/conf/nifi.properties "nifi.cluster.leader.election.kubernetes.lease.prefix" {{ include "cogstack-nifi.clusterLeasePrefix" . | quote }}
+              set_prop /work/conf/nifi.properties "nifi.state.management.provider.cluster" "kubernetes-provider"
+              cat > /work/conf/state-management.xml <<'STATE_MANAGEMENT'
+              <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+              <stateManagement>
+                <local-provider>
+                  <id>local-provider</id>
+                  <class>org.apache.nifi.controller.state.providers.local.WriteAheadLocalStateProvider</class>
+                  <property name="Directory">./state/local</property>
+                  <property name="Always Sync">true</property>
+                  <property name="Partitions">16</property>
+                  <property name="Checkpoint Interval">10 mins</property>
+                </local-provider>
+                <cluster-provider>
+                  <id>kubernetes-provider</id>
+                  <class>org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider</class>
+                  <property name="ConfigMap Name Prefix">{{ include "cogstack-nifi.clusterConfigMapPrefix" . }}</property>
+                </cluster-provider>
+              </stateManagement>
+              STATE_MANAGEMENT
+              {{- else }}
+              set_prop /work/conf/nifi.properties "nifi.cluster.is.node" "false"
+              set_prop /work/conf/nifi.properties "nifi.cluster.node.address" ""
+              set_prop /work/conf/nifi.properties "nifi.cluster.node.protocol.port" ""
+              {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NIFI_SENSITIVE_PROPS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.sensitivePropsKey }}
+            - name: NIFI_KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.keystorePassword }}
+            - name: NIFI_KEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.keyPassword }}
+            - name: NIFI_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.truststorePassword }}
+            - name: NIFI_SINGLE_USER_CREDENTIALS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.singleUserUsername }}
+            - name: NIFI_SINGLE_USER_CREDENTIALS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-nifi.sensitiveSecretName" . }}
+                  key: {{ .Values.sensitiveConfig.keys.singleUserPassword }}
+          volumeMounts:
+            - name: conf
+              mountPath: /work/conf
+            - name: conf
+              mountPath: {{ printf "%s/conf" $nifiHome }}
+            - name: logs
+              mountPath: /work/logs
+            - name: provenance
+              mountPath: /work/provenance_repository
+            - name: database
+              mountPath: /work/database_repository
+            - name: flowfile
+              mountPath: /work/flowfile_repository
+            - name: content
+              mountPath: /work/content_repository
+            - name: state
+              mountPath: /work/state
+            - name: flowfile-errors
+              mountPath: /work/flowfile-errors
+            - name: user-scripts
+              mountPath: /work/user_scripts
+            - name: python-extensions
+              mountPath: /work/python_extensions
+            - name: drivers
+              mountPath: /work/drivers
+            - name: user-schemas
+              mountPath: /work/user_schemas
+      containers:
+        - name: nifi
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- with omit .Values.securityContext "runAsUser" "runAsGroup" }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            runAsUser: {{ $runAsUser }}
+            runAsGroup: {{ $runAsGroup }}
+          ports:
+            - name: https
+              containerPort: {{ $httpsPort }}
+              protocol: TCP
+            - name: site-to-site
+              containerPort: {{ $siteToSitePort }}
+              protocol: TCP
+            {{- if .Values.nifi.cluster.enabled }}
+            - name: cluster
+              containerPort: {{ .Values.nifi.cluster.nodeProtocolPort }}
+              protocol: TCP
+            - name: load-balance
+              containerPort: {{ .Values.nifi.cluster.loadBalancePort }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PYTHONPATH
+              value: {{ $pythonPath | quote }}
+            - name: NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY
+              value: {{ $pythonFrameworkDir | quote }}
+            - name: NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT
+              value: {{ $pythonExtensionsDir | quote }}
+            - name: NIFI_PYTHON_WORKING_DIRECTORY
+              value: {{ $pythonWorkingDir | quote }}
+            - name: NIFI_WEB_HTTP_PORT
+              value: ""
+            - name: NIFI_WEB_HTTP_HOST
+              value: ""
+            - name: NIFI_WEB_HTTPS_HOST
+              value: "0.0.0.0"
+            - name: NIFI_WEB_HTTPS_PORT
+              value: {{ $httpsPort | quote }}
+            - name: NIFI_WEB_PROXY_HOST
+              value: {{ include "cogstack-nifi.proxyHosts" . | quote }}
+            - name: NIFI_WEB_PROXY_CONTEXT_PATH
+              value: {{ $proxyContextPath | quote }}
+            {{- if $jvmOpts }}
+            - name: JVM_OPTS
+              value: {{ $jvmOpts | quote }}
+            {{- end }}
+            {{- if $logLevel }}
+            - name: NIFI_LOG_LEVEL
+              value: {{ $logLevel | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            tcpSocket:
+              port: https
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: {{ $cpuRequest | quote }}
+              memory: {{ $memoryRequest | quote }}
+            limits:
+              cpu: {{ $cpuLimit | quote }}
+              memory: {{ $memoryLimit | quote }}
+          volumeMounts:
+            - name: conf
+              mountPath: {{ printf "%s/conf" $nifiHome }}
+            - name: logs
+              mountPath: {{ printf "%s/logs" $nifiHome }}
+            - name: provenance
+              mountPath: {{ printf "%s/provenance_repository" $nifiHome }}
+            - name: database
+              mountPath: {{ printf "%s/database_repository" $nifiHome }}
+            - name: flowfile
+              mountPath: {{ printf "%s/flowfile_repository" $nifiHome }}
+            - name: content
+              mountPath: {{ printf "%s/content_repository" $nifiHome }}
+            - name: state
+              mountPath: {{ printf "%s/state" $nifiHome }}
+            - name: flowfile-errors
+              mountPath: /opt/nifi/pipeline/flowfile-errors
+            - name: user-scripts
+              mountPath: {{ $pythonWorkingDir }}
+            - name: python-extensions
+              mountPath: {{ $pythonExtensionsDir }}
+            - name: drivers
+              mountPath: /opt/nifi/drivers
+            - name: user-schemas
+              mountPath: /opt/nifi/user_schemas
+            {{- if .Values.certificates.enabled }}
+            - name: nifi-certs
+              mountPath: {{ .Values.certificates.mountPath }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.dataVolume.enabled }}
+            - name: data
+              mountPath: {{ .Values.dataVolume.mountPath }}
+            {{- end }}
+            {{- if .Values.modelsVolume.enabled }}
+            - name: models
+              mountPath: {{ .Values.modelsVolume.mountPath }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: drivers
+          emptyDir: {}
+        - name: user-schemas
+          emptyDir: {}
+        {{- if .Values.certificates.enabled }}
+        - name: nifi-certs
+          secret:
+            secretName: {{ .Values.certificates.existingSecret }}
+        {{- end }}
+        {{- if .Values.dataVolume.enabled }}
+        - name: data
+          {{- if .Values.dataVolume.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.dataVolume.existingClaim }}
+          {{- else }}
+          emptyDir:
+            {{- toYaml .Values.dataVolume.emptyDir | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.modelsVolume.enabled }}
+        - name: models
+          {{- if .Values.modelsVolume.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.modelsVolume.existingClaim }}
+          {{- else }}
+          emptyDir:
+            {{- toYaml .Values.modelsVolume.emptyDir | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.conf.enabled) }}
+        - name: conf
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.logs.enabled) }}
+        - name: logs
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.provenance.enabled) }}
+        - name: provenance
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.database.enabled) }}
+        - name: database
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.flowfile.enabled) }}
+        - name: flowfile
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.content.enabled) }}
+        - name: content
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.state.enabled) }}
+        - name: state
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.flowfileErrors.enabled) }}
+        - name: flowfile-errors
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.userScripts.enabled) }}
+        - name: user-scripts
+          emptyDir: {}
+        {{- end }}
+        {{- if or (not .Values.persistence.enabled) (not .Values.persistence.pythonExtensions.enabled) }}
+        - name: python-extensions
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.conf.enabled }}
+    - metadata:
+        name: conf
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.conf.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.conf.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.logs.enabled }}
+    - metadata:
+        name: logs
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logs.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.logs.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.provenance.enabled }}
+    - metadata:
+        name: provenance
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.provenance.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.provenance.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.database.enabled }}
+    - metadata:
+        name: database
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.database.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.database.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.flowfile.enabled }}
+    - metadata:
+        name: flowfile
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.flowfile.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.flowfile.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.content.enabled }}
+    - metadata:
+        name: content
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.content.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.content.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.state.enabled }}
+    - metadata:
+        name: state
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.state.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.state.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.flowfileErrors.enabled }}
+    - metadata:
+        name: flowfile-errors
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.flowfileErrors.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.flowfileErrors.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.userScripts.enabled }}
+    - metadata:
+        name: user-scripts
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.userScripts.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.userScripts.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.persistence.pythonExtensions.enabled }}
+    - metadata:
+        name: python-extensions
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.pythonExtensions.size }}
+        {{- $storageClassName := default .Values.persistence.storageClassName .Values.persistence.pythonExtensions.storageClassName }}
+        {{- if $storageClassName }}
+        storageClassName: {{ $storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+  {{- end }}

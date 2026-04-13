@@ -1,4 +1,5 @@
 {{- if .Values.dashboards.enabled }}
+{{- $dashboardsConfigRaw := .Values.configFiles.dashboardsRaw | default (.Files.Get "files/opensearch_dashboards.yml") -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,5 +8,5 @@ metadata:
     {{- include "cogstack-opensearch.labels" . | nindent 4 }}
 data:
   opensearch_dashboards.yml: |
-{{ .Files.Get "files/opensearch_dashboards.yml" | indent 4 }}
+{{ $dashboardsConfigRaw | indent 4 }}
 {{- end }}

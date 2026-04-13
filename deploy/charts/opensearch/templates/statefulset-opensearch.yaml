@@ -1,3 +1,16 @@
+{{- if .Values.opensearch.enabled }}
+{{- $envData := include "cogstack-opensearch.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $clusterName := .Values.opensearch.clusterName -}}
+{{- if hasKey $envData "ELASTICSEARCH_CLUSTER_NAME" -}}
+{{- $clusterName = index $envData "ELASTICSEARCH_CLUSTER_NAME" -}}
+{{- end -}}
+{{- $javaOpts := .Values.opensearch.javaOpts -}}
+{{- if hasKey $envData "ELASTICSEARCH_JAVA_OPTS" -}}
+{{- $javaOpts = index $envData "ELASTICSEARCH_JAVA_OPTS" -}}
+{{- else if hasKey $envData "OPENSEARCH_JAVA_OPTS" -}}
+{{- $javaOpts = index $envData "OPENSEARCH_JAVA_OPTS" -}}
+{{- end -}}
+{{- $nodeCertFiles := .Values.certificates.opensearchNodeFiles | default (list) -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -26,6 +39,43 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.opensearch.podSecurityContext | nindent 8 }}
+      {{- if gt (len $nodeCertFiles) 0 }}
+      initContainers:
+        - name: prepare-opensearch-certs
+          image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
+          imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.opensearch.securityContext | nindent 12 }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              ordinal="${HOSTNAME##*-}"
+              case "$ordinal" in
+              {{- range $i, $nodeCert := $nodeCertFiles }}
+                {{ $i }})
+                  cert_file="{{ $nodeCert.cert }}"
+                  key_file="{{ $nodeCert.key }}"
+                  ;;
+              {{- end }}
+                *)
+                  echo "No node certificate mapping configured for pod ordinal $ordinal" >&2
+                  exit 1
+                  ;;
+              esac
+              cp "/cert-source/{{ .Values.certificates.opensearchFiles.rootCA }}" "/cert-work/root-ca.crt"
+              cp "/cert-source/{{ .Values.certificates.opensearchFiles.adminCert }}" "/cert-work/admin.crt"
+              cp "/cert-source/{{ .Values.certificates.opensearchFiles.adminKey }}" "/cert-work/admin.key.pem"
+              cp "/cert-source/${cert_file}" "/cert-work/esnode.crt"
+              cp "/cert-source/${key_file}" "/cert-work/esnode.key"
+          volumeMounts:
+            - name: opensearch-certs-source
+              mountPath: /cert-source
+              readOnly: true
+            - name: opensearch-certs-runtime
+              mountPath: /cert-work
+      {{- end }}
       containers:
         - name: opensearch
           image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
@@ -42,11 +92,6 @@ spec:
             - name: analyzer
               containerPort: {{ .Values.opensearch.service.analyzerPort }}
               protocol: TCP
-          {{- if .Values.envFile.raw }}
-          envFrom:
-            - configMapRef:
-                name: {{ include "cogstack-opensearch.envConfigMapName" . }}
-          {{- end }}
           env:
             - name: POD_IP
               valueFrom:
@@ -61,7 +106,7 @@ spec:
             - name: ELASTICSEARCH_NETWORK_PUBLISH_HOST
               value: "$(POD_IP)"
             - name: ELASTICSEARCH_CLUSTER_NAME
-              value: {{ .Values.opensearch.clusterName | quote }}
+              value: {{ $clusterName | quote }}
             - name: ELASTICSEARCH_SEED_HOSTS
               value: {{ include "cogstack-opensearch.seedHosts" . | quote }}
             - name: ELASTICSEARCH_INITIAL_CLUSTER_MANAGER_NODES
@@ -69,7 +114,7 @@ spec:
             - name: ELASTICSEARCH_HOSTS
               value: {{ include "cogstack-opensearch.elasticsearchHostsJson" . | quote }}
             - name: OPENSEARCH_JAVA_OPTS
-              value: {{ .Values.opensearch.javaOpts | quote }}
+              value: {{ $javaOpts | quote }}
             - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -113,6 +158,28 @@ spec:
             - name: opensearch-security
               mountPath: /usr/share/opensearch/config/opensearch-security/roles_mapping.yml
               subPath: roles_mapping.yml
+            {{- if gt (len $nodeCertFiles) 0 }}
+            - name: opensearch-certs-runtime
+              mountPath: /usr/share/opensearch/config/root-ca.crt
+              subPath: root-ca.crt
+              readOnly: true
+            - name: opensearch-certs-runtime
+              mountPath: /usr/share/opensearch/config/esnode.crt
+              subPath: esnode.crt
+              readOnly: true
+            - name: opensearch-certs-runtime
+              mountPath: /usr/share/opensearch/config/esnode.key
+              subPath: esnode.key
+              readOnly: true
+            - name: opensearch-certs-runtime
+              mountPath: /usr/share/opensearch/config/admin.crt
+              subPath: admin.crt
+              readOnly: true
+            - name: opensearch-certs-runtime
+              mountPath: /usr/share/opensearch/config/admin.key.pem
+              subPath: admin.key.pem
+              readOnly: true
+            {{- else }}
             - name: opensearch-certs
               mountPath: /usr/share/opensearch/config/root-ca.crt
               subPath: {{ .Values.certificates.opensearchFiles.rootCA }}
@@ -133,12 +200,19 @@ spec:
               mountPath: /usr/share/opensearch/config/admin.key.pem
               subPath: {{ .Values.certificates.opensearchFiles.adminKey }}
               readOnly: true
+            {{- end }}
             - name: data
               mountPath: /usr/share/opensearch/data
             - name: logs
               mountPath: /usr/share/opensearch/logs
             - name: performance-analyzer
               mountPath: /usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata
+            {{- if .Values.opensearch.snapshotBackups.enabled }}
+            - name: snapshot-backup-data
+              mountPath: {{ .Values.opensearch.snapshotBackups.data.mountPath }}
+            - name: snapshot-backup-config
+              mountPath: {{ .Values.opensearch.snapshotBackups.config.mountPath }}
+            {{- end }}
       volumes:
         - name: opensearch-config
           configMap:
@@ -146,17 +220,37 @@ spec:
         - name: opensearch-security
           configMap:
             name: {{ include "cogstack-opensearch.fullname" . }}-opensearch-security
+        {{- if gt (len $nodeCertFiles) 0 }}
+        - name: opensearch-certs-source
+          secret:
+            secretName: {{ .Values.certificates.opensearchSecretName }}
+        - name: opensearch-certs-runtime
+          emptyDir: {}
+        {{- else }}
         - name: opensearch-certs
           secret:
             secretName: {{ .Values.certificates.opensearchSecretName }}
+        {{- end }}
+        {{- if .Values.opensearch.snapshotBackups.enabled }}
+        - name: snapshot-backup-data
+          persistentVolumeClaim:
+            claimName: {{ default (include "cogstack-opensearch.snapshotBackupDataPvcName" .) .Values.opensearch.snapshotBackups.data.existingClaim }}
+        - name: snapshot-backup-config
+          persistentVolumeClaim:
+            claimName: {{ default (include "cogstack-opensearch.snapshotBackupConfigPvcName" .) .Values.opensearch.snapshotBackups.config.existingClaim }}
+        {{- end }}
         {{- if not .Values.opensearch.persistence.enabled }}
         - name: data
           emptyDir: {}
         {{- end }}
+        {{- if not .Values.opensearch.logPersistence.enabled }}
         - name: logs
           emptyDir: {}
+        {{- end }}
+        {{- if not .Values.opensearch.performanceAnalyzerPersistence.enabled }}
         - name: performance-analyzer
           emptyDir: {}
+        {{- end }}
       {{- with .Values.opensearch.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -169,8 +263,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- if .Values.opensearch.persistence.enabled }}
+  {{- if or .Values.opensearch.persistence.enabled .Values.opensearch.logPersistence.enabled .Values.opensearch.performanceAnalyzerPersistence.enabled }}
   volumeClaimTemplates:
+    {{- if .Values.opensearch.persistence.enabled }}
     - metadata:
         name: data
       spec:
@@ -182,4 +277,32 @@ spec:
         {{- if .Values.opensearch.persistence.storageClassName }}
         storageClassName: {{ .Values.opensearch.persistence.storageClassName | quote }}
         {{- end }}
+    {{- end }}
+    {{- if .Values.opensearch.logPersistence.enabled }}
+    - metadata:
+        name: logs
+      spec:
+        accessModes:
+          {{- toYaml .Values.opensearch.logPersistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.opensearch.logPersistence.size }}
+        {{- if .Values.opensearch.logPersistence.storageClassName }}
+        storageClassName: {{ .Values.opensearch.logPersistence.storageClassName | quote }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.opensearch.performanceAnalyzerPersistence.enabled }}
+    - metadata:
+        name: performance-analyzer
+      spec:
+        accessModes:
+          {{- toYaml .Values.opensearch.performanceAnalyzerPersistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.opensearch.performanceAnalyzerPersistence.size }}
+        {{- if .Values.opensearch.performanceAnalyzerPersistence.storageClassName }}
+        storageClassName: {{ .Values.opensearch.performanceAnalyzerPersistence.storageClassName | quote }}
+        {{- end }}
+    {{- end }}
   {{- end }}
+{{- end }}

@@ -1,0 +1,126 @@
+{{- if .Values.cluster.enabled }}
+{{- $envData := include "cogstack-postgresql.parsedEnvFile" . | fromYaml | default (dict) -}}
+{{- $usersData := include "cogstack-postgresql.parsedUsersEnvFile" . | fromYaml | default (dict) -}}
+{{- $databaseName := "cogstack" -}}
+{{- if .Values.cluster.databaseName -}}
+{{- $databaseName = .Values.cluster.databaseName -}}
+{{- else if hasKey $envData "DATABASE_DB_NAME" -}}
+{{- $databaseName = index $envData "DATABASE_DB_NAME" -}}
+{{- end -}}
+{{- $ownerName := "admin" -}}
+{{- if .Values.cluster.ownerName -}}
+{{- $ownerName = .Values.cluster.ownerName -}}
+{{- else if hasKey $usersData "DATABASE_USER" -}}
+{{- $ownerName = index $usersData "DATABASE_USER" -}}
+{{- end -}}
+{{- $maxConnections := "100" -}}
+{{- if .Values.cluster.postgresql.maxConnections -}}
+{{- $maxConnections = printf "%v" .Values.cluster.postgresql.maxConnections -}}
+{{- else if hasKey $envData "POSTGRES_DB_MAX_CONNECTIONS" -}}
+{{- $maxConnections = printf "%v" (index $envData "POSTGRES_DB_MAX_CONNECTIONS") -}}
+{{- end -}}
+{{- $cpuRequest := "1" -}}
+{{- if .Values.cluster.resources.requests.cpu -}}
+{{- $cpuRequest = .Values.cluster.resources.requests.cpu -}}
+{{- else if hasKey $envData "DATABASE_DOCKER_CPU_MIN" -}}
+{{- $cpuRequest = printf "%v" (index $envData "DATABASE_DOCKER_CPU_MIN") -}}
+{{- end -}}
+{{- $cpuLimit := $cpuRequest -}}
+{{- if .Values.cluster.resources.limits.cpu -}}
+{{- $cpuLimit = .Values.cluster.resources.limits.cpu -}}
+{{- else if hasKey $envData "DATABASE_DOCKER_CPU_MAX" -}}
+{{- $cpuLimit = printf "%v" (index $envData "DATABASE_DOCKER_CPU_MAX") -}}
+{{- end -}}
+{{- $memoryRequest := "1Gi" -}}
+{{- if .Values.cluster.resources.requests.memory -}}
+{{- $memoryRequest = .Values.cluster.resources.requests.memory -}}
+{{- else if hasKey $envData "DATABASE_DOCKER_RAM" -}}
+{{- $memoryRequest = include "cogstack-postgresql.normalizeMemory" (index $envData "DATABASE_DOCKER_RAM") -}}
+{{- end -}}
+{{- $memoryLimit := $memoryRequest -}}
+{{- if .Values.cluster.resources.limits.memory -}}
+{{- $memoryLimit = .Values.cluster.resources.limits.memory -}}
+{{- else if hasKey $envData "DATABASE_DOCKER_RAM" -}}
+{{- $memoryLimit = include "cogstack-postgresql.normalizeMemory" (index $envData "DATABASE_DOCKER_RAM") -}}
+{{- end -}}
+{{- $schemaPrefix := "cogstack_db" -}}
+{{- if hasKey $envData "POSTGRES_DB_SCHEMA_PREFIX" -}}
+{{- $schemaPrefix = index $envData "POSTGRES_DB_SCHEMA_PREFIX" -}}
+{{- end -}}
+{{- $annotationsSchemaKey := .Values.initdb.annotationsSchemaKey -}}
+{{- $sqlFiles := .Files.Glob "files/initdb/*.sql" -}}
+{{- $selectedSchemaKeys := list -}}
+{{- $annotationsSchemaPresent := false -}}
+{{- range $path, $_ := $sqlFiles }}
+  {{- $key := base $path -}}
+  {{- if eq $key $annotationsSchemaKey -}}
+    {{- $annotationsSchemaPresent = true -}}
+  {{- else if hasPrefix $schemaPrefix $key -}}
+    {{- $selectedSchemaKeys = append $selectedSchemaKeys $key -}}
+  {{- end -}}
+{{- end -}}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "cogstack-postgresql.fullname" . }}
+  labels:
+    {{- include "cogstack-postgresql.labels" . | nindent 4 }}
+spec:
+  description: "CogStack production PostgreSQL cluster managed by CloudNativePG"
+  instances: {{ .Values.cluster.instances }}
+  imageName: {{ .Values.cluster.imageName | quote }}
+  imagePullPolicy: {{ .Values.cluster.imagePullPolicy }}
+  enableSuperuserAccess: {{ .Values.cluster.enableSuperuserAccess }}
+  bootstrap:
+    initdb:
+      database: {{ $databaseName | quote }}
+      owner: {{ $ownerName | quote }}
+      secret:
+        name: {{ include "cogstack-postgresql.appSecretName" . }}
+      {{- if or $annotationsSchemaPresent (gt (len $selectedSchemaKeys) 0) (gt (len .Values.initdb.extraConfigMapRefs) 0) (gt (len .Values.initdb.extraSecretRefs) 0) }}
+      postInitApplicationSQLRefs:
+        {{- if or $annotationsSchemaPresent (gt (len $selectedSchemaKeys) 0) (gt (len .Values.initdb.extraConfigMapRefs) 0) }}
+        configMapRefs:
+          {{- if $annotationsSchemaPresent }}
+          - name: {{ include "cogstack-postgresql.initdbConfigMapName" . }}
+            key: {{ $annotationsSchemaKey }}
+          {{- end }}
+          {{- range $key := $selectedSchemaKeys }}
+          - name: {{ include "cogstack-postgresql.initdbConfigMapName" $ }}
+            key: {{ $key }}
+          {{- end }}
+          {{- with .Values.initdb.extraConfigMapRefs }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.initdb.extraSecretRefs }}
+        secretRefs:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+  {{- if .Values.cluster.ownerSuperuser }}
+  managed:
+    roles:
+      - name: {{ $ownerName | quote }}
+        ensure: present
+        login: true
+        superuser: true
+        passwordSecret:
+          name: {{ include "cogstack-postgresql.appSecretName" . }}
+  {{- end }}
+  postgresql:
+    parameters:
+      max_connections: {{ $maxConnections | quote }}
+  resources:
+    requests:
+      cpu: {{ $cpuRequest | quote }}
+      memory: {{ $memoryRequest | quote }}
+    limits:
+      cpu: {{ $cpuLimit | quote }}
+      memory: {{ $memoryLimit | quote }}
+  storage:
+    size: {{ .Values.cluster.storage.size | quote }}
+    {{- if .Values.cluster.storage.storageClass }}
+    storageClass: {{ .Values.cluster.storage.storageClass | quote }}
+    {{- end }}
+{{- end }}

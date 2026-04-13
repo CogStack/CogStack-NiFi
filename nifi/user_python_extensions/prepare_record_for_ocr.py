@@ -11,7 +11,6 @@ from nifiapi.properties import (
     PropertyDescriptor,
     StandardValidators,
 )
-from nifiapi.relationship import Relationship
 from py4j.java_gateway import JavaObject, JVMView
 
 from nifi.user_scripts.utils.nifi.base_nifi_processor import BaseNiFiProcessor
@@ -62,19 +61,7 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
                                allowable_values=["avro", "json", "ndjson"]),
         ]
 
-        self._relationships = [
-            Relationship(
-                name="success",
-                description="All FlowFiles processed successfully."
-            ),
-            Relationship(
-                name="failure",
-                description="FlowFiles that failed processing."
-            )
-        ]
-
         self.descriptors: list[PropertyDescriptor] = self._properties
-        self.relationships: list[Relationship] = self._relationships
 
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
 
@@ -128,13 +115,13 @@ class CogStackPrepareRecordForOcr(BaseNiFiProcessor):
 
         if self.process_flow_file_type == "avro":
             return FlowFileTransformResult(
-                relationship="success",
+                relationship=self.REL_SUCCESS.name,
                 attributes=attributes,
                 contents=json.dumps(output_contents, cls=AvroJSONEncoder).encode("utf-8"),
             )
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=json.dumps(output_contents).encode("utf-8"),
         )

@@ -64,9 +64,103 @@ app.kubernetes.io/component: dashboards
 {{- end -}}
 {{- end -}}
 
-{{/* Env ConfigMap name */}}
-{{- define "cogstack-opensearch.envConfigMapName" -}}
-{{- printf "%s-elasticsearch-env" (include "cogstack-opensearch.fullname" .) -}}
+{{/* Snapshot backup PVC names */}}
+{{- define "cogstack-opensearch.snapshotBackupDataPvcName" -}}
+{{- printf "%s-snapshot-backup-data" (include "cogstack-opensearch.fullname" .) -}}
+{{- end -}}
+
+{{- define "cogstack-opensearch.snapshotBackupConfigPvcName" -}}
+{{- printf "%s-snapshot-backup-config" (include "cogstack-opensearch.fullname" .) -}}
+{{- end -}}
+
+{{/* Parse deploy/elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedEnvFile" -}}
+{{- $root := . -}}
+{{- $envData := dict -}}
+{{- $rawEnv := $root.Values.envFile.raw | default ($root.Files.Get "files/deploy-elasticsearch.envfile") -}}
+{{- if $rawEnv -}}
+{{- $renderedEnv := tpl $rawEnv $root -}}
+{{- range $line := splitList "\n" $renderedEnv }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.envFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- if regexMatch "^\\$[A-Za-z_][A-Za-z0-9_]*$" $val -}}
+          {{- $refKey := trimPrefix "$" $val -}}
+          {{- if hasKey $envData $refKey -}}
+            {{- $val = index $envData $refKey -}}
+          {{- end -}}
+        {{- end -}}
+        {{- $_ := set $envData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $envData }}
+{{- end -}}
+
+{{/* Parse security/env/users_elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedUsersEnvFile" -}}
+{{- $root := . -}}
+{{- $usersData := dict -}}
+{{- $rawUsers := $root.Values.usersEnvFile.raw | default ($root.Files.Get "files/users-elasticsearch.envfile") -}}
+{{- if $rawUsers -}}
+{{- $renderedUsers := tpl $rawUsers $root -}}
+{{- range $line := splitList "\n" $renderedUsers }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.usersEnvFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- $_ := set $usersData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $usersData }}
+{{- end -}}
+
+{{/* Parse security/env/certificates_elasticsearch.env into a filtered YAML map */}}
+{{- define "cogstack-opensearch.parsedCertificatesEnvFile" -}}
+{{- $root := . -}}
+{{- $certData := dict -}}
+{{- $rawCerts := $root.Values.certificatesEnvFile.raw | default ($root.Files.Get "files/certificates-elasticsearch.envfile") -}}
+{{- if $rawCerts -}}
+{{- $renderedCerts := tpl $rawCerts $root -}}
+{{- range $line := splitList "\n" $renderedCerts }}
+  {{- $clean := trim (replace "\r" "" $line) -}}
+  {{- if and $clean (not (hasPrefix "#" $clean)) -}}
+    {{- if regexMatch "^[A-Za-z_][A-Za-z0-9_]*=" $clean -}}
+      {{- $key := regexFind "^[A-Za-z_][A-Za-z0-9_]*" $clean -}}
+      {{- $val := trim (regexReplaceAll "^[A-Za-z_][A-Za-z0-9_]*=" $clean "") -}}
+      {{- if has $key $root.Values.certificatesEnvFile.includeKeys -}}
+        {{- if and (hasPrefix "\"" $val) (hasSuffix "\"" $val) -}}
+          {{- $val = trimSuffix "\"" (trimPrefix "\"" $val) -}}
+        {{- else if and (hasPrefix "'" $val) (hasSuffix "'" $val) -}}
+          {{- $val = trimSuffix "'" (trimPrefix "'" $val) -}}
+        {{- end -}}
+        {{- $_ := set $certData $key $val -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{ toYaml $certData }}
 {{- end -}}
 
 {{/* CSV of StatefulSet pod DNS names used for discovery.seed_hosts */}}
@@ -91,7 +185,15 @@ app.kubernetes.io/component: dashboards
 
 {{/* JSON array for ELASTICSEARCH_HOSTS */}}
 {{- define "cogstack-opensearch.elasticsearchHostsJson" -}}
+{{- if .Values.opensearch.enabled -}}
 {{- $svc := include "cogstack-opensearch.clientServiceName" . -}}
 {{- $ns := .Release.Namespace -}}
 {{- printf "[\"https://%s.%s.svc:%d\"]" $svc $ns (int .Values.opensearch.service.httpPort) -}}
+{{- else -}}
+{{- if .Values.dashboards.opensearchHosts -}}
+{{ toJson .Values.dashboards.opensearchHosts }}
+{{- else -}}
+{{- fail "dashboards.opensearchHosts must be set when opensearch.enabled=false" -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}

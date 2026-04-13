@@ -180,7 +180,11 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
 
         if self.postcode_lookup_index:
             for record in records:
-                if self.postcode_field_name in record:
+                record[self.geolocation_field_name] = None
+
+                raw_postcode = record.get(self.postcode_field_name)
+
+                if raw_postcode not in (None, ""):
                     _postcode = str(record[self.postcode_field_name]).replace(" ", "")
                     _data_col_row_idx = self.postcode_lookup_index.get(_postcode, -1)
 
@@ -188,10 +192,12 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
                         _selected_row = self.loaded_csv_file_rows[_data_col_row_idx]
                         _lat, _long = str(_selected_row[7]).strip(), str(_selected_row[8]).strip()
                         try:
-                            record[self.geolocation_field_name] = {"lat": float(_lat), "lon": float(_long)}
+                            record[self.geolocation_field_name] = f"{float(_lat)},{float(_long)}"   
                         except ValueError:
                             self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
                             error_records.append(record)
+
+
                 valid_records.append(record)
         else:
             raise FileNotFoundError(
@@ -206,7 +212,7 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
         attributes["record.count"] = str(len(valid_records))
 
         return FlowFileTransformResult(
-            relationship="success",
+            relationship=self.REL_SUCCESS.name,
             attributes=attributes,
             contents=json.dumps(valid_records).encode("utf-8"),
         )
