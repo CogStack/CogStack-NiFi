@@ -218,6 +218,85 @@ Troubleshooting:
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
 
+##### `update_opensearch_users.sh` reference
+
+Use this script when you need to rotate passwords for every user already defined in `security/es_roles/opensearch/internal_users.yml`, including the reserved `admin` user.
+
+The script updates password hashes in `internal_users.yml` using OpenSearch's `hash.sh`, then applies only the `internalusers` config with `securityadmin.sh`. It does not create tenants, roles, role mappings, or new internal users. For those tasks, use `create_opensearch_users.sh`.
+
+Script: `security/scripts/update_opensearch_users.sh`  
+Usage:
+
+```bash
+cd security/scripts
+
+# Dry run: validates env vars and generates hashes, but does not write files.
+./update_opensearch_users.sh <opensearch_container_name>
+
+# Update internal_users.yml and push the internal users config to OpenSearch.
+./update_opensearch_users.sh <opensearch_container_name> --apply
+
+# Update only the local YAML file; do not run securityadmin.sh.
+./update_opensearch_users.sh <opensearch_container_name> --apply --skip-securityadmin
+```
+
+To find the container name:
+
+```bash
+docker ps --format '{{.Names}}' | grep elasticsearch
+```
+
+Required inputs are loaded from:
+
+- `deploy/elasticsearch.env`
+- `security/env/certificates_elasticsearch.env`
+- `security/env/certificates_general.env`
+- `security/env/users_elasticsearch.env`
+
+Password env var resolution:
+
+| OpenSearch user | Env var used |
+|-----------------|--------------|
+| `admin` | `ADMIN_PASSWORD` or `OPENSEARCH_ADMIN_PASSWORD` if set, otherwise `ELASTIC_PASSWORD` |
+| `kibanaserver` | `KIBANA_PASSWORD` when `KIBANA_USER=kibanaserver` |
+| `logstash` | `ES_LOGSTASH_PASS` |
+| `kibanaro` | `ES_KIBANARO_PASS` |
+| `readall` | `ES_READALL_PASS` |
+| `snapshotrestore` | `ES_SNAPSHOTRESTORE_PASS` |
+| `anomalyadmin` | `ANOMALYADMIN_PASSWORD` |
+| `new-user` | `NEW_USER_PASSWORD` |
+| Any other user | `<USERNAME>_PASSWORD`, uppercased with non-alphanumeric characters converted to underscores |
+
+Example: a user named `data-loader` expects `DATA_LOADER_PASSWORD` unless it is covered by one of the explicit mappings above.
+
+Recommended workflow:
+
+1. Edit the relevant password values in `security/env/users_elasticsearch.env`.
+2. Run the script without `--apply` to validate all users and generate hashes.
+3. Run the script with `--apply` to back up and update `internal_users.yml`, then apply it to the running OpenSearch cluster.
+4. Re-run any dependent setup scripts or update dependent service credentials if the rotated user is used elsewhere.
+
+The script writes a timestamped backup next to the source file:
+
+```text
+security/es_roles/opensearch/internal_users.yml.bak.YYYYMMDDHHMMSS
+```
+
+Important behavior:
+
+- The dry run still needs a running OpenSearch container because hashes are generated with the version of `hash.sh` bundled in that container.
+- `securityadmin.sh -f ... -t internalusers` replaces the internal users config stored in the OpenSearch security index. Keep every required internal user in `internal_users.yml` before applying.
+- The running cluster is not updated if you use `--skip-securityadmin`; only the local YAML file changes.
+- If you rotate `admin`, update any scripts or services that still authenticate with `admin:${ELASTIC_PASSWORD}`.
+
+Verification example after rotating `admin`, from the repository root:
+
+```bash
+source security/env/users_elasticsearch.env
+curl -k -u "admin:${ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
+  https://elasticsearch-1:9200/_plugins/_security/api/account
+```
+
 ##### OpenSearch Dashboards post-login setup (Global tenant + workspace)
 
 After your first login to `https://localhost:5601` (default: `admin` / `admin`):
