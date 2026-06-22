@@ -1,4 +1,4 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.19.0
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.19.6
 
 RUN bin/elasticsearch-plugin install --batch https://github.com/alexklibisz/elastiknn/releases/download/8.19.0.0/elastiknn-8.19.0.0.zip
 
