@@ -1,7 +1,8 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.18.3
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.19.0
 
-RUN bin/elasticsearch-plugin install --batch https://github.com/alexklibisz/elastiknn/releases/download/8.18.3.0/elastiknn-8.18.3.0.zip
+RUN bin/elasticsearch-plugin install --batch https://github.com/alexklibisz/elastiknn/releases/download/8.19.0.0/elastiknn-8.19.0.0.zip
 
 RUN bin/elasticsearch-plugin install --batch analysis-icu
 
 COPY ./sysctl.conf /etc/
+
