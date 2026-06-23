@@ -28,7 +28,7 @@ PyYAML==6.0.3
 pydantic==2.12.5
 overrides==7.0.0
 pyarrow==23.0.1
-pydantic-settings==2.12.0
+pydantic-settings==2.14.2
 # other utils
 xnat==0.7.2
 
