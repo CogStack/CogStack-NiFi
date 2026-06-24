@@ -57,6 +57,7 @@ security/
 │   ├── create_opensearch_node_cert.sh          # Generates certificates and JKS stores for each OpenSearch node
 │   ├── create_opensearch_admin_certs.sh        # Creates admin + client certificates for OpenSearch Dashboards (Kibana equivalent)
 │   ├── create_opensearch_internal_passwords.sh # Generates bcrypt password hashes for OpenSearch internal_users.yml
+│   ├── update_opensearch_users.sh              # Updates password hashes for every user in OpenSearch internal_users.yml
 │   ├── create_opensearch_users.sh              # Creates OpenSearch internal users and role mappings (manual execution post-startup)
 │   ├── nifi_toolkit_security.sh                # Generates NiFi HTTPS certs using NiFi Toolkit (for NiFi < 2.0, no longer used for certs as of 2.0+)
 │   ├── nifi_init_create_user_auth.sh           # Bootstraps a temporary NiFi container to create a single-user authentication file
