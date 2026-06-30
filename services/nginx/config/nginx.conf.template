@@ -37,7 +37,7 @@ http {
     #}
 
     upstream nifi {
-        server nifi:8443;
+        server nifi:${NIFI_INTERNAL_PORT};
     }
 
     include /etc/nginx/sites-enabled/*.conf;
@@ -78,8 +78,8 @@ http {
     #}
 
     server {
-        listen 8443 ssl;
-        server_name nginx.local;
+        listen ${NIFI_INTERNAL_PORT_NGINX} ssl;
+        server_name ${NGINX_NIFI_SERVER_NAME};
 
         proxy_ssl_server_name on;
 
@@ -99,7 +99,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
             # proxy_set_header X-ProxyContextPath /;
@@ -111,7 +111,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
             proxy_pass https://nifi;
@@ -121,7 +121,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
             proxy_hide_header X-Frame-Options;
@@ -132,7 +132,7 @@ http {
         #     proxy_set_header Host nifi;
         #     proxy_set_header X-Real-IP nifi;
         #     proxy_set_header X-ProxyHost $host;
-        #     proxy_set_header X-ProxyPort 8443;
+        #     proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
         #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         #     proxy_set_header X-ProxyScheme $scheme;
         #     proxy_hide_header Content-Security-Policy;
@@ -144,7 +144,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
             proxy_pass https://nifi/media/;
@@ -154,7 +154,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
             proxy_pass https://nifi/content-viewer/;
@@ -164,7 +164,7 @@ http {
             proxy_set_header Host nifi;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-ProxyHost $host;
-            proxy_set_header X-ProxyPort 8443;
+            proxy_set_header X-ProxyPort ${NIFI_WEB_PROXY_PORT};
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-ProxyScheme $scheme;
 
