@@ -116,6 +116,84 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                         f"{self.input_charset}, and windows-1252: {exc3}"
                     ) from exc3
 
+    @staticmethod
+    def _strip_known_blob_wrappers(payload: bytes | bytearray) -> bytes:
+        output = bytes(payload)
+        for wrapper in (b"\nocf_blob\x00", b"ocf_blob\x00", b"ocr_blob\x00"):
+            output = output.replace(wrapper, b"")
+        return output
+
+    def _extract_pdf_payload(self, payload: bytes | bytearray) -> bytes | None:
+        cleaned_payload = self._strip_known_blob_wrappers(payload)
+        pdf_start = cleaned_payload.find(b"%PDF-")
+        if pdf_start == -1:
+            return None
+
+        pdf_end = cleaned_payload.rfind(b"%%EOF")
+        if pdf_end == -1 or pdf_end < pdf_start:
+            raise ValueError("Not a valid PDF stream - no %%EOF byte")
+
+        return cleaned_payload[pdf_start:pdf_end + len(b"%%EOF")]
+
+    def _extract_rtf_payload(self, payload: bytes | bytearray) -> bytes | None:
+        cleaned_payload = self._strip_known_blob_wrappers(payload)
+        rtf_start = cleaned_payload.find(b"{\\rtf")
+        if rtf_start == -1:
+            return None
+
+        rtf_end = cleaned_payload.rfind(b"}")
+        if rtf_end == -1 or rtf_end < rtf_start:
+            raise ValueError("Invalid RTF stream in blob payload")
+
+        return cleaned_payload[rtf_start:rtf_end + 1]
+
+    def _try_extract_embedded_payload(
+        self,
+        payload: bytes | bytearray,
+        payload_source_prefix: str,
+        fail_on_invalid_stream: bool,
+    ) -> tuple[bytes | None, str, str]:
+        extraction_errors: list[str] = []
+
+        try:
+            pdf_payload = self._extract_pdf_payload(payload)
+        except ValueError as exc:
+            if fail_on_invalid_stream:
+                raise
+            extraction_errors.append(f"pdf: {exc}")
+        else:
+            if pdf_payload is not None:
+                return pdf_payload, f"{payload_source_prefix}_pdf", ""
+
+        try:
+            rtf_payload = self._extract_rtf_payload(payload)
+        except ValueError as exc:
+            if fail_on_invalid_stream:
+                raise
+            extraction_errors.append(f"rtf: {exc}")
+        else:
+            if rtf_payload is not None:
+                return rtf_payload, f"{payload_source_prefix}_rtf", ""
+
+        return None, "", "; ".join(extraction_errors)
+
+    @staticmethod
+    def _decompress_cerner_lzw(payload: bytes | bytearray) -> bytes:
+        decompress_blob = DecompressLzwCernerBlob()
+        try:
+            decompress_blob.decompress(bytearray(payload))
+        except Exception as exc:
+            raise ValueError(
+                "Blob payload is not an embedded PDF/RTF stream and did not decode "
+                "as a Cerner LZW stream"
+            ) from exc
+
+        output_payload = bytes(decompress_blob.output_stream)
+        if not output_payload:
+            raise ValueError("Cerner LZW decode produced an empty payload")
+
+        return output_payload
+
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
         Transforms the input FlowFile by decompressing Cerner blob data from JSON records.
@@ -251,33 +329,37 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         # Otherwise run the Cerner LZW decompressor. Any error bubbles to transform(),
         # which handles routing to failure.
         output_bytes_decompressed: bytes | bytearray | None = None
+        payload_source: str = ""
+        is_lzw_compressed: bool = False
 
-        if b"%PDF" in full_compressed_blob:
-            pdf_start = full_compressed_blob.find(b"%PDF-")
-            pdf_end = full_compressed_blob.rfind(b"%%EOF")
-            if pdf_start == -1 or pdf_end == -1 or pdf_end < pdf_start:
-                raise ValueError("Invalid PDF stream in blob payload")
+        output_bytes_decompressed, payload_source, extraction_error = self._try_extract_embedded_payload(
+            full_compressed_blob,
+            "embedded",
+            fail_on_invalid_stream=False,
+        )
+        if extraction_error:
+            attributes["embedded_payload_extract_error"] = extraction_error
 
-            # +5 to include %%EOF marker
-            pdf_bytes = full_compressed_blob[pdf_start:pdf_end + 5]
+        if output_bytes_decompressed is None:
+            lzw_payload = self._decompress_cerner_lzw(full_compressed_blob)
+            is_lzw_compressed = True
+            attributes["decompressed_len"] = str(len(lzw_payload))
+            attributes["decompressed_head_hex"] = lzw_payload[:16].hex()
 
-            # clean known wrapper headers if present
-            output_bytes_decompressed = pdf_bytes.replace(b"\nocf_blob\x00", b"")
-            output_bytes_decompressed = output_bytes_decompressed.replace(b"ocr_blob\x00", b"")
-        elif b"{\\rtf" in full_compressed_blob:
-            rtf_start = full_compressed_blob.find(b"{\\rtf")
-            rtf_end = full_compressed_blob.rfind(b"}")
-            if rtf_end == -1 or rtf_end < rtf_start:
-                raise ValueError("Invalid RTF stream in blob payload")
-
-            output_bytes_decompressed = full_compressed_blob[rtf_start:rtf_end + 1]
-        else:
-            decompress_blob = DecompressLzwCernerBlob()
-            decompress_blob.decompress(full_compressed_blob)
-            output_bytes_decompressed = bytes(decompress_blob.output_stream)
+            output_bytes_decompressed, payload_source, _ = self._try_extract_embedded_payload(
+                lzw_payload,
+                "cerner_lzw",
+                fail_on_invalid_stream=True,
+            )
+            if output_bytes_decompressed is None:
+                payload_source = "cerner_lzw"
+                output_bytes_decompressed = lzw_payload
 
         if not output_bytes_decompressed:
             raise ValueError("Could not locate or decompress blob payload")
+
+        attributes["blob_payload_source"] = payload_source
+        attributes["is_lzw_compressed"] = str(is_lzw_compressed).lower()
 
         output_merged_record[self.binary_field_name] = bytes(output_bytes_decompressed)
 
