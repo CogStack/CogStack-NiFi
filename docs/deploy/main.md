@@ -36,13 +36,13 @@ Software required on machine (the minimum/basics to get demos running):
 
 ## ⚙️ Installation steps
 
-Assuming you are the system admin, meaning you have`SUDO` rights.
-You can use the script with `SUDO` rights, located at `/scripts/installation_utils/install_docker_and_utils.sh`, it can be used on Debian(10+)/Ubuntu(22.04+)/RedHAT RHEL 8/9 only, run it once and everything should be set up.
+Assuming you are the system admin, meaning you have `sudo` rights.
+You can use the script located at `scripts/installation_utils/install_docker_and_utils.sh`; it can be used on Debian(10+)/Ubuntu(22.04+)/RedHAT RHEL 8/9 only. Run it once and everything should be set up. The script resolves its helper files relative to its own location, so it can be run from any directory.
 
 Execute the following commands in the root directory of the repo:
 
 1. `git-lfs pull`
-2. (OPTIONAL, if you already have the software in [this section installed](#-software-requirements-linuxmacos))`sudo bash ./scripts/installation_utils/install_docker_and_utils.sh` , and wait for it to finish, it may take a while to get all the packages..
+2. (OPTIONAL, if you already have the software in [this section installed](#-software-requirements-linuxmacos)) `bash ./scripts/installation_utils/install_docker_and_utils.sh`, and wait for it to finish. It may take a while to get all the packages, and it will prompt for `sudo` when needed.
 3. `cd deploy`
 4. `make git-update-submodules`
 5. check that docker works correctly : `docker pull hello-world`

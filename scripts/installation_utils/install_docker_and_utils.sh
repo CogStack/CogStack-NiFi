@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
-echo "This script must be run with root privileges."
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+target_user="${SUDO_USER:-${USER:-$(id -un)}}"
 
-os_distribution="$(sudo bash ./detect_os.sh)"
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Running with root privileges."
+else
+    echo "This script installs system packages and may prompt for sudo privileges."
+    sudo -v
+fi
+
+os_distribution="$(bash "${script_dir}/detect_os.sh")"
 
 echo "Found distribution: $os_distribution "
 
@@ -37,9 +45,11 @@ then
     sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker
-    sudo groupadd docker
+    sudo groupadd -f docker
     sudo usermod -aG docker root
-    sudo usermod -aG docker $USER
+    if [ -n "$target_user" ] && [ "$target_user" != "root" ] && id "$target_user" >/dev/null 2>&1; then
+        sudo usermod -aG docker "$target_user"
+    fi
 
     # start the service
     sudo systemctl enable docker.service
@@ -49,7 +59,7 @@ then
 
 elif  [ "$os_distribution" == "redhat" ] || [ "$os_distribution" == "red hat" ] || [ "$os_distribution" == "centos" ]; 
 then
-    yum -y update && yum -y upgrade
+    sudo yum -y update && sudo yum -y upgrade
 
     # NFS STUFF
     sudo yum install samba samba-client cifs-utils nfs-utils rpcbind archivemount
@@ -73,7 +83,7 @@ then
 
     echo "Installing Azure CLI..."
     sudo rpm --import https://packages.microsoft.com/keys/microsoft-2025.asc
-    sudo dnf install azure-cli
+    sudo dnf install -y azure-cli
     
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     sudo yum-config-manager --enable docker-ce-stable
@@ -81,9 +91,11 @@ then
     sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # create docker group and add the root user to it, as root will be used to run the docker process
-    sudo groupadd docker
+    sudo groupadd -f docker
     sudo usermod -aG docker root
-    sudo usermod -aG docker $USER
+    if [ -n "$target_user" ] && [ "$target_user" != "root" ] && id "$target_user" >/dev/null 2>&1; then
+        sudo usermod -aG docker "$target_user"
+    fi
 
     # start the service
     sudo systemctl enable docker.service
