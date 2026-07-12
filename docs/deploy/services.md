@@ -54,7 +54,7 @@ Most web ETL & data-enrichment API services that we use will offer thw following
 - **POST** `/api/process`
 - **POST** `/api/process_bulk`
 
-Useful for NiFi workflows (see `workflows.md`).
+Useful for NiFi workflows (see [workflows](./workflows.md)).
 
 ---
 

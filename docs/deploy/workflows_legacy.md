@@ -6,6 +6,7 @@ This page contains legacy workflow walkthroughs that are still useful for refere
 
 For current and maintained guidance, use:
 
+- [Current workflows](./workflows.md)
 - [Prerequisites and deployment overview](./main.md)
 - [Deployment operations guide](./deployment.md)
 - [Services reference](./services.md)
