@@ -194,7 +194,7 @@ class CogStackJsonRecordAddGeolocation(BaseNiFiProcessor):
                         try:
                             record[self.geolocation_field_name] = f"{float(_lat)},{float(_long)}"   
                         except ValueError:
-                            self.logger.debug(f"invalid lat/long values for postcode {_postcode}: {_lat}, {_long}")
+                            self.logger.debug("invalid lat/long values encountered for a record; geolocation not set")
                             error_records.append(record)
 
 

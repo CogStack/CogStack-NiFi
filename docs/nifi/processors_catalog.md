@@ -39,6 +39,9 @@ Scope:
 
 - Some scripts in `nifi/user_scripts/processors/` are stream processors; others are batch-style utilities.
 - `sample_processor.py` is a template/reference implementation, not a production flow processor.
+- For `CogStackJsonRecordDecompressCernerBlob`, see the
+  [Cerner blob decompression workflow](../deploy/workflows.md#cerner-blob-decompression)
+  for the recommended `ExecuteSQLRecord` grouping pattern and required input fields.
 - Keep this page updated when adding/removing processor files so developers can discover what is available.
 
 ## Related docs

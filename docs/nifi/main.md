@@ -297,7 +297,8 @@ The key used ones are:
 ## User resources
 
 With our custom image there are bundled resources to get up and running example workflows.
-Please see [WORKFLOWS.md](../deploy/workflows_legacy.md) in the `deploy` directory for more details on the workflows.
+Please see [current workflows](../deploy/workflows.md) and
+[legacy workflows](../deploy/workflows_legacy.md) in the `deploy` docs for more details.
 
 ## Workflow templates
 

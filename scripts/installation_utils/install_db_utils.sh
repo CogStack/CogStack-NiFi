@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-echo "This script must be run with root privileges."
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-os_distribution="$(exec ./detect_os.sh)"
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Running with root privileges."
+else
+    echo "This script installs system packages and may prompt for sudo privileges."
+    sudo -v
+fi
+
+os_distribution="$(bash "${script_dir}/detect_os.sh")"
 echo "Found distribution: $os_distribution "
 
 if [ "$os_distribution" == "debian" ] || [ "$os_distribution" == "ubuntu" ];
@@ -11,7 +18,7 @@ then
     sudo apt-get install -y postgresql-client
 elif  [ "$os_distribution" == "redhat" ] || [ "$os_distribution" == "red hat" ] || [ "$os_distribution" == "centos" ]; 
 then
-    yum -y update && yum -y upgrade
+    sudo yum -y update && sudo yum -y upgrade
     
     # install postgresql client
     sudo dnf -y module enable postgresql:12
@@ -23,4 +30,4 @@ else
     exit 1
 fi;
 
-echo "Finished installing docker and utils.."
+echo "Finished installing database utilities.."
