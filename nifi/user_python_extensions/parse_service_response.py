@@ -24,7 +24,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.2'
+        version = '0.0.3'
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
@@ -35,6 +35,8 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         self.document_id_field_name: str = "_id"
         self.medcat_output_mode: str = "not_set"
         self.medcat_deid_keep_annotations: bool = True
+        self.medcat_empty_text_handling: str = "drop"
+        self.medcat_no_annotations_handling: str = "restore"
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -51,7 +53,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                                required=True,
                                allowable_values=["ocr", "medcat", "not_set"]),
             PropertyDescriptor(name="document_id_field_name",
-                               description="id field name of the document, this will be taken from the 'footer' usually",
+                               description="id field name of the document; this will usually be taken from the footer",
                                default_value="_id",
                                required=True,
                                validators=[StandardValidators.NON_EMPTY_VALIDATOR]),
@@ -68,6 +70,22 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                                default_value="not_set",
                                required=True,
                                allowable_values=["deid", "not_set"],
+                               ),
+            PropertyDescriptor(name="medcat_empty_text_handling",
+                               description="in DEID mode, how to handle MedCAT results whose text is empty or "
+                               "whitespace: drop omits the record; restore reconstructs the original document "
+                               "from the response footer",
+                               default_value="drop",
+                               required=True,
+                               allowable_values=["drop", "restore"],
+                               ),
+            PropertyDescriptor(name="medcat_no_annotations_handling",
+                               description="in DEID mode, how to handle successful MedCAT results with non-empty "
+                               "text but no annotations: drop omits the record; restore reconstructs the original "
+                               "document from the response footer",
+                               default_value="restore",
+                               required=True,
+                               allowable_values=["drop", "restore"],
                                ),
             PropertyDescriptor(name="medcat_deid_keep_annotations",
                                description="if set to true, " \
@@ -92,6 +110,22 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
 
         self.descriptors: list[PropertyDescriptor] = self._properties
         self.relationships: list[Relationship] = self._relationships
+
+    @staticmethod
+    def _is_blank_text(text: object) -> bool:
+        return text is None or (isinstance(text, str) and not text.strip())
+
+    def _restore_medcat_record(self, annotated_record: dict, footer: object, status: str) -> dict:
+        if isinstance(footer, dict):
+            restored_record = dict(footer)
+        elif footer is None:
+            restored_record = {}
+        else:
+            restored_record = {"footer": footer}
+
+        restored_record[self.document_text_field_name] = annotated_record.get("text", "")
+        restored_record["medcat_status"] = status
+        return restored_record
 
     def process(self, context: ProcessContext, flowFile: JavaObject) -> FlowFileTransformResult:
         """
@@ -150,8 +184,49 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                 annotations = annotated_record.get("annotations", [])
                 annotations = annotations[0] if len(annotations) > 0 else annotations
                 footer = annotated_record.get("footer", {})
+                is_deid_mode = self.medcat_output_mode == "deid"
+                is_successful_result = annotated_record.get("success") is True
+                has_text = "text" in annotated_record
+                has_blank_text = has_text and self._is_blank_text(annotated_record.get("text"))
 
-                if self.medcat_output_mode == "deid":
+                if is_deid_mode and is_successful_result and has_blank_text:
+                    if self.medcat_empty_text_handling == "restore":
+                        restored_record = self._restore_medcat_record(
+                            annotated_record,
+                            footer,
+                            "skipped_empty_text",
+                        )
+
+                        if self.document_id_field_name in restored_record:
+                            additional_attributes[self.document_id_field_name] = str(
+                                restored_record[self.document_id_field_name]
+                            )
+
+                        output_contents.append(restored_record)
+                    continue
+
+                if not annotations:
+                    if (
+                        is_deid_mode
+                        and is_successful_result
+                        and has_text
+                        and self.medcat_no_annotations_handling == "restore"
+                    ):
+                        restored_record = self._restore_medcat_record(
+                            annotated_record,
+                            footer,
+                            "no_annotations",
+                        )
+
+                        if self.document_id_field_name in restored_record:
+                            additional_attributes[self.document_id_field_name] = str(
+                                restored_record[self.document_id_field_name]
+                            )
+
+                        output_contents.append(restored_record)
+                    continue
+
+                if is_deid_mode:
                     _output_annotated_record = {}
                     _output_annotated_record["service_model"] = medcat_info
                     _output_annotated_record["timestamp"] = annotated_record.get("timestamp", None)
