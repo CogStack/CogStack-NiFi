@@ -149,8 +149,8 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-# --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
-ARG NETTY_VERSION=4.2.9.Final
+# --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.12.Final) ---
+ARG NETTY_VERSION=4.2.12.Final
 RUN set -eux; \
     cd /opt/nifi/nifi-current/lib; \
     curl -fL --retry 5 --retry-delay 2 \
