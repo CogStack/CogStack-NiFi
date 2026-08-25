@@ -163,6 +163,7 @@ RUN set -eux; \
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
   nars=( \
+    nifi-atlassian-nar \
     nifi-aws-nar \
     nifi-aws-service-api-nar \
     nifi-aws-kinesis-nar \
@@ -171,23 +172,57 @@ RUN set -eux; \
     nifi-snowflake-processors-nar \
     nifi-snowflake-services-nar \
     nifi-snowflake-services-api-nar \
+    nifi-smb-nar \
+    nifi-slack-nar \
+    nifi-slor-nar \
+    nifi-sql-reporting-nar \
     nifi-parquet-nar \
     nifi-database-dialect-service-nar \
+    nifi-jolt-nar \
+    nifi-iotdb-nar \
+    nifi-kafka-to-s3-nar \
+    nifi-kafka-service-api-nar \
+    nifi-kafka-service-aws-nar \
+    nifi-kafka-nar \
+    nifi-kerberos-iaa-providers-nar \
+    nifi-key-service-nar \
     nifi-iceberg-shared-nar \
     nifi-iceberg-service-api-nar \
+    nifi-iceberg-services-api-nar \
     nifi-iceberg-processors-nar \
     nifi-iceberg-rest-catalog-nar \
     nifi-iceberg-azure-nar \
+    nifi-iceberg-aws-nar \
+    nifi-iceberg-gcs-nar \
+    nifi-iceberg-parquet-writer-nar \
     nifi-hashicorp-vault-nar \
     nifi-hashicorp-vault-client-service-api-nar \
     nifi-hadoop-libraries-nar \
     nifi-hadoop-nar \
+    nifi-hl7-nar \
     nifi-github-nar \
+    nifi-grpc-nar \
+    nifi-groovyx-nar \
+    nifi-geohash-nar \
     nifi-gitlab-nar \
+    nifi-graph-nar \
+    nifi-other-graph-services-nar \
     nifi-graph-client-service-api-nar \
     nifi-couchbase-nar \
+    nifi-framework-zookeeper-nar \
+    nifi-framework-kubernetes-nar \
+    nifi-framework-nar \
+    nifi-flow-registry-client-nar \
     nifi-media-nar \
+    nifi-mqtt-nar \
+    nifi-mongodb-nar \
     nifi-neo4j-cypher-service-nar \
+    nifi-nar-provider-service-api \
+    nifi-prometheus-nar \
+    nifi-opentelemetry-nar \
+    nifi-protobuf-services-nar \
+    nifi-py4j-nar \
+    nifi-redis-service-api-nar \
   ); \
   for a in "${nars[@]}"; do \
     curl -fsSL --retry 5 --retry-delay 2 \
