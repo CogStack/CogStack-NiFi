@@ -5,7 +5,7 @@ FROM apache/nifi:${NIFI_VERSION}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG NIFI_VERSION=2.11.0
-ARG GROOVY_VERSION=5.0.4
+ARG GROOVY_VERSION=5.1.0
 
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
@@ -150,7 +150,7 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 WORKDIR /opt/nifi/nifi-current/lib/
 
 # --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
-ARG NETTY_VERSION=4.2.9.Final
+ARG NETTY_VERSION=4.2.17.Final
 RUN set -eux; \
     cd /opt/nifi/nifi-current/lib; \
     curl -fL --retry 5 --retry-delay 2 \
@@ -174,7 +174,7 @@ RUN set -eux; \
     nifi-snowflake-services-api-nar \
     nifi-smb-nar \
     nifi-slack-nar \
-    nifi-slor-nar \
+    nifi-solr-nar \
     nifi-sql-reporting-nar \
     nifi-parquet-nar \
     nifi-database-dialect-service-nar \
@@ -217,7 +217,7 @@ RUN set -eux; \
     nifi-mqtt-nar \
     nifi-mongodb-nar \
     nifi-neo4j-cypher-service-nar \
-    nifi-nar-provider-service-api \
+    nifi-nar-provider-service-api-nar \
     nifi-prometheus-nar \
     nifi-opentelemetry-nar \
     nifi-protobuf-services-nar \
@@ -225,9 +225,14 @@ RUN set -eux; \
     nifi-redis-service-api-nar \
   ); \
   for a in "${nars[@]}"; do \
-    curl -fsSL --retry 5 --retry-delay 2 \
-      -o "${a}-${NIFI_VERSION}.nar" \
-      "${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
+     url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
+     echo "Checking $a"; \
+     if ! curl -fsSL --retry 2 \
+       -o "${a}-${NIFI_VERSION}.nar" \
+       "$url"; then \
+       echo "MISSING: $a @ ${NIFI_VERSION}"; \
+       rm -f "${a}-${NIFI_VERSION}.nar"; \
+     fi; \
   done; \
   chown ${UID}:${GID} ./*.nar
 
