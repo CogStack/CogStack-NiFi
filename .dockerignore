@@ -1,0 +1,21 @@
+# The NiFi image only copies pyproject.toml and the nifi source tree.
+# Keep the build context small and prevent unrelated repository content,
+# credentials, and local development state from entering image layers.
+**
+!pyproject.toml
+!nifi/
+!nifi/**
+
+# Local NiFi runtime state. These files may contain environment-specific
+# endpoints, identifiers, or other data and are not reproducible inputs.
+nifi/conf/flow.json.gz
+nifi/conf/archive/
+
+# Development and operating-system artefacts within the included source tree.
+nifi/**/__pycache__/
+nifi/**/*.py[cod]
+nifi/**/.DS_Store
+nifi/**/.pytest_cache/
+nifi/**/.ruff_cache/
+nifi/**/.mypy_cache/
+nifi/**/*.egg-info/

@@ -2,13 +2,17 @@
 
 set -euo pipefail
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
-SECURITY_CERTIFICATES_FOLDER="../certificates/"
-SECURITY_ENV_FOLDER="../env/"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SECURITY_TEMPLATES_FOLDER="${SCRIPT_DIR}/../templates/"
+SECURITY_CERTIFICATES_FOLDER="${SCRIPT_DIR}/../certificates/"
+SECURITY_ENV_FOLDER="${SCRIPT_DIR}/../env/"
 ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
 NIFI_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}nifi/"
 
+# These paths are resolved dynamically from this script's location.
+# shellcheck disable=SC1090
 source "${SECURITY_ENV_FOLDER}certificates_general.env"
+# shellcheck disable=SC1090
 source "${SECURITY_ENV_FOLDER}certificates_nifi.env"
 
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
@@ -26,36 +30,43 @@ if [[ ! -f "$CA_ROOT_CERT" || ! -f "$CA_ROOT_KEY" ]]; then
 fi
 
 CERT_NAME="nifi"
+KEY_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}.key"
+CSR_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}.csr"
+PEM_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}.pem"
+CRT_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}.crt"
+P12_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}.p12"
+KEYSTORE_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}-keystore.jks"
+TRUSTSTORE_FILE="${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}-truststore.jks"
 
 mkdir -p "$NIFI_CERTIFICATES_FOLDER"
-rm -f "${NIFI_CERTIFICATES_FOLDER}${CERT_NAME}"*
+rm -f "$KEY_FILE" "$CSR_FILE" "$PEM_FILE" "$CRT_FILE" "$P12_FILE" "$KEYSTORE_FILE" "$TRUSTSTORE_FILE"
 
-openssl genrsa -out "${CERT_NAME}.key" 4096
-openssl req -new -key "${CERT_NAME}.key" -out "${CERT_NAME}.csr" -config "$EXT_FILE"
+openssl genrsa -out "$KEY_FILE" 4096
+openssl req -new -key "$KEY_FILE" -out "$CSR_FILE" -config "$EXT_FILE"
 
 openssl x509 -req \
-  -in "${CERT_NAME}.csr" \
+  -in "$CSR_FILE" \
   -CA "$CA_ROOT_CERT" \
   -CAkey "$CA_ROOT_KEY" \
   -CAcreateserial \
-  -out "${CERT_NAME}.pem" \
+  -out "$PEM_FILE" \
   -days "$NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS" \
   -sha256 \
   -extfile "$EXT_FILE" \
   -extensions v3_leaf
 
-openssl x509 -in "${CERT_NAME}.pem" -outform DER -out "${CERT_NAME}.crt"
+openssl x509 -in "$PEM_FILE" -outform DER -out "$CRT_FILE"
 
 openssl pkcs12 -export \
-  -in "${CERT_NAME}.pem" \
-  -inkey "${CERT_NAME}.key" \
-  -out "${CERT_NAME}.p12" \
+  -in "$PEM_FILE" \
+  -inkey "$KEY_FILE" \
+  -out "$P12_FILE" \
   -name "$CERT_NAME" \
   -passout pass:"$NIFI_KEYSTORE_PASSWORD"
 
 keytool -importkeystore \
-  -destkeystore "${CERT_NAME}-keystore.jks" \
-  -srckeystore "${CERT_NAME}.p12" \
+  -destkeystore "$KEYSTORE_FILE" \
+  -srckeystore "$P12_FILE" \
   -srcstoretype PKCS12 \
   -alias "$CERT_NAME" \
   -srcstorepass "$NIFI_KEYSTORE_PASSWORD" \
@@ -65,10 +76,9 @@ keytool -importkeystore \
 keytool -importcert \
   -file "$CA_ROOT_CERT" \
   -alias "$ROOT_CERTIFICATE_NAME" \
-  -keystore "${CERT_NAME}-truststore.jks" \
+  -keystore "$TRUSTSTORE_FILE" \
   -storepass "$NIFI_TRUSTSTORE_PASSWORD" \
   -noprompt
 
-mv "${CERT_NAME}.key" "${CERT_NAME}.pem" "${CERT_NAME}.crt" "${CERT_NAME}.csr" \
-  "${CERT_NAME}.p12" "${CERT_NAME}-keystore.jks" "${CERT_NAME}-truststore.jks" \
-  "$NIFI_CERTIFICATES_FOLDER"
+chmod 600 "$KEY_FILE" "$P12_FILE" "$KEYSTORE_FILE" "$TRUSTSTORE_FILE"
+chmod 644 "$PEM_FILE" "$CRT_FILE" "$CSR_FILE"

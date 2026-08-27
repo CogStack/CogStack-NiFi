@@ -15,19 +15,20 @@
 #     ./certificates/root/<ROOT_CERTIFICATE_NAME>.pem              - Self-signed X.509 certificate (PEM)
 #     ./certificates/root/<ROOT_CERTIFICATE_NAME>.crt              - DER-encoded certificate (for Java truststore etc.)
 #     ./certificates/root/<ROOT_CERTIFICATE_NAME>.csr              - Certificate Signing Request (optional)
-#     ./certificates/root/<ROOT_CERTIFICATE_NAME>.srl              - Serial file (used when signing certs)
 #     ./certificates/root/<ROOT_CERTIFICATE_NAME>.p12              - PKCS#12 bundle (key + cert)
 #     ./certificates/root/<ROOT_CERTIFICATE_NAME>.jks              - Java Keystore (.jks)
-#     ./certificates/root/<ROOT_CERTIFICATE_NAME>-truststore.key   - Java Truststore (.jks)
+#     ./certificates/root/<ROOT_CERTIFICATE_NAME>-truststore.jks   - Java Truststore (.jks)
 # =============================================================================================================================
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SECURITY_TEMPLATES_FOLDER="${SCRIPT_DIR}/../templates/"
+SECURITY_CERTIFICATES_FOLDER="${SCRIPT_DIR}/../certificates/"
+SECURITY_ENV_FOLDER="${SCRIPT_DIR}/../env/"
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
-SECURITY_CERTIFICATES_FOLDER="../certificates/"
-SECURITY_ENV_FOLDER="../env/"
-
+# The path is resolved dynamically from this script's location.
+# shellcheck disable=SC1090
 source "${SECURITY_ENV_FOLDER}certificates_general.env"
 
 # === Validate required env vars
@@ -42,7 +43,6 @@ EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 echo "====================================== CREATE_ROOT_CA_CERT ==============================="
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
-echo "ROOT_CERTIFICATE_KEYSTORE_PASSWORD: $ROOT_CERTIFICATE_KEYSTORE_PASSWORD"
 echo "ROOT_CERTIFICATE_KEY_SIZE: $ROOT_CERTIFICATE_KEY_SIZE"
 echo "ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS: $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS"
 echo "ROOT_CERTIFICATES_FOLDER: $ROOT_CERTIFICATES_FOLDER"
@@ -50,14 +50,13 @@ echo "==========================================================================
 
 mkdir -p "${ROOT_CERTIFICATES_FOLDER}"
 
-# remove any existing files to avoid confusion
-rm -f "${ROOT_CERTIFICATES_FOLDER}*"
+# Remove existing generated files to avoid mixing certificate generations.
+find "$ROOT_CERTIFICATES_FOLDER" -mindepth 1 -maxdepth 1 -type f -delete
 
 KEY_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
 CSR_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.csr"
 PEM_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
 CRT_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.crt"
-SRL_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.srl"
 P12_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.p12"
 JKS_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}-keystore.jks"
 TRUSTSTORE_FILE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}-truststore.jks"
@@ -69,15 +68,15 @@ openssl genrsa -out "$KEY_FILE" "$ROOT_CERTIFICATE_KEY_SIZE"
 # === Generate CSR
 echo "📜 Generating self-signed certificate: $CRT_FILE"
 openssl req -x509 \
-  -newkey rsa:${ROOT_CERTIFICATE_KEY_SIZE} \
-  -keyout "$KEY_FILE" \
+  -new \
+  -key "$KEY_FILE" \
   -sha256 \
   -nodes \
-  -days $ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS \
+  -days "$ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS" \
   -out "$CRT_FILE" \
   -extensions v3_ca \
   -config "$EXT_FILE" \
-  -outform DER \
+  -outform DER
 
 # === Convert to PEM format (text-based)
 openssl x509 -inform DER -in "$CRT_FILE" -out "$PEM_FILE" -outform PEM
@@ -124,7 +123,8 @@ keytool -importcert \
 
 # === Set permissions
 echo "🔐 Setting permissions..."
-find "$ROOT_CERTIFICATES_FOLDER" -type f -exec chmod 644 {} \;
-find "$ROOT_CERTIFICATES_FOLDER" -type d -exec chmod 755 {} \;
+chmod 600 "$KEY_FILE" "$P12_FILE" "$JKS_FILE" "$TRUSTSTORE_FILE"
+chmod 644 "$CSR_FILE" "$PEM_FILE" "$CRT_FILE"
+chmod 755 "$ROOT_CERTIFICATES_FOLDER"
 
 echo "✅ Root CA + PKCS#12 + Keystore + Truststore created successfully."
