@@ -153,40 +153,37 @@ CN = cogstack
 
 ### 🛠️ Generation workflow
 
-1. **Generate Root CA**
+From the repository root, initialize all certificates required by NiFi and the
+search backend selected by `ELASTICSEARCH_VERSION` in `deploy/elasticsearch.env`:
+
+```bash
+make -C deploy init-security
+```
+
+You can also initialize certificate sets independently:
+
+```bash
+make -C deploy init-security-root-ca
+make -C deploy init-security-nifi
+make -C deploy init-security-opensearch
+make -C deploy init-security-elasticsearch
+```
+
+The initialization targets are idempotent: complete certificate sets are left
+unchanged. Native Elasticsearch generation uses Docker and refuses to overwrite
+an existing incomplete directory automatically.
+
+1. **(Optional) Create custom JKS keystores**
 
    ```bash
    cd security/scripts
-   bash create_root_ca_cert.sh
-   ```
-
-2. **Generate service certificates**
-
-   ```bash
-   # Elasticsearch
-   bash create_es_native_certs.sh
-
-   # OpenSearch
-   bash create_opensearch_node_cert.sh elasticsearch-1 elasticsearch-2 elasticsearch-3
-
-   # Kibana / Dashboards
-   bash create_opensearch_client_admin_certs.sh
-
-   # NiFi
-   bash nifi_toolkit_security.sh (not needed as of version 2.0+, use only for NiFi versions < 2.0) make sure to change $NIFI_TOOLKIT_VERSION env var in `../deploy/nifi.env`.
-
-   ```
-
-3. **(Optional) Create custom JKS keystores**
-
-   ```bash
    bash create_keystore.sh mycert.pem mystore.jks mypassword
    ```
 
-4. **Re-export environment variables and restart services**
+2. **Re-export environment variables and restart services**
 
    ```bash
-   cd ../deploy
+   cd ../../deploy
    source export_env_vars.sh
    make start-<SERVICE_NAME>
    ```

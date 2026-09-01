@@ -4,16 +4,25 @@ Everything in this directory, apart from this file, is generated locally and
 must not be committed. Generated bundles include private keys and are specific
 to a development or deployment environment.
 
-From `security/scripts`, generate the shared root CA first and then the
-certificates needed by the service being tested. For example:
+From the repository root, generate all missing certificates required by NiFi
+and the search backend selected in `deploy/elasticsearch.env`:
 
 ```bash
-./create_root_ca_cert.sh
-./create_nifi_certs.sh
+make -C deploy init-security
 ```
 
-For OpenSearch, run the root CA generator followed by the node and client/admin
-certificate generators described in the security documentation.
+The individual initialization targets are also available:
+
+```bash
+make -C deploy init-security-root-ca
+make -C deploy init-security-nifi
+make -C deploy init-security-opensearch
+make -C deploy init-security-elasticsearch
+```
+
+These targets leave complete existing certificate sets unchanged. They generate
+only missing or incomplete service sets and do not silently rotate an existing
+root CA.
 
 Any private keys that were previously committed to Git must be considered
 public. Do not reuse them outside local development, and rotate any deployment
