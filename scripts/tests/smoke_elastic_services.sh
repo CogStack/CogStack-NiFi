@@ -27,6 +27,9 @@ ELASTICSEARCH_PORT_LIST=(
   "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}"
 )
 KIBANA_PORT="${KIBANA_SERVER_OUTPUT_PORT:-5601}"
+# The sourced smoke helper reads this shared variable when checks run.
+# shellcheck disable=SC2034
+SMOKE_CA_CERT="${ELASTICSEARCH_SMOKE_CA_CERT:-${ROOT_DIR}/security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem}"
 
 START_SERVICES="${ELASTICSEARCH_SMOKE_START_SERVICES:-1}"
 

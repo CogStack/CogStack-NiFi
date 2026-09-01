@@ -23,10 +23,10 @@
 #   • `certificates_general.env` must define:
 #       - CA root path used for HTTPS verification
 #
-# Output (to Elasticsearch security API):
+# Output:
 #   • Password for `kibana_system` set
 #   • Users `$KIBANA_USER` and `$INGEST_SERVICE_USER` created
-#   • Fleet Server token generated
+#   • Fleet Server token written to a mode-0600 JSON file
 # ==============================================================================
 
 set -uo pipefail
@@ -55,20 +55,18 @@ ES_CA_KEY="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.key.pem"
 
 echo "====================================== CREATE_ES_NATIVE_CREDENTIALS =============================="
 echo "ELASTIC_HOST: $ELASTIC_HOST"
-echo "ELASTIC_PASSWORD: $ELASTIC_PASSWORD"
 echo "ELASTIC_USER: $ELASTIC_USER"
 echo "KIBANA_USER: $KIBANA_USER"
-echo "KIBANA_PASSWORD: $KIBANA_PASSWORD"
 echo "INGEST_SERVICE_USER: $INGEST_SERVICE_USER"
-echo "INGEST_SERVICE_PASSWORD: $INGEST_SERVICE_PASSWORD"
 echo "ES_ADMIN_EMAIL: $ES_ADMIN_EMAIL"
+echo "Credential values: [loaded; values not logged]"
 echo "=================================================================================================="
 
 ES_URL="https://$ELASTIC_HOST:9200"
 
 # Wait for Elasticsearch to be available
 echo "⏳ Waiting for Elasticsearch to become available..."
-until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" $ES_URL >/dev/null; do
+until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" "$ES_URL" >/dev/null; do
   echo "  🔁 Still waiting on $ELASTIC_HOST..."
   sleep 10
 done
@@ -116,7 +114,23 @@ create_user "$KIBANA_USER" "$KIBANA_PASSWORD" "\"kibana_system\", \"kibana_admin
 
 # Create Fleet server service account token
 echo "🔑 Creating Fleet server service account token..."
-curl -ks -X POST --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" \
-  "$ES_URL/_security/service/elastic/fleet-server/credential/token?pretty"
+FLEET_TOKEN_OUTPUT_FILE="${ELASTICSEARCH_SERVICE_TOKEN_OUTPUT_FILE:-${ES_CERTIFICATES_FOLDER}/fleet-server-service-token.json}"
+mkdir -p "$(dirname "$FLEET_TOKEN_OUTPUT_FILE")"
+FLEET_TOKEN_TEMP_FILE="$(mktemp "${FLEET_TOKEN_OUTPUT_FILE}.tmp.XXXXXX")"
+trap 'rm -f "$FLEET_TOKEN_TEMP_FILE"' EXIT
+
+if ! curl -ks --fail -X POST \
+  --cacert "$ES_CA_CERT" \
+  -u "elastic:$ELASTIC_PASSWORD" \
+  --output "$FLEET_TOKEN_TEMP_FILE" \
+  "$ES_URL/_security/service/elastic/fleet-server/credential/token?pretty"; then
+  echo "❌ Failed to create the Fleet Server token; no token file was written." >&2
+  exit 1
+fi
+
+chmod 600 "$FLEET_TOKEN_TEMP_FILE"
+mv "$FLEET_TOKEN_TEMP_FILE" "$FLEET_TOKEN_OUTPUT_FILE"
+trap - EXIT
+echo "✅ Fleet Server token written to $FLEET_TOKEN_OUTPUT_FILE (value not logged)."
 
 echo "✅ All Elasticsearch native credentials have been created."

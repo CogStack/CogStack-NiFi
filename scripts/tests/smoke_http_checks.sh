@@ -20,10 +20,24 @@ check_url() {
   local url="$2"
   local code
   local allowed
+  local -a curl_args=(
+    --silent
+    --show-error
+    --output /dev/null
+    --connect-timeout "$SMOKE_CONNECT_TIMEOUT"
+    --max-time "$SMOKE_MAX_TIME"
+    --write-out "%{http_code}"
+  )
 
-  if ! code="$(curl --insecure --silent --show-error --output /dev/null \
-    --connect-timeout "$SMOKE_CONNECT_TIMEOUT" --max-time "$SMOKE_MAX_TIME" \
-    --write-out "%{http_code}" "$url")"; then
+  if [[ -n "${SMOKE_CA_CERT:-}" ]]; then
+    if [[ ! -r "$SMOKE_CA_CERT" ]]; then
+      echo "FAIL: ${name} - CA certificate is not readable: ${SMOKE_CA_CERT}" >&2
+      return 1
+    fi
+    curl_args+=(--cacert "$SMOKE_CA_CERT")
+  fi
+
+  if ! code="$(curl "${curl_args[@]}" "$url")"; then
     echo "FAIL: ${name} - unable to reach ${url}"
     return 1
   fi

@@ -12,7 +12,7 @@
 #     - ../env/users_elasticsearch.env
 #
 # Produces:
-#     - Two hashes (admin + kibanaserver) printed to stdout
+#     - Two hashes (admin + kibanaserver) kept out of stdout
 #     - Optionally updates: ./es_roles/opensearch/internal_users.yml
 #
 # ==============================================================================
@@ -40,8 +40,8 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 # Validate required passwords
-: "${ELASTIC_PASSWORD:?Must be set in elasticsearch_users.env}"
-: "${KIBANA_PASSWORD:?Must be set in elasticsearch_users.env}"
+: "${ELASTIC_PASSWORD:?Must be set in users_elasticsearch.env}"
+: "${KIBANA_PASSWORD:?Must be set in users_elasticsearch.env}"
 
 ES_CONTAINER_NAME="$1"
 
@@ -57,17 +57,7 @@ echo "🔐 Generating password hashes from container: $ES_CONTAINER_NAME"
 ES_ADMIN_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$ELASTIC_PASSWORD" )
 ES_KIBANA_HASH=$( docker exec "$ES_CONTAINER_NAME" /bin/sh /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh -p "$KIBANA_PASSWORD" )
 
-echo ""
-echo "--------------------------------"
-echo "user:     \"admin\""
-echo "password: \"$ELASTIC_PASSWORD\""
-echo "hash:     \"$ES_ADMIN_HASH\""
-echo "--------------------------------"
-echo "user:     \"${KIBANA_USER}\""
-echo "password: \"$KIBANA_PASSWORD\""
-echo "hash:     \"$ES_KIBANA_HASH\""
-echo "--------------------------------"
-echo "✅ Now apply these hashes manually in 'internal_users.yml'"
+echo "✅ Generated password hashes for admin and ${KIBANA_USER}; credential material was not logged."
 
 # === Patch YAML if --apply is given ===
 if [[ "$APPLY" == "--apply" ]]; then
@@ -86,5 +76,5 @@ if [[ "$APPLY" == "--apply" ]]; then
 
   echo "✅ Password hashes updated in $INTERNAL_USERS_YML"
 else
-  echo "📝 Skipping YAML patch — run with '--apply' to inject into internal_users.yml"
+  echo "📝 Skipping YAML patch — rerun with '--apply' to update internal_users.yml"
 fi

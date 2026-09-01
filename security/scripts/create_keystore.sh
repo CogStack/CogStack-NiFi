@@ -38,7 +38,7 @@ source "${SECURITY_ENV_FOLDER}certificates_general.env"
 
 echo "====================================== CREATE_KEYSTORE =============================="
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
-echo "ROOT_CERTIFICATE_KEYSTORE_PASSWORD: $ROOT_CERTIFICATE_KEYSTORE_PASSWORD"
+echo "Keystore password: [loaded; value not logged]"
 echo "=================================================================================================="
 
 CERT_NAME="${1:-}"
@@ -104,4 +104,3 @@ keytool -import \
   -keystore "${CERT_NAME}-truststore.key" \
   -storepass "$KEYSTORE_PASSWORD" \
   -noprompt
-  

@@ -22,6 +22,9 @@ source "$SMOKE_HELPERS"
 
 HOST="${GITEA_SMOKE_HOST:-localhost}"
 PORT="${GITEA_SMOKE_PORT:-3000}"
+# The sourced smoke helper reads this shared variable when checks run.
+# shellcheck disable=SC2034
+SMOKE_CA_CERT="${GITEA_SMOKE_CA_CERT:-${ROOT_DIR}/security/certificates/root/root-ca.pem}"
 
 START_SERVICES="${GITEA_SMOKE_START_SERVICES:-1}"
 RETRIES="${GITEA_SMOKE_RETRIES:-30}"

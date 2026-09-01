@@ -22,6 +22,9 @@ source "$SMOKE_HELPERS"
 
 HOST="${NIFI_SMOKE_HOST:-localhost}"
 NIFI_PORT="${NIFI_EXTERNAL_PORT_NGINX:-8443}"
+# The sourced smoke helper reads this shared variable when checks run.
+# shellcheck disable=SC2034
+SMOKE_CA_CERT="${NIFI_SMOKE_CA_CERT:-${ROOT_DIR}/security/certificates/root/root-ca.pem}"
 START_SERVICES="${NIFI_SMOKE_START_SERVICES:-1}"
 RETRIES="${NIFI_SMOKE_RETRIES:-30}"
 DELAY_SECONDS="${NIFI_SMOKE_DELAY_SECONDS:-15}"

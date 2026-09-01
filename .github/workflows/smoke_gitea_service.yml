@@ -24,10 +24,9 @@ jobs:
           java-version: '21'
 
       - name: Generate certificates
-        working-directory: security/scripts
         run: |
           set -euo pipefail
-          ./create_root_ca_cert.sh
+          make -C deploy init-security-gitea
 
       - name: Start Gitea service
         run: |
