@@ -10,7 +10,7 @@ SECURITY_ENV_DIR="${SECURITY_DIR}/env"
 CERTIFICATES_DIR="${SECURITY_DIR}/certificates"
 ROOT_CERTIFICATES_DIR="${CERTIFICATES_DIR}/root"
 GITEA_CERTIFICATES_DIR="${CERTIFICATES_DIR}/gitea"
-EXT_FILE="${SECURITY_DIR}/templates/gitea-x509.cnf"
+EXT_FILE="${SECURITY_DIR}/templates/ssl-extensions-x509.cnf"
 
 # shellcheck disable=SC1091
 source "${SECURITY_ENV_DIR}/certificates_general.env"
@@ -48,7 +48,7 @@ openssl x509 -req \
   -days "${GITEA_CERTIFICATE_TIME_VALIDITY_IN_DAYS:-825}" \
   -sha256 \
   -extfile "$EXT_FILE" \
-  -extensions v3_leaf
+  -extensions v3_gitea
 
 openssl x509 -in "$CERT_FILE" -outform DER -out "$CRT_FILE"
 
