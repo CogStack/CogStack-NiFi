@@ -37,16 +37,6 @@ For user script organization and usage guidelines, see [user scripts](user_scrip
 For Python extension processors, see [Python extensions](user_python_extensions.md).
 For end-to-end scripting patterns (including `ExecuteStreamCommand` stdin/stdout and args), see [processor scripting guide](processor_scripting.md).
 
-```{toctree}
-:maxdepth: 1
-
-development_guide.md
-processors_catalog.md
-processor_scripting.md
-user_scripts.md
-user_python_extensions.md
-```
-
 ## Custom Docker image
 
 For any deployment it is recommended to build and use the custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows.
