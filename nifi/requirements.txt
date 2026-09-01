@@ -1,7 +1,7 @@
 wheel==0.46.2
 
 # data science pkgs
-nltk==3.10.0
+nltk==3.10.3
 numpy==2.4.2
 pandas==2.3.3
 dill>=0.4.0,<1.0.0
@@ -31,7 +31,8 @@ pyarrow==25.0.1
 pydantic-settings==2.14.2
 fhir.resources==8.3.0
 # other utils
-xnat==0.7.2
+xnat==0.8.1
+pydicom==3.0.2
 
 # ElasticSearch/OpenSearch packages
 elasticsearch9==9.1.0
