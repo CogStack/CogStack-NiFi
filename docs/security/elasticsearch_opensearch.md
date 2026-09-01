@@ -153,13 +153,12 @@ All certificate references in `services/kibana/config/opensearch.yml` or `servic
 3. Populate the additional tenants, roles, users, and role mappings:
 
    ```bash
-   cd security/scripts
-   bash create_opensearch_users.sh elasticsearch-1 --use-ssl
+   ./security/scripts/create_opensearch_users.sh localhost
    ```
 
-   - `<es_hostname>` is the OpenSearch node hostname (for this stack, usually `elasticsearch-1`).
-   - `--use-ssl` switches the script endpoint from `http` to `https` (recommended for this stack).
-   - Run the script from `security/scripts/` because it loads env files via relative paths.
+   - `<opensearch_hostname>` is the hostname covered by the OpenSearch node certificate.
+   - HTTPS with CA verification is the default. Use `--use-http` only for an explicitly unsecured local endpoint.
+   - The script resolves its files from its own location, so it can be run from any directory.
 
 ##### `create_opensearch_users.sh` reference
 
@@ -167,15 +166,12 @@ Script: `security/scripts/create_opensearch_users.sh`
 Usage:
 
 ```bash
-bash create_opensearch_users.sh <es_hostname> [--use-ssl]
+./security/scripts/create_opensearch_users.sh <opensearch_hostname> [--use-http]
 ```
 
 Required inputs are loaded from:
 
-- `deploy/general.env`
 - `deploy/elasticsearch.env`
-- `security/env/certificates_elasticsearch.env`
-- `security/env/certificates_general.env`
 - `security/env/users_elasticsearch.env`
 
 What it creates/updates:
@@ -184,21 +180,23 @@ What it creates/updates:
 - Roles: `cogstack_ingest`, `cogstack_access`
 - Internal users: `cogstack_user`, `cogstack_pipeline`, `nifi`
 - Role mappings for `cogstack_access` and `cogstack_ingest`
-- Passwords for built-in users: `logstash`, `kibanaro`, `readall`, `snapshotrestore`
+
+The script uses the current `/_plugins/_security/api` endpoints. Password rotation for predefined users such as `admin`, `logstash`, `kibanaro`, `readall`, and `snapshotrestore` remains the responsibility of `update_opensearch_users.sh`.
 
 Verification example:
 
 ```bash
 source security/env/users_elasticsearch.env
 curl --cacert security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem \
-  -u "admin:${ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
+  -u "${OPENSEARCH_ADMIN_USER:-admin}:${OPENSEARCH_ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
   https://localhost:9200/_plugins/_security/api/roles/cogstack_ingest
 ```
 
 Troubleshooting:
 
 - If you see authentication failures, confirm `ELASTIC_PASSWORD` in `security/env/users_elasticsearch.env` matches the running OpenSearch admin password.
-- If you see `404` on security API paths, your OpenSearch version may require `_plugins/_security/api/...` instead of `_opendistro/_security/api/...`.
+- If the CA is stored elsewhere, set `OPENSEARCH_CA_CERT` to the appropriate CA certificate before running the script.
+- Ensure the supplied hostname appears in the OpenSearch node certificate SANs.
 - The script is idempotent (`PUT` calls), so it can be re-run safely after credential or role changes.
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
