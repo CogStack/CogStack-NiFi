@@ -44,7 +44,7 @@ instances:
       - $ES_INSTANCE_NAME_1
       - es01
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_NAME_2
@@ -52,7 +52,7 @@ instances:
       - $ES_INSTANCE_NAME_2
       - es02
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_NAME_3
@@ -60,7 +60,7 @@ instances:
       - $ES_INSTANCE_NAME_3
       - es02
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_ALTERNATIVE_1_NAME
@@ -68,7 +68,7 @@ instances:
       - $ES_INSTANCE_ALTERNATIVE_1_NAME
       - es02
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_ALTERNATIVE_2_NAME
@@ -76,7 +76,7 @@ instances:
       - $ES_INSTANCE_ALTERNATIVE_2_NAME
       - es02
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
   - name: $ES_INSTANCE_ALTERNATIVE_3_NAME
@@ -84,7 +84,7 @@ instances:
       - $ES_INSTANCE_ALTERNATIVE_3_NAME
       - es02
       - localhost
-      $ES_HOSTNAMES
+$ES_HOSTNAMES
     ip:
       - 127.0.0.1
 EOF
@@ -264,4 +264,3 @@ openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.key.
 zip -ur /certs/es_native_certs_bundle_pem.zip /certs/elastic-stack-ca.crt.pem /certs/elastic-stack-ca.key.pem
 
 cp -rf /certs/* /usr/share/elasticsearch/config/certificates/
-

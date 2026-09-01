@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 GITEA_ENV_FILE="./deploy/gitea.env"
 
 if [ -f "$GITEA_ENV_FILE" ]; then
@@ -15,19 +17,29 @@ else
   set +a
 fi
 
-api_get()  { curl -ks -H "Authorization: token ${GITEA_TOKEN}" "$1"; }
-api_post() { curl -ks -X POST -H "Authorization: token ${GITEA_TOKEN}" -H "Content-Type: application/json" "$1" --data-binary @-; }
+CURL_TLS_ARGS=()
+if [[ "$GITEA_HOST_URL" == https://* ]]; then
+  GITEA_CA_CERT="${GITEA_CA_CERT:-${REPO_ROOT}/security/certificates/root/root-ca.pem}"
+  if [[ ! -r "$GITEA_CA_CERT" ]]; then
+    echo "❌ Gitea CA certificate is not readable: $GITEA_CA_CERT" >&2
+    exit 1
+  fi
+  CURL_TLS_ARGS=(--cacert "$GITEA_CA_CERT")
+fi
+
+api_get()  { curl --silent --show-error "${CURL_TLS_ARGS[@]}" -H "Authorization: token ${GITEA_TOKEN}" "$1"; }
+api_post() { curl --silent --show-error "${CURL_TLS_ARGS[@]}" -X POST -H "Authorization: token ${GITEA_TOKEN}" -H "Content-Type: application/json" "$1" --data-binary @-; }
 
 # 1. check if the Organization exists, if not create it
 echo "================================================================================================================================================="
 echo "# 1. check if the Organization exists, if not create it"
 echo "🔎 Checking if org '$GITEA_ORG' exists..."
-if curl -ks -H "Authorization: token $GITEA_TOKEN" \
+if curl --silent --show-error "${CURL_TLS_ARGS[@]}" -H "Authorization: token $GITEA_TOKEN" \
    "$GITEA_HOST_URL/api/v1/orgs/$GITEA_ORG" | grep -q '"username"'; then
   echo "✅ Org '$GITEA_ORG' already exists — skipping creation."
 else
   echo "🏢 Creating org '$GITEA_ORG'..."
-  curl -ks -X POST "$GITEA_HOST_URL/api/v1/orgs" \
+  curl --silent --show-error "${CURL_TLS_ARGS[@]}" -X POST "$GITEA_HOST_URL/api/v1/orgs" \
     -H "Authorization: token $GITEA_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{

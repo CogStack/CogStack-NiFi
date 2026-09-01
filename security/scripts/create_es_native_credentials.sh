@@ -66,7 +66,7 @@ ES_URL="https://$ELASTIC_HOST:9200"
 
 # Wait for Elasticsearch to be available
 echo "⏳ Waiting for Elasticsearch to become available..."
-until curl -ks --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" "$ES_URL" >/dev/null; do
+until curl --silent --show-error --cacert "$ES_CA_CERT" -u "elastic:$ELASTIC_PASSWORD" "$ES_URL" >/dev/null; do
   echo "  🔁 Still waiting on $ELASTIC_HOST..."
   sleep 10
 done
@@ -79,7 +79,7 @@ create_user() {
 
   echo "🔐 Creating user: $username with role: $roles"
 
-  response=$(curl -ks -w "\n%{http_code}" --cacert "$ES_CA_CERT" \
+  response=$(curl --silent --show-error -w "\n%{http_code}" --cacert "$ES_CA_CERT" \
     -u "elastic:$ELASTIC_PASSWORD" \
     -X POST "$ES_URL/_security/user/$username?pretty" \
     -H 'Content-Type: application/json' \
@@ -119,7 +119,7 @@ mkdir -p "$(dirname "$FLEET_TOKEN_OUTPUT_FILE")"
 FLEET_TOKEN_TEMP_FILE="$(mktemp "${FLEET_TOKEN_OUTPUT_FILE}.tmp.XXXXXX")"
 trap 'rm -f "$FLEET_TOKEN_TEMP_FILE"' EXIT
 
-if ! curl -ks --fail -X POST \
+if ! curl --silent --show-error --fail -X POST \
   --cacert "$ES_CA_CERT" \
   -u "elastic:$ELASTIC_PASSWORD" \
   --output "$FLEET_TOKEN_TEMP_FILE" \

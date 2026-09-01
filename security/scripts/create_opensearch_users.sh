@@ -38,10 +38,15 @@ fi
 #
 if [ ! -z "$2" ] && [ "$2" = "--use-ssl" ]; then
   HTTP_PROTOCOL=https
-  SSL_FLAGS="$SSL_FLAGS"
+  OPENSEARCH_CA_CERT="${OPENSEARCH_CA_CERT:-${SECURITY_CERTIFICATES_FOLDER}elastic/opensearch/elastic-stack-ca.crt.pem}"
+  if [[ ! -r "$OPENSEARCH_CA_CERT" ]]; then
+    echo "OpenSearch CA certificate is not readable: $OPENSEARCH_CA_CERT" >&2
+    exit 1
+  fi
+  SSL_FLAGS=(--cacert "$OPENSEARCH_CA_CERT")
 else
   HTTP_PROTOCOL=http
-  SSL_FLAGS=""
+  SSL_FLAGS=()
 fi
 
 
@@ -58,13 +63,13 @@ echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
 # create tenants
 #
 echo "Creating tenants ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "description": "A tenant for the NiFi"
 }'
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "description": "A tenant for the CogStack"
 }'
@@ -74,7 +79,7 @@ echo ""
 # create roles
 #
 echo "Creating roles ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "cluster_permissions": [
     "cluster_composite_ops",
@@ -103,7 +108,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }'
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "cluster_permissions": [
     "cluster_composite_ops"
@@ -137,7 +142,7 @@ echo ""
 # create users
 #
 echo "Creating users ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"cogstack_access\",
@@ -148,7 +153,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }"
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"cogstack_ingest\"
@@ -158,7 +163,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }"
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"cogstack_ingest\"
@@ -172,7 +177,7 @@ echo ""
 # create mapping roles
 #
 echo "Creating roles mapping ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "backend_roles": [
     "cogstack_access"
@@ -184,7 +189,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES
 }'
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d'
 {
   "backend_roles": [
     "cogstack_ingest"
@@ -201,7 +206,7 @@ echo ""
 # mnodify passwords for internal build-in users
 #
 echo "Modifying passwords for internal build-in users ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"logstash\"
@@ -211,7 +216,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }"
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"kibanauser\",
@@ -222,7 +227,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }"
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"readall\"
@@ -232,7 +237,7 @@ curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_
 }"
 echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' $SSL_FLAGS -d"
+curl -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' "${SSL_FLAGS[@]}" -d"
 {
   \"backend_roles\": [
     \"snapshotrestore\"
