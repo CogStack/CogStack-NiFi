@@ -12,6 +12,8 @@ fi
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required for smoke checks." >&2
+  # This helper supports both sourcing (`return`) and direct execution (`exit`).
+  # shellcheck disable=SC2317
   return 1 2>/dev/null || exit 1
 fi
 

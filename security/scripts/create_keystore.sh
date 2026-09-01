@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090 # Security env files are selected through runtime paths.
 
 # ===========================================================================================================================
 # 🧰 Create a Java keystore (.jks) and truststore from existing cert + key
@@ -24,7 +25,6 @@
 set -euo pipefail
 
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
 SECURITY_CERTIFICATES_FOLDER="../certificates/"
 SECURITY_ENV_FOLDER="../env/"
 
@@ -47,8 +47,6 @@ KEYSTORE_PASSWORD="${3:-$ROOT_CERTIFICATE_KEYSTORE_PASSWORD}"
 
 # Root cert defaults
 CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
-CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
-CA_ROOT_KEYSTORE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.p12"
 
 CERT_FILE="${CERT_NAME}.crt"
 KEY_FILE="${CERT_NAME}.key"

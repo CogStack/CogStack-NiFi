@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091 # Security env files are selected through runtime paths.
 
 # ==============================================================================
 # 🔐 Generate OpenSearch internal user password hashes using container
@@ -20,13 +21,7 @@
 set -euo pipefail
 
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
-SECURITY_CERTIFICATES_FOLDER="../certificates/"
 SECURITY_ENV_FOLDER="../env/"
-
-ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root_certificates/"
-
-OPENSEARCH_ES_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}es_certificates/opensearch/"
 
 # required env var files
 source ../../deploy/elasticsearch.env

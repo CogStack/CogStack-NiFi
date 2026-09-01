@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090 # Security env files are selected through runtime paths.
 
 # ==============================================================================
 # 🔐 Create users and service account tokens for Elasticsearch Native
@@ -42,7 +43,6 @@ source "${SECURITY_ENV_FOLDER}"certificates_general.env
 source "${SECURITY_ENV_FOLDER}"users_elasticsearch.env
 
 ES_CA_CERT="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.crt.pem"
-ES_CA_KEY="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.key.pem"
 
 # Validate required variables
 : "${ELASTIC_HOST:?Must set ELASTIC_HOST in certificates_elasticsearch.env}"

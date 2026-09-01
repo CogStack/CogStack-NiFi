@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091 # Environment files are selected through runtime paths.
 
 # ==============================================================================
 # ⚠️ Legacy: NiFi Toolkit TLS Setup Script
@@ -40,7 +41,6 @@ NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS="${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DA
 NIFI_KEYSTORE_PASSWORD="${NIFI_KEYSTORE_PASSWORD:-cogstackNifi}"
 OUTPUT_DIRECTORY="${SECURITY_CERTIFICATES_FOLDER}nifi/"
 SECURITY_ROOT_CA_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
-PATH_TO_NIFI_PROPERTIES_FILE="./../../../nifi/conf/nifi.properties"
 EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 NIFI_CERTIFICATE_NAME="nifi"

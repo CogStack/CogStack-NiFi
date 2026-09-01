@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1090 # Environment file location is selected at runtime.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,18 +61,18 @@ if ! api_get "${GITEA_API}/repos/${GITEA_ORG}/${GITEA_MAIN_REPO_NAME}" | grep -q
   echo '{"name":"'"${GITEA_MAIN_REPO_NAME}"'","private":true}' | api_post "${GITEA_API}/orgs/${GITEA_ORG}/repos" >/dev/null
   echo "✅ created repo ${GITEA_MAIN_REPO_NAME}"
   # add as remote
-  if git remote get-url $GITEA_DEFAULT_MAIN_REMOTE_NAME >/dev/null 2>&1; then
-    git remote set-url $GITEA_DEFAULT_MAIN_REMOTE_NAME "$GITEA_BASE_URL"
+  if git remote get-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" >/dev/null 2>&1; then
+    git remote set-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$GITEA_BASE_URL"
   else
-    git remote add $GITEA_DEFAULT_MAIN_REMOTE_NAME "$GITEA_BASE_URL"
+    git remote add "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$GITEA_BASE_URL"
   fi
 else
   echo "✅ ${GITEA_MAIN_REPO_NAME} main repo exists"
   # still ensure remote exists/points correctly
-  if git remote get-url $GITEA_DEFAULT_MAIN_REMOTE_NAME >/dev/null 2>&1; then
-    git remote set-url $GITEA_DEFAULT_MAIN_REMOTE_NAME "$GITEA_BASE_URL"
+  if git remote get-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" >/dev/null 2>&1; then
+    git remote set-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$GITEA_BASE_URL"
   else
-    git remote add $GITEA_DEFAULT_MAIN_REMOTE_NAME "$GITEA_BASE_URL"
+    git remote add "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$GITEA_BASE_URL"
   fi
 fi
 
@@ -85,18 +86,20 @@ echo "==> Ensure org repos for submodules, keep original .gitmodules, add '$GITE
 # ensure .gitmodules exists
 [ -f .gitmodules ] || { echo "ℹ️ .gitmodules not found"; exit 0; }
 
-# command to extract submodule paths
-paths_cmd='git config -f .gitmodules --get-regexp "^submodule\..*\.path$" | awk "{print \$2}"'
+# Extract submodule paths once and keep each result as a quoted array entry.
+submodule_paths=()
+while IFS= read -r path; do
+  [[ -n "$path" ]] && submodule_paths+=("$path")
+done < <(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}')
 
-# count
-count=$(eval "$paths_cmd" | grep -v '^$' | wc -l | tr -d ' ')
+count=${#submodule_paths[@]}
 [ "$count" -eq 0 ] && { echo "ℹ️ No submodules found in .gitmodules"; exit 0; }
 echo "==> Found $count submodule(s):"
-eval "$paths_cmd" | while IFS= read -r path; do
+for path in "${submodule_paths[@]}"; do
   printf ' - %s\n' "$path"
 done
 
-eval "$paths_cmd" | while IFS= read -r path; do
+for path in "${submodule_paths[@]}"; do
   [ -z "$path" ] && continue
   name="$(basename "$path")"
   gitea_url="${GITEA_NAMESPACE_URL}/${name}.git"
@@ -119,10 +122,10 @@ eval "$paths_cmd" | while IFS= read -r path; do
     # ensure submodule also uses your SSH key (main repo already set above, but keep it explicit)
     git config core.sshCommand "ssh -i $GITEA_LOCAL_KEY_PATH -o IdentitiesOnly=yes"
 
-    if git remote get-url $GITEA_DEFAULT_MAIN_REMOTE_NAME >/dev/null 2>&1; then
-      git remote set-url $GITEA_DEFAULT_MAIN_REMOTE_NAME "$gitea_url"
+    if git remote get-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" >/dev/null 2>&1; then
+      git remote set-url "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$gitea_url"
     else
-      git remote add $GITEA_DEFAULT_MAIN_REMOTE_NAME "$gitea_url"
+      git remote add "$GITEA_DEFAULT_MAIN_REMOTE_NAME" "$gitea_url"
     fi
 
     # make default pushes go to Gitea; fetch stays on origin (GitHub)
@@ -139,13 +142,13 @@ eval "$paths_cmd" | while IFS= read -r path; do
       fi
 
       # avoid mirror pushes (which include refs/remotes/origin/*)
-      git config --get-all remote.$GITEA_DEFAULT_MAIN_REMOTE_NAME.mirror >/dev/null 2>&1 && \
-        git config --unset-all remote.$GITEA_DEFAULT_MAIN_REMOTE_NAME.mirror || true
+      git config --get-all "remote.${GITEA_DEFAULT_MAIN_REMOTE_NAME}.mirror" >/dev/null 2>&1 && \
+        git config --unset-all "remote.${GITEA_DEFAULT_MAIN_REMOTE_NAME}.mirror" || true
 
       # push only local branches + tags
       echo "↗️ pushing branches & tags to $GITEA_DEFAULT_MAIN_REMOTE_NAME…"
-      git push $GITEA_DEFAULT_MAIN_REMOTE_NAME --all
-      git push $GITEA_DEFAULT_MAIN_REMOTE_NAME --tags
+      git push "$GITEA_DEFAULT_MAIN_REMOTE_NAME" --all
+      git push "$GITEA_DEFAULT_MAIN_REMOTE_NAME" --tags
     else
       echo "ℹ️ no local refs; skip push"
     fi
@@ -155,15 +158,19 @@ done
 # 4. Push the main repo to gitea
 echo "================================================================================================================================================="
 echo "# 4. Pushing the main repo to $GITEA_DEFAULT_MAIN_REMOTE_NAME"
-git push -u $GITEA_DEFAULT_MAIN_REMOTE_NAME HEAD:main
+git push -u "$GITEA_DEFAULT_MAIN_REMOTE_NAME" HEAD:main
 
 # 5. Verify submodules point/fetch/push as expected to gitea
 echo "================================================================================================================================================="
 echo "# 5. Verify submodules point/fetch/push as expected to $GITEA_DEFAULT_MAIN_REMOTE_NAME"
-git submodule foreach 'echo $name; git remote -v'
+# `$name` is provided by `git submodule foreach` in the child shell.
+# shellcheck disable=SC2016
+git submodule foreach 'echo "$name"; git remote -v'
 
 # 6. Make sure SSH key is always used
 echo "================================================================================================================================================="
 echo "# 6. Make sure SSH key is always used"
 git config core.sshCommand "ssh -i $GITEA_LOCAL_KEY_PATH -o IdentitiesOnly=yes"
+# The exported key path must expand inside each submodule shell.
+# shellcheck disable=SC2016
 git submodule foreach 'git config core.sshCommand "ssh -i $GITEA_LOCAL_KEY_PATH -o IdentitiesOnly=yes"'

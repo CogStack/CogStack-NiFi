@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090 # Security env files are selected through runtime paths.
 
 # ==============================================================================
 # 🔐 Generate OpenSearch node certificate signed by Root CA

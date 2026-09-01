@@ -35,9 +35,11 @@ then
     echo "Installing Azure CLI..."
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
+    # shellcheck disable=SC1091 # Standard OS metadata file provided by Debian/Ubuntu.
+    docker_codename="$(. /etc/os-release && printf '%s' "$VERSION_CODENAME")"
     echo \
-    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    ${docker_codename} stable" | \
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     sudo apt -y update 

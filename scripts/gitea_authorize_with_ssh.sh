@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1090 # Environment file location is selected at runtime.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,7 +43,7 @@ fi
 
 if [ -f "$GITEA_LOCAL_KEY_PATH" ]; then
   if ssh-add -l | grep -q "$GITEA_LOCAL_KEY_PATH"; then
-    ssh-add -d $GITEA_LOCAL_KEY_PATH
+    ssh-add -d "$GITEA_LOCAL_KEY_PATH"
     echo "🗑️ Removed SSH key from agent: $GITEA_LOCAL_KEY_PATH"
   else
     echo "ℹ️ SSH key not loaded in agent: $GITEA_LOCAL_KEY_PATH"

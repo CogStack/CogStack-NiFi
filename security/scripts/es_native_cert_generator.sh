@@ -89,40 +89,35 @@ $ES_HOSTNAMES
       - 127.0.0.1
 EOF
  
-if [[ ! -f /certs/es_native_ca_bundle.zip ]]; then
+if [[ ! -f /certs/elastic-stack-ca.p12 ]]; then
   echo "Generating root-ca certificates for native ES"
-  bin/elasticsearch-certutil ca --silent --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --out /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<$ES_CERTIFICATE_PASSWORD
-  bin/elasticsearch-certutil cert --silent --ca /certs/elastic-stack-ca.p12 --pass $ES_CERTIFICATE_PASSWORD<<<""$ES_CERTIFICATE_PASSWORD"
-  
-  "
-  # the above blank line is to avoid answering prompt, don't delete it 
-fi;
+  bin/elasticsearch-certutil ca --silent \
+    --days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
+    --out /certs/elastic-stack-ca.p12 \
+    --pass "$ES_CERTIFICATE_PASSWORD"
+fi
 
 if [[ ! -f /certs/es_native_certs_bundle.zip ]]; then
   echo "Generating CSR certficates for ES clusters"
-  bin/elasticsearch-certutil cert --silent --out /certs/es_native_certs_bundle.zip --in config/certificates/instances.yml --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-EOF
-fi;
+  bin/elasticsearch-certutil cert --silent \
+    --out /certs/es_native_certs_bundle.zip \
+    --in config/certificates/instances.yml \
+    --days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
+    --ca /certs/elastic-stack-ca.p12 \
+    --ca-pass "$ES_CERTIFICATE_PASSWORD" \
+    --pass "$ES_CERTIFICATE_PASSWORD"
+fi
 
 if [[ ! -f /certs/es_native_certs_bundle_pem.zip ]]; then
   echo "Generating PEM certficates for ES clusters"
-  bin/elasticsearch-certutil cert --pem --silent --out /certs/es_native_certs_bundle_pem.zip --in config/certificates/instances.yml  --days $ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS --ca /certs/elastic-stack-ca.p12<< EOF
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-$ES_CERTIFICATE_PASSWORD
-EOF
-fi;
+  bin/elasticsearch-certutil cert --pem --silent \
+    --out /certs/es_native_certs_bundle_pem.zip \
+    --in config/certificates/instances.yml \
+    --days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
+    --ca /certs/elastic-stack-ca.p12 \
+    --ca-pass "$ES_CERTIFICATE_PASSWORD" \
+    --pass "$ES_CERTIFICATE_PASSWORD"
+fi
 
 unzip /certs/es_native_certs_bundle_pem.zip -d /certs/elasticsearch
 unzip /certs/es_native_certs_bundle.zip -d /certs/elasticsearch
@@ -258,8 +253,8 @@ find /certs -type d -exec chmod 755 \{\} \;;
 find /certs -type f -exec chmod 755 \{\} \;;
 
 # Convert p12 certificates to PEM
-openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.crt.pem -clcerts -nokeys -password pass:$ES_CERTIFICATE_PASSWORD
-openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.key.pem -nocerts -nodes -password pass:$ES_CERTIFICATE_PASSWORD
+openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.crt.pem -clcerts -nokeys -password "pass:$ES_CERTIFICATE_PASSWORD"
+openssl pkcs12 -in /certs/elastic-stack-ca.p12 -out /certs/elastic-stack-ca.key.pem -nocerts -nodes -password "pass:$ES_CERTIFICATE_PASSWORD"
 
 zip -ur /certs/es_native_certs_bundle_pem.zip /certs/elastic-stack-ca.crt.pem /certs/elastic-stack-ca.key.pem
 
