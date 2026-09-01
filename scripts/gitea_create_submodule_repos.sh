@@ -142,8 +142,7 @@ for path in "${submodule_paths[@]}"; do
       fi
 
       # avoid mirror pushes (which include refs/remotes/origin/*)
-      git config --get-all "remote.${GITEA_DEFAULT_MAIN_REMOTE_NAME}.mirror" >/dev/null 2>&1 && \
-        git config --unset-all "remote.${GITEA_DEFAULT_MAIN_REMOTE_NAME}.mirror" || true
+      git config --unset-all "remote.${GITEA_DEFAULT_MAIN_REMOTE_NAME}.mirror" >/dev/null 2>&1 || true
 
       # push only local branches + tags
       echo "↗️ pushing branches & tags to $GITEA_DEFAULT_MAIN_REMOTE_NAME…"
