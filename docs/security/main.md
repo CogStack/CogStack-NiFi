@@ -68,15 +68,3 @@ security/
 └── templates/                                  # OpenSSL / X.509 configuration templates
     └── ssl-extensions-x509.cnf                 # SAN extensions used across certificate scripts
 ```
-
-```{include} certificates.md
-```
-
-```{include} services.md
-```
-
-```{include} nifi.md
-```
-
-```{include} elasticsearch_opensearch.md
-```
