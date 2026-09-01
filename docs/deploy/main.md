@@ -42,7 +42,7 @@ You can use the script located at `scripts/installation_utils/install_docker_and
 Execute the following commands in the root directory of the repo:
 
 1. `git-lfs pull`
-2. (OPTIONAL, if you already have the software in [this section installed](#-software-requirements-linuxmacos)) `bash ./scripts/installation_utils/install_docker_and_utils.sh`, and wait for it to finish. It may take a while to get all the packages, and it will prompt for `sudo` when needed.
+2. (OPTIONAL, if you already have the software in [this section installed](#software-requirements-linuxmacos)) `bash ./scripts/installation_utils/install_docker_and_utils.sh`, and wait for it to finish. It may take a while to get all the packages, and it will prompt for `sudo` when needed.
 3. `cd deploy`
 4. `make git-update-submodules`
 5. `make init-security`
@@ -50,70 +50,64 @@ Execute the following commands in the root directory of the repo:
 7. if no errors, run: `docker run --rm hello-world`, it should run without issues
 8. if there are any issues check the below warning section
 
-:::{warning}
-IMPORTANT NOTE: Do a `git-lfs pull` so that you have everything downloaded from the repo (including bigger zipped files.).
-:::
+!!! warning
 
-:::{warning}
-Ensure all Git submodules are initialized and updated:
-`make git-update-submodules`
-:::
+    Run `git-lfs pull` to download all repository assets, including larger files.
 
-:::{warning}
-Consult the  if there are issues with the docker setup.
-If Docker fails to install or `docker pull hello-world` does not work:
+!!! warning
 
-    - Follow the official [Docker installation steps](https://docs.docker.com/engine/install/debian/)
-    - Ensure your user is in the docker group
-    - For non-sudo users, check Docker rootless mode and required post-install steps:
-        - https://docs.docker.com/engine/security/rootless/
-        - https://docs.docker.com/engine/install/linux-postinstall/
+    Ensure all Git submodules are initialized and updated with `make git-update-submodules`.
 
-:::
+!!! warning
 
+    If Docker fails to install or `docker pull hello-world` does not work:
 
+    - Follow the official [Docker installation steps](https://docs.docker.com/engine/install/debian/).
+    - Ensure your user is in the Docker group.
+    - For non-sudo users, check [Docker rootless mode](https://docs.docker.com/engine/security/rootless/) and the [Linux post-install steps](https://docs.docker.com/engine/install/linux-postinstall/).
 
 ## ⚠️ Essential Elasticsearch Requirement
 
-:::{warning}
-**Elasticsearch may fail to start unless `vm.max_map_count` is increased.**
+!!! warning
 
-If this value is too low, Elasticsearch will exit with the error:
+    **Elasticsearch may fail to start unless `vm.max_map_count` is increased.**
+
+    If this value is too low, Elasticsearch will exit with the error:
 
     ```bash
     bootstrap checks failed
     max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
     ```
 
-If you did **not** run the installation script, set it manually:
+    If you did **not** run the installation script, set it manually.
 
-**Temporary (until reboot):**
+    **Temporary (until reboot):**
+
     ```bash
     sudo sysctl -w vm.max_map_count=262144
     ```
 
-**Permanent (persists across reboots):**
-Add the line below to `/etc/sysctl.conf`:
+    **Permanent (persists across reboots):**
+
+    Add the line below to `/etc/sysctl.conf`:
 
     ```bash
     vm.max_map_count=262144
     ```
 
-Or a one-liner:
+    Or use this one-liner:
 
     ```bash
     sudo sh -c "echo 'vm.max_map_count=262144' >> /etc/sysctl.conf"
     ```
 
-Then apply:
+    Then apply it:
 
     ```bash
     sudo sysctl -p
     ```
 
-> The `install_docker_and_utils.sh` script automatically configures this.
-> You only need to set it manually if the script was skipped.
-:::
+    The `install_docker_and_utils.sh` script configures this automatically; set it manually only if the script was skipped.
 
 ## 🏅 Deploying services
 

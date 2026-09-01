@@ -35,7 +35,7 @@ For securing Apache NiFi endpoints with certificates, see [the official document
 
 Before starting the NiFi container:
 
-- (optional if already done) run `create_root_ca_cert.sh` to generate root CA certs used across services.
+- run `make -C deploy init-security-nifi` from the repository root. This creates the shared root CA when needed, then generates the NiFi certificate bundle without replacing a complete existing bundle.
 - set `nifi.sensitive.props.key` to a stable value (minimum 12 characters).
 
 Example (`nifi/conf/nifi.properties`):
@@ -52,12 +52,7 @@ nifi.security.truststorePasswd=example-truststore-password
 
 ### Setting up access via user account (single user credentials)
 
-Default:
-
-```text
-username: admin
-password: cogstackNiFi
-```
+Local single-user credentials are defined in `security/env/users_nifi.env`. They are public development defaults and must be replaced for any exposed deployment.
 
 - `login-identity-providers.xml` in `nifi/conf/` stores the account settings.
 - to generate credentials inside the container:
@@ -165,7 +160,10 @@ server {
 ### 🧪 Test connectivity
 
 ```bash
-curl -vk --cert ./nifi.pem --key ./nifi.key https://localhost:8443/nifi-api/flow/about
+curl --cacert security/certificates/root/root-ca.pem \
+  --cert security/certificates/nifi/nifi.pem \
+  --key security/certificates/nifi/nifi.key \
+  https://localhost:8443/nifi-api/flow/about
 ```
 
 ---

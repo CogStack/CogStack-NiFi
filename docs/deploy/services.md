@@ -199,7 +199,7 @@ Demo dataset with:
 
 ### Credentials
 
-- user - `test`, password - `test`
+Local development credentials are defined in `security/env/users_database.env`. Override them for non-local deployments.
 
 ---
 
@@ -218,8 +218,7 @@ Where `<DB_PROVIDER>` can be: `mssql`,`pgsql`.
 
 ### Credentials
 
-- PgSQL: user - `admin` password - `admin`
-- MsSQL: user - `admin` password - `admin!COGSTACK2022`
+PostgreSQL and MSSQL development credentials are defined in `security/env/users_database.env`. Production credentials must be injected through deployment-local configuration or a secret manager.
 
 ### Access
 
@@ -236,7 +235,7 @@ Where `<DB_PROVIDER>` can be: `mssql`,`pgsql`.
 - docker compose file: `services.yml`
 - dir: `services/cogstack-db/`
 - env:
-  - `security/users/users_database.env` - controlers DB user credentials
+  - `security/env/users_database.env` - database development credentials
   - `deploy/database.env` - general DB configs
 
 ### Ports
@@ -256,7 +255,7 @@ This service is complex and is completely described in [this section](../nifi/ma
 
 ### Credentials
 
-- Default user: user - `admin` password - `cogstackNiFi`
+Single-user development credentials are defined in `security/env/users_nifi.env`. Do not reuse them in production.
 
 ### Access
 
@@ -271,9 +270,9 @@ This service is complex and is completely described in [this section](../nifi/ma
 - docker compose file: `services.yml`
 - dir: `nifi/`
 - env:
-  - `/deploy/nifi.env` - general NiFi settings, JVM memory, etc.
-  - `/security/nifi_users.env`  - controlers DB user credentials
-  - `/security/certificates_nifi.env`
+  - `deploy/nifi.env` - general NiFi settings, JVM memory, etc.
+  - `security/env/users_nifi.env` - NiFi development credentials
+  - `security/env/certificates_nifi.env` - NiFi keystore and truststore settings
 
 ### Ports
 
@@ -300,8 +299,7 @@ Switch between modes via environment variables in `deploy/elasticsearch.env`.
 
 #### Credentials
 
-- OpenSearch: user - `admin`, password - `admin`
-- ElasticSearch: user - `elastic`, password - `kibanaserver`
+Development credentials for both backends are defined in `security/env/users_elasticsearch.env`. Use externally managed secrets for production deployments.
 
 #### Access
 
@@ -332,21 +330,21 @@ Switch between modes via environment variables in `deploy/elasticsearch.env`.
 - docker compose: `deploy/services.yml`
 - config: `services/elasticsearch/config/`
 - env:
-  - `/deploy/elasticsearch.env`
-  - `/security/certificates_elasticsearch.env`
-  - `/security/elasticsearch_users.env`
+  - `deploy/elasticsearch.env`
+  - `security/env/certificates_elasticsearch.env`
+  - `security/env/users_elasticsearch.env`
 
 #### SSL & Certificates
 
 Certificates stored in:
 
-```bash
-/security/certificates/elastic/<ELASTICSEARCH_VERSION>/
+```text
+security/certificates/elastic/<ELASTICSEARCH_VERSION>/
 ```
 
 Settings in:
 
-- `certificates_elasticsearch.env`
+- `security/env/certificates_elasticsearch.env`
 
 ### 📊 Metricbeat & Filebeat
 
@@ -381,8 +379,8 @@ Filebeat:
   - `services/metricbeat/metricbeat.yml`
   - `services/filebeat/filebeat.yml`
 - env:
-  - `/deploy/elasticsearch.env`
-  - `/security/elasticsearch_users.env`
+  - `deploy/elasticsearch.env`
+  - `security/env/users_elasticsearch.env`
 
 #### **Ports**
 
@@ -393,7 +391,7 @@ All communication occurs internally within the `cogstack-net` Docker network.
 
 - Elasticsearch must be running before Metricbeat or Filebeat start.  
 - Only Elastic-native Beats are available; OpenSearch-native Beats do not exist.  
-- Authentication/credentials come from `elasticsearch_users.env`.
+- Authentication credentials come from `security/env/users_elasticsearch.env`.
 
 ### 📉 Kibana / OpenSearch Dashboards
 
@@ -412,8 +410,7 @@ Web UI for exploring indexed data, visualising documents, managing index templat
 
 #### Credentials
 
-- **OpenSearch Dashboards:** `admin` / `admin`  
-- **Elasticsearch Native:** `elastic` / `kibanaserver`  
+Dashboard development credentials are defined in `security/env/users_elasticsearch.env`. Never use the public development values for an exposed deployment.
 
 #### First login setup (OpenSearch Dashboards)
 
@@ -438,9 +435,9 @@ After signing in to OpenSearch Dashboards:
   - `services/kibana/config/elasticsearch.yml` (Elasticsearch)
   - `services/kibana/config/opensearch.yml` (OpenSearch Dashboards)
 - env:
-  - `/deploy/elasticsearch.env`  
-  - `/security/certificates_elasticsearch.env`  
-  - `/security/elasticsearch_users.env`
+  - `deploy/elasticsearch.env`
+  - `security/env/certificates_elasticsearch.env`
+  - `security/env/users_elasticsearch.env`
 
 Image selection controlled by:
 
@@ -536,7 +533,7 @@ Lightweight GitHub/GitLab-style service used for hosting repositories inside sec
 
 ### Access
 
-- URL: **http://localhost:3000** *(default Gitea port)*
+- URL: **https://localhost:3000** *(default local Gitea port)*
 
 ### Containers
 
@@ -546,8 +543,7 @@ Lightweight GitHub/GitLab-style service used for hosting repositories inside sec
 
 - docker compose file: `deploy/services.yml`
 - config file: `services/gitea/app.ini`
-- env files:
-  - `/security/certificates_general.env`
+- certificate directory: `security/certificates/gitea/`
 
 Persistent repository data is stored in the volume defined in `services.yml`.
 
@@ -561,7 +557,7 @@ Persistent repository data is stored in the volume defined in `services.yml`.
 
 - Supports repository migration from external Git servers  
 - Mirroring available when external access is allowed  
-- Can use CogStack certificates for HTTPS if configured  
+- Uses a dedicated CogStack-signed Gitea leaf certificate for local HTTPS
 
 ---
 
@@ -613,9 +609,9 @@ Routing rules are defined in the NGINX configuration files.
   - `services/nginx/config/medcat-trainer.conf`
   - additional templates under `services/nginx/config/`
 - env / certificates:
-  - `/security/certificates_general.env`
-  - `/security/certificates_nifi.env`
-- Uses shared CogStack Root CA & NiFi certs (`root-ca.p12`, `root-ca.key`, `nifi.key`, `nifi.pem`)
+  - `security/env/certificates_general.env`
+  - `security/env/certificates_nifi.env`
+- Uses the NiFi leaf certificate for server TLS and `root-ca.pem` as a trust anchor. The root CA private key is not mounted as a service key.
 
 ### Port
 

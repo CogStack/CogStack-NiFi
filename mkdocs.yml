@@ -1,5 +1,5 @@
 site_name: Cogstack NiFi Documentation
-site_url: http://localhost:8080/docs/
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, "https://cogstack-nifi.readthedocs.io/en/latest/"]
 
 theme:
   name: material
@@ -34,6 +34,9 @@ edit_uri: edit/main/docs/
 
 docs_dir: docs
 
+exclude_docs: |
+  README.md
+
 nav:
   - Home: index.md
   - 📰 News: news.md
@@ -54,7 +57,7 @@ nav:
   - 🛡️ Security:
       - security/main.md
       - 🏛️ Certificates and Root CA: security/certificates.md
-      - 🗄️ Security for CogStack provided other services: security/services.md
+      - 🗄️ Additional services: security/services.md
       - 🔐 NiFi TLS & Admin Access Setup (with NGINX): security/nifi.md
       - 🌐 Elasticsearch / OpenSearch Security: security/elasticsearch_opensearch.md
 
@@ -79,3 +82,14 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+    absolute_links: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn

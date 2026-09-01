@@ -20,9 +20,9 @@ Template locations:
 
 ## Legacy workflow examples (reference)
 
-:::{warning}
-These examples are maintained as historical reference material. Validate processor configuration and controller-service properties against your currently deployed NiFi version.
-:::
+!!! warning
+
+    These examples are maintained as historical reference material. Validate processor configuration and controller-service properties against your currently deployed NiFi version.
 
 Our custom Apache NiFi image comes with 4 basic example template workflows bundled that available in [user templates](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/user_templates) in `./nifi` directory.
 These are:
@@ -166,7 +166,7 @@ Restart all nifi-processes and the ingestion should work.
 ## Indexing records by Elasticsearch
 The records are finally stored in Elasticsearch data store under index `medical_reports_text` and using url endpoint `http://elasticsearch-1:9200`.
 This operation is implemented by NiFi component `PutElasticsearchRecord` with its configuration presented on the picture below.
-The Elasticsearch user credentials need to be provided which in this example would be the built-in user `admin` with password `admin`.
+Provide the appropriate Elasticsearch/OpenSearch credentials from your deployment configuration. Local development values are defined in `security/env/users_elasticsearch.env`; do not copy them into a production flow.
 When indexing the records as documents the record's primary key field `/docid` will be used as the document identifier in Elasticsearch.
 Optionally, the default Date / Time / Timestamp Format can be overridden for corresponding fields being ingested.
 In this example case, the Timestamp Format was overridden as `yyyy-MM-dd'T'HH:mm:ss.SSS`.

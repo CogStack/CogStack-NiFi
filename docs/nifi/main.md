@@ -21,17 +21,17 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 
 ## `NiFi directory layout : /nifi`
 
-    ```
-    ├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
-    ├── conf - NiFi configuration files, this folder is mounted on the NiFi service container at runtime, it needs to have read & write permissions by the user
-    ├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
-    ├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
-    ├── nifi-app.log - log file mounted directly from the container for easy log checking
-    ├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
-    ├── user_scripts - custom scripts used in workflows, you can put them here
-    ├── user_python_extensions - Python FlowFileTransform processors exposed to NiFi's extension framework
-    └── user_templates - here we store the fully exported templates of the workflows within NiFi
-    ```
+```text
+├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
+├── conf - NiFi configuration files, this folder is mounted on the NiFi service container at runtime, it needs to have read & write permissions by the user
+├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
+├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
+├── nifi-app.log - log file mounted directly from the container for easy log checking
+├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
+├── user_scripts - custom scripts used in workflows, you can put them here
+├── user_python_extensions - Python FlowFileTransform processors exposed to NiFi's extension framework
+└── user_templates - here we store the fully exported templates of the workflows within NiFi
+```
 
 For user script organization and usage guidelines, see [user scripts](user_scripts.md).
 For Python extension processors, see [Python extensions](user_python_extensions.md).
@@ -60,7 +60,7 @@ This section provides only a brief description of the most useful properties tha
 
 ## Critical `deploy/nifi.env` settings
 
-Before tuning `nifi/conf/*`, review the runtime env vars in [`deploy/nifi.env`](../../deploy/nifi.env). These are loaded into the NiFi container through `env_file` in `deploy/services.yml`.
+Before tuning `nifi/conf/*`, review the runtime env vars in [`deploy/nifi.env`](https://github.com/CogStack/CogStack-NiFi/blob/main/deploy/nifi.env). These are loaded into the NiFi container through `env_file` in `deploy/services.yml`.
 
 Most important variables:
 
@@ -103,33 +103,34 @@ The corresponding properties have been commented out in the file.
 
 <strong>Important properties to look for:</strong>
 
-    ```
-    nifi.flow.configuration.archive.enabled=true
-    nifi.flow.configuration.archive.max.time=1 days
-    nifi.flow.configuration.archive.max.storage=32 GB
-    ```
+```properties
+nifi.flow.configuration.archive.enabled=true
+nifi.flow.configuration.archive.max.time=1 days
+nifi.flow.configuration.archive.max.storage=32 GB
+```
+
 The above lines are used to specify if backups of the current flow-files should be kept, keep in mind that the archive size can get quite big depending on the number of files you attempt to put through a workflow. This can easily get over 32GB so it is recommended you modify depending on the workflows and of the filesizes of the flow-files, this setting is directly affected by `nifi.queue.backpressure.count` and `nifi.queue.backpressure.size`
 
-    ```
-    nifi.queue.backpressure.count=10000
-    nifi.queue.backpressure.size=1 GB
-    ```
+```properties
+nifi.queue.backpressure.count=10000
+nifi.queue.backpressure.size=1 GB
+```
 
 These settings specify how large can a queue's size be (any que between two processes), it is recommended to keep this as 1GB, the count is the ma number of flow-files a que can have, again 10000 is a reasonable number. <span style="color: red"> <strong>These values should be modified only if you are really certain flow-files are not being held in the queue for long as the queued flow-files are stored in RAM memory as well as on the disk. </strong>  </span> A much more safer way of doing things if you wish to change the above settings is to change the settings only for the queues you would need, this can be done during runtime, without the need to touch the `nifi.properties` file.
 
-    ```
-    nifi.bored.yield.duration=100 millis
-    ```
+```properties
+nifi.bored.yield.duration=100 millis
+```
 
 A timer that specifies how long should NiFi waits before checking for work, CPU dependent, the lower the time the higher the CPU usage, as it would do more frequent checks. The default is 10ms but it seems too excessive for most use cases, it would also result in significant CPU usage if a large number of workflows are running in parallel, so it has been set to 100ms instead.
 
-    ```
-    nifi.content.repository.archive.enabled=false
-    nifi.content.repository.archive.max.retention.period=1 mins
-    nifi.content.repository.archive.cleanup.frequency=30 secs
-    nifi.content.repository.archive.max.usage.percentage=15%
-    nifi.content.repository.archive.backpressure.percentage=50%
-    ```
+```properties
+nifi.content.repository.archive.enabled=false
+nifi.content.repository.archive.max.retention.period=1 mins
+nifi.content.repository.archive.cleanup.frequency=30 secs
+nifi.content.repository.archive.max.usage.percentage=15%
+nifi.content.repository.archive.backpressure.percentage=50%
+```
 
 For production we currently disable content claim archiving (`nifi.content.repository.archive.enabled=false`) to avoid uncontrolled growth in `content_repository`.
 The tradeoff is that old content claims are not retained for replay/forensics once they are no longer referenced.
@@ -137,74 +138,73 @@ The tradeoff is that old content claims are not retained for replay/forensics on
 If you enable content archive, keep retention short and monitor disk usage closely. Content repository size can remain high even when queue size is low, because claims may still be active or waiting for archive cleanup.
 <br><br>
 
-#### IMPORTANT NOTE about nifi properties
+#### IMPORTANT NOTE about NiFi properties
 
-:::{admonition} IMPORTANT NOTE about `nifi.properties`
-:class: warning
-For Linux users : This is a file that will get modified on runtime as when the container is up some of the properties within the file will get changed ( `nifi.cluster.node.address` for example). Some permission error's might pop out as the UID and GID of the folder permissions are different from that of the user within the container, which is using UID=1000 and GID=1000, declared in the `Dockerfile` and in `deploy/services.yml` under the `nifi` service section. To avoid permission issues, on the host container you will need to create a group with the GID 1000, assign the user that is running the docker command to the created group, and everything should work.
-:::
+!!! warning "IMPORTANT NOTE about `nifi.properties`"
+
+    On Linux, this file is modified at runtime because NiFi updates properties such as `nifi.cluster.node.address`. Permission errors can occur when the host directory UID/GID differs from the container user, which defaults to UID 1000 and GID 1000 in the `Dockerfile` and `deploy/services.yml`. To avoid these errors, create a host group with GID 1000 and add the user running Docker to it.
 
 <span style="color:orange"><strong>Recommendation:</strong></span> If the account/group creation is not possible, you will need to build your own docker image on NiFi, but before you do this, you need to get hold of your group id and user id  of the account you are logged in with.
 To find out your GID and UID, you must do the following commands in terminal:
 
-    ```bash
-    echo "user id (UID):"$(id -u $USER)
-    echo "group id (GID):"$(id -g $USER)
-    ```
+```bash
+echo "user id (UID):"$(id -u $USER)
+echo "group id (GID):"$(id -g $USER)
+```
 
 You'd need to export your ENV vars:
 
-    ```bash
-    export NIFI_UID=$(id -u $USER)
-    export NIFI_GID=$(id -g $USER)
-    ```
+```bash
+export NIFI_UID=$(id -u $USER)
+export NIFI_GID=$(id -g $USER)
+```
 
 A better way is to also manually edit the `./deploy/nifi.env` file and change the default NIFI_UID and NIFI_GID variables there, after which you must execute the `export_env_vars.sh` script.
 
-    ```bash
-    cd ./deploy/
-    source export_env_vars.sh
-    cd ../
-    ```
+```bash
+cd ./deploy/
+source export_env_vars.sh
+cd ../
+```
 
 You should check if the env vars have been set after running the script:
 
-    ```bash
-    echo $NIFI_UID
-    echo $NIFI_GID
-    ```
+```bash
+echo $NIFI_UID
+echo $NIFI_GID
+```
 
 If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
 
-    ```bash
-        set -o allexport
-        source nifi.env
-        set +o allexport
-    ```
+```bash
+set -o allexport
+source nifi.env
+set +o allexport
+```
 
 or, on Windows, via `git bash` terminal:
 
-    ```bash
-        set -a
-        source nifi.env
-        set +a
-    ```
+```bash
+set -a
+source nifi.env
+set +a
+```
 
 Make sure to execute the above commands in the order they are mentioned.
 
 
 Delete the older docker image from the nifi repo:
 
-    ```bash
-    docker image rm cogstacksystems/cogstack-nifi:latest -f
-    ```
+```bash
+docker image rm cogstacksystems/cogstack-nifi:latest -f
+```
 
 Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` folder.
 
-    ```bash
-    cd ./nifi
-    bash recreate_nifi_docker_image.sh
-    ```
+```bash
+cd ./nifi
+bash recreate_nifi_docker_image.sh
+```
 
 Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must `source ./deploy/export_env_vars.sh` so the variables are visible to Docker at runtime. If you're using the `deploy/Makefile` targets, it handles this for you.
 
@@ -213,10 +213,10 @@ Remember that the above export script and/or command are only visible in the cur
 <br>
 This file allows users to configure settings for how NiFi should be started, it deals with location of configuration folder, files, JVM heap and Java System Properties.
 
-    ```text
-        java.arg.2=-Xms8g
-        java.arg.3=-Xmx16g
-    ```
+```text
+java.arg.2=-Xms8g
+java.arg.3=-Xmx16g
+```
 
 These properties specify the maximum memory that can be allocated to the JVM `-Xmx16g` and the initial memory allocation `-Xms8g`, values of 8g and 16g are used by default, however you may need to change these to fully utilise the memory of the machines you are spinning the service on.
 <br><br>
@@ -236,27 +236,27 @@ Possible log level settings: `OFF`(inside `logback.xml`) or `NONE` (inside the N
 
 The most useful log sections are:
 
-    ```
-        <logger name="org.apache.nifi" level="WARN"/>
-    ```
+```xml
+<logger name="org.apache.nifi" level="WARN"/>
+```
 
 - This refers to the overall NiFi log, useful for finding out what may cause startup issues.
 
-    ```
-        <logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
-    ```
+```xml
+<logger name="org.apache.nifi.web.security" level="WARN" additivity="false">
+```
 
 - Security level logging, this controls certificate or authorisation issues here.
 
-    ```
-        <logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
-    ```
+```xml
+<logger name="org.apache.nifi.bootstrap" level="WARN" additivity="false">
+```
 
 - This handles issues related to the startup parameters.
 
-    ```
-        <root level="WARN">
-    ```
+```xml
+<root level="WARN">
+```
 
 - This is controls that is logged into the `./nifi/nifi-app.log`
 

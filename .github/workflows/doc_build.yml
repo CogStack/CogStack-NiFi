@@ -39,4 +39,4 @@ jobs:
 
       - name: Build docs
         working-directory: docs
-        run: uv run mkdocs build -f ../mkdocs.yml
+        run: uv run mkdocs build --strict -f ../mkdocs.yml

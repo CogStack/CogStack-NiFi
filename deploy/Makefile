@@ -100,7 +100,7 @@ load-env: ## Load variables from export_env_vars.sh in a subshell
 show-env: ## Print sorted environment variables after loading export_env_vars.sh
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
 
-init-security-root-ca: ## Generate the shared root CA only when it is missing or incomplete
+init-security-root-ca: ## Generate the shared root CA only when no CA material exists
 	@set -euo pipefail; \
 	source "$(SECURITY_ENV_DIR)/certificates_general.env"; \
 	root_dir="$(SECURITY_CERTIFICATES_DIR)/root"; \
@@ -110,6 +110,10 @@ init-security-root-ca: ## Generate the shared root CA only when it is missing or
 	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}-keystore.jks" \
 	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}-truststore.jks" ]]; then \
 		echo "Root CA certificates already exist; leaving them unchanged."; \
+	elif [[ -d "$$root_dir" && -n "$$(find "$$root_dir" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then \
+		echo "ERROR: $$root_dir contains an incomplete root CA set." >&2; \
+		echo "Preserve and repair or explicitly replace that CA before rerunning this target." >&2; \
+		exit 1; \
 	else \
 		echo "Generating the shared root CA certificates..."; \
 		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_root_ca_cert.sh); \
@@ -127,6 +131,18 @@ init-security-nifi: init-security-root-ca ## Generate NiFi certificates only whe
 	else \
 		echo "Generating NiFi certificates..."; \
 		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_nifi_certs.sh); \
+	fi
+
+init-security-gitea: init-security-root-ca ## Generate a dedicated Gitea leaf certificate when it is missing
+	@set -euo pipefail; \
+	gitea_dir="$(SECURITY_CERTIFICATES_DIR)/gitea"; \
+	if [[ -f "$$gitea_dir/gitea.key" \
+	   && -f "$$gitea_dir/gitea.pem" \
+	   && -f "$$gitea_dir/gitea.crt" ]]; then \
+		echo "Gitea leaf certificate already exists; leaving it unchanged."; \
+	else \
+		echo "Generating Gitea leaf certificate..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && bash ./create_gitea_certs.sh); \
 	fi
 
 init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, client, and admin certificates when missing
@@ -211,11 +227,12 @@ init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from el
 			;; \
 	esac
 
-init-security: ## Generate missing NiFi and selected search-backend certificates
+init-security: ## Generate missing NiFi, Gitea, and selected search-backend certificates
 	@$(MAKE) --no-print-directory init-security-nifi
+	@$(MAKE) --no-print-directory init-security-gitea
 	@$(MAKE) --no-print-directory init-security-search
 
-.PHONY: init-security init-security-root-ca init-security-nifi init-security-opensearch init-security-elasticsearch init-security-search
+.PHONY: init-security init-security-root-ca init-security-nifi init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
 helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
 	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG)
