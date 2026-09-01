@@ -73,8 +73,9 @@ echo '[{"text":"hello"}]' | python3 nifi/user_scripts/processors/clean_doc.py te
 
 If dependencies changed:
 
-1. Update `nifi/requirements.txt`.
-2. Rebuild the NiFi image:
+1. Update the runtime dependencies in the root `pyproject.toml`.
+2. Refresh the lock file with `uv lock`.
+3. Rebuild the NiFi image:
 
 ```bash
 bash nifi/recreate_nifi_docker_image.sh
@@ -85,8 +86,8 @@ bash nifi/recreate_nifi_docker_image.sh
 Run the same core checks as CI:
 
 ```bash
-python -m ruff check scripts nifi/user_python_extensions --select F,E9
-python -m mypy --config-file pyproject.toml nifi/user_python_extensions scripts
+uv run --locked ruff check scripts nifi/user_python_extensions --select F,E9
+uv run --locked mypy --config-file pyproject.toml nifi/user_python_extensions scripts
 ```
 
 Optional test run:

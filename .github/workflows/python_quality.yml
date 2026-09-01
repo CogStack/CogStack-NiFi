@@ -5,8 +5,7 @@ on:
     branches: ['**']
     paths:
       - "pyproject.toml"
-      - "nifi/requirements.txt"
-      - "nifi/requirements-dev.txt"
+      - "uv.lock"
       - "nifi/**/*.py"
       - "scripts/**/*.py"
       - "typings/**/*.pyi"
@@ -14,8 +13,7 @@ on:
   pull_request:
     paths:
       - "pyproject.toml"
-      - "nifi/requirements.txt"
-      - "nifi/requirements-dev.txt"
+      - "uv.lock"
       - "nifi/**/*.py"
       - "scripts/**/*.py"
       - "typings/**/*.pyi"
@@ -42,14 +40,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip uv
 
-      - name: Install requirements with uv
+      - name: Install locked project dependencies
         run: |
-          uv pip install --system -r nifi/requirements.txt -r nifi/requirements-dev.txt
+          uv sync --locked --dev
 
       - name: Ruff (critical rules)
         run: |
-          python -m ruff check scripts nifi/user_python_extensions --select F,E9
+          uv run --locked ruff check scripts nifi/user_python_extensions --select F,E9
 
       - name: MyPy
         run: |
-          python -m mypy --config-file pyproject.toml nifi/user_python_extensions scripts
+          uv run --locked mypy --config-file pyproject.toml nifi/user_python_extensions scripts

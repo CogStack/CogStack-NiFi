@@ -4,12 +4,21 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1" # weekly Monday UTC
+  push:
+    branches: ['**']
+    paths:
+      - "docs/pyproject.toml"
+      - "docs/uv.lock"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "scripts/maintenance/audit_pip_dependency.sh"
+      - ".github/workflows/dependency_hygiene.yml"
   pull_request:
     paths:
       - "docs/pyproject.toml"
       - "docs/uv.lock"
-      - "nifi/requirements.txt"
-      - "nifi/requirements-dev.txt"
+      - "pyproject.toml"
+      - "uv.lock"
       - "scripts/maintenance/audit_pip_dependency.sh"
       - ".github/workflows/dependency_hygiene.yml"
 
@@ -26,7 +35,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('docs/pyproject.toml', 'docs/uv.lock', 'nifi/requirements.txt', 'nifi/requirements-dev.txt', 'scripts/maintenance/audit_pip_dependency.sh') }}
+          key: pip-${{ runner.os }}-${{ hashFiles('docs/pyproject.toml', 'docs/uv.lock', 'pyproject.toml', 'uv.lock', 'scripts/maintenance/audit_pip_dependency.sh') }}
           restore-keys: |
             pip-${{ runner.os }}-
 

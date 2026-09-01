@@ -40,3 +40,35 @@ jobs:
             echo "Fix with: git update-index --chmod=+x <file>"
             exit 1
           fi
+
+  shell-quality:
+    name: ShellCheck and syntax
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check root-owned shell scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          scripts=()
+          while IFS= read -r -d '' file; do
+            scripts+=("$file")
+          done < <(
+            git ls-files -z -- '*.sh' \
+              ':(exclude)services/**' \
+              ':(exclude)deploy/charts/**'
+          )
+
+          if [[ "${#scripts[@]}" -eq 0 ]]; then
+            echo "No root-owned shell scripts found."
+            exit 0
+          fi
+
+          echo "Checking ${#scripts[@]} root-owned shell scripts."
+          shellcheck "${scripts[@]}"
+
+          for file in "${scripts[@]}"; do
+            bash -n "$file"
+          done

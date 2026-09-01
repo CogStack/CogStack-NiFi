@@ -3,6 +3,7 @@
 # credentials, and local development state from entering image layers.
 **
 !pyproject.toml
+!uv.lock
 !nifi/
 !nifi/**
 

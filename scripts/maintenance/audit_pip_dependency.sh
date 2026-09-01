@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
-# Pip dependency hygiene for in-repo components (excludes external service submodules).
-# Default: audit lightweight docs deps. Use --include-nifi to audit NiFi extras (heavier).
+# Python dependency hygiene for in-repo components (excludes external service submodules).
+# Default: audit lightweight docs deps. Use --include-nifi to audit the root project lock (heavier).
 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-PY_REQS_NIFI=(
-  "nifi/requirements.txt"
-  "nifi/requirements-dev.txt"
-)
 
 INCLUDE_NIFI=false
 
@@ -41,6 +36,7 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_DIR"' EXIT
 
 DOCS_REQUIREMENTS="${TMP_DIR}/docs-requirements.txt"
+NIFI_REQUIREMENTS="${TMP_DIR}/nifi-requirements.txt"
 
 echo "==> Python dependency audit"
 echo "Exporting locked docs dependencies"
@@ -61,14 +57,17 @@ if [[ "$INCLUDE_NIFI" != true ]]; then
   exit 0
 fi
 
-for req in "${PY_REQS_NIFI[@]}"; do
-  file="${ROOT_DIR}/${req}"
-  if [[ ! -f "$file" ]]; then
-    echo "Required dependency file not found: ${req}" >&2
-    exit 1
-  fi
-  echo "Running pip-audit on ${req}"
-  pip-audit -r "$file" --progress-spinner off
-done
+echo "Exporting locked NiFi runtime and development dependencies"
+uv export \
+  --project "$ROOT_DIR" \
+  --quiet \
+  --frozen \
+  --all-groups \
+  --no-emit-project \
+  --format requirements.txt \
+  --output-file "$NIFI_REQUIREMENTS"
+
+echo "Running pip-audit on uv.lock"
+pip-audit -r "$NIFI_REQUIREMENTS" --progress-spinner off
 
 echo "Dependency audit complete."
