@@ -18,7 +18,7 @@ build
 *.egg-info
 **/*.egg-info/
 
-# Private keys and generated certificates
+# keys and certificates
 *.pem
 *.key
 *.jks
@@ -31,21 +31,24 @@ build
 *es_native_certs_bundle_pem.zip
 *es_native_certs_bundle.zip
 
-# Environment files may contain passwords or local paths. Track templates only.
+# env files with passwords or local paths
 *.env
-!*.env.template
-!**/*.env.template
-
-# These files remain version-controlled public development defaults because
-# the standalone Compose stack and legacy charts consume them directly.
-!security/env/
-!security/env/*.env
-
-# Certificate contents are generated locally. Keep only their documentation.
-security/certificates/*
-!security/certificates/README.md
-
+security/certificates/
+security/certificates/**
+security/env/
+security/env/**
 security/scripts/nifi_toolkit/
+security/scripts/nifi_toolkit/**
+security/templates/
+security/templates/**
 
 # docs
 docs/build/*
+site/
+
+# Ignore all .env files at any level
+.env
+*.env
+**/*.env
+!*.env.template
+!**/*.env.template

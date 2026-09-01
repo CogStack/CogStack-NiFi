@@ -1,0 +1,81 @@
+site_name: Cogstack NiFi Documentation
+site_url: http://localhost:8080/docs/
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  favicon: _static/cogstack-logo.png
+  logo: _static/cogstack-logo.png
+  icon:
+    logo: _static/cogstack-logo.png
+  palette:
+    primary: white
+
+  features:
+    - navigation.indexes
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - header.autohide
+    - content.tooltips
+    - content.action.edit
+    - content.action.view
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate # This setting makes the table of contents that usually appears on the right hand side appear inside the main nav tree instead
+    - attr_list
+
+repo_url: https://github.com/CogStack/CogStack-NiFi
+repo_name: CogStack-NiFi
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - 📰 News: news.md
+  - 📋 Prerequisites: deploy/main.md
+  - 📦 Deployment: deploy/deployment.md
+  - 🧩 Services: deploy/services.md
+  - 📛 Troubleshooting: deploy/troubleshooting.md
+  - Workflows: deploy/workflows.md
+  - 🔀 Workflows: deploy/workflows_legacy.md
+  - 💧 NiFi:
+      - nifi/main.md
+      - Development Guide: nifi/development_guide.md
+      - Processors Catalog: nifi/processors_catalog.md
+      - Processor Scripting: nifi/processor_scripting.md
+      - User Scripts: nifi/user_scripts.md
+      - Python Extensions: nifi/user_python_extensions.md
+      - Configuration: deploy/configuration.md
+  - 🛡️ Security:
+      - security/main.md
+      - 🏛️ Certificates and Root CA: security/certificates.md
+      - 🗄️ Security for CogStack provided other services: security/services.md
+      - 🔐 NiFi TLS & Admin Access Setup (with NGINX): security/nifi.md
+      - 🌐 Elasticsearch / OpenSearch Security: security/elasticsearch_opensearch.md
+
+plugins:
+
+  - search
+
+
+extra:
+  analytics:
+    provider: custom
+
+
+markdown_extensions:
+  - md_in_html
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

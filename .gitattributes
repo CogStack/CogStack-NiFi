@@ -41,9 +41,9 @@
 *.br -text diff
 *.gz -text diff
 *.tar -text diff
-*.zip -text diff
 *.tgz -text diff
 *.tbz2 -text diff
+*.zip binary
 
 # Win Executable
 *.exe binary
@@ -72,4 +72,3 @@
 #docs/_static/img filter=lfs diff=lfs merge=lfs -text
 #services/cogstack-cohort/cui_pt2ch.json filter=lfs diff=lfs merge=lfs -text
 #services/cogstack-cohort/snomed_terms.json filter=lfs diff=lfs merge=lfs -text
-*.zip !text !filter !merge !diff
