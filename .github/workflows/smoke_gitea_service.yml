@@ -27,6 +27,8 @@ jobs:
         run: |
           set -euo pipefail
           make -C deploy init-security-gitea
+          sudo chown 1000:1000 security/certificates/gitea/gitea.key
+          sudo chmod 600 security/certificates/gitea/gitea.key
 
       - name: Start Gitea service
         run: |

@@ -20,7 +20,7 @@ security/certificates/gitea/
 └── gitea.crt
 ```
 
-The leaf certificate is signed by the shared CA and contains local development SANs for `gitea`, `cogstack-gitea`, `localhost`, and `127.0.0.1`. The Compose configuration mounts the generated certificate directory and configures Gitea to serve `gitea.pem` with `gitea.key`.
+The leaf certificate is signed by the shared CA and contains local development SANs for `gitea`, `cogstack-gitea`, `localhost`, and `127.0.0.1`. The Compose configuration mounts only this generated leaf-certificate directory and configures Gitea to serve `gitea.pem` with `gitea.key`; it does not expose the root CA private key to the service.
 
 For Kubernetes, create the development TLS Secret with:
 
