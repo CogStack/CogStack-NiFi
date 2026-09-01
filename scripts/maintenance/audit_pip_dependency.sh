@@ -4,11 +4,7 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
-PY_REQS=(
-  "docs/requirements.txt"
-)
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 PY_REQS_NIFI=(
   "nifi/requirements.txt"
@@ -34,16 +30,42 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$INCLUDE_NIFI" == true ]]; then
-  PY_REQS+=("${PY_REQS_NIFI[@]}")
-fi
+for command in pip-audit uv; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    echo "Required command not found: ${command}" >&2
+    exit 1
+  fi
+done
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf -- "$TMP_DIR"' EXIT
+
+DOCS_REQUIREMENTS="${TMP_DIR}/docs-requirements.txt"
 
 echo "==> Python dependency audit"
-for req in "${PY_REQS[@]}"; do
+echo "Exporting locked docs dependencies"
+uv export \
+  --project "${ROOT_DIR}/docs" \
+  --quiet \
+  --frozen \
+  --no-dev \
+  --no-emit-project \
+  --format requirements.txt \
+  --output-file "$DOCS_REQUIREMENTS"
+
+echo "Running pip-audit on docs/uv.lock"
+pip-audit -r "$DOCS_REQUIREMENTS" --progress-spinner off
+
+if [[ "$INCLUDE_NIFI" != true ]]; then
+  echo "Dependency audit complete."
+  exit 0
+fi
+
+for req in "${PY_REQS_NIFI[@]}"; do
   file="${ROOT_DIR}/${req}"
   if [[ ! -f "$file" ]]; then
-    echo "Skip missing ${req}"
-    continue
+    echo "Required dependency file not found: ${req}" >&2
+    exit 1
   fi
   echo "Running pip-audit on ${req}"
   pip-audit -r "$file" --progress-spinner off
