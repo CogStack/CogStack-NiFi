@@ -62,7 +62,6 @@ security/
 │   ├── create_opensearch_users.sh              # Creates OpenSearch internal users and role mappings (manual execution post-startup)
 │   ├── create_nifi_certs.sh                    # Generates NiFi 2.x leaf certificates and Java stores
 │   ├── create_gitea_certs.sh                   # Generates a dedicated Gitea leaf certificate
-│   ├── nifi_toolkit_security.sh                # Legacy NiFi < 2.0 certificate helper
 │   ├── nifi_init_create_user_auth.sh           # Bootstraps a temporary NiFi container to create a single-user authentication file
 │   ├── nifi_create_single_user_auth.sh         # Helper script executed inside the container to generate NiFi single-user credentials
 │   ├── es_native_cert_generator.sh             # Helper called by create_es_native_certs.sh to assemble ES cert bundles

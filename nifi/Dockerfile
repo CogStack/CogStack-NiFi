@@ -234,9 +234,12 @@ RUN set -eux; \
   for a in "${nars[@]}"; do \
      url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
      echo "Downloading $a"; \
-     curl -fsSL --retry 5 --retry-delay 2 \
+     if ! curl -fsSL --retry 5 --retry-delay 2 \
        -o "${a}-${NIFI_VERSION}.nar" \
-       "$url"; \
+       "$url"; then \
+       echo "WARNING: NAR unavailable: $a @ ${NIFI_VERSION}"; \
+       rm -f "${a}-${NIFI_VERSION}.nar"; \
+     fi; \
   done; \
   chown ${UID}:${GID} ./*.nar
 
