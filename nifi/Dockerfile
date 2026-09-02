@@ -166,16 +166,6 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-# --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
-ARG NETTY_VERSION=4.2.17.Final
-RUN set -eux; \
-    cd /opt/nifi/nifi-current/lib; \
-    curl -fL --retry 5 --retry-delay 2 \
-      -o "netty-codec-classes-quic-${NETTY_VERSION}.jar" \
-      "https://repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/${NETTY_VERSION}/netty-codec-classes-quic-${NETTY_VERSION}.jar"; \
-    # sanity check: ensure the Quic class exists in the jar
-    jar tf "netty-codec-classes-quic-${NETTY_VERSION}.jar" | grep -q '^io/netty/handler/codec/quic/Quic.class$'
-
 # Install parquet NAR
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
