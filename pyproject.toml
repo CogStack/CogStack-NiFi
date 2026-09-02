@@ -4,6 +4,9 @@ exclude = ["nifi/user_scripts/legacy_scripts", "services"]
 target-version = "py311"
 indent-width = 4
 
+[tool.uv]
+required-version = "==0.12.1"
+
 [tool.ruff.lint]
 # Enable flake8-bugbear (`B`) rules, in addition to the defaults.
 select = [

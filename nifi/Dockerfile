@@ -91,9 +91,6 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# bust cache
-ENV UV_VERSION=latest
-
 # install rust, medcat requirement, install UV
 ENV HOME=/root
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -105,8 +102,12 @@ RUN set -eux; \
     /tmp/rustup-init.sh -y; \
     rm /tmp/rustup-init.sh
 
+# Keep the installer version aligned with the repository's uv requirement.
+COPY pyproject.toml /tmp/cogstack_nifi/pyproject.toml
 RUN set -eux; \
-    curl -Ls https://astral.sh/uv/install.sh -o /tmp/install_uv.sh; \
+    UV_VERSION="$(sed -n 's/^required-version = "==\([^"]*\)"$/\1/p' /tmp/cogstack_nifi/pyproject.toml)"; \
+    test -n "${UV_VERSION}"; \
+    curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" -o /tmp/install_uv.sh; \
     bash /tmp/install_uv.sh; \
     rm /tmp/install_uv.sh
 
@@ -115,7 +116,7 @@ RUN set -eux; \
 RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip setuptools wheel
 
 # Install the locked runtime dependencies used by NiFi scripts and extensions.
-COPY pyproject.toml uv.lock /tmp/cogstack_nifi/
+COPY uv.lock /tmp/cogstack_nifi/uv.lock
 RUN uv export \
       --project /tmp/cogstack_nifi \
       --frozen \

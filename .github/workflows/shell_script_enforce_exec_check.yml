@@ -67,7 +67,11 @@ jobs:
           fi
 
           echo "Checking ${#scripts[@]} root-owned shell scripts."
-          shellcheck "${scripts[@]}"
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/mnt:ro" \
+            --workdir /mnt \
+            koalaman/shellcheck:v0.11.0@sha256:61862eba1fcf09a484ebcc6feea46f1782532571a34ed51fedf90dd25f925a8d \
+            "${scripts[@]}"
 
           for file in "${scripts[@]}"; do
             bash -n "$file"

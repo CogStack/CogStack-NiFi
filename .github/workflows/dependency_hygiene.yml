@@ -44,8 +44,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version-file: "pyproject.toml"
+
       - name: Install audit tools
-        run: python -m pip install --upgrade pip pip-audit uv
+        run: python -m pip install --upgrade pip pip-audit
 
       - name: Ensure script is executable
         run: chmod +x scripts/maintenance/audit_pip_dependency.sh
