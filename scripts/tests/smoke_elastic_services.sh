@@ -31,6 +31,25 @@ KIBANA_PORT="${KIBANA_SERVER_OUTPUT_PORT:-5601}"
 # shellcheck disable=SC2034
 SMOKE_CA_CERT="${ELASTICSEARCH_SMOKE_CA_CERT:-${ROOT_DIR}/security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem}"
 
+SEARCH_BACKEND="${ELASTICSEARCH_VERSION:-opensearch}"
+case "$SEARCH_BACKEND" in
+  opensearch)
+    ADMIN_CERT_DIR="${ROOT_DIR}/security/certificates/elastic/opensearch"
+    ADMIN_CERT="${ELASTICSEARCH_SMOKE_ADMIN_CERT:-${ADMIN_CERT_DIR}/admin.crt}"
+    ADMIN_KEY="${ELASTICSEARCH_SMOKE_ADMIN_KEY:-${ADMIN_CERT_DIR}/admin.key.pem}"
+    set_smoke_curl_args --cert "$ADMIN_CERT" --key "$ADMIN_KEY"
+    ;;
+  elasticsearch)
+    : "${ELASTIC_USER:?ELASTIC_USER is required for Elasticsearch smoke checks}"
+    : "${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is required for Elasticsearch smoke checks}"
+    set_smoke_curl_args --user "${ELASTIC_USER}:${ELASTIC_PASSWORD}"
+    ;;
+  *)
+    echo "Unsupported search backend for smoke checks: ${SEARCH_BACKEND}" >&2
+    exit 1
+    ;;
+esac
+
 START_SERVICES="${ELASTICSEARCH_SMOKE_START_SERVICES:-1}"
 
 ELASTICSEARCH_RETRIES="${ELASTICSEARCH_SMOKE_RETRIES:-30}"
@@ -42,7 +61,7 @@ KIBANA_GRACE_SECONDS="${KIBANA_SMOKE_GRACE_SECONDS:-60}"
 
 ELASTICSEARCH_CHECKS=()
 for port in "${ELASTICSEARCH_PORT_LIST[@]}"; do
-  ELASTICSEARCH_CHECKS+=("elasticsearch:${port}|https://${HOST}:${port}/")
+  ELASTICSEARCH_CHECKS+=("elasticsearch:${port}|https://${HOST}:${port}/_cluster/health")
 done
 
 KIBANA_CHECKS=(
@@ -59,6 +78,7 @@ if [[ "$START_SERVICES" != "0" ]]; then
   make -C "${ROOT_DIR}/deploy" start-elastic
 fi
 
+set_smoke_allowed_codes 200
 wait_for_checks \
   "Elasticsearch" \
   "$ELASTICSEARCH_RETRIES" \
@@ -70,6 +90,8 @@ if [[ "$KIBANA_GRACE_SECONDS" -gt 0 ]]; then
   sleep "$KIBANA_GRACE_SECONDS"
 fi
 
+set_smoke_curl_args
+set_smoke_allowed_codes 200 301 302 303 307 308
 wait_for_checks \
   "Kibana" \
   "$KIBANA_RETRIES" \

@@ -33,7 +33,10 @@ DELAY_SECONDS="${GITEA_SMOKE_DELAY_SECONDS:-10}"
 SMOKE_CHECKS=(
   "gitea-root|https://${HOST}:${PORT}/"
   "gitea-login|https://${HOST}:${PORT}/user/login"
+  "gitea-api|https://${HOST}:${PORT}/api/v1/version"
 )
+
+set_smoke_allowed_codes 200
 
 if [[ "$START_SERVICES" != "0" ]]; then
   if ! command -v make >/dev/null 2>&1; then

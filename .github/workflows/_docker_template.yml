@@ -125,20 +125,40 @@ jobs:
             type=ref,event=branch,enable=${{ github.event_name != 'pull_request' }}
             type=sha,format=short
       
-      - name: Wait for Docker Hub to register images
-        run: sleep 60
-
       - name: Create multi-arch manifest
         shell: bash
         run: |
           set -euo pipefail
+
+          wait_for_image() {
+            local image_ref="$1"
+            local attempt
+
+            for attempt in {1..12}; do
+              if docker buildx imagetools inspect "$image_ref" >/dev/null 2>&1; then
+                echo "Available: ${image_ref}"
+                return 0
+              fi
+
+              if [[ "$attempt" -lt 12 ]]; then
+                echo "Waiting for ${image_ref} (${attempt}/12)..."
+                sleep 5
+              fi
+            done
+
+            echo "Timed out waiting for ${image_ref}" >&2
+            return 1
+          }
+
           while IFS= read -r ref; do
             [[ -z "$ref" ]] && continue
             img="${ref%%:*}"
             tag="${ref#*:}"
+            wait_for_image "${img}:${tag}-amd64"
+            wait_for_image "${img}:${tag}-arm64"
             echo "🌀 Creating manifest for ${img}:${tag}"
             docker buildx imagetools create \
               --tag "${img}:${tag}" \
               "${img}:${tag}-amd64" \
               "${img}:${tag}-arm64"
-          done < <(printf "%s" "${{ steps.meta_manifest.outputs.tags }}")
+          done < <(printf "%s\n" "${{ steps.meta_manifest.outputs.tags }}")

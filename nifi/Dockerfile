@@ -154,7 +154,7 @@ RUN set -eux; \
   mkdir -p /opt/nifi/groovy; \
   cd /opt/nifi/groovy; \
   url1="https://archive.apache.org/dist/groovy/${GROOVY_VERSION}/distribution/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
-  url2="https://repo1.maven.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
+  url2="https://repo.maven.apache.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
   curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url1" \
     || curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url2"; \
   unzip groovy.zip; rm groovy.zip
@@ -166,7 +166,7 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-# Install parquet NAR
+# Install additional NAR extensions.
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
   nars=( \
@@ -233,13 +233,10 @@ RUN set -eux; \
   ); \
   for a in "${nars[@]}"; do \
      url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
-     echo "Checking $a"; \
-     if ! curl -fsSL --retry 2 \
+     echo "Downloading $a"; \
+     curl -fsSL --retry 5 --retry-delay 2 \
        -o "${a}-${NIFI_VERSION}.nar" \
-       "$url"; then \
-       echo "MISSING: $a @ ${NIFI_VERSION}"; \
-       rm -f "${a}-${NIFI_VERSION}.nar"; \
-     fi; \
+       "$url"; \
   done; \
   chown ${UID}:${GID} ./*.nar
 
