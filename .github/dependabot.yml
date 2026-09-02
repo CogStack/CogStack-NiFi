@@ -6,9 +6,9 @@ updates:
     schedule:
       interval: "weekly"
 
-  # Keep Dockerfile base images (in repo root) up to date
+  # Keep the owned NiFi Dockerfile base image up to date.
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/nifi"
     schedule:
       interval: "weekly"
     registries:
@@ -17,6 +17,12 @@ updates:
   # Keep the root Python project and lock file up to date.
   - package-ecosystem: "uv"
     directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Keep the documentation project and lock file up to date.
+  - package-ecosystem: "uv"
+    directory: "/docs"
     schedule:
       interval: "weekly"
 

@@ -78,7 +78,7 @@ If dependencies changed:
 3. Rebuild the NiFi image:
 
 ```bash
-bash nifi/recreate_nifi_docker_image.sh
+make -C deploy build-nifi-image
 ```
 
 ## Quality checks

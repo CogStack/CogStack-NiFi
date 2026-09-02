@@ -144,69 +144,15 @@ If you enable content archive, keep retention short and monitor disk usage close
 
     On Linux, this file is modified at runtime because NiFi updates properties such as `nifi.cluster.node.address`. Permission errors can occur when the host directory UID/GID differs from the container user, which defaults to UID 1000 and GID 1000 in the `Dockerfile` and `deploy/services.yml`. To avoid these errors, create a host group with GID 1000 and add the user running Docker to it.
 
-<span style="color:orange"><strong>Recommendation:</strong></span> If the account/group creation is not possible, you will need to build your own docker image on NiFi, but before you do this, you need to get hold of your group id and user id  of the account you are logged in with.
-To find out your GID and UID, you must do the following commands in terminal:
+Ensure the host-mounted `nifi/conf` directory is writable by the container user. Rebuilding the image with a different UID or GID does not change ownership of existing bind-mounted host files.
+
+To build the NiFi image without starting services, run this command from the repository root:
 
 ```bash
-echo "user id (UID):"$(id -u $USER)
-echo "group id (GID):"$(id -g $USER)
+make -C deploy build-nifi-image
 ```
 
-You'd need to export your ENV vars:
-
-```bash
-export NIFI_UID=$(id -u $USER)
-export NIFI_GID=$(id -g $USER)
-```
-
-A better way is to also manually edit the `./deploy/nifi.env` file and change the default NIFI_UID and NIFI_GID variables there, after which you must execute the `export_env_vars.sh` script.
-
-```bash
-cd ./deploy/
-source export_env_vars.sh
-cd ../
-```
-
-You should check if the env vars have been set after running the script:
-
-```bash
-echo $NIFI_UID
-echo $NIFI_GID
-```
-
-If the above command prints some numbers then it means that the `export_env_vars.sh` script worked. Otherwise, if you don't see anything, or just blank lines, then you need to execute the following:
-
-```bash
-set -o allexport
-source nifi.env
-set +o allexport
-```
-
-or, on Windows, via `git bash` terminal:
-
-```bash
-set -a
-source nifi.env
-set +a
-```
-
-Make sure to execute the above commands in the order they are mentioned.
-
-
-Delete the older docker image from the nifi repo:
-
-```bash
-docker image rm cogstacksystems/cogstack-nifi:latest -f
-```
-
-Then execute the `recreate_nifi_docker_image.sh` script located in the `./nifi` folder.
-
-```bash
-cd ./nifi
-bash recreate_nifi_docker_image.sh
-```
-
-Remember that the above export script and/or command are only visible in the current shell, so every time you restart your shell terminal you must `source ./deploy/export_env_vars.sh` so the variables are visible to Docker at runtime. If you're using the `deploy/Makefile` targets, it handles this for you.
+The Make target loads the deployment environment and tags the image using `NIFI_DOCKER_IMAGE` from `deploy/nifi.env`.
 
 ### <strong>`{bootstrap.conf}`</strong>
 

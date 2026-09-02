@@ -307,6 +307,14 @@ start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
 start-nifi-dev-build: ## Build and start NiFi dev services
 	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
+build-nifi-image: ## Build the local NiFi image without starting services
+	$(WITH_ENV) docker build \
+		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
+		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
+		--tag "$${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}" \
+		--file ../nifi/Dockerfile \
+		..
+
 start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -369,9 +377,9 @@ start-git-ea:
 
 start-data-infra: start-nifi start-elastic start-samples ## Start core data infrastructure
 
-start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services ## Start all major services
+start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-samples start-jupyter
 
 
 # stop services

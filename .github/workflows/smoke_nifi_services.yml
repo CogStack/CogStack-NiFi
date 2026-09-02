@@ -6,6 +6,10 @@ on:
     branches: ['**']
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -51,4 +55,3 @@ jobs:
           source deploy/export_env_vars.sh
           set -euo pipefail
           docker compose -f deploy/services.dev.yml down -v
-
