@@ -234,7 +234,12 @@ RUN set -eux; \
   for a in "${nars[@]}"; do \
      url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
      echo "Downloading $a"; \
-     if ! curl -fsSL --retry 5 --retry-delay 2 \
+     if ! curl -fsSL \
+       --connect-timeout 20 \
+       --retry 5 \
+       --retry-connrefused \
+       --retry-delay 3 \
+       --retry-max-time 120 \
        -o "${a}-${NIFI_VERSION}.nar" \
        "$url"; then \
        echo "WARNING: NAR unavailable: $a @ ${NIFI_VERSION}"; \
