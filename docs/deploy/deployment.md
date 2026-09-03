@@ -350,6 +350,16 @@ If you want, I can also generate a **minimal cheat sheet**, or an **ASCII tree d
 
 All core services defined in `services.yml` can be started using the Makefile in the `deploy/` directory.
 
+Before running any `start-*` command on a fresh checkout, generate the
+deployment-local certificates:
+
+```bash
+make init-security
+```
+
+This command is idempotent and leaves complete existing certificate sets
+unchanged. The examples below assume that you are in the `deploy/` directory.
+
 For most services in the `services` folder that are not part of the core stack defined in `services.yml` and are pulled from external git submodule repositories, the start-up process is the same.
 
 ### ▶️ Start each service individually

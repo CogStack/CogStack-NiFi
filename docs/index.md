@@ -54,6 +54,7 @@ This table describes repository layout. For setup and operations, use the deploy
 git lfs pull
 make -C deploy git-update-submodules
 make -C deploy help
+make -C deploy init-security
 make -C deploy start-data-infra
 ```
 

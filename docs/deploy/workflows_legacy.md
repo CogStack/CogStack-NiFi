@@ -53,6 +53,7 @@ In the workflow examples, the following services are used:
 
 To deploy the above services, one can type in the `deploy` directory: 
 ```
+make init-security
 make start-data-infra
 make start-medcat-service
 ```

@@ -18,6 +18,7 @@ From the repository root:
 ```bash
 cd deploy
 source export_env_vars.sh
+make init-security
 make start-nifi
 ```
 
