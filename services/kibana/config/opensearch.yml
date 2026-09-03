@@ -132,6 +132,8 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
 
+# Enable ML Commons model monitoring and management. Model registration and
+# deployment are performed through the REST API or the Dashboards Dev Tools UI.
 ml_commons_dashboards.enabled: true
 assistant.chat.enabled: true
 observability.query_assist.enabled: true

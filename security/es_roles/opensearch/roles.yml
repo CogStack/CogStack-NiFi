@@ -328,6 +328,25 @@ ml_full_access:
       allowed_actions:
         - 'indices_monitor'
 
+# OpenSearch 3.x protects ML Commons' backing indices as system indices. The
+# standard ml_full_access role grants the ML API actions but not the explicit
+# system-index permission needed when system-index permissions are enabled.
+cogstack_ml_full_access:
+  reserved: false
+  hidden: false
+  cluster_permissions:
+    - 'cluster_monitor'
+    - 'cluster:admin/opensearch/ml/*'
+  index_permissions:
+    - index_patterns:
+        - '*'
+      allowed_actions:
+        - 'indices_monitor'
+    - index_patterns:
+        - '.plugins-ml-*'
+      allowed_actions:
+        - 'system:admin/system_index'
+
 # Allows users to use all Notifications functionality
 notifications_full_access:
   reserved: true

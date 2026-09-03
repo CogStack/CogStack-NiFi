@@ -31,6 +31,43 @@ all_access:
   and_backend_roles: [""]
   description: "Maps admin to all_access"
 
+# Grant the current administrator ML Commons access and provide a backend role
+# that can be assigned to dedicated ML API/UI users.
+ml_full_access:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "ml_full_access"
+  hosts: []
+  users:
+  - "admin"
+  and_backend_roles: []
+  description: "Maps ML administrators to ml_full_access"
+
+# Companion role required by OpenSearch 3.x when system-index permissions are
+# enabled. Keep its users/backend roles aligned with ml_full_access above.
+cogstack_ml_full_access:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "ml_full_access"
+  hosts: []
+  users:
+  - "admin"
+  and_backend_roles: []
+  description: "Allows ML Commons APIs to access their protected system indices"
+
+# Read-only ML users can inspect models, connectors, tasks, and statistics.
+ml_read_access:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "ml_read_access"
+  hosts: []
+  users: []
+  and_backend_roles: []
+  description: "Maps ML observers to ml_read_access"
+
 own_index:
   reserved: false
   hidden: false

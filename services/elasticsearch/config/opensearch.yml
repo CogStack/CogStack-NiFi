@@ -188,10 +188,20 @@ plugins.ml_commons.local_model.enabled: true
 plugins.ml_commons.remote_inference.enabled: true
 plugins.ml_commons.only_run_on_ml_node: false
 plugins.ml_commons.allow_registering_model_via_url: true
+plugins.ml_commons.allow_registering_model_via_local_file: true
+# Permit HTTPS model repositories and only the dedicated read-only local model
+# directory; do not allow arbitrary HTTP, FTP, or file-system paths.
+plugins.ml_commons.trusted_url_regex: '^https://.*$|^file:///usr/share/opensearch/models/[^?#]+\.zip$'
+plugins.ml_commons.model_access_control_enabled: true
+plugins.ml_commons.connector_access_control_enabled: true
+plugins.ml_commons.safe_delete_model: true
 plugins.ml_commons.agent_framework_enabled: true
 plugins.ml_commons.rag_pipeline_feature_enabled: true
 
-# Allow remote models to execute from data nodes
+# This cluster has no dedicated ML nodes, so allow both local and remote models
+# to execute on data nodes.
+plugins.ml_commons.task_dispatcher.eligible_node_role.local_model:
+  - data
 plugins.ml_commons.task_dispatcher.eligible_node_role.remote_model:
   - data
 
