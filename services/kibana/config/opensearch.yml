@@ -133,6 +133,8 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # map.showRegionBlockedWarning: false
 
 ml_commons_dashboards.enabled: true
+assistant.chat.enabled: true
+observability.query_assist.enabled: true
 
 savedObjects.permission.enabled: true
 
