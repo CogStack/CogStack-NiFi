@@ -397,6 +397,114 @@ Starts:
 
 Ideal for running ingestion pipelines and ETL workflows.
 
+---
+
+### 🛢️ Elasticsearch/OpenSearch and dashboards
+
+To switch between OpenSearch and Elasticsearch, update the backend variables
+described in [Configuration](./configuration.md) before generating certificates
+or starting the services.
+
+```bash
+make start-elastic
+```
+
+Starts Elasticsearch/OpenSearch nodes 1 and 2 plus Kibana or OpenSearch
+Dashboards.
+
+```bash
+make start-elastic-cluster
+```
+
+Starts all three search nodes. Start the dashboard separately if needed:
+
+```bash
+make start-kibana
+```
+
+For debugging or failure testing, start an individual node with
+`make start-elastic-1`, `make start-elastic-2`, or `make start-elastic-3`.
+
+---
+
+### 🗄️ Databases
+
+```bash
+make start-samples
+```
+
+Starts `samples-db`, which contains the datasets used by the example database
+workflows.
+
+```bash
+make start-production-db
+```
+
+Starts the PostgreSQL `cogstack-databank-db` service for deployments using a
+separate ingestion database.
+
+---
+
+### 📚 JupyterHub
+
+```bash
+make start-jupyter
+```
+
+Starts the JupyterHub service at `https://localhost:8888`. Its production
+Compose configuration joins the external `cogstack-net` network, so start the
+core data infrastructure first unless that network already exists.
+
+JupyterHub is not included in `start-all`; start it explicitly when notebooks
+or interactive analysis are required.
+
+---
+
+### 🧠 MedCAT services
+
+```bash
+make start-medcat-service
+```
+
+Starts the MedCAT concept-extraction API used by the annotation workflow.
+
+```bash
+make start-medcat-service-deid
+```
+
+Starts the MedCAT de-identification API.
+
+```bash
+make start-medcat-trainer
+```
+
+Starts MedCAT Trainer, its nginx proxy, and Solr for annotation and supervised
+training.
+
+---
+
+### 📝 OCR services
+
+```bash
+make start-ocr-services
+```
+
+Starts both `ocr-service` and `ocr-service-text-only`. Use these services for
+document extraction, OCR workflows, and pipeline testing.
+
+---
+
+### 🗂️ Gitea
+
+```bash
+make start-git-ea
+```
+
+Starts the local Gitea service for internal repository and configuration
+hosting.
+
+---
+
 ### 🚀 Start the standard service set
 
 ```bash
