@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091 # Security env files are resolved relative to the runtime working directory.
 
 # ==============================================================================
 # 🔐 Create OpenSearch client + admin certs (key, pem, csr, p12)
@@ -47,8 +48,8 @@ echo "ES_ADMIN_SUBJ_LINE: $ES_ADMIN_SUBJ_LINE"
 echo "ROOT_CERTIFICATE_NAME: $ROOT_CERTIFICATE_NAME"
 echo "==================================================================================================="
 
-CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}"$ROOT_CERTIFICATE_NAME".pem"
-CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}"$ROOT_CERTIFICATE_NAME".key"
+CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
+CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
 EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 # === Client cert ===
@@ -66,7 +67,7 @@ openssl x509 -req -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
   -in "$ES_CLIENT_CERT_NAME.csr" \
   -CA "$CA_ROOT_CERT" -CAkey "$CA_ROOT_KEY" -CAcreateserial \
   -out "$ES_CLIENT_CERT_NAME.pem" \
-  -extensions v3_leaf -extfile $EXT_FILE
+  -extensions v3_leaf -extfile "$EXT_FILE"
 
 mv "$ES_CLIENT_CERT_NAME"* "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
 

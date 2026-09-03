@@ -34,6 +34,11 @@ HELM_GITEA_VALUES_ARG = -f $(HELM_GITEA_VALUES_FILE)
 CNPG_OPERATOR_MINOR ?= 1.28
 CNPG_OPERATOR_VERSION ?= 1.28.1
 CNPG_OPERATOR_MANIFEST ?= https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$(CNPG_OPERATOR_MINOR)/releases/cnpg-$(CNPG_OPERATOR_VERSION).yaml
+SECURITY_DIR ?= ../security
+SECURITY_SCRIPTS_DIR ?= $(SECURITY_DIR)/scripts
+SECURITY_CERTIFICATES_DIR ?= $(SECURITY_DIR)/certificates
+SECURITY_ENV_DIR ?= $(SECURITY_DIR)/env
+OPENSEARCH_CERT_NAMES ?=
 
 define WITH_ENV
 set -a && source ./export_env_vars.sh;
@@ -94,6 +99,140 @@ load-env: ## Load variables from export_env_vars.sh in a subshell
 
 show-env: ## Print sorted environment variables after loading export_env_vars.sh
 	${WITH_ENV} >/dev/null 2>&1; printenv | sort
+
+init-security-root-ca: ## Generate the shared root CA only when no CA material exists
+	@set -euo pipefail; \
+	source "$(SECURITY_ENV_DIR)/certificates_general.env"; \
+	root_dir="$(SECURITY_CERTIFICATES_DIR)/root"; \
+	if [[ -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.key" \
+	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.pem" \
+	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.p12" \
+	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}-keystore.jks" \
+	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}-truststore.jks" ]]; then \
+		echo "Root CA certificates already exist; leaving them unchanged."; \
+	elif [[ -d "$$root_dir" && -n "$$(find "$$root_dir" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then \
+		echo "ERROR: $$root_dir contains an incomplete root CA set." >&2; \
+		echo "Preserve and repair or explicitly replace that CA before rerunning this target." >&2; \
+		exit 1; \
+	else \
+		echo "Generating the shared root CA certificates..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_root_ca_cert.sh); \
+	fi
+
+init-security-nifi: init-security-root-ca ## Generate NiFi certificates only when they are missing or incomplete
+	@set -euo pipefail; \
+	nifi_dir="$(SECURITY_CERTIFICATES_DIR)/nifi"; \
+	if [[ -f "$$nifi_dir/nifi.key" \
+	   && -f "$$nifi_dir/nifi.pem" \
+	   && -f "$$nifi_dir/nifi.p12" \
+	   && -f "$$nifi_dir/nifi-keystore.jks" \
+	   && -f "$$nifi_dir/nifi-truststore.jks" ]]; then \
+		echo "NiFi certificates already exist; leaving them unchanged."; \
+	else \
+		echo "Generating NiFi certificates..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_nifi_certs.sh); \
+	fi
+
+init-security-gitea: init-security-root-ca ## Generate a dedicated Gitea leaf certificate when it is missing
+	@set -euo pipefail; \
+	gitea_dir="$(SECURITY_CERTIFICATES_DIR)/gitea"; \
+	if [[ -f "$$gitea_dir/gitea.key" \
+	   && -f "$$gitea_dir/gitea.pem" \
+	   && -f "$$gitea_dir/gitea.crt" ]]; then \
+		echo "Gitea leaf certificate already exists; leaving it unchanged."; \
+	else \
+		echo "Generating Gitea leaf certificate..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && bash ./create_gitea_certs.sh); \
+	fi
+
+init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, client, and admin certificates when missing
+	@set -euo pipefail; \
+	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	if [[ -n "$(strip $(OPENSEARCH_CERT_NAMES))" ]]; then \
+		read -r -a node_names <<< "$(strip $(OPENSEARCH_CERT_NAMES))"; \
+	else \
+		node_names=("$$ES_INSTANCE_NAME_1" "$$ES_INSTANCE_NAME_2" "$$ES_INSTANCE_NAME_3"); \
+	fi; \
+	opensearch_dir="$(SECURITY_CERTIFICATES_DIR)/elastic/opensearch"; \
+	node_certificates_missing=0; \
+	for node_name in "$${node_names[@]}"; do \
+		node_dir="$$opensearch_dir/elasticsearch/$$node_name"; \
+		for suffix in .crt .key .p12 -keystore.jks -truststore.key; do \
+			if [[ ! -f "$$node_dir/$$node_name$$suffix" ]]; then \
+				node_certificates_missing=1; \
+				break 2; \
+			fi; \
+		done; \
+	done; \
+	if [[ ! -f "$$opensearch_dir/elastic-stack-ca.crt.pem" \
+	   || ! -f "$$opensearch_dir/elastic-stack-ca.p12" ]]; then \
+		node_certificates_missing=1; \
+	fi; \
+	if (( node_certificates_missing )); then \
+		echo "Generating OpenSearch node certificates for: $${node_names[*]}"; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_opensearch_node_cert.sh "$${node_names[@]}"); \
+	else \
+		echo "OpenSearch node certificates already exist; leaving them unchanged."; \
+	fi; \
+	if [[ -f "$$opensearch_dir/admin.crt" \
+	   && -f "$$opensearch_dir/admin.key.pem" \
+	   && -f "$$opensearch_dir/$${ES_CLIENT_CERT_NAME}.pem" \
+	   && -f "$$opensearch_dir/$${ES_CLIENT_CERT_NAME}.key" ]]; then \
+		echo "OpenSearch client and admin certificates already exist; leaving them unchanged."; \
+	else \
+		echo "Generating OpenSearch client and admin certificates..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_opensearch_client_admin_certs.sh); \
+	fi
+
+init-security-elasticsearch: ## Generate native Elasticsearch certificates when the output directory is absent
+	@set -euo pipefail; \
+	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	elasticsearch_dir="$(SECURITY_CERTIFICATES_DIR)/elastic/elasticsearch"; \
+	certificate_set_complete=1; \
+	for required_file in \
+		"elastic-stack-ca.crt.pem" \
+		"elastic-stack-ca.p12" \
+		"elasticsearch/$${ES_INSTANCE_NAME_1}/$${ES_INSTANCE_NAME_1}.crt" \
+		"elasticsearch/$${ES_INSTANCE_NAME_1}/$${ES_INSTANCE_NAME_1}.key" \
+		"elasticsearch/$${ES_INSTANCE_NAME_2}/$${ES_INSTANCE_NAME_2}.crt" \
+		"elasticsearch/$${ES_INSTANCE_NAME_2}/$${ES_INSTANCE_NAME_2}.key" \
+		"elasticsearch/$${ES_INSTANCE_NAME_3}/$${ES_INSTANCE_NAME_3}.crt" \
+		"elasticsearch/$${ES_INSTANCE_NAME_3}/$${ES_INSTANCE_NAME_3}.key"; do \
+		if [[ ! -f "$$elasticsearch_dir/$$required_file" ]]; then \
+			certificate_set_complete=0; \
+			break; \
+		fi; \
+	done; \
+	if (( certificate_set_complete )); then \
+		echo "Native Elasticsearch certificates already exist; leaving them unchanged."; \
+	elif [[ -e "$$elasticsearch_dir" ]]; then \
+		echo "ERROR: $$elasticsearch_dir exists but contains an incomplete certificate set." >&2; \
+		echo "Move or remove that directory after preserving anything needed, then rerun this target." >&2; \
+		exit 1; \
+	else \
+		echo "Generating native Elasticsearch certificates with Docker..."; \
+		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_es_native_certs.sh); \
+	fi
+
+init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from elasticsearch.env
+	@set -euo pipefail; \
+	source ./elasticsearch.env; \
+	case "$${ELASTICSEARCH_VERSION}" in \
+		opensearch|elasticsearch) \
+			$(MAKE) --no-print-directory "init-security-$${ELASTICSEARCH_VERSION}" \
+			;; \
+		*) \
+			echo "ERROR: unsupported ELASTICSEARCH_VERSION '$${ELASTICSEARCH_VERSION}'." >&2; \
+			exit 1 \
+			;; \
+	esac
+
+init-security: ## Generate missing NiFi, Gitea, and selected search-backend certificates
+	@$(MAKE) --no-print-directory init-security-nifi
+	@$(MAKE) --no-print-directory init-security-gitea
+	@$(MAKE) --no-print-directory init-security-search
+
+.PHONY: init-security init-security-root-ca init-security-nifi init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
 helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
 	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG)
@@ -168,6 +307,14 @@ start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
 start-nifi-dev-build: ## Build and start NiFi dev services
 	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
+build-nifi-image: ## Build the local NiFi image without starting services
+	$(WITH_ENV) docker build \
+		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
+		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
+		--tag "$${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}" \
+		--file ../nifi/Dockerfile \
+		..
+
 start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
@@ -230,9 +377,9 @@ start-git-ea:
 
 start-data-infra: start-nifi start-elastic start-samples ## Start core data infrastructure
 
-start-all: start-data-infra start-jupyter start-medcat-service start-ocr-services ## Start all major services
+start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-samples start-jupyter
 
 
 # stop services

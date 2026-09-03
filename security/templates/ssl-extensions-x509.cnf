@@ -48,6 +48,20 @@ DNS.25 = localhost
 IP.1 = 127.0.0.1
 email.1 = admin@cogstack.net
 
+[v3_gitea]
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @gitea_alt_names
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+
+[gitea_alt_names]
+DNS.1 = gitea
+DNS.2 = cogstack-gitea
+DNS.3 = localhost
+IP.1 = 127.0.0.1
+
 [req]
 default_bits       = 4096
 string_mask        = utf8only

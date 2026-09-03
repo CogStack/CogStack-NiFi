@@ -22,6 +22,9 @@ source "$SMOKE_HELPERS"
 
 HOST="${GITEA_SMOKE_HOST:-localhost}"
 PORT="${GITEA_SMOKE_PORT:-3000}"
+# The sourced smoke helper reads this shared variable when checks run.
+# shellcheck disable=SC2034
+SMOKE_CA_CERT="${GITEA_SMOKE_CA_CERT:-${ROOT_DIR}/security/certificates/root/root-ca.pem}"
 
 START_SERVICES="${GITEA_SMOKE_START_SERVICES:-1}"
 RETRIES="${GITEA_SMOKE_RETRIES:-30}"
@@ -30,7 +33,10 @@ DELAY_SECONDS="${GITEA_SMOKE_DELAY_SECONDS:-10}"
 SMOKE_CHECKS=(
   "gitea-root|https://${HOST}:${PORT}/"
   "gitea-login|https://${HOST}:${PORT}/user/login"
+  "gitea-api|https://${HOST}:${PORT}/api/v1/version"
 )
+
+set_smoke_allowed_codes 200
 
 if [[ "$START_SERVICES" != "0" ]]; then
   if ! command -v make >/dev/null 2>&1; then

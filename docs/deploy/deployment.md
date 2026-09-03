@@ -160,12 +160,11 @@ service:
 - embedded SQLite
 - bundled PostgreSQL/Valkey disabled
 - ClusterIP services on ports `3000` and `2222`
-- direct HTTPS inside the Gitea pod using the shared root CA
+- direct HTTPS inside the Gitea pod using a dedicated Gitea leaf certificate
 
-Before install, create:
+For a local/reference deployment, first run `make -C deploy init-security-gitea`, then create a `gitea-tls` Secret containing `gitea.pem` and `gitea.key` from `security/certificates/gitea/`. Never mount `root-ca.key` into Gitea. Production deployments should provide a deployment-specific certificate for their public hostname through the platform certificate manager.
 
-- `gitea-root-ca` Secret with `root-ca.pem` and `root-ca.key` from `security/certificates/root/`
-- optionally `gitea-admin-credentials` with `username` and `password` if you want Helm to bootstrap an admin user
+You can optionally create `gitea-admin-credentials` with `username` and `password` if you want Helm to bootstrap an admin user.
 
 ## 🧰 Makefile Command Overview
 
@@ -240,6 +239,12 @@ make -C deploy remote-delete-service \
 |------------------------|---------------------------------------------|
 | `make load-env`        | Load all environment variables              |
 | `make show-env`        | Print environment variables (sorted)        |
+| `make init-security`   | Generate missing NiFi, Gitea, and selected search-backend certificates |
+| `make init-security-root-ca` | Generate the shared root CA if missing |
+| `make init-security-nifi` | Generate the NiFi certificate set if missing |
+| `make init-security-gitea` | Generate the dedicated Gitea leaf certificate if missing |
+| `make init-security-opensearch` | Generate the OpenSearch certificate set if missing |
+| `make init-security-elasticsearch` | Generate the native Elasticsearch certificate set if missing |
 | `make git-freeze-security`   | Freeze all security submodules (read-only) |
 | `make git-unfreeze-security` | Unfreeze security submodules              |
 | `make git-update-submodules` | Update all submodules                      |

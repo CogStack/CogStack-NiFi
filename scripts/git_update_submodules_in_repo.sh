@@ -8,6 +8,8 @@ git submodule update --init --recursive
 
 echo "Updating submodules to latest release tag on each origin default branch (fallback: branch HEAD)..."
 
+# Variables in this block are intentionally expanded by each submodule shell.
+# shellcheck disable=SC2016
 git submodule foreach --recursive '
   set -e
 
@@ -58,7 +60,14 @@ git submodule foreach --recursive '
 '
 
 #git submodule foreach git pull origin main
-git add $(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}') || true
+submodule_paths=()
+while IFS= read -r submodule_path; do
+  [[ -n "$submodule_path" ]] && submodule_paths+=("$submodule_path")
+done < <(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}')
+
+if (( ${#submodule_paths[@]} > 0 )); then
+  git add -- "${submodule_paths[@]}" || true
+fi
 git commit -m "Update submodules to latest release tags (or default branch)" || echo "ℹ️ No changes to commit."
 echo "✅ Submodule update complete."
 

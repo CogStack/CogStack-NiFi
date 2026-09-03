@@ -1,10 +1,11 @@
 #!/bin/bash
+# shellcheck disable=SC1090 # Environment file location is selected at runtime.
 set -e
 
 GITEA_ENV_FILE="./deploy/gitea.env"
 
 if [ -f "$GITEA_ENV_FILE" ]; then
-  echo "📦 Loading environment from $GITEA_ENV_FILE"f
+  echo "📦 Loading environment from $GITEA_ENV_FILE"
   set -a
   source "$GITEA_ENV_FILE"
   set +a

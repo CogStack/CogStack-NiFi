@@ -7,23 +7,56 @@ SMOKE_MAX_TIME="${SMOKE_MAX_TIME:-60}"
 
 # Allow callers to provide their own accepted status codes.
 if [[ -z "${SMOKE_ALLOWED_CODES+x}" ]]; then
-  SMOKE_ALLOWED_CODES=(200 301 302 303 307 308 401 403)
+  SMOKE_ALLOWED_CODES=(200 301 302 303 307 308)
 fi
+
+# Callers can provide additional curl arguments such as authentication options.
+SMOKE_CURL_ARGS=()
+SMOKE_CURL_ARGS_COUNT=0
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required for smoke checks." >&2
+  # This helper supports both sourcing (`return`) and direct execution (`exit`).
+  # shellcheck disable=SC2317
   return 1 2>/dev/null || exit 1
 fi
+
+set_smoke_allowed_codes() {
+  SMOKE_ALLOWED_CODES=("$@")
+}
+
+set_smoke_curl_args() {
+  SMOKE_CURL_ARGS=("$@")
+  SMOKE_CURL_ARGS_COUNT="$#"
+}
 
 check_url() {
   local name="$1"
   local url="$2"
   local code
   local allowed
+  local -a curl_args=(
+    --silent
+    --show-error
+    --output /dev/null
+    --connect-timeout "$SMOKE_CONNECT_TIMEOUT"
+    --max-time "$SMOKE_MAX_TIME"
+    --write-out "%{http_code}"
+  )
 
-  if ! code="$(curl --insecure --silent --show-error --output /dev/null \
-    --connect-timeout "$SMOKE_CONNECT_TIMEOUT" --max-time "$SMOKE_MAX_TIME" \
-    --write-out "%{http_code}" "$url")"; then
+  if [[ -n "${SMOKE_CA_CERT:-}" ]]; then
+    if [[ ! -r "$SMOKE_CA_CERT" ]]; then
+      echo "FAIL: ${name} - CA certificate is not readable: ${SMOKE_CA_CERT}" >&2
+      return 1
+    fi
+    curl_args+=(--cacert "$SMOKE_CA_CERT")
+  fi
+
+  if (( SMOKE_CURL_ARGS_COUNT > 0 )); then
+    curl_args+=("${SMOKE_CURL_ARGS[@]}")
+  fi
+
+  if ! code="$(curl "${curl_args[@]}" "$url")"; then
     echo "FAIL: ${name} - unable to reach ${url}"
     return 1
   fi

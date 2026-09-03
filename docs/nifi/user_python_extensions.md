@@ -55,8 +55,9 @@ and set `PYTHONPATH` to `/opt/nifi/nifi-current/python/framework` in the contain
 
 ## Dependencies
 
-Python dependencies are installed into NiFi's Python framework from `nifi/requirements.txt`
-during the custom image build. Add new dependencies there if your extension needs them.
+Python dependencies are installed into NiFi's Python framework from the root `pyproject.toml`
+and `uv.lock` during the custom image build. Add new runtime dependencies to `pyproject.toml`,
+then refresh the lock with `uv lock`.
 
 ## Development workflow
 

@@ -4,11 +4,10 @@
 os_distribution=""
 
 if ls /etc/*release 1> /dev/null 2>&1 ; then 
-  os_distribution=$(cat /etc/*release | egrep -iom1 '(centos|debian|ubuntu|red hat)')
-  os_distribution="$(tr [A-Z] [a-z] <<< "$os_distribution")" # to lower chars
+  os_distribution=$(grep -Eiom1 '(centos|debian|ubuntu|red hat)' /etc/*release)
+  os_distribution="$(tr '[:upper:]' '[:lower:]' <<< "$os_distribution")" # to lower chars
   echo "$os_distribution"
 else
   echo "Distribution version could not be found. Stopping script...";
   exit 1
 fi;
-
