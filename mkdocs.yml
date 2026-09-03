@@ -44,7 +44,13 @@ nav:
   - 📦 Deployment: deploy/deployment.md
   - 🧩 Services: deploy/services.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
-  - Workflows: deploy/workflows.md
+  - 🔀 Workflows:
+      - Overview: deploy/workflows.md
+      - 🗄️ Database documents to OpenSearch: deploy/workflows/database_to_opensearch.md
+      - 📄 Database documents via OCR: deploy/workflows/database_ocr_to_opensearch.md
+      - 🧠 MedCAT annotations to OpenSearch: deploy/workflows/medcat_annotations_to_opensearch.md
+      - 📁 Filesystem Parquet to OpenSearch: deploy/workflows/filesystem_parquet_to_opensearch.md
+      - ☁️ Azure Blob Parquet to OpenSearch: deploy/workflows/azure_blob_parquet_to_opensearch.md
   - 💧 NiFi:
       - nifi/main.md
       - Development Guide: nifi/development_guide.md
