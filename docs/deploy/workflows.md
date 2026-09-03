@@ -1,13 +1,8 @@
 # Workflows
 
 This page contains current workflow guidance for NiFi 2.x based deployments.
-Historical walkthroughs and older template notes are kept separately in
-[legacy workflows](workflows_legacy.md).
 
-Template locations:
-
-- `nifi/user_templates/` for current templates (JSON).
-- `nifi/user_templates/legacy/` for older templates (XML/reference).
+Current JSON templates are stored in `nifi/user_templates/`.
 
 ## Cerner blob decompression
 

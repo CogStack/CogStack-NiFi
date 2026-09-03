@@ -45,7 +45,6 @@ nav:
   - 🧩 Services: deploy/services.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - Workflows: deploy/workflows.md
-  - 🔀 Workflows: deploy/workflows_legacy.md
   - 💧 NiFi:
       - nifi/main.md
       - Development Guide: nifi/development_guide.md
