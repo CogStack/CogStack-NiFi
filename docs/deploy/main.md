@@ -6,7 +6,7 @@ Please read carefully as there can be many points of failure when installing/dep
 
 Please note that the OSes mentioned below are the versions we support, whatever is not listed here is not supported, and we will not provide support for.
 
-- Linux OS (Ubuntu 24.04 LTS +, Debian 10+ are preffered, RHEL 9+).
+- Linux OS (Ubuntu 24.04 LTS+, Debian 10+ preferred, or RHEL 9+).
 - Windows 11+/Windows Server 2022+ (Requires [WSL 2.0](https://learn.microsoft.com/en-us/windows/wsl/about) installation and the installation of an Ubuntu image, for a working setup, follow [this guide](https://documentation.ubuntu.com/wsl/latest/howto/install-ubuntu-wsl2/) to get going, and get back here when things are working).
 - macOS 15+ (Sequoia).
 
@@ -22,7 +22,7 @@ Software required on machine (the minimum/basics to get demos running):
 ## 🔐 Other requirements (User Permissions/Firewall)
 
     - a Linux account with 'admin' rights, if possible, if not, you will need to get your IT team to take a look at this README and install the packages for you using the steps below (make sure they look at [Docker rootless installation steps](https://docs.docker.com/engine/security/rootless))
-    - firewall whitelisting of the following addreses:
+    - firewall allow-listing of the following addresses:
         - https://github.com/
         - https://hub.docker.com/
         - https://docker.io 

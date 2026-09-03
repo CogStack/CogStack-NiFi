@@ -1,83 +1,123 @@
+# ⚙️ Configuration
 
+CogStack separates deployment configuration from local-development security
+settings:
 
+- `deploy/*.env` configures services, images, ports, resource limits, and the
+  shared Docker network.
+- `security/env/*.env` configures certificate generation and local-development
+  users.
+- Standalone services under `services/` keep additional environment files in
+  their own directories.
 
-## Environment variables
+The tracked values are development defaults. Keep deployment-specific values
+outside the repository or inject them with your platform's secret manager.
+Never commit production credentials or generated private keys.
 
-As mentioned above, environment variables have been made available after release 1.0.
-The variables are configurable, and are separated, into security and general env vars, furthermore, all services declared in the `services.yml` file have their variables in separate files.
-In most cases, modifying these variables should be the only thing that is needed in order to run a successful deployment.
+## Core deployment files
 
-Multiple files are available, split into two categories:
+The core Compose file, `deploy/services.yml`, loads these files:
 
-- Service configuration under `deploy/`.
-- Certificate and local-development credential configuration under `security/env/`.
+| File | Main purpose |
+|------|--------------|
+| `deploy/project.env` | Compose project naming and shared project settings |
+| `deploy/general.env` | General Docker logging and shared defaults |
+| `deploy/nifi.env` | NiFi image, ports, resources, proxy settings, and paths |
+| `deploy/elasticsearch.env` | Elasticsearch/OpenSearch, Dashboards/Kibana, and Beats |
+| `deploy/database.env` | Sample and production database resources |
+| `deploy/gitea.env` | Gitea image, ports, and application settings |
+| `deploy/nginx.env` | NiFi nginx proxy settings |
+| `deploy/telemetry.env` | Telemetry configuration |
+| `deploy/network_settings.env` | Hostnames and shared network settings |
 
-The variables declared in the `./deploy` folder are used in multiple config files, as follows:
-- `elasticsearch.env`, variables here are used in :
-    -   `./services/elasticsearch/config/(opensearch|elasticsearch).yml`
-    -   `./services/kibana/config/(opensearch|elasticsearch).yml` 
-    -   `./services/metricbeat/metricbeat.yml`
-    -   `./deploy/services.yml` in the following sections: `nifi`, `elasticsearch-1`, `elasticsearch-1`, `elasticsearch-3`, `kibana`, `metricbeat-1`,`metricbeat-2`
+The following security files are also loaded where required:
 
-- `nifi.env`, vars used in:
-    -   `./deploy/services.yml`, sections: `nifi`
-    -   `./nifi/conf/nifi.properties`
+- `security/env/certificates_general.env`
+- `security/env/certificates_elasticsearch.env`
+- `security/env/certificates_nifi.env`
+- `security/env/users_database.env`
+- `security/env/users_elasticsearch.env`
+- `security/env/users_nginx.env`
+- `security/env/users_nifi.env`
 
-- `jupyter.env`, vars used in:
-    -   `./deploy/services.yml`, sections: `jupyter`
+See the `env_file` anchors at the top of `deploy/services.yml` for the exact
+files consumed by each core service.
 
-- `nlp_service.env`, vars used in:
-    -   `./deploy/services.yml`, sections: `nlp-medcat-service-production`
+## Standalone service files
 
-- `database.env`, vars used in:
-    -   `./deploy/services.yml`, sections: `cogstack-databank-db`,  `samples-db`
+Services launched from their own Compose projects use environment files below
+their respective directories. The deployment helper currently loads, when
+present:
 
-- `general.env`, these vars are optional, declared any custom variables you want here, used in the `nifi` section
+- `services/cogstack-jupyter-hub/env/jupyter.env`
+- `services/ocr-service/env/ocr_service.env`
+- `services/cogstack-nlp/medcat-service/env/app.env`
+- `services/cogstack-nlp/medcat-service/env/medcat.env`
+- `services/cogstack-nlp/medcat-trainer/envs/env-prod`
 
-Additional environment files under `security/env/` configure certificate generation and local accounts:
+Check each service's Compose file for variant-specific files, such as MedCAT
+de-identification or OCR text-only overrides.
 
-- `certificates_elasticsearch.env`
-- `certificates_general.env`
-- `certificates_nifi.env`
-- `users_database.env`
-- `users_elasticsearch.env`
-- `users_nginx.env`
-- `users_nifi.env`
+## Loading configuration
 
+Make targets load the required files automatically. If you invoke Docker
+Compose directly, change to the deployment directory and load the same
+environment first:
 
-### Customization
-The tracked `.env` values are public development defaults. For a real deployment, keep deployment-specific copies outside the repository or inject the values through the platform's secret-management mechanism. Never commit production credentials.
+```bash
+cd deploy
+source ./export_env_vars.sh
+```
+
+To inspect the combined environment used by the Makefile:
+
+```bash
+make -C deploy show-env
+```
+
+Be careful when sharing this output because it includes development
+credentials and certificate passwords.
+
+## Deployment-specific overrides
+
+For a separate deployment, copy the tracked defaults to a protected location
+and edit the copies there:
 
 ```bash
 cp deploy/*.env /path/to/deployment-config/
 cp security/env/*.env /path/to/deployment-config/security/
 ```
 
-### Multiple deployments on the same machine
-When deploying multiple docker-compose projects on the same machine (e.g. for dev or testing), it can be useful to remove all containers, volume and network names from the docker-compose file, and let [Docker create names](https://docs.docker.com/compose/reference/envvars/#compose_project_name) based on `COMPOSE_PROJECT_NAME` in `deploy/.env`. Docker will automatically create a Docker network and makes sure that containers can find each other by container name.
+You must then adapt your Compose invocation or deployment tooling to load those
+copies. The repository Makefile always loads the paths listed in
+`deploy/export_env_vars.sh`.
 
-For example, when setting `COMPOSE_PROJECT_NAME=cogstack-prod`, Docker Compose will create a container named `cogstack-prod_elasticsearch-1_1` for the `elasticsearch-1` service. Within the NiFi container, which is running in the same Docker network, you can refer to that container using just the service name `elasticsearch-1`.
+## Multiple deployments on one host
 
-<br>
+The supplied Compose file uses explicit container and volume names in several
+places. Merely changing `COMPOSE_PROJECT_NAME` therefore does not isolate every
+resource. For concurrent deployments, use deployment-specific Compose
+overrides that remove or replace explicit names and assign distinct host ports.
 
-## <span style="color:red">Important security detail</span> 
+Within a Compose network, services should address one another by service name,
+for example `elasticsearch-1`, rather than by host-published ports.
 
-Generated certificates and private keys are stored under `security/certificates/` and ignored by Git. Create them with `make -C deploy init-security`. Do not reuse development certificates or public development credential defaults in production.
+## Security setup
 
-## Services
-Please note that all the services are deployed using [Docker](https://docker.io) engine and requires docker deamon to be running / functioning.
+Generated certificates and private keys are stored under
+`security/certificates/` and ignored by Git. Generate the local certificate sets
+before starting services:
 
-Please see [the available services](./services.md) for more details.
+```bash
+make -C deploy init-security
+```
 
+Do not reuse development certificates or tracked development credentials in
+production. See the [security overview](../security/main.md) for production
+guidance.
 
 ## Workflows
-Apache NiFi provides users the ability to build very large and complex data flows. 
-These data flows can be later saved as workflow *templates*, exported into XML format and shared with other users.
-We provide few example templates for ingesting the records from a database into Elasticsearch and to perform extraction of NLP annotations from documents.
 
-### Deployment using Makefile
-For deployments based on example workflows, please see [current workflows](./workflows.md)
-and [legacy workflows](./workflows_legacy.md) for more details.
-
-### Deployment using a custom Docker-compose
-When using a fork of this repository for a customized deployments, it can be useful to copy `services.yml` to a deployment-specific `docker-compose.yml`. In this Compose file you can specify the services you need for your instance and configure all parameters per service, as well as track this file in a branch in your own fork. This way you can use your own version control and rebase on `CogStack/CogStack-NiFi` master without running into merge conflicts.
+For settings required by the supplied NiFi templates, see the
+[workflow documentation](./workflows.md). For general service endpoints and
+ports, see [Services](./services.md).
