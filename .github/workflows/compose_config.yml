@@ -1,0 +1,41 @@
+name: compose-config
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - "deploy/*.env"
+      - "deploy/export_env_vars.sh"
+      - "deploy/services*.yml"
+      - "security/env/*.env"
+      - ".github/workflows/compose_config.yml"
+  pull_request:
+    paths:
+      - "deploy/*.env"
+      - "deploy/export_env_vars.sh"
+      - "deploy/services*.yml"
+      - "security/env/*.env"
+      - ".github/workflows/compose_config.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Docker Compose configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Compose files
+        shell: bash
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml config --quiet
+          docker compose -f deploy/services.dev.yml config --quiet

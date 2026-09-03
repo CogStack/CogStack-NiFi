@@ -42,33 +42,15 @@ ENV NIFI_WEB_HTTP_HOST=""
 
 USER root
 
-# add repositories, install tooling, and clean up apt metadata in one layer
+# Install system dependencies using the repositories provided by the base image.
 RUN set -eux; \
-    apt-get update -y; \
-    apt-get install -y --no-install-recommends \
-      apt-transport-https \
-      ca-certificates \
-      curl \
-      gnupg \
-      wget; \
-    printf '%s\n' \
-      "deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
-      "deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
-      "deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
-      "deb http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
-      "deb-src http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
-      > /etc/apt/sources.list.d/debian.list; \
-    wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/packages.microsoft.gpg; \
-    echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /etc/apt/sources.list.d/microsoft.list; \
-    apt-get update -y; \
-    apt-get upgrade -y --no-install-recommends; \
+    apt-get update; \
     apt-get install -y --no-install-recommends \
       apt-utils \
       build-essential \
+      ca-certificates \
       cmake \
+      curl \
       git \
       iputils-ping \
       jq \
@@ -91,9 +73,6 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# bust cache
-ENV UV_VERSION=latest
-
 # install rust, medcat requirement, install UV
 ENV HOME=/root
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -105,8 +84,12 @@ RUN set -eux; \
     /tmp/rustup-init.sh -y; \
     rm /tmp/rustup-init.sh
 
+# Keep the installer version aligned with the repository's uv requirement.
+COPY pyproject.toml /tmp/cogstack_nifi/pyproject.toml
 RUN set -eux; \
-    curl -Ls https://astral.sh/uv/install.sh -o /tmp/install_uv.sh; \
+    UV_VERSION="$(sed -n 's/^required-version = "==\([^"]*\)"$/\1/p' /tmp/cogstack_nifi/pyproject.toml)"; \
+    test -n "${UV_VERSION}"; \
+    curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" -o /tmp/install_uv.sh; \
     bash /tmp/install_uv.sh; \
     rm /tmp/install_uv.sh
 
@@ -114,14 +97,30 @@ RUN set -eux; \
 
 RUN uv pip install --no-cache-dir --break-system-packages --system --upgrade pip setuptools wheel
 
-# install util packages used in NiFi scripts (such as avro, nifyapi, etc.)
-COPY nifi/requirements.txt ./requirements.txt
-RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} -r "./requirements.txt" --index-url https://pypi.org/simple
+# Install the locked runtime dependencies used by NiFi scripts and extensions.
+COPY uv.lock /tmp/cogstack_nifi/uv.lock
+RUN uv export \
+      --project /tmp/cogstack_nifi \
+      --frozen \
+      --no-dev \
+      --no-emit-project \
+      --format requirements.txt \
+      --output-file /tmp/cogstack_nifi/requirements.txt \
+    && uv pip install \
+      --no-cache-dir \
+      --break-system-packages \
+      --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} \
+      -r /tmp/cogstack_nifi/requirements.txt \
+      --index-url https://pypi.org/simple
 
 # install the local cogstack_nifi package so nifi.user_scripts imports resolve
-COPY pyproject.toml /tmp/cogstack_nifi/pyproject.toml
 COPY nifi /tmp/cogstack_nifi/nifi
-RUN uv pip install --no-cache-dir --break-system-packages --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} /tmp/cogstack_nifi
+RUN uv pip install \
+      --no-cache-dir \
+      --break-system-packages \
+      --no-deps \
+      --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} \
+      /tmp/cogstack_nifi
 
 #######################################################################################################
 
@@ -137,7 +136,7 @@ RUN set -eux; \
   mkdir -p /opt/nifi/groovy; \
   cd /opt/nifi/groovy; \
   url1="https://archive.apache.org/dist/groovy/${GROOVY_VERSION}/distribution/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
-  url2="https://repo1.maven.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
+  url2="https://repo.maven.apache.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
   curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url1" \
     || curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url2"; \
   unzip groovy.zip; rm groovy.zip
@@ -149,17 +148,7 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-# --- Hotfix: NiFi 2.7.2 + Azure + Netty QUIC missing class (netty 4.2.9.Final) ---
-ARG NETTY_VERSION=4.2.17.Final
-RUN set -eux; \
-    cd /opt/nifi/nifi-current/lib; \
-    curl -fL --retry 5 --retry-delay 2 \
-      -o "netty-codec-classes-quic-${NETTY_VERSION}.jar" \
-      "https://repo1.maven.org/maven2/io/netty/netty-codec-classes-quic/${NETTY_VERSION}/netty-codec-classes-quic-${NETTY_VERSION}.jar"; \
-    # sanity check: ensure the Quic class exists in the jar
-    jar tf "netty-codec-classes-quic-${NETTY_VERSION}.jar" | grep -q '^io/netty/handler/codec/quic/Quic.class$'
-
-# Install parquet NAR
+# Install additional NAR extensions.
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
   nars=( \
@@ -226,11 +215,16 @@ RUN set -eux; \
   ); \
   for a in "${nars[@]}"; do \
      url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
-     echo "Checking $a"; \
-     if ! curl -fsSL --retry 2 \
+     echo "Downloading $a"; \
+     if ! curl -fsSL \
+       --connect-timeout 20 \
+       --retry 5 \
+       --retry-connrefused \
+       --retry-delay 3 \
+       --retry-max-time 120 \
        -o "${a}-${NIFI_VERSION}.nar" \
        "$url"; then \
-       echo "MISSING: $a @ ${NIFI_VERSION}"; \
+       echo "WARNING: NAR unavailable: $a @ ${NIFI_VERSION}"; \
        rm -f "${a}-${NIFI_VERSION}.nar"; \
      fi; \
   done; \

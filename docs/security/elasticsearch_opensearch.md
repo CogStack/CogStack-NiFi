@@ -2,7 +2,7 @@
 
 This section describes how to secure both **Elasticsearch (native)** and **OpenSearch** clusters used in the CogStack-NiFi stack, including certificate setup, user management, and role configuration.
 
-All related certificates are stored in `security/certificates/elastic/`, and are generated from the shared **Root CA** created via [`create_root_ca_cert.sh`](certificates.md).
+All related certificates are stored in `security/certificates/elastic/`. OpenSearch certificates are signed by the shared root CA; native Elasticsearch creates its own backend-specific certificate authority. Use the supported Make targets described in [Certificates and Root CA](certificates.md) to generate either set.
 
 ---
 
@@ -14,7 +14,7 @@ Both **Elasticsearch** and **OpenSearch** deployments require:
 - secure credentials for built-in and custom users,
 - properly configured roles and role mappings.
 
-Certificates and credentials are generated using the scripts provided in `security/scripts/` and are controlled through the `.env` files under `security/env/`.
+Certificates are generated through the Make targets in `deploy/Makefile`. Those targets call the scripts in `security/scripts/` and load their configuration from the `.env` files under `security/env/`.
 
 ---
 
@@ -28,13 +28,7 @@ All scripts reference the following environment configuration files:
 | `certificates_general.env` | Root CA configuration |
 | `users_elasticsearch.env` | Internal user credentials |
 
-Reload them before running any security-related script:
-
-```bash
-cd ../deploy
-source export_env_vars.sh
-cd ../security
-```
+The Make targets and supported security scripts load these files themselves. Edit the files before generation; no separate export step is required.
 
 ---
 
@@ -73,7 +67,7 @@ security/certificates/elastic/
 │       ├── sample-kibana.yml
 │       └── README.txt
 └── opensearch/
-    ├── admin.*, es_kibana_client.*, elastic-stack-ca.*, root-ca.*
+    ├── admin.*, es_kibana_client.*, elastic-stack-ca.*
     └── elasticsearch/{1,2,3}/...
 ```
 
@@ -85,10 +79,10 @@ Each version has its own generation scripts, but they all depend on the same `.e
 
 #### Elasticsearch (native)
 
-To generate certificates for Elasticsearch:
+To generate certificates for Elasticsearch from the repository root:
 
 ```bash
-bash ./create_es_native_certs.sh
+make -C deploy init-security-elasticsearch
 ```
 
 This script creates all required node and HTTP certificates under:
@@ -99,7 +93,7 @@ security/certificates/elastic/elasticsearch/elasticsearch-{1,2,3}/
 
 The script uses variables such as:
 
-- `ES_INSTANCE_NAME_*` — Node names (match `ELASTICSEARCH_NODE_*_NAME` in `/deploy/elasticsearch.env`)
+- `ES_INSTANCE_NAME_*` — Node names (match `ELASTICSEARCH_NODE_*_NAME` in `deploy/elasticsearch.env`)
 - `ES_INSTANCE_ALTERNATIVE_*_NAME` — Alternative hostnames
 - `ES_HOSTNAMES` — List of all node hostnames
 - `ES_CLIENT_SUBJ_ALT_NAMES` / `ES_NODE_SUBJ_ALT_NAMES` — Additional domain aliases for SAN fields
@@ -110,16 +104,10 @@ Make sure the environment variables are set correctly before running the script.
 
 #### OpenSearch
 
-For OpenSearch nodes:
+To generate the OpenSearch node, admin, and client certificates from the repository root:
 
 ```bash
-bash ./create_opensearch_node_cert.sh elasticsearch-1 elasticsearch-2 elasticsearch-3
-```
-
-Then generate the admin and client certificates:
-
-```bash
-bash ./create_opensearch_client_admin_certs.sh
+make -C deploy init-security-opensearch
 ```
 
 This produces:
@@ -153,30 +141,24 @@ All certificate references in `services/kibana/config/opensearch.yml` or `servic
 
 #### OpenSearch
 
-1. Edit `security/es_roles/opensearch/internal_users.yml` to define users.
-2. Optionally generate password hashes:
-
-   ```bash
-   bash ./create_opensearch_internal_passwords.sh
-   ```
-
-3. Apply changes by recreating containers:
-
-   ```bash
-   docker compose down -v
-   docker compose up -d
-   ```
-
-4. Populate tenants, roles, users, and role mappings:
+1. Edit the password values in `security/env/users_elasticsearch.env` and ensure every required user is present in `security/es_roles/opensearch/internal_users.yml`.
+2. With OpenSearch running, validate and then apply hashes for all internal users:
 
    ```bash
    cd security/scripts
-   bash create_opensearch_users.sh elasticsearch-1 --use-ssl
+   ./update_opensearch_users.sh elasticsearch-1
+   ./update_opensearch_users.sh elasticsearch-1 --apply
    ```
 
-   - `<es_hostname>` is the OpenSearch node hostname (for this stack, usually `elasticsearch-1`).
-   - `--use-ssl` switches the script endpoint from `http` to `https` (recommended for this stack).
-   - Run the script from `security/scripts/` because it loads env files via relative paths.
+3. Populate the additional tenants, roles, users, and role mappings:
+
+   ```bash
+   ./security/scripts/create_opensearch_users.sh localhost
+   ```
+
+   - `<opensearch_hostname>` is the hostname covered by the OpenSearch node certificate.
+   - HTTPS with CA verification is the default. Use `--use-http` only for an explicitly unsecured local endpoint.
+   - The script resolves its files from its own location, so it can be run from any directory.
 
 ##### `create_opensearch_users.sh` reference
 
@@ -184,15 +166,12 @@ Script: `security/scripts/create_opensearch_users.sh`
 Usage:
 
 ```bash
-bash create_opensearch_users.sh <es_hostname> [--use-ssl]
+./security/scripts/create_opensearch_users.sh <opensearch_hostname> [--use-http]
 ```
 
 Required inputs are loaded from:
 
-- `deploy/general.env`
 - `deploy/elasticsearch.env`
-- `security/env/certificates_elasticsearch.env`
-- `security/env/certificates_general.env`
 - `security/env/users_elasticsearch.env`
 
 What it creates/updates:
@@ -201,19 +180,23 @@ What it creates/updates:
 - Roles: `cogstack_ingest`, `cogstack_access`
 - Internal users: `cogstack_user`, `cogstack_pipeline`, `nifi`
 - Role mappings for `cogstack_access` and `cogstack_ingest`
-- Passwords for built-in users: `logstash`, `kibanaro`, `readall`, `snapshotrestore`
+
+The script uses the current `/_plugins/_security/api` endpoints. Password rotation for predefined users such as `admin`, `logstash`, `kibanaro`, `readall`, and `snapshotrestore` remains the responsibility of `update_opensearch_users.sh`.
 
 Verification example:
 
 ```bash
-curl -k -u admin:${ELASTIC_PASSWORD} \
-  https://elasticsearch-1:9200/_opendistro/_security/api/roles/cogstack_ingest
+source security/env/users_elasticsearch.env
+curl --cacert security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem \
+  -u "${OPENSEARCH_ADMIN_USER:-admin}:${OPENSEARCH_ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
+  https://localhost:9200/_plugins/_security/api/roles/cogstack_ingest
 ```
 
 Troubleshooting:
 
 - If you see authentication failures, confirm `ELASTIC_PASSWORD` in `security/env/users_elasticsearch.env` matches the running OpenSearch admin password.
-- If you see `404` on security API paths, your OpenSearch version may require `_plugins/_security/api/...` instead of `_opendistro/_security/api/...`.
+- If the CA is stored elsewhere, set `OPENSEARCH_CA_CERT` to the appropriate CA certificate before running the script.
+- Ensure the supplied hostname appears in the OpenSearch node certificate SANs.
 - The script is idempotent (`PUT` calls), so it can be re-run safely after credential or role changes.
 
 OpenSearch includes default roles (`admin`, `kibanaserver`, `readall`, `snapshotrestore`, etc.) — always change their passwords after first run.
@@ -293,13 +276,14 @@ Verification example after rotating `admin`, from the repository root:
 
 ```bash
 source security/env/users_elasticsearch.env
-curl -k -u "admin:${ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
-  https://elasticsearch-1:9200/_plugins/_security/api/account
+curl --cacert security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem \
+  -u "admin:${ADMIN_PASSWORD:-$ELASTIC_PASSWORD}" \
+  https://localhost:9200/_plugins/_security/api/account
 ```
 
 ##### OpenSearch Dashboards post-login setup (Global tenant + workspace)
 
-After your first login to `https://localhost:5601` (default: `admin` / `admin`):
+After your first login to `https://localhost:5601` using the development credentials in `security/env/users_elasticsearch.env`:
 
 1. Open the user menu (top-right) and select **Switch tenant**.
 2. Select `Global`, then apply the change.
@@ -326,6 +310,7 @@ workspace.enabled: true
 Run after containers start:
 
 ```bash
+cd security/scripts
 bash ./create_es_native_credentials.sh
 ```
 
@@ -355,14 +340,19 @@ You can modify credentials in `security/env/users_elasticsearch.env`.
 
 #### ✅ Verification
 
-To verify HTTPS access and trust:
+To verify HTTPS access and trust for the selected backend from the repository root, use its generated CA file:
 
 ```bash
-curl -vk --cacert ./root-ca.pem https://elasticsearch-1:9200
+source deploy/elasticsearch.env
+curl --cacert "security/certificates/elastic/${ELASTICSEARCH_VERSION}/elastic-stack-ca.crt.pem" \
+  https://localhost:9200/
 ```
 
-To check inter-node encryption (inside a container):
+To inspect a node certificate while verifying the same CA:
 
 ```bash
-openssl s_client -connect elasticsearch-1:9300 -CAfile ./root-ca.pem
+source deploy/elasticsearch.env
+openssl s_client -connect localhost:9200 -servername localhost \
+  -CAfile "security/certificates/elastic/${ELASTICSEARCH_VERSION}/elastic-stack-ca.crt.pem" \
+  -verify_hostname localhost
 ```

@@ -5,6 +5,10 @@ on:
   push:
     branches: ['**']
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -40,3 +44,39 @@ jobs:
             echo "Fix with: git update-index --chmod=+x <file>"
             exit 1
           fi
+
+  shell-quality:
+    name: ShellCheck and syntax
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check root-owned shell scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          scripts=()
+          while IFS= read -r -d '' file; do
+            scripts+=("$file")
+          done < <(
+            git ls-files -z -- '*.sh' \
+              ':(exclude)services/**' \
+              ':(exclude)deploy/charts/**'
+          )
+
+          if [[ "${#scripts[@]}" -eq 0 ]]; then
+            echo "No root-owned shell scripts found."
+            exit 0
+          fi
+
+          echo "Checking ${#scripts[@]} root-owned shell scripts."
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}:/mnt:ro" \
+            --workdir /mnt \
+            koalaman/shellcheck:v0.11.0@sha256:61862eba1fcf09a484ebcc6feea46f1782532571a34ed51fedf90dd25f925a8d \
+            "${scripts[@]}"
+
+          for file in "${scripts[@]}"; do
+            bash -n "$file"
+          done

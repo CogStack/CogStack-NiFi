@@ -16,7 +16,7 @@ All NLP/ML/data services are expected to implement a uniform RESTful API, allowi
 
 ## ⚠️ Important Notice
 
-This project is under active development. New features or services may impact existing deployments. Please review the [release notes](https://cogstack-nifi.readthedocs.io/en/latest/news.html) and [documentation](https://cogstack-nifi.readthedocs.io) before upgrading.
+This project is under active development. New features or services may impact existing deployments. Please review the [release notes](news.md) and this documentation before upgrading.
 
 ---
 
@@ -60,7 +60,7 @@ make -C deploy start-data-infra
 After services start:
 
 - NiFi: `https://localhost:8443`
-- Elasticsearch: `http://localhost:9200`
+- Elasticsearch/OpenSearch: `https://localhost:9200`
 - Kibana/OpenSearch Dashboards: `https://localhost:5601`
 
 Stop the core stack with:
@@ -79,15 +79,15 @@ make -C deploy stop-data-infra
 
 📖 Official documentation: [cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/)
 
-🚀 New to the project? Start with the [deployment guide](https://cogstack-nifi.readthedocs.io/en/latest/deploy/main.html) for example setups and workflows.
+🚀 New to the project? Start with the [deployment guide](deploy/main.md) for example setups and workflows.
 
-🐞 For troubleshooting or bug reports, consult the [known issues section](https://cogstack-nifi.readthedocs.io/en/latest/deploy/troubleshooting.html) before opening a ticket.
+🐞 For troubleshooting or bug reports, consult the [known issues section](deploy/troubleshooting.md) before opening a ticket.
 
 ---
 
 ## 🛑 Important Updates
 
-Check the [release notes](https://cogstack-nifi.readthedocs.io/en/latest/news.html) section regularly for:
+Check the [release notes](news.md) section regularly for:
 
 - Major changes to project structure or configuration
 - Security advisories or vulnerabilities affecting deployments

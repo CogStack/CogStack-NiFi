@@ -1,6 +1,9 @@
 #!/bin/bash
+# shellcheck disable=SC1090 # Environment file location is selected at runtime.
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 GITEA_ENV_FILE="./deploy/gitea.env"
 
 if [ -f "$GITEA_ENV_FILE" ]; then
@@ -13,6 +16,16 @@ else
   set -a
   source ".$GITEA_ENV_FILE"
   set +a
+fi
+
+CURL_TLS_ARGS=()
+if [[ "$GITEA_HOST_URL" == https://* ]]; then
+  GITEA_CA_CERT="${GITEA_CA_CERT:-${REPO_ROOT}/security/certificates/root/root-ca.pem}"
+  if [[ ! -r "$GITEA_CA_CERT" ]]; then
+    echo "❌ Gitea CA certificate is not readable: $GITEA_CA_CERT" >&2
+    exit 1
+  fi
+  CURL_TLS_ARGS=(--cacert "$GITEA_CA_CERT")
 fi
 
 # 1. Generate SSH key if it doesn't exist
@@ -30,7 +43,7 @@ fi
 
 if [ -f "$GITEA_LOCAL_KEY_PATH" ]; then
   if ssh-add -l | grep -q "$GITEA_LOCAL_KEY_PATH"; then
-    ssh-add -d $GITEA_LOCAL_KEY_PATH
+    ssh-add -d "$GITEA_LOCAL_KEY_PATH"
     echo "🗑️ Removed SSH key from agent: $GITEA_LOCAL_KEY_PATH"
   else
     echo "ℹ️ SSH key not loaded in agent: $GITEA_LOCAL_KEY_PATH"
@@ -51,7 +64,7 @@ echo "==========================================================================
 echo "# 3. Upload to Gitea via API"
 
 echo "🌐 Uploading SSH key to Gitea..."
-curl -s -k -X POST "$GITEA_HOST_URL/api/v1/user/keys" \
+curl --silent --show-error "${CURL_TLS_ARGS[@]}" -X POST "$GITEA_HOST_URL/api/v1/user/keys" \
   -H "Authorization: token $GITEA_TOKEN" \
   -H "Content-Type: application/json" \
   -d @- <<EOF

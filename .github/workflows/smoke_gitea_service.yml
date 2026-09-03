@@ -6,6 +6,10 @@ on:
     branches: ['**']
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -24,10 +28,11 @@ jobs:
           java-version: '21'
 
       - name: Generate certificates
-        working-directory: security/scripts
         run: |
           set -euo pipefail
-          ./create_root_ca_cert.sh
+          make -C deploy init-security-gitea
+          sudo chown 1000:1000 security/certificates/gitea/gitea.key
+          sudo chmod 600 security/certificates/gitea/gitea.key
 
       - name: Start Gitea service
         run: |

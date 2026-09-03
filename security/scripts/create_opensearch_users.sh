@@ -1,243 +1,215 @@
 #!/usr/bin/env bash
 
-################################################################
-# 
-# This script creates roles and users for OpenDistro 
-#  ElasticSearch distribution bundled with security plugin
-#  using provided env file with users/passwords
-#
+# Create CogStack application tenants, roles, users, and role mappings through
+# the OpenSearch Security plugin REST API.
 
-set -e
+set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SECURITY_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REPO_ROOT="$(cd "${SECURITY_DIR}/.." && pwd)"
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
-SECURITY_CERTIFICATES_FOLDER="../certificates/"
-SECURITY_ENV_FOLDER="../env/"
+SECURITY_ENV_DIR="${SECURITY_DIR}/env"
+DEFAULT_CA_CERT="${SECURITY_DIR}/certificates/elastic/opensearch/elastic-stack-ca.crt.pem"
 
-# required env var files
-source ../../deploy/general.env
-source ../../deploy/elasticsearch.env
-source "${SECURITY_ENV_FOLDER}certificates_elasticsearch.env"
-source "${SECURITY_ENV_FOLDER}certificates_general.env"
+usage() {
+  cat <<USAGE
+Usage: $0 <opensearch_hostname> [--use-http]
 
-# load the internal users passwords
-# IMPORTANT: for production deployments please remember to change the passwords
-source  "${SECURITY_ENV_FOLDER}users_elasticsearch.env"
+Options:
+  --use-http    Use plain HTTP instead of the default verified HTTPS connection.
+  --use-ssl     Deprecated compatibility option; HTTPS is already the default.
+  -h, --help    Show this help.
 
-# get the ES hostname
-#
-if [ -z "$1" ]; then
-  echo "Usage: $0 <es_hostname> [--use-ssl]"
+Environment overrides:
+  OPENSEARCH_PORT            REST API port (default: ELASTICSEARCH_NODE_1_OUTPUT_PORT or 9200)
+  OPENSEARCH_CA_CERT         CA certificate used to verify HTTPS
+  OPENSEARCH_ADMIN_USER      REST API administrator (default: admin)
+  OPENSEARCH_ADMIN_PASSWORD  REST API administrator password (default: ELASTIC_PASSWORD)
+USAGE
+}
+
+require_command() {
+  local command_name="$1"
+
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "ERROR: Required command not found: $command_name" >&2
+    exit 1
+  fi
+}
+
+json_escape() {
+  local value="$1"
+
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
+source_env_files() {
+  # shellcheck disable=SC1091
+  source "${REPO_ROOT}/deploy/elasticsearch.env"
+  # shellcheck disable=SC1091
+  source "${SECURITY_ENV_DIR}/users_elasticsearch.env"
+}
+
+OPENSEARCH_HOST=""
+USE_HTTP=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --use-http)
+      USE_HTTP=true
+      ;;
+    --use-ssl)
+      # Retained so existing automation continues to work. HTTPS is now default.
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "ERROR: Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -n "$OPENSEARCH_HOST" ]]; then
+        echo "ERROR: Multiple OpenSearch hostnames supplied." >&2
+        usage
+        exit 1
+      fi
+      OPENSEARCH_HOST="$1"
+      ;;
+  esac
+  shift
+done
+
+if [[ -z "$OPENSEARCH_HOST" ]]; then
+  usage
   exit 1
-else
-  ES_HOST=$1
 fi
 
+source_env_files
+require_command curl
 
-# check which protocol to use
-#
-if [ ! -z "$2" ] && [ "$2" = "--use-ssl" ]; then
-  HTTP_PROTOCOL=https
-  SSL_FLAGS="$SSL_FLAGS"
+OPENSEARCH_PORT="${OPENSEARCH_PORT:-${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}}"
+OPENSEARCH_ADMIN_USER="${OPENSEARCH_ADMIN_USER:-admin}"
+OPENSEARCH_ADMIN_PASSWORD="${OPENSEARCH_ADMIN_PASSWORD:-${ELASTIC_PASSWORD:-}}"
+
+: "${OPENSEARCH_ADMIN_PASSWORD:?Set OPENSEARCH_ADMIN_PASSWORD or ELASTIC_PASSWORD}"
+: "${INGEST_SERVICE_PASSWORD:?Set INGEST_SERVICE_PASSWORD in users_elasticsearch.env}"
+
+if [[ "$USE_HTTP" == true ]]; then
+  OPENSEARCH_PROTOCOL=http
 else
-  HTTP_PROTOCOL=http
-  SSL_FLAGS=""
+  OPENSEARCH_PROTOCOL=https
+  OPENSEARCH_CA_CERT="${OPENSEARCH_CA_CERT:-$DEFAULT_CA_CERT}"
+  if [[ ! -r "$OPENSEARCH_CA_CERT" ]]; then
+    echo "ERROR: OpenSearch CA certificate is not readable: $OPENSEARCH_CA_CERT" >&2
+    exit 1
+  fi
 fi
 
+API_BASE="${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}/_plugins/_security/api"
+CURL_ARGS=(
+  --silent
+  --show-error
+  --fail-with-body
+  --user "${OPENSEARCH_ADMIN_USER}:${OPENSEARCH_ADMIN_PASSWORD}"
+  --header "Content-Type: application/json"
+)
 
-# ES admin config for altering users and roles
-#
-ES_PORT=${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}
+if [[ "$USE_HTTP" != true ]]; then
+  CURL_ARGS+=(--cacert "$OPENSEARCH_CA_CERT")
+fi
 
-# The ES USER IS admin for OpenSearch
+api_put() {
+  local resource="$1"
+  local payload="$2"
 
-ELASTIC_USER=admin
+  echo "Applying ${resource}..."
+  curl "${CURL_ARGS[@]}" \
+    --request PUT \
+    "${API_BASE}/${resource}" \
+    --data "$payload"
+  printf '\n'
+}
 
-echo "Going to query: $HTTP_PROTOCOL://$ES_HOST:$ES_PORT"
+INGEST_PASSWORD_JSON="$(json_escape "$INGEST_SERVICE_PASSWORD")"
 
-# create tenants
-#
-echo "Creating tenants ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/nifi_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
-  "description": "A tenant for the NiFi"
+echo "Configuring CogStack OpenSearch resources at ${OPENSEARCH_PROTOCOL}://${OPENSEARCH_HOST}:${OPENSEARCH_PORT}"
+
+api_put "tenants/nifi_tenant" '{
+  "description": "A tenant for NiFi"
 }'
-echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/tenants/cogstack_tenant" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
-  "description": "A tenant for the CogStack"
+api_put "tenants/cogstack_tenant" '{
+  "description": "A tenant for CogStack"
 }'
-echo ""
 
-
-# create roles
-#
-echo "Creating roles ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
+api_put "roles/cogstack_ingest" '{
   "cluster_permissions": [
     "cluster_composite_ops",
     "indices:data/read/scroll*"
   ],
   "index_permissions": [{
-    "index_patterns" : [
-      "nifi_*",
-      "cogstack_*" 
-      ],
-      "fls": [],
-      "masked_fields": [],
-      "allowed_actions": [
-        "indices_all"
-      ]
+    "index_patterns": ["nifi_*", "cogstack_*"],
+    "fls": [],
+    "masked_fields": [],
+    "allowed_actions": ["indices_all"]
   }],
   "tenant_permissions": [{
-    "tenant_patterns": [
-      "nifi_tenant",
-      "cogstack_tenant"
-    ],
-    "allowed_actions": [
-      "kibana_all_write"
-    ]
+    "tenant_patterns": ["nifi_tenant", "cogstack_tenant"],
+    "allowed_actions": ["kibana_all_write"]
   }]
 }'
-echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/roles/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
-  "cluster_permissions": [
-    "cluster_composite_ops"
-  ],
+api_put "roles/cogstack_access" '{
+  "cluster_permissions": ["cluster_composite_ops"],
   "index_permissions": [{
-    "index_patterns" : [
-      "cogstack_*",
-      "nifi_*"
-      ],
-      "fls": [],
-      "masked_fields": [],
-      "allowed_actions": [
-        "search",
-        "read",
-        "get"
-      ]
+    "index_patterns": ["cogstack_*", "nifi_*"],
+    "fls": [],
+    "masked_fields": [],
+    "allowed_actions": ["search", "read", "get"]
   }],
   "tenant_permissions": [{
-    "tenant_patterns": [
-      "cogstack_tenant"
-    ],
-    "allowed_actions": [
-      "kibana_all_write"
-    ]
+    "tenant_patterns": ["cogstack_tenant"],
+    "allowed_actions": ["kibana_all_write"]
   }]
 }'
-echo ""
 
-
-
-# create users
-#
-echo "Creating users ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_user" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"cogstack_access\",
-    \"kibanauser\"
-  ],
-  \"password\": \"$INGEST_SERVICE_PASSWORD\",
+api_put "internalusers/cogstack_user" "{
+  \"password\": \"${INGEST_PASSWORD_JSON}\",
+  \"backend_roles\": [\"cogstack_access\", \"kibanauser\"],
   \"attributes\": {}
 }"
-echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/cogstack_pipeline" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"cogstack_ingest\"
-  ],
-  \"password\": \"$INGEST_SERVICE_PASSWORD\",
+api_put "internalusers/cogstack_pipeline" "{
+  \"password\": \"${INGEST_PASSWORD_JSON}\",
+  \"backend_roles\": [\"cogstack_ingest\"],
   \"attributes\": {}
 }"
-echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/nifi" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"cogstack_ingest\"
-  ],
-  \"password\": \"$INGEST_SERVICE_PASSWORD\",
+api_put "internalusers/nifi" "{
+  \"password\": \"${INGEST_PASSWORD_JSON}\",
+  \"backend_roles\": [\"cogstack_ingest\"],
   \"attributes\": {}
 }"
-echo ""
 
-
-# create mapping roles
-#
-echo "Creating roles mapping ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_access" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
-  "backend_roles": [
-    "cogstack_access"
-  ],
+api_put "rolesmapping/cogstack_access" '{
+  "backend_roles": ["cogstack_access"],
   "hosts": [],
-  "users": [
-    "cogstack_user"
-  ]
+  "users": ["cogstack_user"]
 }'
-echo ""
 
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD  "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/rolesmapping/cogstack_ingest" -H 'Content-Type: application/json' $SSL_FLAGS -d'
-{
-  "backend_roles": [
-    "cogstack_ingest"
-  ],
+api_put "rolesmapping/cogstack_ingest" '{
+  "backend_roles": ["cogstack_ingest"],
   "hosts": [],
-  "users": [
-    "cogstack_pipeline",
-    "nifi"
-  ]
+  "users": ["cogstack_pipeline", "nifi"]
 }'
-echo ""
 
-
-# mnodify passwords for internal build-in users
-#
-echo "Modifying passwords for internal build-in users ..."
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/logstash" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"logstash\"
-  ],
-  \"password\": \"$ES_LOGSTASH_PASS\",
-  \"attributes\": {}
-}"
-echo ""
-
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/kibanaro" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"kibanauser\",
-    \"readall\"
-  ],
-  \"password\": \"$ES_KIBANARO_PASS\",
-  \"attributes\": {}
-}"
-echo ""
-
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/readall" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"readall\"
-  ],
-  \"password\": \"$ES_READALL_PASS\",
-  \"attributes\": {}
-}"
-echo ""
-
-curl -k -XPUT -u $ELASTIC_USER:$ELASTIC_PASSWORD "$HTTP_PROTOCOL://$ES_HOST:$ES_PORT/_opendistro/_security/api/internalusers/snapshotrestore" -H 'Content-Type: application/json' $SSL_FLAGS -d"
-{
-  \"backend_roles\": [
-    \"snapshotrestore\"
-  ],
-  \"password\": \"$ES_SNAPSHOTRESTORE_PASS\",
-  \"attributes\": {}
-}"
-echo ""
+echo "OpenSearch application security resources configured successfully."

@@ -2,14 +2,17 @@ name: doc-build
 
 on:
   push:
-    branches: [ main ]
+    branches: ['**']
   pull_request:
-    branches: [ main ]
 
   release:
     types: [published]
 
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -22,8 +25,9 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.0.1
         with:
+          version-file: "pyproject.toml"
           python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: "docs/uv.lock"
@@ -39,4 +43,4 @@ jobs:
 
       - name: Build docs
         working-directory: docs
-        run: uv run mkdocs build -f ../mkdocs.yml
+        run: uv run mkdocs build --strict -f ../mkdocs.yml

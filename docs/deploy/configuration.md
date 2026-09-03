@@ -8,8 +8,9 @@ The variables are configurable, and are separated, into security and general env
 In most cases, modifying these variables should be the only thing that is needed in order to run a successful deployment.
 
 Multiple files are available, split into two categories:
-- service: located in `./deploy/` are reponsible for direct service configuration
-- security: located in `./security`, ceriticate related settings are always in the files starting with `certificates_` and user settings are located in the files ending with `_users`
+
+- Service configuration under `deploy/`.
+- Certificate and local-development credential configuration under `security/env/`.
 
 The variables declared in the `./deploy` folder are used in multiple config files, as follows:
 - `elasticsearch.env`, variables here are used in :
@@ -33,21 +34,23 @@ The variables declared in the `./deploy` folder are used in multiple config file
 
 - `general.env`, these vars are optional, declared any custom variables you want here, used in the `nifi` section
 
-Additional variablesenv files, used only or certificate generation and user accounts, found in `./security`:
-- `certificates_elasticsearch.env`, used in `create_opensearch_*`/`create_es_native*` scripts
-- `certificates_general.env`, used in `create_root_ca.sh`
-- `certificates_nifi.env`, used in `nifi_toolkit_security.sh`
-- `database_users.env`
-- `elasticsearch_users.env`
-- `nginx_users.env`
+Additional environment files under `security/env/` configure certificate generation and local accounts:
+
+- `certificates_elasticsearch.env`
+- `certificates_general.env`
+- `certificates_nifi.env`
+- `users_database.env`
+- `users_elasticsearch.env`
+- `users_nginx.env`
+- `users_nifi.env`
 
 
 ### Customization
-For custom deployments, copy all the `.env` files (which are not tracked by Git) and add deployment specific configurations to these files. For example:
+The tracked `.env` values are public development defaults. For a real deployment, keep deployment-specific copies outside the repository or inject the values through the platform's secret-management mechanism. Never commit production credentials.
 
-```
-cp deploy/*.env deploy/new_deploy_folder/
-cp security/*.env deploy/new_deploy_folder/
+```bash
+cp deploy/*.env /path/to/deployment-config/
+cp security/env/*.env /path/to/deployment-config/security/
 ```
 
 ### Multiple deployments on the same machine
@@ -59,7 +62,7 @@ For example, when setting `COMPOSE_PROJECT_NAME=cogstack-prod`, Docker Compose w
 
 ## <span style="color:red">Important security detail</span> 
 
-Please note that in the example service defintions, for ease of deployment and demonstration, SSL encryption is enabled among services (NiFi, ES, etc.), however, the certificates that are used are in this public repository, anyone can see them, so **please** make sure to re-generate them when you go into production. 
+Generated certificates and private keys are stored under `security/certificates/` and ignored by Git. Create them with `make -C deploy init-security`. Do not reuse development certificates or public development credential defaults in production.
 
 ## Services
 Please note that all the services are deployed using [Docker](https://docker.io) engine and requires docker deamon to be running / functioning.
