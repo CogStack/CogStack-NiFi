@@ -1,7 +1,8 @@
 # 🧩 Services
 
-This section provides a complete overview of all services included in the CogStack-NiFi deployment.  
-All services run in Docker and interact within a shared internal Docker network.
+This section provides an overview of the services included in the CogStack-NiFi
+deployment. Services run in Docker and are attached to the relevant Compose
+network when they need to communicate.
 
 ---
 
@@ -20,18 +21,18 @@ The core services defined in `services.yml` include:
 - **samples-db** — PostgreSQL database populated with demo datasets.
 - **cogstack-databank-db / cogstack-databank-db-mssql** — Production-grade PostgreSQL and optional MSSQL instances.
 - **elasticsearch-1 / elasticsearch-2 / elasticsearch-3** — Multi-node Elasticsearch or OpenSearch cluster.
-- **metricbeat / filebeat** — Elastic monitoring and log forwarder services.
+- **metricbeat / filebeat** — Elastic monitoring and log-forwarding services.
 - **nifi** — Apache NiFi single-node instance with embedded ZooKeeper.
 - **nifi-nginx** — Reverse proxy providing secure access to NiFi.
-- **ocr-service / ocr-service-text-only** — High-performance Python OCR and text extraction services.
-- **nlp-medcat-service-production** — MedCAT NLP model service with REST API.
-- **medcat-trainer-ui / medcat-trainer-nginx** — Web UI and reverse proxy for model training and refinement.
+- **kibana** — Kibana or OpenSearch Dashboards, depending on the backend.
+- **gitea** — Self-hosted Git service.
+- **cogstack-cohort** — Cohort discovery interface.
 
-- **kibana** — OpenSearch Dashboards UI.
-- **jupyter-hub** — Fully featured data science interface.
-- **git-ea** — Self‑hosted Git service (Gitea).
+Additional services, including MedCAT, MedCAT Trainer, OCR, and JupyterHub, are
+started from Compose files in their respective `services/` directories.
 
-> 🔐 **Note:** Important configuration options and environment variables for these services are managed in `services.yml` and the associated `.env` files under `deploy/` and `security/`.
+> 🔐 **Note:** Core-service configuration is managed in `services.yml` and
+> the associated environment files under `deploy/` and `security/env/`.
 
 ## 🗂️ Service Definitions
 
@@ -48,7 +49,7 @@ Some services expose ports to the host for convenience.
 
 ## 🗣️ NLP/OCR and other services API Endpoints
 
-Most web ETL & data-enrichment API services that we use will offer thw following endpoints for querying.
+Most web ETL and data-enrichment APIs provide some or all of these endpoints:
 
 - **GET** `/api/info`
 - **POST** `/api/process`
@@ -60,17 +61,20 @@ Useful for NiFi workflows (see [workflows](./workflows.md)).
 
 ## 🧬 MedCAT Service
 
-Runs a REST API for model inference uses the [MedCAT library](https://github.com/CogStack/cogstack-nlp/tree/main/medcat-v2) which performss clinical concept extraction and linking. 
+This REST API uses the
+[MedCAT library](https://github.com/CogStack/cogstack-nlp/tree/main/medcat-v2)
+for clinical concept extraction and linking.
 
 The service has two operation modes:
 
-- concept detection: exctracts medical concepts: outputs original text + annotations list.
-- de-id mode aka. AnonCAT mode, for de-identifying documents: outputs de-identified text + (will output annotations that represent what was de-id in a future version).
+- **Concept detection** extracts medical concepts and returns the original text
+  with annotations.
+- **De-identification (AnonCAT)** returns de-identified text.
 
 ### Access
 
-- `https://localhost:5555/api/info` - NER container, check if model loads successfully
-- `https://localhost:5556/api/info` - DE-ID/AnonCAT container
+- `http://localhost:5555/api/info` — concept extraction service
+- `http://localhost:5556/api/info` — de-identification service
 
 ### Containers
 
@@ -79,16 +83,14 @@ The service has two operation modes:
 
 ### Service location & files
 
-- dir: `/services/cogstack-nlp/medcat-service/`
-- docker compose file: `/services/cogstack-nlp/medcat-service/docker/docker-compose.yml`
+- directory: `services/cogstack-nlp/medcat-service/`
+- Docker Compose file: `services/cogstack-nlp/medcat-service/docker/docker-compose.yml`
 - env: located in `services/cogstack-nlp/medcat-service/env/`
 
-    ```bash
-        app.env - controls APP settings (number of cpus used, log level, etc) used by the NER container cogstack-medcat-service-production
-        medcat.env - used by the NER container, controls MedCAT settings directly.
-        app_deid.env - used by the DE-ID container, same app setting control, the main difference being the `APP_DEID_MODE`.
-        medcat_deid.env  - used by the DE-ID container, controls MedCAT settings directly
-    ```
+  - `app.env` — application settings for the concept extraction service
+  - `medcat.env` — MedCAT settings for concept extraction
+  - `app_deid.env` — application settings for de-identification
+  - `medcat_deid.env` — MedCAT settings for de-identification
 
 ### Ports
 
@@ -100,8 +102,8 @@ The service has two operation modes:
 ### Models
 
 - A default MedMentions `MedMen` NER+L model (includes MetaCAT models) is available for public use but needs to be downloaded.
-- To download a model head to the directory of the service `services/cogstack-nlp/medcat-service/scripts`
-- Execute: `bash download_medmen.sh`, wait for download to complete.
+- To download it, go to `services/cogstack-nlp/medcat-service/scripts` and run
+  `bash download_medmen.sh`.
 
 ### README
 
@@ -115,7 +117,7 @@ Provides UI workflows for annotation, correction, and iterative model training.
 
 ### Access
 
-- `https://localhost:8001`
+- `http://localhost:8001`
 
 ### Containers
 
@@ -188,13 +190,13 @@ Demo dataset with:
 - cleaned reports  
 - annotation tables  
 
-### Acess
+### Access
 
-- `localhost:5555`
+- `localhost:5554`
 
 ### Ports
 
-- external: `5432`
+- external: `5554`
 - internal: `5432`
 
 ### Credentials
@@ -214,8 +216,7 @@ Place schema files inside and they will be loaded instantly on container startup
 services/cogstack-db/<DB_PROVIDER>/schemas/
 ```
 
-Where `<DB_PROVIDER>` can be: `mssql`,`pgsql`.
-
+Where `<DB_PROVIDER>` can be `mssql` or `pgsql`.
 ### Credentials
 
 PostgreSQL and MSSQL development credentials are defined in `security/env/users_database.env`. Production credentials must be injected through deployment-local configuration or a secret manager.
@@ -223,12 +224,12 @@ PostgreSQL and MSSQL development credentials are defined in `security/env/users_
 ### Access
 
 - PgSQL: `localhost:5558` → container `5432`  
-- MSSQL: `localhost:1443` → container `1433`  
+- MSSQL: `localhost:1433` → container `1433`
 
 ### Containers
 
-- PgSQL: `cogstack-databank-db`
-- MSSQL: `cogstack-databank-db-mssql`
+- PgSQL: `cogstack-production-databank-db`
+- MSSQL: `cogstack-production-databank-db-mssql`
 
 ### Service location & files
 
@@ -264,6 +265,7 @@ Single-user development credentials are defined in `security/env/users_nifi.env`
 ### Containers
 
 - NiFi: `cogstack-nifi`
+- nginx: `cogstack-nifi-nginx`
 
 ### Service location & files
 
@@ -276,9 +278,14 @@ Single-user development credentials are defined in `security/env/users_nifi.env`
 
 ### Ports
 
-| Component            | External Port | Internal Port |
-|---------------------|---------------|----------------|
-| NiFi                | `8443`        | `8082`, `10000` |
+| Component | External port | Internal port |
+|-----------|---------------|---------------|
+| NiFi via nginx | `8443` | `8443` |
+| NiFi direct access | `8082` | `8443` |
+
+The NiFi container also publishes its input socket on container port `10000`
+without assigning a fixed host port. Use `docker compose port nifi 10000` from
+the `deploy/` directory to see the assigned host port.
 
 ---
 
@@ -290,7 +297,7 @@ This service is fully described in the Elasticsearch section of the documentatio
 
 The repo supports both:
 
-- ElasticSearch (native)
+- Elasticsearch (native)
 - OpenSearch (Amazon fork)
 
 Switch between modes via environment variables in `deploy/elasticsearch.env`.
@@ -315,9 +322,10 @@ Development credentials for both backends are defined in `security/env/users_ela
 
 #### Ports
 
-- all ports need to be exposed via firewall to allow for intercluster communication, we assume 1 different port per node if hosted on the same machine/VM, in production mode all machines can have and use the following ports (if they live on separarate VMs/machines ): `9200`, `9300`, `9600`
-- internal: `9300`, `9301`, `9302`, `9600`, `9601`, `9602`, `9200`, `9201`, `9202`
-- external: `9300`, `9301`, `9302`, `9600`, `9601`, `9602`, `9200`, `9201`, `9202`
+The example Compose deployment assigns distinct host ports to nodes running on
+the same machine. Do not expose transport or analyzer ports through a public
+firewall. For a production multi-host cluster, allow only the required traffic
+between trusted cluster nodes.
 
 | Node | HTTP | Transport | Analyzer |
 |------|------|-----------|----------|
@@ -362,15 +370,15 @@ Both run as independent containers in the deployment.
 
 Metricbeat:
 
-- `metricbeat-1`
-- `metricbeat-2`
-- `metricbeat-3`
+- `cogstack-metricbeat-1`
+- `cogstack-metricbeat-2`
+- `cogstack-metricbeat-3`
 
 Filebeat:
 
-- `filebeat-1`
-- `filebeat-2`
-- `filebeat-3`
+- `cogstack-filebeat-1`
+- `cogstack-filebeat-2`
+- `cogstack-filebeat-3`
 
 #### **Service Location & Files**
 
@@ -385,7 +393,7 @@ Filebeat:
 #### **Ports**
 
 No external ports exposed.  
-All communication occurs internally within the `cogstack-net` Docker network.
+All communication occurs internally within the `cognet` Docker network.
 
 #### **Notes**
 
@@ -461,8 +469,7 @@ Image selection controlled by:
 
 ## 🤖 OCR Service
 
-High-performance document text extraction engine replacing legacy Tika for OCR + text processing.
-In the near future it will be possible to use LLMs/custom models for ocr-ing (pending v2 release, ETA 2026).
+High-performance document text-extraction engine for OCR and text processing.
 
 The service comes in **two variants**:
 
@@ -481,7 +488,7 @@ Both expose a simple REST API.
 ### Access
 
 - ocr-service: `http://localhost:8090/api/process`
-- ocr-seervice-text-only: `http://localhost:8091/api/process`
+- ocr-service-text-only: `http://localhost:8091/api/process`
 
 ### Containers
 
@@ -496,7 +503,8 @@ cogstacksystems/cogstack-ocr-service:<release>
 
 ### Service Location & Files
 
-- docker compose file: `services/ocr-service/docker/docker-compose.yml`
+- Docker Compose files: `services/ocr-service/docker/docker-compose.base.yml`
+  and `services/ocr-service/docker/docker-compose.prod.yml`
 - service directory: `services/ocr-service/`
 - logs:  
   - Host: `services/ocr-service/log/`  
@@ -520,7 +528,7 @@ Please check the service's own [README.md](https://github.com/CogStack/ocr-servi
 
 ---
 
-## 🗂️ Git-ea
+## 🗂️ Gitea
 
 Self-hosted Git instance (Gitea).
 Lightweight GitHub/GitLab-style service used for hosting repositories inside secure or offline environments.
@@ -537,7 +545,7 @@ Lightweight GitHub/GitLab-style service used for hosting repositories inside sec
 
 ### Containers
 
-- `gitea`
+- `cogstack-gitea`
 
 ### Service Location & Files
 
@@ -551,7 +559,7 @@ Persistent repository data is stored in the volume defined in `services.yml`.
 
 | Service | External | Internal |
 |---------|----------|----------|
-| Git-ea  | `3000`   | `3000`   |
+| Gitea   | `3000`   | `3000`   |
 
 ### Notes
 
@@ -563,51 +571,37 @@ Persistent repository data is stored in the volume defined in `services.yml`.
 
 ## 🧱 NGINX
 
-*Note: this component may eventually be replaced by **Traefik** as the preferred reverse‑proxy and ingress layer for CogStack deployments.*
-
-NGINX is used as a lightweight reverse proxy to provide secure, unified access to internal CogStack services.  
-It handles HTTPS, routing, and access control for NiFi, MedCAT Trainer, and other components.
-
-MedCAT-Trainer has its own nginx instance that runs independently.
+NGINX is used as a lightweight reverse proxy to provide HTTPS access to NiFi.
+MedCAT Trainer has a separate nginx instance in its own Compose project.
 
 **Purpose:**
 
-- Secure external access to internal services  
-- Reverse proxy for NiFi, MedCAT Trainer, and service UIs  
-- TLS termination (optional)  
-- Basic auth / access control where required  
-
-Two variants are included:
-
-- **nginx-nifi** — main proxy for NiFi and related services  
-- **nginx-medcat-trainer** — specialized proxy for MedCAT Trainer
-
-Two variants:
-
-- **nginx-nifi** — main proxy for services
-- **nginx-medcat-trainer** — dedicated trainer proxy
+- **nifi-nginx** terminates TLS and proxies NiFi UI and API traffic.
+- **medcattrainer_nginx** proxies the MedCAT Trainer application separately.
 
 ### Access
 
 Examples (actual paths depend on config):
 
 - NiFi: `https://localhost:8443`  
-- MedCAT Trainer: `https://localhost:8001`
+- MedCAT Trainer: `http://localhost:8001`
 
 Routing rules are defined in the NGINX configuration files.
 
 ### Containers
 
-- `nifi-nginx` — main proxy for NiFi
-- `medcat-trainer-nginx` — proxy dedicated to MedCAT Trainer
+- `cogstack-nifi-nginx` — proxy for NiFi
+- `medcattrainer_nginx` — proxy for MedCAT Trainer
 
 ### Service Location & Files
 
-- docker compose file: `deploy/services.yml`, trainer - `deploy/cogstack-nlp/medcat-trainer`
+- NiFi Compose file: `deploy/services.yml`
+- MedCAT Trainer Compose file:
+  `services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml`
 - config files:
-  - `services/nginx/config/nifi.conf`
-  - `services/nginx/config/medcat-trainer.conf`
-  - additional templates under `services/nginx/config/`
+  - `services/nginx/config/nginx.conf.template`
+  - `services/cogstack-nlp/medcat-trainer/nginx/nginx.conf`
+  - `services/cogstack-nlp/medcat-trainer/nginx/sites-enabled/`
 - env / certificates:
   - `security/env/certificates_general.env`
   - `security/env/certificates_nifi.env`

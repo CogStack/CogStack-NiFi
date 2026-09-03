@@ -42,6 +42,7 @@ nav:
   - 📰 News: news.md
   - 📋 Prerequisites: deploy/main.md
   - 📦 Deployment: deploy/deployment.md
+  - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - 🔀 Workflows:
@@ -58,7 +59,6 @@ nav:
       - Processor Scripting: nifi/processor_scripting.md
       - User Scripts: nifi/user_scripts.md
       - Python Extensions: nifi/user_python_extensions.md
-      - Configuration: deploy/configuration.md
   - 🛡️ Security:
       - security/main.md
       - 🏛️ Certificates and Root CA: security/certificates.md

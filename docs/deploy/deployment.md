@@ -15,12 +15,15 @@ Make sure you have read the [Prerequisites](./main.md) section before proceeding
   - environment variables that apply **only to the services defined inside `services.yml`**.  
   - Security-related `.env` files (certificates, users) are under **`/security`**
 
-  These variables configure NiFi, Elasticsearch/OpenSearch, Kibana, Jupyter, Metricbeat, the sample DB, etc.
+  These variables configure core services such as NiFi, Elasticsearch/OpenSearch,
+  OpenSearch Dashboards or Kibana, Beats, and the databases.
 
-> **Important:** If you run `docker compose` directly (instead of `make`), first load the envs with:
+> **Important:** If you run `docker compose` directly (instead of `make`),
+> change to the deployment directory and load the environment first:
 >
 > ```bash
-> source ./deploy/export_env_vars.sh
+> cd deploy
+> source ./export_env_vars.sh
 > ```
 >
 > The Makefile targets already do this for you.
@@ -168,8 +171,19 @@ You can optionally create `gitea-admin-credentials` with `username` and `passwor
 
 ## 🧰 Makefile Command Overview
 
-A concise reference for controlling the full CogStack deployment stack (NiFi, Elasticsearch, JupyterHub, MedCAT, OCR-service, GitEA, Beats, DB, etc.).  
+A concise reference for controlling the CogStack deployment stack (NiFi,
+Elasticsearch, MedCAT, OCR, Gitea, Beats, databases, and optional services).
 All commands automatically load environment variables via `export_env_vars.sh`.
+
+Before running a `start-*` target on a fresh checkout, generate the local
+certificate sets:
+
+```bash
+make -C deploy init-security
+```
+
+The command is idempotent and leaves complete existing certificate sets
+unchanged.
 
 ### 🔎 Discover available Make targets
 
@@ -273,7 +287,7 @@ make -C deploy remote-delete-service \
 | `make start-git-ea`             | Start GitEA                          |
 | `make start-production-db`      | Start Databank DB                    |
 | **`make start-data-infra`**     | Start NiFi + Elastic + Samples DB    |
-| **`make start-all`**            | Full stack: data infra + NLP + JupyterHub + OCR |
+| **`make start-all`**            | Start data infrastructure + MedCAT inference + both OCR services |
 
 ---
 
@@ -298,7 +312,7 @@ make -C deploy remote-delete-service \
 | `make stop-git-ea`              | Stop GitEA                          |
 | `make stop-production-db`       | Stop Databank DB                    |
 | **`make stop-data-infra`**      | Stop NiFi + Elastic + Samples       |
-| **`make stop-all`**             | Stop entire stack                   |
+| **`make stop-all`**             | Stop the service groups wired into the `stop-all` target |
 
 ---
 
@@ -338,43 +352,20 @@ make -C deploy remote-delete-service \
 
 ### 📝 Notes
 
-- All `start-*` commands use `docker compose -f services.yml` unless referencing a specific service’s Dockerfile.
-- `start-all` and `stop-all` act as the top-level orchestration entry points.
-- Environment variables are **always sourced** using the integrated `WITH_ENV` macro.
+- Core-service targets use `deploy/services.yml`; standalone-service targets
+  use the Compose files in their respective `services/` directories.
+- `start-all` currently starts `start-data-infra`, `start-medcat-service`, and
+  `start-ocr-services`. Start other optional services explicitly.
+- `stop-all` follows the dependencies declared in the Makefile; check
+  `make -C deploy help` before relying on it for a customised deployment.
+- Environment variables are sourced using the integrated `WITH_ENV` macro.
 
----
+## 🚀 Common startup patterns
 
-If you want, I can also generate a **minimal cheat sheet**, or an **ASCII tree diagram** that shows how `start-all` expands into all services.
-
-## 🚀 Starting the Services
-
-All core services defined in `services.yml` can be started using the Makefile in the `deploy/` directory.
-
-Before running any `start-*` command on a fresh checkout, generate the
-deployment-local certificates:
-
-```bash
-make init-security
-```
-
-This command is idempotent and leaves complete existing certificate sets
-unchanged. The examples below assume that you are in the `deploy/` directory.
-
-For most services in the `services` folder that are not part of the core stack defined in `services.yml` and are pulled from external git submodule repositories, the start-up process is the same.
-
-### ▶️ Start each service individually
-
-You can start individual components of the CogStack-NiFi stack using the `make start-*` commands.  
-Each target loads all required environment variables automatically via `export_env_vars.sh`.
-
-This is useful for:
-
-- debugging a single service  
-- restarting only one component after config changes  
-- running lightweight subsets of the stack  
-- isolating problems or logs per service  
-
----
+The commands below assume that you are in `deploy/`. From the repository root,
+use the same target with `make -C deploy`, for example
+`make -C deploy start-data-infra`. The command table above is the complete
+target reference.
 
 ### 🧩 Core NiFi Services
 
@@ -406,130 +397,18 @@ Starts:
 
 Ideal for running ingestion pipelines and ETL workflows.
 
----
-
-#### 🛢️ Elasticsearch / OpenSearch Services
-
-Please note that to switch from OpenSearch (Amazon open-source fork) to ElasticSearch you will need to change some environment variables, see the [configuration](./configuration.md) section.
-
-```bash
-make start-elastic
-```
-
-Starts the standard 2-node Elasticsearch cluster + Kibana.
-
-```bash
-make start-elastic-cluster
-```
-
-Starts all 3 ES nodes. Useful for testing clustering, sharding, and replication.
-
-```bash
-make start-elastic-1
-make start-elastic-2
-make start-elastic-3
-```
-
-Start individual Elasticsearch nodes for debugging or failure-scenario testing.
-
----
-
-#### 📈 Kibana
-
-```bash
-make start-kibana
-```
-
-Starts Kibana for inspecting logs, checking index mappings, monitoring ES health, and debugging pipelines.
-
----
-
-### 🗄️ Databases
-
-```bash
-make start-samples
-```
-
-Starts **samples-db**, the small example DB used for demo flows.
-
-```bash
-make start-production-db
-```
-
-Starts the **cogstack-databank-db** production database.
-
-Use when testing SQL ingestion or verifying DB-driven NiFi flows.
-
----
-
-### 📚 JupyterHub
-
-```bash
-make start-jupyter
-```
-
-Starts the CogStack JupyterHub instance. Used for notebooks, analysis, model testing, and visualisation.
-
----
-
-### 🧠 NLP Services (MedCAT Service & Trainer)
-
-```bash
-make start-medcat-service
-```
-
-Starts the MedCAT concept extraction inference API.
-
-```bash
-make start-medcat-service-deid
-```
-
-Starts the MedCAT DEID (de-identification) inference API.
-
-```bash
-make start-medcat-trainer
-```
-
-Starts the full MedCAT Trainer stack (Trainer UI + Solr + NGINX). Useful for annotation and supervised training tasks.
-
----
-
-### 📝 OCR Services
-
-```bash
-make start-ocr-services
-```
-
-Starts:
-
-- **ocr-service** — main OCR pipeline  
-- **ocr-service-text-only** — lightweight OCR/text extraction  
-
-Use for PDF ingestion, OCR debugging, and pipeline validation.
-
----
-
-### 🛠️ Miscellaneous Services (GIT EA)
-
-```bash
-make start-git-ea
-```
-
-Starts the internal Gitea Git server used for local code/config storage.
-
----
-
-### 🚀 Start the Entire Stack
+### 🚀 Start the standard service set
 
 ```bash
 make start-all
 ```
 
-Starts everything:
+Starts:
 
 - Core infra
-- JupyterHub  
-- MedCAT NLP services  
-- OCR services  
+- MedCAT inference service
+- OCR and text-only OCR services
 
-Use for complete deployments, demos, or full-stack development.
+It does not start every optional service. Start Gitea, the production database,
+MedCAT de-identification, MedCAT Trainer, or other optional services with their
+individual targets when needed.
