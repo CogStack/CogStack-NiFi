@@ -8,12 +8,15 @@ build:
   os: "ubuntu-24.04"
   tools:
     python: "3.13"
-
-python:
-  install:
-    - method: uv
-      command: sync
-      path: docs
+  jobs:
+    pre_create_environment:
+      - asdf plugin add uv
+      - asdf install uv 0.12.1
+      - asdf global uv 0.12.1
+    create_environment:
+      - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+    install:
+      - cd docs && UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen
 
 mkdocs:
   configuration: mkdocs.yml
