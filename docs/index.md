@@ -6,11 +6,11 @@
 
 ## 💡 Introduction
 
-This repository proposes a possible next step in the evolution of free-text data processing originally implemented in [CogStack-Pipeline](https://github.com/CogStack/CogStack-Pipeline), moving towards a more modular, Platform-as-a-Service (PaaS) approach.
-
-**CogStack-NiFi** demonstrates how to use [Apache NiFi](https://nifi.apache.org/) as the central data workflow engine for clinical document processing, integrating services such as text extraction and natural language processing (NLP). Each component runs as a standalone service, with NiFi handling data routing between components and data sources/sinks.
+**CogStack-NiFi** usess [Apache NiFi](https://nifi.apache.org/) as the central data workflow engine for clinical document processing, integrating services such as text extraction and natural language processing (NLP). Each component runs as a standalone service, with NiFi handling data routing between components and data sources/sinks.
 
 All NLP/ML/data services are expected to implement a uniform RESTful API, allowing seamless integration into existing pipelines and making it easy to incorporate any NLP application into the stack.
+
+Note: This repository is the successor of of free-text data processing pipelines originally implemented in [CogStack-Pipeline](https://github.com/CogStack/CogStack-Pipeline), moving towards a more modular, Platform-as-a-Service (PaaS) approach.
 
 ---
 
@@ -20,16 +20,7 @@ This project is under active development. New features or services may impact ex
 
 ---
 
-## 💬 Asking Questions
-
-Need help? Feel free to:
-
-- Open an issue on the [GitHub Issue Tracker](https://github.com/CogStack/CogStack-NiFi/issues)
-- Start a discussion on our [Discourse forum](https://discourse.cogstack.org) (actively monitored by the dev team)
-
----
-
-## 🗂️ Project
+## 🗂️ Project Structure
 
 This table describes repository layout. For setup and operations, use the deployment and NiFi docs linked below.
 
@@ -49,6 +40,23 @@ This table describes repository layout. For setup and operations, use the deploy
 
 ### Quick Start (5 minutes)
 
+**Prerequisites**:
+Install
+- Docker + Docker Compose (mandatory)
+- `make`
+- `git` + `git-lfs`
+- `python3.11`
+- Basic Linux/UNIX shell familiarity
+
+**Installation and configuration**
+
+Check out this repository
+
+```bash
+git clone git@github.com:CogStack/CogStack-NiFi.git
+```
+
+Navigate to the root folder of the repository
 ```bash
 # from repository root
 git lfs pull
@@ -58,7 +66,7 @@ make -C deploy init-security
 make -C deploy start-data-infra
 ```
 
-After services start:
+Once the services have started, you can find the following services at corresponding URLs:
 
 - NiFi: `https://localhost:8443`
 - Elasticsearch/OpenSearch: `https://localhost:9200`
@@ -69,14 +77,6 @@ Stop the core stack with:
 ```bash
 make -C deploy stop-data-infra
 ```
-
-**Prerequisites**:
-
-- Docker + Docker Compose (mandatory)
-- `make`
-- `git` + `git-lfs`
-- `python3.11`
-- Basic Linux/UNIX shell familiarity
 
 📖 Official documentation: [cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/)
 
@@ -92,3 +92,11 @@ Check the [release notes](news.md) section regularly for:
 
 - Major changes to project structure or configuration
 - Security advisories or vulnerabilities affecting deployments
+---
+
+## 💬 Asking Questions
+
+Need help? Feel free to:
+
+- Open an issue on the [GitHub Issue Tracker](https://github.com/CogStack/CogStack-NiFi/issues)
+- Start a discussion on our [Discourse forum](https://discourse.cogstack.org) (actively monitored by the dev team)
