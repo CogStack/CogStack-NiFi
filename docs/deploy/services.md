@@ -303,9 +303,9 @@ Development credentials for both backends are defined in `security/env/users_ela
 
 #### Access
 
-- `http://localhost:9200` — Node 1
-- `http://localhost:9201` — Node 2
-- `http://localhost:9202` — Node 3
+- `https://localhost:9200` — Node 1
+- `https://localhost:9201` — Node 2
+- `https://localhost:9202` — Node 3
 
 #### Containers
 

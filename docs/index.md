@@ -60,7 +60,7 @@ make -C deploy start-data-infra
 After services start:
 
 - NiFi: `https://localhost:8443`
-- Elasticsearch: `http://localhost:9200`
+- Elasticsearch/OpenSearch: `https://localhost:9200`
 - Kibana/OpenSearch Dashboards: `https://localhost:5601`
 
 Stop the core stack with:
