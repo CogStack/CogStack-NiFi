@@ -42,33 +42,15 @@ ENV NIFI_WEB_HTTP_HOST=""
 
 USER root
 
-# add repositories, install tooling, and clean up apt metadata in one layer
+# Install system dependencies using the repositories provided by the base image.
 RUN set -eux; \
-    apt-get update -y; \
-    apt-get install -y --no-install-recommends \
-      apt-transport-https \
-      ca-certificates \
-      curl \
-      gnupg \
-      wget; \
-    printf '%s\n' \
-      "deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
-      "deb http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
-      "deb http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
-      "deb http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm-updates main contrib non-free non-free-firmware" \
-      "deb-src http://deb.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware" \
-      "deb-src http://security.debian.org/debian-security/ bookworm-security main contrib non-free non-free-firmware" \
-      > /etc/apt/sources.list.d/debian.list; \
-    wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/packages.microsoft.gpg; \
-    echo "deb [arch=amd64,armhf,arm64] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" > /etc/apt/sources.list.d/microsoft.list; \
-    apt-get update -y; \
-    apt-get upgrade -y --no-install-recommends; \
+    apt-get update; \
     apt-get install -y --no-install-recommends \
       apt-utils \
       build-essential \
+      ca-certificates \
       cmake \
+      curl \
       git \
       iputils-ping \
       jq \
