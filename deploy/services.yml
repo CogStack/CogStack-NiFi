@@ -479,6 +479,72 @@ services:
     logging: *es-logging-common
 
 #---------------------------------------------------------------------------#
+# Ollama local model inference                                              #
+#---------------------------------------------------------------------------#
+  ollama:
+    image: ${OLLAMA_DOCKER_IMAGE:-ollama/ollama:latest}
+    container_name: ${OLLAMA_CONTAINER_NAME:-cogstack-ollama}
+    platform: ${OLLAMA_DOCKER_PLATFORM:-linux/arm64}
+    restart: unless-stopped
+    env_file:
+      - ./ollama.env
+    deploy:
+      resources:
+        limits:
+          cpus: "${OLLAMA_DOCKER_CPU_MAX:-4}"
+          memory: "${OLLAMA_DOCKER_RAM:-12g}"
+        reservations:
+          cpus: "${OLLAMA_DOCKER_CPU_MIN:-1}"
+          memory: "${OLLAMA_DOCKER_RAM_MIN:-2g}"
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      # Keep the unauthenticated Ollama API local to the Docker host.
+      - "${OLLAMA_OUTPUT_HOST:-127.0.0.1}:${OLLAMA_OUTPUT_PORT:-11434}:11434"
+    expose:
+      - "11434"
+    networks:
+      - cognet
+    logging: *logging-common
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+#---------------------------------------------------------------------------#
+# Open WebUI for local Ollama chat and model management                      #
+#---------------------------------------------------------------------------#
+  open-webui:
+    image: ${OPENWEBUI_DOCKER_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    container_name: ${OPENWEBUI_CONTAINER_NAME:-cogstack-open-webui}
+    restart: unless-stopped
+    env_file:
+      - ./openwebui.env
+    depends_on:
+      ollama:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "${OPENWEBUI_DOCKER_CPU_MAX:-1}"
+          memory: "${OPENWEBUI_DOCKER_RAM:-2g}"
+        reservations:
+          cpus: "${OPENWEBUI_DOCKER_CPU_MIN:-0.25}"
+          memory: "${OPENWEBUI_DOCKER_RAM_MIN:-256m}"
+    volumes:
+      - openwebui-data:/app/backend/data
+    ports:
+      # Port 3000 is already used by Gitea in this Compose project.
+      - "${OPENWEBUI_OUTPUT_HOST:-127.0.0.1}:${OPENWEBUI_OUTPUT_PORT:-3001}:8080"
+    expose:
+      - "8080"
+    networks:
+      - cognet
+    logging: *logging-common
+
+#---------------------------------------------------------------------------#
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
@@ -633,6 +699,14 @@ volumes:
   filebeat-data-2:
     driver: local
   filebeat-data-3:
+    driver: local
+
+  # Ollama model cache
+  ollama-models:
+    driver: local
+
+  # Open WebUI database, uploads, configuration, and generated secret key
+  openwebui-data:
     driver: local
 
   # NiFi related

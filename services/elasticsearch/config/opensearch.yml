@@ -192,6 +192,15 @@ plugins.ml_commons.allow_registering_model_via_local_file: true
 # Permit HTTPS model repositories and only the dedicated read-only local model
 # directory; do not allow arbitrary HTTP, FTP, or file-system paths.
 plugins.ml_commons.trusted_url_regex: '^https://.*$|^file:///usr/share/opensearch/models/[^?#]+\.zip$'
+# Permit ML Commons connectors to call only the Ollama service on the private
+# CogStack Docker network. Docker resolves this stable service name to a
+# private container IP, so both the general and private endpoint allowlists
+# are required by OpenSearch 3.7 and later.
+plugins.ml_commons.connector.private_ip_enabled: true
+plugins.ml_commons.trusted_connector_endpoints_regex:
+  - '^http://ollama:11434/.*$'
+plugins.ml_commons.trusted_connector_private_endpoints_regex:
+  - '^http://ollama:11434/.*$'
 plugins.ml_commons.model_access_control_enabled: true
 plugins.ml_commons.connector_access_control_enabled: true
 plugins.ml_commons.safe_delete_model: true
