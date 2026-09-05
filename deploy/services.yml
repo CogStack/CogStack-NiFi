@@ -484,7 +484,7 @@ services:
   ollama:
     image: ${OLLAMA_DOCKER_IMAGE:-ollama/ollama:latest}
     container_name: ${OLLAMA_CONTAINER_NAME:-cogstack-ollama}
-    platform: ${OLLAMA_DOCKER_PLATFORM:-linux/arm64}
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
       - ./ollama.env
@@ -519,6 +519,7 @@ services:
   open-webui:
     image: ${OPENWEBUI_DOCKER_IMAGE:-ghcr.io/open-webui/open-webui:main}
     container_name: ${OPENWEBUI_CONTAINER_NAME:-cogstack-open-webui}
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
       - ./openwebui.env

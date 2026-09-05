@@ -359,6 +359,9 @@ pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
+opensearch-ai-init: ## Create or update Ollama-backed OpenSearch chat and PPL assistants
+	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
+
 start-openwebui: ## Start Open WebUI and its Ollama dependency
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) open-webui
 
@@ -399,7 +402,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama pull-ollama-model setup-ollama start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
 
 
 # stop services
