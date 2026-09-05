@@ -206,6 +206,9 @@ plugins.ml_commons.connector_access_control_enabled: true
 plugins.ml_commons.safe_delete_model: true
 plugins.ml_commons.agent_framework_enabled: true
 plugins.ml_commons.rag_pipeline_feature_enabled: true
+# Upper bound for asynchronous ML Commons tasks. Remote connector connection
+# and response timeouts are configured per connector by opensearch-ai-init.sh.
+plugins.ml_commons.ml_task_timeout_in_seconds: 600
 
 # This cluster has no dedicated ML nodes, so allow both local and remote models
 # to execute on data nodes.
