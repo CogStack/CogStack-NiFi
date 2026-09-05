@@ -85,7 +85,7 @@ opensearch.pingTimeout: 10000
 
 # Time in milliseconds to wait for responses from the back end or OpenSearch. This value
 # must be a positive integer.
-opensearch.requestTimeout: 200000
+opensearch.requestTimeout: 420000
 
 # List of OpenSearch Dashboards client-side headers to send to OpenSearch. To send *no* client-side
 # headers, set this value to [] (an empty list).
@@ -132,12 +132,16 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # for your map rendering services.
 # map.showRegionBlockedWarning: false
 
+# Enable ML Commons model monitoring and management. Model registration and
+# deployment are performed through the REST API or the Dashboards Dev Tools UI.
 ml_commons_dashboards.enabled: true
+assistant.chat.enabled: true
+observability.query_assist.enabled: true
 
 savedObjects.permission.enabled: true
 
 # Set the value to true to enable multiple data source feature
-data_source.enabled: true
+data_source.enabled: false
 # Set the value to true to enable workspace feature
 workspace.enabled: true
 # Set the value to true to enable explore feature

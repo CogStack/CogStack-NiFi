@@ -182,6 +182,41 @@ plugins.security.audit.config.enable_ssl_client_auth: true
 plugins.security.system_indices.enabled: true
 plugins.security.system_indices.permission.enabled: true
 
+# ================= ML Commons =================
+
+plugins.ml_commons.local_model.enabled: true
+plugins.ml_commons.remote_inference.enabled: true
+plugins.ml_commons.only_run_on_ml_node: false
+plugins.ml_commons.allow_registering_model_via_url: true
+plugins.ml_commons.allow_registering_model_via_local_file: true
+# Permit HTTPS model repositories and only the dedicated read-only local model
+# directory; do not allow arbitrary HTTP, FTP, or file-system paths.
+plugins.ml_commons.trusted_url_regex: '^https://.*$|^file:///usr/share/opensearch/models/[^?#]+\.zip$'
+# Permit ML Commons connectors to call only the Ollama service on the private
+# CogStack Docker network. Docker resolves this stable service name to a
+# private container IP, so both the general and private endpoint allowlists
+# are required by OpenSearch 3.7 and later.
+plugins.ml_commons.connector.private_ip_enabled: true
+plugins.ml_commons.trusted_connector_endpoints_regex:
+  - '^http://ollama:11434/.*$'
+plugins.ml_commons.trusted_connector_private_endpoints_regex:
+  - '^http://ollama:11434/.*$'
+plugins.ml_commons.model_access_control_enabled: true
+plugins.ml_commons.connector_access_control_enabled: true
+plugins.ml_commons.safe_delete_model: true
+plugins.ml_commons.agent_framework_enabled: true
+plugins.ml_commons.rag_pipeline_feature_enabled: true
+# Upper bound for asynchronous ML Commons tasks. Remote connector connection
+# and response timeouts are configured per connector by opensearch-ai-init.sh.
+plugins.ml_commons.ml_task_timeout_in_seconds: 600
+
+# This cluster has no dedicated ML nodes, so allow both local and remote models
+# to execute on data nodes.
+plugins.ml_commons.task_dispatcher.eligible_node_role.local_model:
+  - data
+plugins.ml_commons.task_dispatcher.eligible_node_role.remote_model:
+  - data
+
 
 # Enable SQL-like queries, allows you to join across indices etc.
 plugins.sql.enabled: true

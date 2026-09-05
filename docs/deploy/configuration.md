@@ -24,6 +24,7 @@ The core Compose file, `deploy/services.yml`, loads these files:
 | `deploy/general.env` | General Docker logging and shared defaults |
 | `deploy/nifi.env` | NiFi image, ports, resources, proxy settings, and paths |
 | `deploy/elasticsearch.env` | Elasticsearch/OpenSearch, Dashboards/Kibana, and Beats |
+| `deploy/ollama.env` | Ollama image, model selection, port, and resource limits |
 | `deploy/database.env` | Sample and production database resources |
 | `deploy/gitea.env` | Gitea image, ports, and application settings |
 | `deploy/nginx.env` | NiFi nginx proxy settings |

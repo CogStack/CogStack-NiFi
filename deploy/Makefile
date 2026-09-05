@@ -351,6 +351,29 @@ start-filebeat-3:
 start-kibana:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) kibana
 
+start-ollama: ## Start the Ollama inference service
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) ollama
+
+pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
+	$(WITH_ENV) docker compose -f services.yml exec -T ollama ollama pull "$${OLLAMA_MODEL}"
+
+setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
+
+opensearch-ai-init: ## Create or update Ollama-backed OpenSearch chat and PPL assistants
+	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
+
+start-openwebui: ## Start Open WebUI and its Ollama dependency
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) open-webui
+
+restart-openwebui: ## Restart the Open WebUI container
+	$(WITH_ENV) docker compose -f services.yml restart open-webui
+
+status-openwebui: ## Show Open WebUI and Ollama container status
+	$(WITH_ENV) docker compose -f services.yml ps open-webui ollama
+
+logs-openwebui: ## Follow the Open WebUI logs
+	$(WITH_ENV) docker compose -f services.yml logs --tail=100 -f open-webui
+
 start-samples: ## Start the sample database service
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db
 
@@ -379,7 +402,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
 
 
 # stop services
@@ -422,6 +445,12 @@ delete-elastic: ## Remove Elasticsearch and Kibana containers
 
 delete-elastic-volumes: ## Delete Elasticsearch and Kibana volumes
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v elasticsearch-1 elasticsearch-2 elasticsearch-3 kibana
+
+delete-ollama: ## Remove the Ollama container but preserve downloaded models
+	$(WITH_ENV) docker compose -f services.yml rm -f -s ollama
+
+delete-openwebui: ## Remove the Open WebUI container but preserve its data
+	$(WITH_ENV) docker compose -f services.yml rm -f -s open-webui
 
 delete-databank:
 	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql
@@ -494,6 +523,12 @@ stop-filebeat-3:
 stop-kibana:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) kibana
 
+stop-ollama: ## Stop the Ollama inference service
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) ollama
+
+stop-openwebui: ## Stop the Open WebUI service
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) open-webui
+
 stop-samples: ## Stop the sample database service
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) samples-db
 
@@ -522,7 +557,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastru
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services ## Stop all major services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes delete-jupyter delete-medcat-service delete-medcat-service-deid delete-ocr-services make-delete-jupyter make-delete-medcat-service make-delete-medcat-service-deid make-delete-ocr-services stop-elastic stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-ollama delete-openwebui delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes delete-jupyter delete-medcat-service delete-medcat-service-deid delete-ocr-services make-delete-jupyter make-delete-medcat-service make-delete-medcat-service-deid make-delete-ocr-services stop-elastic stop-ollama stop-openwebui stop-samples stop-jupyter
 
 
 # cleanup
