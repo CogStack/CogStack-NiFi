@@ -1,127 +1,193 @@
 # 📛 Troubleshooting
 
-Always start with fresh containers and volumes, to make sure that there are no volumes from previous experimentations, make sure to always delete all/any cogstack running containers by executing:
+Start with logs and container state. Do not delete containers or volumes as a
+routine first step: volumes may contain NiFi state, database data, or search
+indices.
 
-`docker container rm samples-db elasticsearch-1 kibana nifi  nlp-medcat-service-production tika-service nlp-gate-drugapp nlp-medcat-snomed nlp-gate-bioyodie medcat-trainer-ui medcat-trainer-nginx jupyter-hub -f`
+From the repository root, list containers and their state:
 
-followed by a cleanup or dangling volumes (careful as this will remove all volumes which are NOT being used by a container, if you want to remove specific volumes you will have to manually specifiy the volume names), otherwise, you can specify :
+```bash
+docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+```
 
-`docker volume prune -f` <strong> WARNING THIS WILL DELETE ALL UNUSED VOLUMES ON YOUR MACHINE!</strong>. Check the volume names used in services.yml file and delete them as necessary `dockr volume rm volume_name`
+Inspect the affected service before restarting it:
 
-## 🐞 Known Issues/errors
+```bash
+docker logs --tail 300 cogstack-nifi
+docker inspect cogstack-nifi
+```
 
-Common issues that can be encountered across services.
+Use the scoped Make targets where possible. For example:
 
-### 🍎 **Apple Silicon**
+```bash
+make -C deploy stop-nifi
+make -C deploy start-nifi
+```
 
-Many services cannot run natively on Apple Silicon (such as M1 and M2 architectures). Common error messages related to Apple silicon follow patterns similar to:
-    <br /><br/>
-    - `no match for platform in manifest`
-    <br /><br/>
-    <br /><br/>
-    - `no matching manifest for linux/arm64/v8 in the manifest list entries`
-    <br /><br/>
-    <br /><br/>
-    - `image with reference cogstacksystems/cogstack-ocr-service:1.0.2 was found but does not match the specified platform: wanted linux/arm64, actual: linux/amd64`
-    <br /><br/>
-To solve these issues; Rosetta is required and enabled in Docker Desktop. Finally an environment variable is required to be set.
+To recreate only the NiFi containers while retaining named volumes:
 
-Rosetta can which can be installed via the following command:
+```bash
+make -C deploy delete-nifi-containers
+make -C deploy start-nifi
+```
+
+!!! danger "Deleting persistent data"
+
+    `make -C deploy cleanup` runs `docker compose down -v` for the core
+    deployment and deletes its named volumes. Use it only when you deliberately
+    want to reset all core service data. Do not use a global
+    `docker volume prune` command as a CogStack troubleshooting step because it
+    can delete unrelated Docker volumes on the host.
+
+## 🐞 Known issues
+
+### 🍎 Apple Silicon
+
+Some images may only publish an `linux/amd64` variant. Typical errors include:
+
+```text
+no match for platform in manifest
+no matching manifest for linux/arm64/v8 in the manifest list entries
+image ... does not match the specified platform: wanted linux/arm64, actual: linux/amd64
+```
+
+On macOS, install Rosetta if it is not already available:
 
 ```bash
 softwareupdate --install-rosetta
 ```
 
-When Rosetta and Docker Desktop are installed, Rosetta must be enabled. This done by going to Docker Desktop -> Setting -> General and enabling "Use Virtualization framework". After in the same settings go to "features in development" -> "Use Rosetta for x86/amd64 emulation on Apple Silicon". Finally execute the following command:
+Enable Docker Desktop's Apple Virtualization framework and Rosetta-based
+`x86_64` emulation. If an image still needs an explicit platform, set it for the
+current shell before starting the service:
 
 ```bash
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
 ```
 
-to set the environment variable. These issues are known to occur on the "cogstack-nifi", "cogstack-ocr-services" and "jupyter-hub" services and may occur on others.
+Emulation is slower than running a native ARM64 image and may require higher
+Docker Desktop memory limits.
 
-### 🔧 **NiFi**
+### 🔧 NiFi
 
-When dealing with contaminated deployments ( containers using volumes from previous instances ) :
-    <br /><br/>
-    - `NiFi only supports one mode of HTTP or HTTPS operation...` deleting the volumes should usually solve this issue, if not, please check the `nifi.properties` if there have been modifications done by yourself or a developer on it.
-    <br /><br/>
-    - building the NiFi image manually on a restricted system, this is usually not necessary, but if for some reason this needs to be done then some settings such as proxy configs might need to be set up in the `nifi/Dockerfile` epecially ones related to the `grape` application and dealing with external downloads.
-    <br /><br/>
-    - `keystore.jks`/`truststore.jks` related errors, remove the nifi container & related volumes then restart the nifi instance. 
-     <br /><br/>
-    - `HTTP 421 INVALID PROXY` or `System Error: Invalid host header` occurs when NiFi does not trust the public host/port forwarded by nginx. For remote deployments, set `NIFI_WEB_PROXY_HOST` in `deploy/nifi.env` to the exact browser-visible host and port, for example `localhost:8443,nifi.example.org:8443`, and keep `NIFI_WEB_PROXY_PORT` aligned with that public port. If the public URL is `https://nifi.example.org/nifi`, use port `443`; if it is `https://nifi.example.org:8443/nifi`, use port `8443`. Restart `nifi` and `nifi-nginx` afterwards. If the generated container config still shows the old value, check `/opt/nifi/nifi-current/conf/nifi.properties` in the NiFi container and ensure `nifi.web.proxy.host` matches.
-    <br /><br/>
-    - Possible error when dealing with non-pgsql databases `due to Incorrect syntax near 'LIMIT'.; routing to failure: com.microsoft.sqlserver.jdbc.SQLServerException: Incorrect syntax near 'LIMIT'`, go to the GenerateTableFetch Process -> right-click -> configure -> change database type from Generic to -> MS SQL 2012 + or 2008 (if an older DB system is used)
-    - Possible error on Linux systems related to `nifi.properties` permission error and/or other files from the `nifi/conf/` folder, please see the [nifi doc](../nifi/main.md#important-note-about-nifi-properties) {nifi.properties} section. 
-    <br /><br/>
-    - `Driver class org.postgresql.Driver is not found` or something similar for other MSSQL/SQL drivers, this is a known issue after NiFi version v1.20+, first, make sure you pull the latest version of the repository, then for the JAR file you are using, please execute the following command in order to verify its integrity `jar -tvf ./nifi/drivers/your_file_version.jar`, if this returns a list of files and NO errors then the files are not corrupted and can be loaded. On the NiFi side make sure to go to the `DBCPConnectionPool` controller service and verify the propertiesit a few times, make sure the file path is correct and in the following format: `file:///opt/nifi/drivers/postgresql-42.7.7.jar` for example. If all this fails stop nifi, delete all the Docker volumes associated with it -> restart NiFi, perform the above steps again. You can try forcefully starting the `GenerateTableFetch` or `QueryDatabaseTable` processors by enabling the `DBCPConnectionPool` even if an error popus up after clicking the verify button.
-    <br /><br/>
-    - `502 Bad Gateway`, NiFi simply not starting, even after waiting more than 2-3 minutes. This can occur due to a wide variety of issues, you can check the NiFi container log : “docker logs -f --tail 1000 cogstack-nifi > my_log_file.txt” to capture the output easily. The most common cause is running out of memory, increase or decrease the limits in `nifi/conf/bootstrap.conf` according to your machine's spec, please read [bootstrap.conf](../nifi/main.md#bootstrapconf)
-    <br /><br/>
-    - `Unable to connect to ElasticSearch` using the `ElasticSearchClientService` NiFi controller, make sure the settings are correct (username,password,certificates, etc.) and then click `Apply`, disregard the errors and click `Enable` on the controller to forcefully reload the controller, stop it and then validate the settings, start it again after and it should work.
+#### NiFi reports mixed HTTP and HTTPS configuration
 
-### 🛢️ **Elasticsearch Errors**
+If NiFi reports that it supports only one mode of HTTP or HTTPS operation:
 
-#### ⚡ **VM memory errors, failed bootstrap check**
+1. Check local changes in `nifi/conf/nifi.properties`.
+2. Confirm the HTTPS settings loaded from `deploy/nifi.env`.
+3. Recreate the NiFi containers without deleting their volumes.
+4. Delete NiFi state volumes only if you have confirmed that stale persisted
+   configuration is the cause and the stored state is disposable.
 
-It is quite a common issue for both opensearch and native-ES to error out when it comes to virtual memory allocation, this error typically comes in the form of :
+#### Keystore or truststore errors
+
+Run the security initializer again; it validates complete certificate sets and
+does not overwrite a valid existing set:
 
 ```bash
-ERROR: [1] bootstrap checks failed
-[1]: max virtual memory areas vm.max_map_count [65111] is too low, increase to at least [262144]
+make -C deploy init-security
 ```
 
-To solve this one needs to simply execute :
-    <br>
-    - on Linux/Mac OS X : 
-    `sysctl -w vm.max_map_count=262144` in terminal. 
-    To make the same change systemwide plase add `vm.max_map_count=262144` to /etc/sysctl.conf and restart the dockerservice/machine.
-    An example of this can be found under /services/elasticsearch/sysctl.conf
-    <br>
-    - on Windows you need to enter the following commands in a powershell instance:
-    <br>
-    `wsl -d docker-desktop`
-    <br>
-    `sysctl -w vm.max_map_count=262144`
+If it reports an incomplete certificate set, preserve the existing files and
+repair or explicitly replace the set. Check the
+[certificate guide](../security/certificates.md) before replacing a CA or leaf
+certificate.
 
-For more on this issue please read: https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+#### HTTP 421 or invalid host header
 
-<br>
+NiFi returns `HTTP 421 INVALID PROXY` or `System Error: Invalid host header`
+when it does not trust the public host and port forwarded by nginx.
 
-#### 📄 **OpenSearch: validating opensearch.yml hosts**
+Set `NIFI_WEB_PROXY_HOST` in `deploy/nifi.env` to the browser-visible host and
+port. For example:
+
+```text
+NIFI_WEB_PROXY_HOST="localhost:8443,nifi.example.org:8443"
+```
+
+Use port `443` for `https://nifi.example.org/nifi`, or `8443` for
+`https://nifi.example.org:8443/nifi`. Restart `nifi` and `nifi-nginx` after the
+change.
+
+#### Database processor errors
+
+- For Microsoft SQL Server errors involving `LIMIT`, configure
+  `GenerateTableFetch` with the appropriate Microsoft SQL Server database type
+  instead of `Generic`.
+- If a JDBC driver class is not found, verify the JAR before configuring its
+  absolute container path:
+
+  ```bash
+  jar -tvf ./nifi/drivers/postgresql-42.7.7.jar
+  ```
+
+  A PostgreSQL driver path in NiFi should look like
+  `file:///opt/nifi/drivers/postgresql-42.7.7.jar`. Apply the controller-service
+  configuration, then disable and re-enable the service to reload it.
+
+#### 502 Bad Gateway
+
+A 502 from nginx usually means that NiFi is not ready or has stopped. Inspect
+the container state and logs:
 
 ```bash
-FATAL  Error: [config validation of [opensearch].hosts]: types that failed validation:
-- [config validation of [opensearch].hosts.0]: expected URI with scheme [http|https].
-- [config validation of [opensearch].hosts.1]: could not parse array value from json input
+docker ps -a --filter name=cogstack-nifi
+docker logs --tail 1000 cogstack-nifi
 ```
 
-This issue may appear after the recent switch to using fully customizable environment variables. Strings and ENV vars may be parsed differently depending on the shell version found on the host system.
+NiFi startup can take several minutes. If the process was killed because of
+memory pressure, review the Docker resource limits in `deploy/nifi.env` and the
+JVM settings documented under
+[bootstrap.conf](../nifi/main.md#bootstrapconf).
 
-To solve this, the easiest way is to make sure to load the `elasticsearch.env` variables before starting the Elastic & Kibana containers by doing the following:
+### 🛢️ Elasticsearch/OpenSearch
+
+#### `vm.max_map_count` bootstrap failure
+
+Search nodes may fail with an error similar to:
+
+```text
+bootstrap checks failed
+max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+```
+
+On Linux, set the value temporarily with:
 
 ```bash
-    cd ./deploy/
-    set -a
-    source elasticsearch.env
-    make start-elastic
+sudo sysctl -w vm.max_map_count=262144
 ```
 
-Alternatively (if the script executes without issues):
+For a persistent Linux configuration, add `vm.max_map_count=262144` to
+`/etc/sysctl.conf` or an appropriate file under `/etc/sysctl.d/`, then apply the
+configuration. On Docker Desktop, set the value in the Linux VM used by Docker.
+
+#### OpenSearch host configuration fails validation
+
+Errors saying that `opensearch.hosts` expects a URI usually indicate that the
+environment was not loaded or that the value is not valid JSON/URI syntax.
+Prefer the Make target, which loads the environment automatically:
 
 ```bash
-    cd ./deploy/
-    source export_env_vars.sh
-    make start-elastic
+make -C deploy start-elastic
 ```
 
-### 🗃️ DB-samples issues
+If you invoke Compose directly, load the deployment environment first:
 
 ```bash
-No table data for samples_db
+cd deploy
+source ./export_env_vars.sh
+docker compose -f services.yml up -d elasticsearch-1 elasticsearch-2 kibana
 ```
 
-It is possible that you may have forgotten to pull the large files from the repo, please do : `git lfs pull`.
+### 🗃️ Sample database has no data
 
-Delete the samples-db container and it's volumes and restart it, you should now see the data in the tables.
+If `samples_db` contains no sample tables, make sure Git LFS assets were pulled:
+
+```bash
+git lfs pull
+```
+
+Then recreate the sample database only if its existing data is disposable. Stop
+the service, inspect its volume with `docker volume ls`, and remove only that
+deployment's sample database volume before starting `samples-db` again.
