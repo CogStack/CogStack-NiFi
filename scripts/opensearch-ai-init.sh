@@ -47,6 +47,9 @@ ENV_OVERRIDE_NAMES=(
   OPENSEARCH_AI_PPL_CONNECTOR_NAME
   OPENSEARCH_AI_PPL_MODEL_NAME
   OPENSEARCH_AI_PPL_AGENT_NAME
+  OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME
+  OPENSEARCH_AI_TIME_RANGE_MODEL_NAME
+  OPENSEARCH_AI_TIME_RANGE_AGENT_NAME
 )
 ENV_OVERRIDES=()
 for variable_name in "${ENV_OVERRIDE_NAMES[@]}"; do
@@ -82,6 +85,9 @@ ROOT_AGENT_NAME="${OPENSEARCH_AI_ROOT_AGENT_NAME:-Qwen Dashboards Root Agent}"
 PPL_CONNECTOR_NAME="${OPENSEARCH_AI_PPL_CONNECTOR_NAME:-Ollama Qwen PPL Connector}"
 PPL_MODEL_NAME="${OPENSEARCH_AI_PPL_MODEL_NAME:-Qwen 3.5 Ollama PPL Model}"
 PPL_AGENT_NAME="${OPENSEARCH_AI_PPL_AGENT_NAME:-Qwen PPL Query Assist Agent}"
+TIME_RANGE_CONNECTOR_NAME="${OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME:-Ollama Qwen Time Range Connector}"
+TIME_RANGE_MODEL_NAME="${OPENSEARCH_AI_TIME_RANGE_MODEL_NAME:-Qwen 3.5 Ollama Time Range Model}"
+TIME_RANGE_AGENT_NAME="${OPENSEARCH_AI_TIME_RANGE_AGENT_NAME:-Qwen Query Time Range Parser Agent}"
 
 OPENSEARCH_URL="https://localhost:9200"
 OPENSEARCH_CA="/usr/share/opensearch/config/root-ca.crt"
@@ -360,6 +366,11 @@ printf -v PPL_REQUEST_BODY \
   '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Translate the request into a valid OpenSearch PPL query. Return only the PPL query."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
   "$MAX_TOKENS" "$REASONING_EFFORT"
 
+# shellcheck disable=SC2016
+printf -v TIME_RANGE_REQUEST_BODY \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Parse time constraints for an OpenSearch date picker. Follow the requested XML output format exactly and return no explanation."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
+  "$MAX_TOKENS" "$REASONING_EFFORT"
+
 CLIENT_CONFIG="$(jq -nc \
   --argjson connection_timeout "$CONNECTION_TIMEOUT" \
   --argjson read_timeout "$READ_TIMEOUT" \
@@ -378,6 +389,13 @@ PPL_CONNECTOR_PAYLOAD="$(jq -nc \
   --arg request_body "$PPL_REQUEST_BODY" \
   --argjson client_config "$CLIENT_CONFIG" \
   '{name:$name, description:"Prompt-compatible Ollama connector for OpenSearch PPL query assist", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+
+TIME_RANGE_CONNECTOR_PAYLOAD="$(jq -nc \
+  --arg name "$TIME_RANGE_CONNECTOR_NAME" \
+  --arg model "$OLLAMA_MODEL_NAME" \
+  --arg request_body "$TIME_RANGE_REQUEST_BODY" \
+  --argjson client_config "$CLIENT_CONFIG" \
+  '{name:$name, description:"Ollama connector for OpenSearch query time-range parsing", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
 
 CHAT_CONNECTOR_ID="$(upsert_connector "$CHAT_CONNECTOR_NAME" "$CHAT_CONNECTOR_PAYLOAD")"
 CHAT_MODEL_ID="$(ensure_model "$CHAT_MODEL_NAME" "$CHAT_CONNECTOR_ID")"
@@ -403,8 +421,33 @@ PPL_AGENT_PAYLOAD="$(jq -nc \
   '{name:$name, description:"Generate PPL queries from natural-language questions", type:"flow", app_type:"query_assist", tools:[{type:"PPLTool", name:"TransferQuestionToPPLAndExecuteTool", description:"Translate a natural-language question into an OpenSearch PPL query for the supplied index. Inputs: {index:IndexName, question:UserQuestion}.", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", response_filter:"$.choices[0].message.content", execute:false}}]}')"
 PPL_AGENT_ID="$(upsert_agent "$PPL_AGENT_NAME" "$PPL_AGENT_PAYLOAD")"
 
+TIME_RANGE_CONNECTOR_ID="$(upsert_connector "$TIME_RANGE_CONNECTOR_NAME" "$TIME_RANGE_CONNECTOR_PAYLOAD")"
+TIME_RANGE_MODEL_ID="$(ensure_model "$TIME_RANGE_MODEL_NAME" "$TIME_RANGE_CONNECTOR_ID")"
+
+# OpenSearch Dashboards accepts these timestamp formats without a timezone
+# suffix and leaves the existing date picker unchanged if no tags are returned.
+# shellcheck disable=SC2016
+TIME_RANGE_TOOL_PROMPT='Analyze whether the question contains a time constraint that applies to the selected time field.
+Current time (ISO 8601): ${parameters.current_time_iso}
+Selected time field: ${parameters.time_field}
+Other time fields in the index: ${parameters.other_time_fields}
+Question: ${parameters.question}
+
+Resolve relative expressions such as "last 24 hours" using the current time. If a time constraint applies to the selected time field, return exactly:
+<start>YYYY-MM-DD HH:mm:ss</start>
+<end>YYYY-MM-DD HH:mm:ss</end>
+The start must not be after the end. Do not include a timezone suffix, Markdown, or explanation. If the question has no applicable time constraint, or explicitly applies it to one of the other time fields, return an empty response.'
+
+TIME_RANGE_AGENT_PAYLOAD="$(jq -nc \
+  --arg name "$TIME_RANGE_AGENT_NAME" \
+  --arg model_id "$TIME_RANGE_MODEL_ID" \
+  --arg prompt "$TIME_RANGE_TOOL_PROMPT" \
+  '{name:$name, description:"Parse natural-language time constraints for the Discover date picker", type:"flow", app_type:"query_assist", tools:[{type:"MLModelTool", name:"QueryTimeRangeParserTool", description:"Extract an absolute start and end time for the selected OpenSearch time field.", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
+TIME_RANGE_AGENT_ID="$(upsert_agent "$TIME_RANGE_AGENT_NAME" "$TIME_RANGE_AGENT_PAYLOAD")"
+
 write_ml_config os_chat os_chat_root_agent "$ROOT_AGENT_ID"
 write_ml_config os_query_assist_ppl os_query_assist_ppl_agent "$PPL_AGENT_ID"
+write_ml_config os_query_time_range_parser os_query_time_range_parser_agent "$TIME_RANGE_AGENT_ID"
 
 log "Bootstrap complete"
 printf '  chat_connector_id=%s\n' "$CHAT_CONNECTOR_ID"
@@ -414,3 +457,6 @@ printf '  root_agent_id=%s\n' "$ROOT_AGENT_ID"
 printf '  ppl_connector_id=%s\n' "$PPL_CONNECTOR_ID"
 printf '  ppl_model_id=%s\n' "$PPL_MODEL_ID"
 printf '  ppl_agent_id=%s\n' "$PPL_AGENT_ID"
+printf '  time_range_connector_id=%s\n' "$TIME_RANGE_CONNECTOR_ID"
+printf '  time_range_model_id=%s\n' "$TIME_RANGE_MODEL_ID"
+printf '  time_range_agent_id=%s\n' "$TIME_RANGE_AGENT_ID"

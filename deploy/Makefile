@@ -359,7 +359,7 @@ pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
-opensearch-ai-init: ## Create or update Ollama-backed OpenSearch chat and PPL assistants
+opensearch-ai-init: ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
 	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
 
 start-openwebui: ## Start Open WebUI and its Ollama dependency

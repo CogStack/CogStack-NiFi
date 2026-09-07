@@ -136,6 +136,7 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 # deployment are performed through the REST API or the Dashboards Dev Tools UI.
 ml_commons_dashboards.enabled: true
 assistant.chat.enabled: true
+assistant.incontextInsight.enabled: true
 observability.query_assist.enabled: true
 
 savedObjects.permission.enabled: true
