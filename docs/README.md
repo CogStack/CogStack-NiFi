@@ -1,6 +1,8 @@
-# CogStack NiFi Documentation
+# CogStack NiFi documentation
 
-The central documentation for cogstack, hosted on docs.cogstack.org
+The published documentation is hosted at
+[cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/).
+Run the commands below from the repository root.
 
 ## Setup
 
@@ -12,9 +14,7 @@ The central documentation for cogstack, hosted on docs.cogstack.org
 ### Installation
 
 ```bash
-uv venv --python 3.12 --allow-existing 
-source .venv/bin/activate
-uv sync --dev
+uv sync --project docs --frozen
 ```
 
 ## Usage
@@ -24,17 +24,24 @@ uv sync --dev
 To preview the documentation locally with live reload:
 
 ```bash
-uv run mkdocs serve
+uv run --project docs mkdocs serve
 ```
 
-The documentation will be available at `http://127.0.0.1:8000`
+The documentation will be available at `http://127.0.0.1:8000`.
 
 ### Build documentation
 
 To build the static site:
 
 ```bash
-uv run mkdocs build
+uv run --project docs mkdocs build --strict
 ```
 
-The built site will be in the `site/` directory.
+The built site will be in the repository's `site/` directory.
+
+Run the documentation-specific checks with:
+
+```bash
+python3 scripts/tests/lint_markdown.py
+python3 scripts/tests/check_docs_links.py
+```

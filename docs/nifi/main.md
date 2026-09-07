@@ -280,7 +280,9 @@ To access the scheduling menu, right click on any processor > click configure > 
 <strong> <span style="color: red">IMPORTANT:</span></strong> In general, if a process is left on the default `0 sec` run schedule, it will attempt to start to work as soon as flowfiles are in the queue, this can be a problem as, some workflows contain large amounts of flowfiles that may also contain a huge number of records, it can strain the system at times by constantly performing I/O operations (remember that flowfiles are stored both in memory and on disk), it is best to delay the running of tasks by setting the `Run Schedule` to anything but the default, this is especially useful for DB query processors (ExecuteSQLRecord or QueryDatabaseTable), in which the schedule should be set to an interval of minutes as queries may be very slow in executing. This setting will have a direct impact on CPU and memory usage.
 
 `Concurrent tasks` are a good way to keep things running in parallel if you feel that data is not being processed fast enough, just be aware that as stated above, one task represents one thread, and as mentioned in the `maximum thread count` section, it should not exceed the max number.
-It should also be noted that a `processor` cannot have more `tasks` in current execution than the declared number `concurrent tasks`, if a task finishes its work you will notice that another will immidiately take it's place, of course, a new task may not be started if the current task has finished work and the timer is set on `run schedule` to be different than 0.
+A processor cannot run more tasks concurrently than its configured
+`Concurrent Tasks` value. When one task finishes, another can start immediately
+if work is available and the run schedule permits it.
 
 ### Benchmarking
 
