@@ -39,6 +39,7 @@ ENV_OVERRIDE_NAMES=(
   OPENSEARCH_AI_READ_TIMEOUT_SECONDS
   OPENSEARCH_AI_DEPLOY_TIMEOUT_SECONDS
   OPENSEARCH_AI_MAX_TOKENS
+  OPENSEARCH_AI_UTILITY_MAX_TOKENS
   OPENSEARCH_AI_REASONING_EFFORT
   OPENSEARCH_AI_CHAT_CONNECTOR_NAME
   OPENSEARCH_AI_CHAT_MODEL_NAME
@@ -50,6 +51,12 @@ ENV_OVERRIDE_NAMES=(
   OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME
   OPENSEARCH_AI_TIME_RANGE_MODEL_NAME
   OPENSEARCH_AI_TIME_RANGE_AGENT_NAME
+  OPENSEARCH_AI_UTILITY_CONNECTOR_NAME
+  OPENSEARCH_AI_UTILITY_MODEL_NAME
+  OPENSEARCH_AI_AD_CONNECTOR_NAME
+  OPENSEARCH_AI_AD_MODEL_NAME
+  OPENSEARCH_AI_VISUAL_CONNECTOR_NAME
+  OPENSEARCH_AI_VISUAL_MODEL_NAME
 )
 ENV_OVERRIDES=()
 for variable_name in "${ENV_OVERRIDE_NAMES[@]}"; do
@@ -76,6 +83,7 @@ CONNECTION_TIMEOUT="${OPENSEARCH_AI_CONNECTION_TIMEOUT_SECONDS:-120}"
 READ_TIMEOUT="${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}"
 DEPLOY_TIMEOUT="${OPENSEARCH_AI_DEPLOY_TIMEOUT_SECONDS:-300}"
 MAX_TOKENS="${OPENSEARCH_AI_MAX_TOKENS:-256}"
+UTILITY_MAX_TOKENS="${OPENSEARCH_AI_UTILITY_MAX_TOKENS:-1024}"
 REASONING_EFFORT="${OPENSEARCH_AI_REASONING_EFFORT:-none}"
 
 CHAT_CONNECTOR_NAME="${OPENSEARCH_AI_CHAT_CONNECTOR_NAME:-Ollama Qwen Agent Connector}"
@@ -88,6 +96,12 @@ PPL_AGENT_NAME="${OPENSEARCH_AI_PPL_AGENT_NAME:-Qwen PPL Query Assist Agent}"
 TIME_RANGE_CONNECTOR_NAME="${OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME:-Ollama Qwen Time Range Connector}"
 TIME_RANGE_MODEL_NAME="${OPENSEARCH_AI_TIME_RANGE_MODEL_NAME:-Qwen 3.5 Ollama Time Range Model}"
 TIME_RANGE_AGENT_NAME="${OPENSEARCH_AI_TIME_RANGE_AGENT_NAME:-Qwen Query Time Range Parser Agent}"
+UTILITY_CONNECTOR_NAME="${OPENSEARCH_AI_UTILITY_CONNECTOR_NAME:-Ollama Qwen Dashboards Utility Connector}"
+UTILITY_MODEL_NAME="${OPENSEARCH_AI_UTILITY_MODEL_NAME:-Qwen 3.5 Dashboards Utility Model}"
+AD_CONNECTOR_NAME="${OPENSEARCH_AI_AD_CONNECTOR_NAME:-Ollama Qwen Anomaly Suggestion Connector}"
+AD_MODEL_NAME="${OPENSEARCH_AI_AD_MODEL_NAME:-Qwen 3.5 Anomaly Suggestion Model}"
+VISUAL_CONNECTOR_NAME="${OPENSEARCH_AI_VISUAL_CONNECTOR_NAME:-Ollama Qwen Visualization Connector}"
+VISUAL_MODEL_NAME="${OPENSEARCH_AI_VISUAL_MODEL_NAME:-Qwen 3.5 Visualization Model}"
 
 OPENSEARCH_URL="https://localhost:9200"
 OPENSEARCH_CA="/usr/share/opensearch/config/root-ca.crt"
@@ -99,7 +113,7 @@ for command_name in docker jq; do
   command -v "$command_name" >/dev/null 2>&1 || die "$command_name is required"
 done
 
-for integer_value in "$CONNECTION_TIMEOUT" "$READ_TIMEOUT" "$DEPLOY_TIMEOUT" "$MAX_TOKENS"; do
+for integer_value in "$CONNECTION_TIMEOUT" "$READ_TIMEOUT" "$DEPLOY_TIMEOUT" "$MAX_TOKENS" "$UTILITY_MAX_TOKENS"; do
   [[ "$integer_value" =~ ^[1-9][0-9]*$ ]] || die "timeout and token settings must be positive integers"
 done
 
@@ -351,6 +365,22 @@ write_ml_config() {
   os_request PUT "/.plugins-ml-config/_doc/$config_id?refresh=true" "$payload" >/dev/null
 }
 
+ensure_utility_agent() {
+  local name="$1"
+  local description="$2"
+  local app_type="$3"
+  local prompt="$4"
+  local payload
+  payload="$(jq -nc \
+    --arg name "$name" \
+    --arg description "$description" \
+    --arg app_type "$app_type" \
+    --arg model_id "$UTILITY_MODEL_ID" \
+    --arg prompt "$prompt" \
+    '{name:$name, description:$description, type:"flow", app_type:$app_type, tools:[{type:"MLModelTool", name:"LLMResponseGenerator", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
+  upsert_agent "$name" "$payload"
+}
+
 wait_for_opensearch
 wait_for_ollama
 
@@ -370,6 +400,29 @@ printf -v PPL_REQUEST_BODY \
 printf -v TIME_RANGE_REQUEST_BODY \
   '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Parse time constraints for an OpenSearch date picker. Follow the requested XML output format exactly and return no explanation."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
   "$MAX_TOKENS" "$REASONING_EFFORT"
+
+# General-purpose strict-output connector used by the feature-specific agents
+# below. Their MLModelTool prompts define the exact response contract expected
+# by each OpenSearch Dashboards route.
+# shellcheck disable=SC2016
+printf -v UTILITY_REQUEST_BODY \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Follow the requested output format exactly. Do not add Markdown fences or commentary outside that format."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
+
+# The anomaly detector UI calls String.split on every multi-value property.
+# Enforce strings at the Ollama decoder so the UI never receives JSON arrays.
+# shellcheck disable=SC2016
+printf -v AD_REQUEST_BODY \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Suggest anomaly detector parameters from the supplied index mapping. Follow the JSON schema exactly."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s", "response_format":{"type":"json_schema","json_schema":{"name":"anomaly_detector_parameters","strict":true,"schema":{"type":"object","properties":{"categoryField":{"type":"string"},"aggregationField":{"type":"string"},"aggregationMethod":{"type":"string"},"dateFields":{"type":"string"}},"required":["categoryField","aggregationField","aggregationMethod","dateFields"],"additionalProperties":false}}} }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
+
+# Qwen 3.5 is multimodal. Send notebook visualization screenshots through the
+# OpenAI-compatible image_url message format and make the model emit the nested
+# JSON shape expected by the Dashboards investigation plugin.
+# shellcheck disable=SC2016
+printf -v VISUAL_REQUEST_BODY \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Summarize the supplied OpenSearch visualization. Return only JSON shaped as {\\"output\\":{\\"message\\":{\\"content\\":[{\\"text\\":\\"concise summary\\"}]}}}."},{"role":"user","content":[{"type":"text","text":"Explain the notable trends, outliers, and operational meaning. Local timezone offset in minutes: ${parameters.local_time_offset}"},{"type":"image_url","image_url":{"url":"data:image/jpeg;base64,${parameters.image_base64}"}}]}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
 
 CLIENT_CONFIG="$(jq -nc \
   --argjson connection_timeout "$CONNECTION_TIMEOUT" \
@@ -396,6 +449,27 @@ TIME_RANGE_CONNECTOR_PAYLOAD="$(jq -nc \
   --arg request_body "$TIME_RANGE_REQUEST_BODY" \
   --argjson client_config "$CLIENT_CONFIG" \
   '{name:$name, description:"Ollama connector for OpenSearch query time-range parsing", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+
+UTILITY_CONNECTOR_PAYLOAD="$(jq -nc \
+  --arg name "$UTILITY_CONNECTOR_NAME" \
+  --arg model "$OLLAMA_MODEL_NAME" \
+  --arg request_body "$UTILITY_REQUEST_BODY" \
+  --argjson client_config "$CLIENT_CONFIG" \
+  '{name:$name, description:"Ollama connector for OpenSearch Dashboards feature agents", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+
+AD_CONNECTOR_PAYLOAD="$(jq -nc \
+  --arg name "$AD_CONNECTOR_NAME" \
+  --arg model "$OLLAMA_MODEL_NAME" \
+  --arg request_body "$AD_REQUEST_BODY" \
+  --argjson client_config "$CLIENT_CONFIG" \
+  '{name:$name, description:"Structured-output Ollama connector for anomaly detector suggestions", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+
+VISUAL_CONNECTOR_PAYLOAD="$(jq -nc \
+  --arg name "$VISUAL_CONNECTOR_NAME" \
+  --arg model "$OLLAMA_MODEL_NAME" \
+  --arg request_body "$VISUAL_REQUEST_BODY" \
+  --argjson client_config "$CLIENT_CONFIG" \
+  '{name:$name, description:"OpenAI-compatible Ollama connector for visualization screenshots", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
 
 CHAT_CONNECTOR_ID="$(upsert_connector "$CHAT_CONNECTOR_NAME" "$CHAT_CONNECTOR_PAYLOAD")"
 CHAT_MODEL_ID="$(ensure_model "$CHAT_MODEL_NAME" "$CHAT_CONNECTOR_ID")"
@@ -445,9 +519,136 @@ TIME_RANGE_AGENT_PAYLOAD="$(jq -nc \
   '{name:$name, description:"Parse natural-language time constraints for the Discover date picker", type:"flow", app_type:"query_assist", tools:[{type:"MLModelTool", name:"QueryTimeRangeParserTool", description:"Extract an absolute start and end time for the selected OpenSearch time field.", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
 TIME_RANGE_AGENT_ID="$(upsert_agent "$TIME_RANGE_AGENT_NAME" "$TIME_RANGE_AGENT_PAYLOAD")"
 
+UTILITY_CONNECTOR_ID="$(upsert_connector "$UTILITY_CONNECTOR_NAME" "$UTILITY_CONNECTOR_PAYLOAD")"
+UTILITY_MODEL_ID="$(ensure_model "$UTILITY_MODEL_NAME" "$UTILITY_CONNECTOR_ID")"
+
+# Keep the placeholders literal so ML Commons substitutes request parameters
+# when each agent executes.
+# shellcheck disable=SC2016
+DATA2SUMMARY_PROMPT='Summarize these OpenSearch results for the user.
+Question: ${parameters.question}
+PPL query: ${parameters.ppl}
+Sample count: ${parameters.sample_count}
+Total count: ${parameters.total_count}
+Sample data: ${parameters.sample_data}
+Highlight the most useful findings and uncertainty. Return plain text.'
+
+# shellcheck disable=SC2016
+LOG_DATA2SUMMARY_PROMPT='Summarize these OpenSearch log results.
+Question: ${parameters.question}
+PPL query: ${parameters.ppl}
+Sample count: ${parameters.sample_count}
+Total count: ${parameters.total_count}
+Sample data: ${parameters.sample_data}
+Emphasize recurring log patterns, error signals, unusual values, and likely operational impact. Return plain text.'
+
+# shellcheck disable=SC2016
+INDEX_TYPE_PROMPT='Decide whether the index contains logs, events, traces, audit records, or other timestamped operational records.
+Mapping: ${parameters.schema}
+Sample documents: ${parameters.sampleData}
+Return only valid JSON in this exact shape: {"isRelated":true,"reason":"short reason"}. Use false when the data is primarily business entities or reference data.'
+
+# shellcheck disable=SC2016
+QUERY_RESPONSE_SUMMARY_PROMPT='Explain the result of an OpenSearch PPL query.
+Index: ${parameters.index}
+Question: ${parameters.question}
+PPL: ${parameters.query}
+Response: ${parameters.response}
+Give a concise factual answer, mention important totals or trends, and do not invent missing values.'
+
+# shellcheck disable=SC2016
+QUERY_ERROR_SUMMARY_PROMPT='Explain why this OpenSearch PPL query failed and suggest a corrected query.
+Index: ${parameters.index}
+Question: ${parameters.question}
+PPL: ${parameters.query}
+Error response: ${parameters.response}
+Available fields: ${parameters.fields}
+Return a concise explanation followed by one corrected PPL query.'
+
+# shellcheck disable=SC2016
+ALERT_SUMMARY_PROMPT='Summarize this OpenSearch alert context.
+Question: ${parameters.question}
+Index: ${parameters.index}
+Query input: ${parameters.input}
+Context: ${parameters.context}
+Return the response as <summarization>concise evidence-based summary</summarization><final insights>recommended next checks</final insights>.'
+
+# shellcheck disable=SC2016
+LOG_ALERT_SUMMARY_PROMPT='Summarize this OpenSearch log alert context.
+Question: ${parameters.question}
+Index: ${parameters.index}
+Query input: ${parameters.input}
+Context: ${parameters.context}
+Top log patterns: ${parameters.topNLogPatternData}
+Return the response as <summarization>concise evidence-based summary</summarization><final insights>notable patterns and recommended next checks</final insights>.'
+
+# shellcheck disable=SC2016
+TEXT2VEGA_PROMPT='Create a Vega-Lite v5 specification for these OpenSearch query results.
+Question: ${parameters.input_question}
+PPL: ${parameters.ppl}
+Data schema: ${parameters.dataSchema}
+Sample data: ${parameters.sampleData}
+Use field names that exist in the supplied data. Return only one valid JSON object. Do not include width, height, or inline data.'
+
+# shellcheck disable=SC2016
+TEXT2VEGA_INSTRUCTIONS_PROMPT='Modify or create a Vega-Lite v5 specification for these OpenSearch query results.
+Question: ${parameters.input_question}
+Requested visualization change: ${parameters.input_instruction}
+PPL: ${parameters.ppl}
+Data schema: ${parameters.dataSchema}
+Sample data: ${parameters.sampleData}
+Use field names that exist in the supplied data. Return only one valid JSON object. Do not include width, height, or inline data.'
+
+DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Data Summary Agent" "Summarize Discover result samples" "os_data2summary" "$DATA2SUMMARY_PROMPT")"
+LOG_DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Log Data Summary Agent" "Summarize Discover log result samples" "os_data2summary" "$LOG_DATA2SUMMARY_PROMPT")"
+INDEX_TYPE_AGENT_ID="$(ensure_utility_agent "Qwen Index Type Detection Agent" "Classify whether an index contains operational log data" "os_index_type_detect" "$INDEX_TYPE_PROMPT")"
+QUERY_RESPONSE_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Query Response Summary Agent" "Summarize successful PPL query results" "query_assist" "$QUERY_RESPONSE_SUMMARY_PROMPT")"
+QUERY_ERROR_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Query Error Summary Agent" "Explain failed PPL queries" "query_assist" "$QUERY_ERROR_SUMMARY_PROMPT")"
+ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Alert Summary Agent" "Summarize alert context" "os_summary" "$ALERT_SUMMARY_PROMPT")"
+LOG_ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Log Alert Summary Agent" "Summarize log alert context" "os_summary" "$LOG_ALERT_SUMMARY_PROMPT")"
+TEXT2VEGA_AGENT_ID="$(ensure_utility_agent "Qwen Text to Vega Agent" "Create Vega-Lite specifications from query results" "os_text2vega" "$TEXT2VEGA_PROMPT")"
+TEXT2VEGA_INSTRUCTIONS_AGENT_ID="$(ensure_utility_agent "Qwen Text to Vega Instructions Agent" "Modify Vega-Lite specifications using user instructions" "os_text2vega" "$TEXT2VEGA_INSTRUCTIONS_PROMPT")"
+
+AD_CONNECTOR_ID="$(upsert_connector "$AD_CONNECTOR_NAME" "$AD_CONNECTOR_PAYLOAD")"
+AD_MODEL_ID="$(ensure_model "$AD_MODEL_NAME" "$AD_CONNECTOR_ID")"
+
+# The anomaly detector UI supplies only an index name. Fetch its mapping first,
+# then ask the model for the exact comma-delimited JSON fields consumed by the
+# UI form.
+# shellcheck disable=SC2016
+SUGGEST_AD_PROMPT='Suggest OpenSearch anomaly detector fields using this index mapping.
+Index: ${parameters.index}
+Mapping and settings: ${parameters.IndexMappingTool.output}
+Choose one to three suitable numeric or countable aggregation fields, matching aggregation methods such as avg, sum, min, max, or count, all date fields, and at most one keyword category field.
+Return only valid JSON in this exact shape: {"categoryField":"service.keyword","aggregationField":"latency,error_count","aggregationMethod":"avg,sum","dateFields":"@timestamp"}. Every property value must be a JSON string, never an array. Represent multiple fields or methods inside one comma-delimited string. Use an empty categoryField when none is suitable. The aggregationField and aggregationMethod comma-delimited lists must have equal lengths.'
+
+SUGGEST_AD_AGENT_PAYLOAD="$(jq -nc \
+  --arg model_id "$AD_MODEL_ID" \
+  --arg prompt "$SUGGEST_AD_PROMPT" \
+  '{name:"Qwen Anomaly Detector Suggestion Agent", description:"Suggest anomaly detector fields from an index mapping", type:"flow", app_type:"os_suggest_ad", tools:[{type:"IndexMappingTool", name:"IndexMappingTool", include_output_in_agent_response:false, parameters:{index:"${parameters.index}"}},{type:"MLModelTool", name:"SuggestAnomalyDetectorTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
+SUGGEST_AD_AGENT_ID="$(upsert_agent "Qwen Anomaly Detector Suggestion Agent" "$SUGGEST_AD_AGENT_PAYLOAD")"
+
+VISUAL_CONNECTOR_ID="$(upsert_connector "$VISUAL_CONNECTOR_NAME" "$VISUAL_CONNECTOR_PAYLOAD")"
+VISUAL_MODEL_ID="$(ensure_model "$VISUAL_MODEL_NAME" "$VISUAL_CONNECTOR_ID")"
+VISUAL_SUMMARY_AGENT_PAYLOAD="$(jq -nc \
+  --arg model_id "$VISUAL_MODEL_ID" \
+  '{name:"Qwen Visualization Summary Agent", description:"Summarize OpenSearch notebook visualization screenshots", type:"flow", app_type:"os_visualization_summary", tools:[{type:"MLModelTool", name:"VisualizationSummaryTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", response_filter:"$.choices[0].message.content"}}]}')"
+VISUAL_SUMMARY_AGENT_ID="$(upsert_agent "Qwen Visualization Summary Agent" "$VISUAL_SUMMARY_AGENT_PAYLOAD")"
+
 write_ml_config os_chat os_chat_root_agent "$ROOT_AGENT_ID"
 write_ml_config os_query_assist_ppl os_query_assist_ppl_agent "$PPL_AGENT_ID"
 write_ml_config os_query_time_range_parser os_query_time_range_parser_agent "$TIME_RANGE_AGENT_ID"
+write_ml_config os_data2summary os_data2summary_agent "$DATA2SUMMARY_AGENT_ID"
+write_ml_config os_data2summary_with_log_pattern os_data2summary_agent "$LOG_DATA2SUMMARY_AGENT_ID"
+write_ml_config os_index_type_detect os_index_type_detect_agent "$INDEX_TYPE_AGENT_ID"
+write_ml_config os_query_assist_response_summary os_query_assist_response_summary_agent "$QUERY_RESPONSE_SUMMARY_AGENT_ID"
+write_ml_config os_query_assist_error_summary os_query_assist_error_summary_agent "$QUERY_ERROR_SUMMARY_AGENT_ID"
+write_ml_config os_summary os_summary_agent "$ALERT_SUMMARY_AGENT_ID"
+write_ml_config os_summary_with_log_pattern os_summary_agent "$LOG_ALERT_SUMMARY_AGENT_ID"
+write_ml_config os_text2vega os_text2vega_agent "$TEXT2VEGA_AGENT_ID"
+write_ml_config os_text2vega_with_instructions os_text2vega_agent "$TEXT2VEGA_INSTRUCTIONS_AGENT_ID"
+write_ml_config os_suggest_ad os_suggest_ad_agent "$SUGGEST_AD_AGENT_ID"
+write_ml_config os_visualization_summary os_visualization_summary_agent "$VISUAL_SUMMARY_AGENT_ID"
 
 log "Bootstrap complete"
 printf '  chat_connector_id=%s\n' "$CHAT_CONNECTOR_ID"
@@ -460,3 +661,6 @@ printf '  ppl_agent_id=%s\n' "$PPL_AGENT_ID"
 printf '  time_range_connector_id=%s\n' "$TIME_RANGE_CONNECTOR_ID"
 printf '  time_range_model_id=%s\n' "$TIME_RANGE_MODEL_ID"
 printf '  time_range_agent_id=%s\n' "$TIME_RANGE_AGENT_ID"
+printf '  utility_model_id=%s\n' "$UTILITY_MODEL_ID"
+printf '  anomaly_suggestion_model_id=%s\n' "$AD_MODEL_ID"
+printf '  visualization_model_id=%s\n' "$VISUAL_MODEL_ID"
