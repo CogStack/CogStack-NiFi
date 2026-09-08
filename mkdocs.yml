@@ -40,6 +40,7 @@ exclude_docs: |
 nav:
   - Home: index.md
   - 📰 News: news.md
+  - 🛠️ Building the documentation: building-documentation.md
   - 📋 Prerequisites: deploy/main.md
   - 📦 Air-gapped NiFi: deploy/air-gapped.md
   - 📦 Deployment: deploy/deployment.md
