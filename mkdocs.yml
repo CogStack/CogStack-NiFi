@@ -41,6 +41,7 @@ nav:
   - Home: index.md
   - 📰 News: news.md
   - 📋 Prerequisites: deploy/main.md
+  - 📦 Air-gapped NiFi: deploy/air-gapped.md
   - 📦 Deployment: deploy/deployment.md
   - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md

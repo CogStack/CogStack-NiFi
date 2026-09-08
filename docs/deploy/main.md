@@ -36,6 +36,11 @@ Software required on machine (the minimum/basics to get demos running):
 
 ## ⚙️ Installation steps
 
+For a machine with no internet access, use the separate
+[Air-gapped NiFi deployment](./air-gapped.md) guide. The steps below assume the
+machine can reach package repositories, Git hosting, Git LFS storage, and
+container registries.
+
 Assuming you are the system admin, meaning you have `sudo` rights.
 You can use the script located at `scripts/installation_utils/install_docker_and_utils.sh`; it can be used on Debian(10+)/Ubuntu(22.04+)/RedHAT RHEL 8/9 only. Run it once and everything should be set up. The script resolves its helper files relative to its own location, so it can be run from any directory.
 
