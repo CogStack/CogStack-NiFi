@@ -514,6 +514,39 @@ services:
       start_period: 20s
 
 #---------------------------------------------------------------------------#
+# OpenSearch-to-Ollama tool-call compatibility proxy                        #
+#---------------------------------------------------------------------------#
+  ollama-openai-proxy:
+    build:
+      context: ../services/ollama-openai-proxy
+    image: ${OLLAMA_OPENAI_PROXY_DOCKER_IMAGE:-cogstack/ollama-openai-proxy:local}
+    container_name: ${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      OLLAMA_UPSTREAM_HOST: ollama
+      OLLAMA_UPSTREAM_PORT: 11434
+      OLLAMA_UPSTREAM_TIMEOUT_SECONDS: ${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    expose:
+      - "11435"
+    networks:
+      - cognet
+    logging: *logging-common
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:11435/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+#---------------------------------------------------------------------------#
 # Open WebUI for local Ollama chat and model management                      #
 #---------------------------------------------------------------------------#
   open-webui:

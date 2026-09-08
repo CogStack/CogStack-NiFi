@@ -354,12 +354,15 @@ start-kibana:
 start-ollama: ## Start the Ollama inference service
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) ollama
 
+start-ollama-openai-proxy: ## Build and start the OpenSearch-to-Ollama compatibility proxy
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) --build ollama-openai-proxy
+
 pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 	$(WITH_ENV) docker compose -f services.yml exec -T ollama ollama pull "$${OLLAMA_MODEL}"
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
-opensearch-ai-init: ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
+opensearch-ai-init: start-ollama-openai-proxy ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
 	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
 
 start-openwebui: ## Start Open WebUI and its Ollama dependency
@@ -402,7 +405,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
 
 
 # stop services

@@ -32,6 +32,8 @@ ENV_OVERRIDE_NAMES=(
   ELASTIC_PASSWORD
   OLLAMA_CONTAINER_NAME
   OLLAMA_MODEL
+  OLLAMA_OPENAI_PROXY_CONTAINER_NAME
+  OPENSEARCH_AI_CHAT_ENDPOINT
   OPENSEARCH_AI_OPENSEARCH_CONTAINER
   OPENSEARCH_AI_OPENSEARCH_USER
   OPENSEARCH_AI_OPENSEARCH_PASSWORD
@@ -41,6 +43,8 @@ ENV_OVERRIDE_NAMES=(
   OPENSEARCH_AI_MAX_TOKENS
   OPENSEARCH_AI_UTILITY_MAX_TOKENS
   OPENSEARCH_AI_REASONING_EFFORT
+  OPENSEARCH_AI_CHAT_MAX_ITERATIONS
+  OPENSEARCH_AI_PPL_RESULT_LIMIT
   OPENSEARCH_AI_CHAT_CONNECTOR_NAME
   OPENSEARCH_AI_CHAT_MODEL_NAME
   OPENSEARCH_AI_CHAT_AGENT_NAME
@@ -77,7 +81,9 @@ OPENSEARCH_CONTAINER="${OPENSEARCH_AI_OPENSEARCH_CONTAINER:-elasticsearch-1}"
 OPENSEARCH_USER="${OPENSEARCH_AI_OPENSEARCH_USER:-${ELASTIC_USER:-admin}}"
 OPENSEARCH_PASSWORD="${OPENSEARCH_AI_OPENSEARCH_PASSWORD:-${ELASTIC_PASSWORD:-}}"
 OLLAMA_CONTAINER="${OLLAMA_CONTAINER_NAME:-cogstack-ollama}"
+OLLAMA_OPENAI_PROXY_CONTAINER="${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}"
 OLLAMA_MODEL_NAME="${OLLAMA_MODEL:-qwen3.5:9b-q4_K_M}"
+CHAT_ENDPOINT="${OPENSEARCH_AI_CHAT_ENDPOINT:-ollama-openai-proxy:11435}"
 
 CONNECTION_TIMEOUT="${OPENSEARCH_AI_CONNECTION_TIMEOUT_SECONDS:-120}"
 READ_TIMEOUT="${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}"
@@ -85,6 +91,8 @@ DEPLOY_TIMEOUT="${OPENSEARCH_AI_DEPLOY_TIMEOUT_SECONDS:-300}"
 MAX_TOKENS="${OPENSEARCH_AI_MAX_TOKENS:-256}"
 UTILITY_MAX_TOKENS="${OPENSEARCH_AI_UTILITY_MAX_TOKENS:-1024}"
 REASONING_EFFORT="${OPENSEARCH_AI_REASONING_EFFORT:-none}"
+CHAT_MAX_ITERATIONS="${OPENSEARCH_AI_CHAT_MAX_ITERATIONS:-8}"
+PPL_RESULT_LIMIT="${OPENSEARCH_AI_PPL_RESULT_LIMIT:-100}"
 
 CHAT_CONNECTOR_NAME="${OPENSEARCH_AI_CHAT_CONNECTOR_NAME:-Ollama Qwen Agent Connector}"
 CHAT_MODEL_NAME="${OPENSEARCH_AI_CHAT_MODEL_NAME:-Qwen 3.5 Ollama Agent Model}"
@@ -113,7 +121,7 @@ for command_name in docker jq; do
   command -v "$command_name" >/dev/null 2>&1 || die "$command_name is required"
 done
 
-for integer_value in "$CONNECTION_TIMEOUT" "$READ_TIMEOUT" "$DEPLOY_TIMEOUT" "$MAX_TOKENS" "$UTILITY_MAX_TOKENS"; do
+for integer_value in "$CONNECTION_TIMEOUT" "$READ_TIMEOUT" "$DEPLOY_TIMEOUT" "$MAX_TOKENS" "$UTILITY_MAX_TOKENS" "$CHAT_MAX_ITERATIONS" "$PPL_RESULT_LIMIT"; do
   [[ "$integer_value" =~ ^[1-9][0-9]*$ ]] || die "timeout and token settings must be positive integers"
 done
 
@@ -121,6 +129,8 @@ done
   || die "OpenSearch container '$OPENSEARCH_CONTAINER' is not running"
 [[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_CONTAINER" 2>/dev/null)" == "true" ]] \
   || die "Ollama container '$OLLAMA_CONTAINER' is not running"
+[[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_OPENAI_PROXY_CONTAINER" 2>/dev/null)" == "true" ]] \
+  || die "Ollama OpenAI compatibility proxy '$OLLAMA_OPENAI_PROXY_CONTAINER' is not running"
 
 os_request() {
   local method="$1"
@@ -388,12 +398,12 @@ wait_for_ollama
 # placeholders until connector inference time.
 # shellcheck disable=SC2016
 printf -v CHAT_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"${parameters.system_prompt}"},${parameters._chat_history:-}{"role":"user","content":"${parameters.prompt}"}${parameters._interactions:-}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s"${parameters.tool_configs:-} }' \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"${parameters.system_prompt}"},{"role":"user","content":"Join orders with customers on customer_id and return order_id and customer name, limited to 10 rows."},{"role":"assistant","content":"","tool_calls":[{"id":"join_example","index":0,"type":"function","function":{"name":"TransferQuestionToPPLAndExecuteTool","arguments":"{\\\"index\\\":\\\"orders\\\",\\\"question\\\":\\\"Join orders with customers on customer_id. Return order_id and customer name. Limit to 10 rows.\\\"}"}}]},{"role":"tool","tool_call_id":"join_example","name":"TransferQuestionToPPLAndExecuteTool","content":"PPL: source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.order_id, r.name | head 10. Result: order_id 1, name Alice. Total rows: 1."},{"role":"assistant","content":"The join returned one row: order 1 belongs to Alice."},${parameters._chat_history:-}{"role":"user","content":"${parameters.prompt}"}${parameters._interactions:-}], "stream": false, "temperature": 0, "max_tokens": %d, "reasoning_effort": "%s"${parameters.tool_configs:-} }' \
   "$MAX_TOKENS" "$REASONING_EFFORT"
 
 # shellcheck disable=SC2016
 printf -v PPL_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Translate the request into a valid OpenSearch PPL query. Return only the PPL query."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Translate the request into exactly one valid, read-only OpenSearch PPL query and return only the query, with no Markdown or explanation. Never use SQL syntax such as SELECT, FROM, JOIN ... ON, LIMIT, or column AS aliases. For every two-index join, aliases MUST be exactly l for the left index and r for the right index. The condition MUST compare l.join_field = r.join_field; never compare the same alias on both sides. Prefix every projected left field with l and every projected right field with r. Preserve every requested output field in the fields command, including a join field when the user requests it as output. Put the right index immediately after the join condition. Use fields, never select, to project columns. Use head, never limit, to cap results. Filter each side before joining when filters are requested. Finish with head 100 unless the request asks for a smaller limit. Never target system indices whose names start with a dot."},{"role":"user","content":"Join orders with customers on customer_id and return customer_id, order_id, and customer name, limited to 10 rows."},{"role":"assistant","content":"source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.customer_id, l.order_id, r.name | head 10"},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "temperature": 0, "max_tokens": %d, "reasoning_effort": "%s" }' \
   "$MAX_TOKENS" "$REASONING_EFFORT"
 
 # shellcheck disable=SC2016
@@ -432,9 +442,10 @@ CLIENT_CONFIG="$(jq -nc \
 CHAT_CONNECTOR_PAYLOAD="$(jq -nc \
   --arg name "$CHAT_CONNECTOR_NAME" \
   --arg model "$OLLAMA_MODEL_NAME" \
+  --arg endpoint "$CHAT_ENDPOINT" \
   --arg request_body "$CHAT_REQUEST_BODY" \
   --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"OpenAI-compatible Ollama connector for OpenSearch conversational agents", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+  '{name:$name, description:"OpenAI-compatible Ollama connector for OpenSearch conversational agents", version:"1", protocol:"http", parameters:{endpoint:$endpoint, model:$model}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
 
 PPL_CONNECTOR_PAYLOAD="$(jq -nc \
   --arg name "$PPL_CONNECTOR_NAME" \
@@ -474,10 +485,19 @@ VISUAL_CONNECTOR_PAYLOAD="$(jq -nc \
 CHAT_CONNECTOR_ID="$(upsert_connector "$CHAT_CONNECTOR_NAME" "$CHAT_CONNECTOR_PAYLOAD")"
 CHAT_MODEL_ID="$(ensure_model "$CHAT_MODEL_NAME" "$CHAT_CONNECTOR_ID")"
 
+PPL_CONNECTOR_ID="$(upsert_connector "$PPL_CONNECTOR_NAME" "$PPL_CONNECTOR_PAYLOAD")"
+PPL_MODEL_ID="$(ensure_model "$PPL_MODEL_NAME" "$PPL_CONNECTOR_ID")"
+
+CHAT_SYSTEM_PROMPT='You are a read-only OpenSearch assistant. Use the available tools to discover permitted indices, inspect mappings, search documents, and run PPL analytics. Use the PPL tool for every join between indices. If the user already supplied both index names and the join field, call the PPL tool immediately and exactly once; do not list indices or inspect mappings first. Pass the PPL tool a concise, self-contained natural-language request containing the index names, join type and field, requested output fields, filters, and result limit. Do not add SQL or a proposed query to that request. Inspect mappings only when an index, join field, or field type is missing or an execution error indicates a mapping problem. After a tool returns rows, stop calling tools and answer from those rows. Never repeat a successful tool call. If PPL execution fails with a syntax error, retry it at most once and include the error plus this canonical grammar in the natural-language request: source = left_index | inner join left=l right=r on l.key = r.key right_index | fields l.field, r.field | head 5. For ListIndexTool, pass indices as a comma-delimited string and use * to list all permitted indices. Never target system indices, perform writes, change mappings or settings, or claim an operation succeeded unless a tool result confirms it.'
+
 CHAT_AGENT_PAYLOAD="$(jq -nc \
   --arg name "$CHAT_AGENT_NAME" \
   --arg model_id "$CHAT_MODEL_ID" \
-  '{name:$name, description:"Local Qwen assistant served through Ollama", type:"conversational", app_type:"os_chat", memory:{type:"conversation_index"}, llm:{model_id:$model_id, parameters:{max_iteration:"3", response_filter:"$.response", system_prompt:"You are a helpful OpenSearch assistant. Keep answers concise unless the user requests detail.", prompt:"${parameters.question}", message_history_limit:"5"}}, parameters:{_llm_interface:"openai/v1/chat/completions"}}')"
+  --arg ppl_model_id "$PPL_MODEL_ID" \
+  --arg max_iteration "$CHAT_MAX_ITERATIONS" \
+  --arg system_prompt "$CHAT_SYSTEM_PROMPT" \
+  --argjson ppl_result_limit "$PPL_RESULT_LIMIT" \
+  '{name:$name, description:"Read-only OpenSearch assistant with index discovery, search, and PPL join support", type:"conversational", app_type:"os_chat", memory:{type:"conversation_index"}, llm:{model_id:$model_id, parameters:{max_iteration:$max_iteration, response_filter:"$.response", system_prompt:$system_prompt, prompt:"${parameters.question}", message_history_limit:"5"}}, parameters:{_llm_interface:"openai/v1/chat/completions"}, tools:[{type:"ListIndexTool", name:"ListIndexTool", description:"List visible OpenSearch indices. Always pass indices as a comma-delimited string; use * to list all permitted indices."},{type:"IndexMappingTool", name:"IndexMappingTool", description:"Inspect mappings and settings only when field information needed for a search or join is missing."},{type:"SearchIndexTool", name:"SearchIndexTool", description:"Run a read-only OpenSearch Query DSL search against an allowed index."},{type:"PPLTool", name:"TransferQuestionToPPLAndExecuteTool", description:"Generate and execute one read-only PPL analytics or join query. When index names and a join field are known, call this tool directly with only a self-contained natural-language request; never include SQL or a proposed query.", parameters:{model_id:$ppl_model_id, model_type:"OPENAI", response_filter:"$.choices[0].message.content", execute:true, head:$ppl_result_limit}, attributes:{input_schema:{type:"object", properties:{index:{type:"string", description:"Primary OpenSearch index for the PPL query. Put additional join index names in question."}, question:{type:"string", description:"Natural language only: include index names, join type and field, desired fields, filters, and result limit. Do not include SQL or a proposed PPL query."}}, required:["index","question"], additionalProperties:false}}}]}')"
 CHAT_AGENT_ID="$(upsert_agent "$CHAT_AGENT_NAME" "$CHAT_AGENT_PAYLOAD")"
 
 ROOT_AGENT_PAYLOAD="$(jq -nc \
@@ -485,9 +505,6 @@ ROOT_AGENT_PAYLOAD="$(jq -nc \
   --arg agent_id "$CHAT_AGENT_ID" \
   '{name:$name, description:"Root agent for OpenSearch Assistant", type:"flow", app_type:"os_chat", tools:[{type:"AgentTool", name:"LLMResponseGenerator", include_output_in_agent_response:true, parameters:{agent_id:$agent_id}}]}')"
 ROOT_AGENT_ID="$(upsert_agent "$ROOT_AGENT_NAME" "$ROOT_AGENT_PAYLOAD")"
-
-PPL_CONNECTOR_ID="$(upsert_connector "$PPL_CONNECTOR_NAME" "$PPL_CONNECTOR_PAYLOAD")"
-PPL_MODEL_ID="$(ensure_model "$PPL_MODEL_NAME" "$PPL_CONNECTOR_ID")"
 
 PPL_AGENT_PAYLOAD="$(jq -nc \
   --arg name "$PPL_AGENT_NAME" \
