@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"  # this is correct even if workflows are in .github/workflows
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   # Keep the owned NiFi Dockerfile base image up to date.
   - package-ecosystem: "docker"
