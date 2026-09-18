@@ -71,7 +71,7 @@ dependencies = [
     "opensearch-py==3.0.0",
     "overrides==7.0.0",
     "pandas==2.3.3",
-    "polars==1.44.1",
+    "polars==1.44.2",
     "psycopg[binary,c]==3.3.5",
     "py4j==0.10.9.9",
     "py7zr==1.1.3",
