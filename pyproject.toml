@@ -92,7 +92,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy==1.17.0",
+    "mypy==2.3.1",
     "mypy-extensions==1.1.0",
     "ruff==0.12.12",
     "timeout-decorator==0.5.0",
