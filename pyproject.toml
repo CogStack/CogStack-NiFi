@@ -84,7 +84,7 @@ dependencies = [
     "rancoord==0.0.6",
     "requests==2.33.0",
     "snowflake==1.13.1",
-    "snowflake-connector-python==4.7.3",
+    "snowflake-connector-python==4.7.4",
     "wheel==0.46.2",
     "xlsxwriter==3.2.9",
     "xnat==0.8.1",
