@@ -96,7 +96,7 @@ dev = [
     "mypy-extensions==1.1.0",
     "ruff==0.12.12",
     "timeout-decorator==0.5.0",
-    "types-aiofiles==24.1.0.20250708",
+    "types-aiofiles==25.1.0.20260518",
     "types-PyYAML==6.0.12.20250516",
     "types-setuptools==80.9.0.20250529",
 ]
