@@ -59,7 +59,7 @@ dependencies = [
     "avro==1.12.2",
     "bokeh==3.8.2",
     "dill>=0.4.0,<1.0.0",
-    "elasticsearch9==9.1.0",
+    "elasticsearch9==9.5.1",
     "fhir.resources==8.3.0",
     "geocoder==1.38.1",
     "jsonpickle==4.1.1",
