@@ -6,6 +6,10 @@
 	path = services/cogstack-nlp
 	url = https://github.com/CogStack/cogstack-nlp.git
     ignore = all
+[submodule "services/ocr-service"]
+	path = services/ocr-service
+	url = https://github.com/CogStack/ocr-service.git
+    ignore = all
 [submodule "services/cogstack-platform"]
 	path = services/cogstack-platform
 	url = https://github.com/CogStack/cogstack-platform.git
