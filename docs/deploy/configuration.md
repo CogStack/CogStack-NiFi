@@ -51,7 +51,7 @@ their respective directories. The deployment helper currently loads, when
 present:
 
 - `services/cogstack-jupyter-hub/env/jupyter.env`
-- `services/ocr-service/env/ocr_service.env`
+- `services/cogstack-platform/apps/ocr-service/env/ocr_service.env`
 - `services/cogstack-nlp/medcat-service/env/app.env`
 - `services/cogstack-nlp/medcat-service/env/medcat.env`
 - `services/cogstack-nlp/medcat-trainer/envs/env-prod`
