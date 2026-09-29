@@ -39,7 +39,7 @@ env_files=(
   "$DEPLOY_DIR/telemetry.env"
 
   "$SERVICES_DIR/cogstack-jupyter-hub/env/jupyter.env"
-  "$SERVICES_DIR/ocr-service/env/ocr_service.env"
+  "$SERVICES_DIR/cogstack-platform/apps/ocr-service/env/ocr_service.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/app.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
   "$SERVICES_DIR/cogstack-nlp/medcat-trainer/envs/env-prod"

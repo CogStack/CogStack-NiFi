@@ -406,7 +406,7 @@ start-production-db:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
 start-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
 
 start-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} gitea
@@ -501,7 +501,7 @@ delete-medcat-service-deid: ## Remove MedCAT service (deid) container
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production-deid
 
 delete-ocr-services: ## Remove OCR service containers
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml rm -f -s ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml rm -f -s ocr-service ocr-service-text-only
 
 make-delete-jupyter: delete-jupyter ## Alias for delete-jupyter
 
@@ -572,7 +572,7 @@ stop-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea
 
 stop-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_STOP_CMD) ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_STOP_CMD) ocr-service ocr-service-text-only
 
 stop-production-db:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
