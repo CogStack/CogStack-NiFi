@@ -84,11 +84,11 @@ RUN set -eux; \
     /tmp/rustup-init.sh -y; \
     rm /tmp/rustup-init.sh
 
-# Keep the installer version aligned with the repository's uv requirement.
+# Install the exact or minimum uv version required by the repository.
 COPY pyproject.toml /tmp/cogstack_nifi/pyproject.toml
 RUN set -eux; \
-    UV_VERSION="$(sed -n 's/^required-version = "==\([^"]*\)"$/\1/p' /tmp/cogstack_nifi/pyproject.toml)"; \
-    test -n "${UV_VERSION}"; \
+    UV_VERSION="$(sed -nE 's/^required-version = "(==|>=)([0-9]+\.[0-9]+\.[0-9]+)"$/\2/p' /tmp/cogstack_nifi/pyproject.toml)"; \
+    test -n "${UV_VERSION}" || { echo 'Expected tool.uv.required-version to be ==X.Y.Z or >=X.Y.Z in pyproject.toml' >&2; exit 1; }; \
     curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" -o /tmp/install_uv.sh; \
     bash /tmp/install_uv.sh; \
     rm /tmp/install_uv.sh
