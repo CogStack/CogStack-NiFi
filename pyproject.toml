@@ -68,7 +68,7 @@ dependencies = [
     "nipyapi==1.7.0",
     "nltk==3.10.3",
     "numpy==2.4.6",
-    "opensearch-py==3.0.0",
+    "opensearch-py==3.2.0",
     "overrides==7.7.0",
     "pandas==2.3.3",
     "polars==1.44.2",
