@@ -391,7 +391,7 @@ logs-clickhouse: ## Follow ClickHouse logs
 	$(WITH_ENV) docker compose -f services.yml logs --tail=100 -f clickhouse
 
 start-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml $(DC_START_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.prod.yml $(DC_START_CMD) cogstack-jupyter-hub
 
 start-medcat-service:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production
@@ -492,7 +492,7 @@ delete-medcat-trainer-volumes: ## Delete MedCAT Trainer volumes
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_DOWN_CMD) -v medcattrainer nginx solr
 
 delete-jupyter: ## Remove Jupyter container
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml rm -f -s cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.prod.yml rm -f -s cogstack-jupyter-hub
 
 delete-medcat-service: ## Remove MedCAT service container
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production
@@ -557,7 +557,7 @@ stop-clickhouse: ## Stop the ClickHouse ingestion database
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) clickhouse
 
 stop-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
 
 stop-medcat-trainer:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr

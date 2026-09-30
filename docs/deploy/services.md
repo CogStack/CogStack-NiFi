@@ -156,14 +156,14 @@ A multi-user JupyterHub instance deployed via Docker.
 
 ### Service location & files
 
-- dir: `services/cogstack-jupyter-hub/`
-- docker compose file: `services/cogstack-jupyter-hub/docker/`
-- env: `services/cogstack-jupyter-hub/env/jupyter.env`
+- dir: `services/cogstack-platform/apps/cogstack-jupyter-hub/`
+- docker compose file: `services/cogstack-platform/apps/cogstack-jupyter-hub/docker/`
+- env: `services/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env`
 
 ### Supports
 
 - Per-user containers
-- CPU/RAM limits (via  `services/cogstack-jupyter-hub/env/jupyter.env`)
+- CPU/RAM limits (via  `services/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env`)
 - Optional GPU support
 - Notebook image selection
 
@@ -175,7 +175,7 @@ A multi-user JupyterHub instance deployed via Docker.
 
 ### README
 
-Please check the service's own [README.md](https://github.com/CogStack/cogstack-jupyter-hub/blob/main/README.md) file.
+Please check the service's own [README.md](https://github.com/CogStack/cogstack-platform/blob/main/apps/cogstack-jupyter-hub/README.md) file.
 
 ---
 
