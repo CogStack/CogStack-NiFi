@@ -82,7 +82,7 @@ dependencies = [
     "pymssql==2.4.1",
     "PyYAML==6.0.3",
     "rancoord==0.0.6",
-    "requests==2.33.0",
+    "requests==2.34.2",
     "snowflake==1.13.1",
     "snowflake-connector-python==4.7.4",
     "wheel==0.46.2",
