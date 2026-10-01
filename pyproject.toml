@@ -57,7 +57,7 @@ version = "0.0.1"
 requires-python = ">=3.11"
 dependencies = [
     "avro==1.12.2",
-    "bokeh==3.8.2",
+    "bokeh==3.9.2",
     "dill>=0.4.0,<1.0.0",
     "elasticsearch9==9.5.1",
     "fhir.resources==8.3.0",
