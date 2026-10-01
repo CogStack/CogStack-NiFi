@@ -70,7 +70,7 @@ dependencies = [
     "numpy==2.4.6",
     "opensearch-py==3.2.0",
     "overrides==7.7.0",
-    "pandas==2.3.3",
+    "pandas==3.0.6",
     "polars==1.44.2",
     "psycopg[binary,c]==3.3.6",
     "py4j==0.10.9.9",
