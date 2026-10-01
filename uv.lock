@@ -690,7 +690,7 @@ requires-dist = [
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "rancoord", specifier = "==0.0.6" },
     { name = "requests", specifier = "==2.34.2" },
-    { name = "snowflake", specifier = "==1.13.1" },
+    { name = "snowflake", specifier = "==1.13.2" },
     { name = "snowflake-connector-python", specifier = "==4.7.5" },
     { name = "wheel", specifier = "==0.48.0" },
     { name = "xlsxwriter", specifier = "==3.2.9" },
@@ -2865,15 +2865,15 @@ wheels = [
 
 [[package]]
 name = "snowflake"
-version = "1.13.1"
+version = "1.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "snowflake-core" },
     { name = "snowflake-legacy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/47/4eeee2d2564e0de814c3f045d220df8983ba51d003fd0906035a69227775/snowflake-1.13.1.tar.gz", hash = "sha256:59291b0a93f3b98ba1dc6a1153bfcab1f4ba75dbd84a3abcad391e5d38ddb1f4", size = 6204, upload-time = "2026-08-12T07:52:30.677Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/61/12fe1f18f32b058c3ba74c403541203413e33b58bdec60d9af36aa144f28/snowflake-1.13.2.tar.gz", hash = "sha256:b47d09412fff5fd634f772efea691d43d210f97ce9d464434572e5f7f882e6be", size = 6239, upload-time = "2026-09-24T10:49:19.769Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/67/035de3cb8411b1212443a5c39ff65202f45bf5bb91c71399b938c9d65b84/snowflake-1.13.1-py3-none-any.whl", hash = "sha256:6c62480f9b925119ecc4d29a48af3c0d52e1c08562b06105e239e20908a0afd6", size = 5645, upload-time = "2026-08-12T07:52:31.597Z" },
+    { url = "https://files.pythonhosted.org/packages/98/f6/2e998ec079aea074007ed2ae76bca2d1156537ef96b8ca68fd161a00bf17/snowflake-1.13.2-py3-none-any.whl", hash = "sha256:09b037b8d1afc736755369418aea573536bceec70a141f7a2a8379f5d640397d", size = 5644, upload-time = "2026-09-24T10:49:20.617Z" },
 ]
 
 [[package]]
@@ -2930,7 +2930,7 @@ wheels = [
 
 [[package]]
 name = "snowflake-core"
-version = "1.13.1"
+version = "1.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -2943,9 +2943,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c7/28/a52204137835c0cdf92410245aa629e07301e5aaf0ee0fbe5a7b2c2c38eb/snowflake_core-1.13.1.tar.gz", hash = "sha256:9f07aa40f77f1e302f18812487afafd49f7fd2b49392ea03f115bc5ab6cb0015", size = 1127388, upload-time = "2026-08-12T07:52:35.592Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/c6/73d3c5b3bc9d10346cbed3889b97ea8db8044289d613f1e86ceb9941116f/snowflake_core-1.13.2.tar.gz", hash = "sha256:4970bee0ceaedd7dc9032eab8e5dcad39361a8bce1a3bf321165ced4a01baae0", size = 1132466, upload-time = "2026-09-24T10:49:21.651Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/4d/e997d69e94c453dc6175d63ed2625cf34ee66ce729cbd53e43e720fed01d/snowflake_core-1.13.1-py3-none-any.whl", hash = "sha256:6c2e18d4d5648ef68b19783e1aee078c85310581621e061f5f2671d34150e320", size = 1892381, upload-time = "2026-08-12T07:52:33.325Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/ba/81e288cf583ebf2c528d92468a34c34c8a4d132f578b2aad02c6abc05604/snowflake_core-1.13.2-py3-none-any.whl", hash = "sha256:73a1b5985a5861e8d1d6d6db753fd800e48e3e0f8585db39d52cd79b48b3c739", size = 1894652, upload-time = "2026-09-24T10:49:20.241Z" },
 ]
 
 [[package]]
