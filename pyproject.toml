@@ -98,7 +98,7 @@ dev = [
     "timeout-decorator==0.5.0",
     "types-aiofiles==25.1.0.20260518",
     "types-PyYAML==6.0.12.20250516",
-    "types-setuptools==80.9.0.20250529",
+    "types-setuptools==84.0.0.20260812",
 ]
 
 [build-system]
