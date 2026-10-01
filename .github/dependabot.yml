@@ -10,7 +10,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/nifi"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     registries:
       - dockerhub
 
@@ -18,13 +18,13 @@ updates:
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
   # Keep the documentation project and lock file up to date.
   - package-ecosystem: "uv"
     directory: "/docs"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
 
 registries:
   dockerhub:
