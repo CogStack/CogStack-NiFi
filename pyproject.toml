@@ -62,7 +62,7 @@ dependencies = [
     "elasticsearch9==9.5.1",
     "fhir.resources==8.3.0",
     "geocoder==1.38.1",
-    "jsonpickle==4.1.1",
+    "jsonpickle==4.1.2",
     "mysql-connector-python==26.7.0",
     "neo4j==5.28.2",
     "nipyapi==1.7.0",
