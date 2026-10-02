@@ -83,7 +83,7 @@ dependencies = [
     "PyYAML==6.0.3",
     "rancoord==0.0.6",
     "requests==2.34.2",
-    "snowflake==1.13.1",
+    "snowflake==1.13.2",
     "snowflake-connector-python==4.7.5",
     "wheel==0.48.0",
     "xlsxwriter==3.2.9",
