@@ -309,6 +309,7 @@ start-nifi-dev-build: ## Build and start NiFi dev services
 
 build-nifi-image: ## Build the local NiFi image without starting services
 	$(WITH_ENV) docker build \
+		--build-arg NIFI_VERSION="$${NIFI_VERSION:-2.12.0}" \
 		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
 		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
 		--tag "$${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}" \
@@ -354,12 +355,15 @@ start-kibana:
 start-ollama: ## Start the Ollama inference service
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) ollama
 
+start-ollama-openai-proxy: ## Build and start the OpenSearch-to-Ollama compatibility proxy
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) --build ollama-openai-proxy
+
 pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 	$(WITH_ENV) docker compose -f services.yml exec -T ollama ollama pull "$${OLLAMA_MODEL}"
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
-opensearch-ai-init: ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
+opensearch-ai-init: start-ollama-openai-proxy ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
 	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
 
 start-openwebui: ## Start Open WebUI and its Ollama dependency
@@ -377,8 +381,17 @@ logs-openwebui: ## Follow the Open WebUI logs
 start-samples: ## Start the sample database service
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db
 
+start-clickhouse: ## Start the ClickHouse ingestion database
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) clickhouse
+
+status-clickhouse: ## Show ClickHouse container status
+	$(WITH_ENV) docker compose -f services.yml ps clickhouse
+
+logs-clickhouse: ## Follow ClickHouse logs
+	$(WITH_ENV) docker compose -f services.yml logs --tail=100 -f clickhouse
+
 start-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml $(DC_START_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.prod.yml $(DC_START_CMD) cogstack-jupyter-hub
 
 start-medcat-service:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml $(DC_START_CMD) nlp-medcat-service-production
@@ -393,7 +406,7 @@ start-production-db:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
 start-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
 
 start-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} gitea
@@ -402,7 +415,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
 
 
 # stop services
@@ -449,6 +462,11 @@ delete-elastic-volumes: ## Delete Elasticsearch and Kibana volumes
 delete-ollama: ## Remove the Ollama container but preserve downloaded models
 	$(WITH_ENV) docker compose -f services.yml rm -f -s ollama
 
+delete-ollama-openai-proxy: ## Remove the OpenSearch-to-Ollama compatibility proxy container
+	$(WITH_ENV) docker compose -f services.yml rm -f -s ollama-openai-proxy
+
+delete-ollama-proxy: delete-ollama-openai-proxy ## Alias for delete-ollama-openai-proxy
+
 delete-openwebui: ## Remove the Open WebUI container but preserve its data
 	$(WITH_ENV) docker compose -f services.yml rm -f -s open-webui
 
@@ -464,6 +482,9 @@ delete-samples-db:
 delete-samples-db-volumes:
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v samples-db
 
+delete-clickhouse: ## Remove the ClickHouse container but preserve its data
+	$(WITH_ENV) docker compose -f services.yml rm -f -s clickhouse
+
 delete-medcat-trainer: ## Remove MedCAT Trainer containers
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml rm -f -s medcattrainer nginx solr
 
@@ -471,7 +492,7 @@ delete-medcat-trainer-volumes: ## Delete MedCAT Trainer volumes
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_DOWN_CMD) -v medcattrainer nginx solr
 
 delete-jupyter: ## Remove Jupyter container
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.prod.yml rm -f -s cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.prod.yml rm -f -s cogstack-jupyter-hub
 
 delete-medcat-service: ## Remove MedCAT service container
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production
@@ -480,7 +501,7 @@ delete-medcat-service-deid: ## Remove MedCAT service (deid) container
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-service/docker/docker-compose.yml rm -f -s nlp-medcat-service-production-deid
 
 delete-ocr-services: ## Remove OCR service containers
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml rm -f -s ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml rm -f -s ocr-service ocr-service-text-only
 
 make-delete-jupyter: delete-jupyter ## Alias for delete-jupyter
 
@@ -532,8 +553,11 @@ stop-openwebui: ## Stop the Open WebUI service
 stop-samples: ## Stop the sample database service
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) samples-db
 
+stop-clickhouse: ## Stop the ClickHouse ingestion database
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) clickhouse
+
 stop-jupyter:
-	$(WITH_ENV) docker compose -f ../services/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/cogstack-jupyter-hub/docker/docker-compose.yml $(DC_STOP_CMD) cogstack-jupyter-hub
 
 stop-medcat-trainer:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_STOP_CMD) medcattrainer nginx solr
@@ -548,7 +572,7 @@ stop-git-ea:
 	$(WITH_ENV) docker compose -f services.yml ${DC_STOP_CMD} gitea
 
 stop-ocr-services:
-	$(WITH_ENV) docker compose -f ../services/ocr-service/docker/docker-compose.base.yml -f ../services/ocr-service/docker/docker-compose.prod.yml $(DC_STOP_CMD) ocr-service ocr-service-text-only
+	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_STOP_CMD) ocr-service ocr-service-text-only
 
 stop-production-db:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
@@ -557,7 +581,7 @@ stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastru
 
 stop-all: stop-data-infra stop-jupyter stop-medcat-service stop-ocr-services ## Stop all major services
 
-.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-ollama delete-openwebui delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-medcat-trainer delete-medcat-trainer-volumes delete-jupyter delete-medcat-service delete-medcat-service-deid delete-ocr-services make-delete-jupyter make-delete-medcat-service make-delete-medcat-service-deid make-delete-ocr-services stop-elastic stop-ollama stop-openwebui stop-samples stop-jupyter
+.PHONY: stop-data-infra stop-nifi stop-nifi-dev delete-nifi delete-nifi-containers delete-nifi-dev-containers delete-nifi-images delete-nifi-dev-images delete-nifi-volumes delete-elastic delete-elastic-volumes delete-ollama delete-ollama-openai-proxy delete-ollama-proxy delete-openwebui delete-databank delete-databank-volumes delete-samples-db delete-samples-db-volumes delete-clickhouse delete-medcat-trainer delete-medcat-trainer-volumes delete-jupyter delete-medcat-service delete-medcat-service-deid delete-ocr-services make-delete-jupyter make-delete-medcat-service make-delete-medcat-service-deid make-delete-ocr-services stop-elastic stop-ollama stop-openwebui stop-samples stop-clickhouse stop-jupyter
 
 
 # cleanup

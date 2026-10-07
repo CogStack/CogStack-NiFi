@@ -4,6 +4,9 @@ The published documentation is hosted at
 [cogstack-nifi.readthedocs.io](https://cogstack-nifi.readthedocs.io/en/latest/).
 Run the commands below from the repository root.
 
+These instructions are also available as the rendered
+[Building the documentation](./building-documentation.md) page.
+
 ## Setup
 
 ### Prerequisites

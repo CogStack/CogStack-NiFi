@@ -31,6 +31,19 @@ all_access:
   and_backend_roles: [""]
   description: "Maps admin to all_access"
 
+# Let read-only CogStack Dashboards users execute the configured query
+# assistant. Their separate index role still determines which data is visible.
+query_assistant_access:
+  reserved: false
+  hidden: false
+  backend_roles:
+  - "cogstack_access"
+  hosts: []
+  users:
+  - "admin"
+  and_backend_roles: []
+  description: "Maps CogStack users to the read-only query assistant"
+
 # Grant the current administrator ML Commons access and provide a backend role
 # that can be assigned to dedicated ML API/UI users.
 ml_full_access:

@@ -11,7 +11,7 @@ are not covered.
 | [Database documents to OpenSearch](workflows/database_to_opensearch.md) | PostgreSQL table | OpenSearch index | None |
 | [Database documents via OCR](workflows/database_ocr_to_opensearch.md) | PostgreSQL binary-document table | OpenSearch index | OCR service |
 | [MedCAT annotations to OpenSearch](workflows/medcat_annotations_to_opensearch.md) | Existing OpenSearch index | Annotation index | MedCAT service |
-| [Filesystem Parquet to OpenSearch](workflows/filesystem_parquet_to_opensearch.md) | Parquet files under `/data` | Index per filename | None |
+| [Filesystem Parquet to OpenSearch](workflows/filesystem_parquet_to_opensearch.md) | Parquet files under `/data`; includes `/data/demo/iris.parquet` | Index per filename | None |
 | [Azure Blob Parquet to OpenSearch](workflows/azure_blob_parquet_to_opensearch.md) | Azure Blob Storage | Index per blob prefix | Azure Storage |
 
 ## 🚀 Prepare and import a flow

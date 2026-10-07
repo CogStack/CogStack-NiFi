@@ -294,6 +294,46 @@ services:
       - cognet
 
 #---------------------------------------------------------------------------#
+# ClickHouse analytics database                                             #
+#---------------------------------------------------------------------------#
+  clickhouse:
+    image: ${CLICKHOUSE_DOCKER_IMAGE:-clickhouse/clickhouse-server:26.8}
+    container_name: cogstack-clickhouse
+    hostname: clickhouse
+    restart: unless-stopped
+    env_file:
+      - ./database.env
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    deploy:
+      resources:
+        limits:
+          cpus: "${CLICKHOUSE_DOCKER_CPU_MAX:-2}"
+          memory: "${CLICKHOUSE_DOCKER_RAM:-2g}"
+        reservations:
+          cpus: "${CLICKHOUSE_DOCKER_CPU_MIN:-0.5}"
+          memory: "${CLICKHOUSE_DOCKER_RAM_MIN:-512m}"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ports:
+      - "${CLICKHOUSE_OUTPUT_HOST:-127.0.0.1}:${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_OUTPUT_HOST:-127.0.0.1}:${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    expose:
+      - "8123"
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --user \"$${CLICKHOUSE_USER}\" --password \"$${CLICKHOUSE_PASSWORD}\" --query 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - cognet
+    logging: *logging-common
+
+#---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
   es_native_create_certs:
@@ -514,6 +554,39 @@ services:
       start_period: 20s
 
 #---------------------------------------------------------------------------#
+# OpenSearch-to-Ollama tool-call compatibility proxy                        #
+#---------------------------------------------------------------------------#
+  ollama-openai-proxy:
+    build:
+      context: ../services/ollama-openai-proxy
+    image: ${OLLAMA_OPENAI_PROXY_DOCKER_IMAGE:-cogstack/ollama-openai-proxy:local}
+    container_name: ${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      OLLAMA_UPSTREAM_HOST: ollama
+      OLLAMA_UPSTREAM_PORT: 11434
+      OLLAMA_UPSTREAM_TIMEOUT_SECONDS: ${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    expose:
+      - "11435"
+    networks:
+      - cognet
+    logging: *logging-common
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:11435/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+#---------------------------------------------------------------------------#
 # Open WebUI for local Ollama chat and model management                      #
 #---------------------------------------------------------------------------#
   open-webui:
@@ -662,6 +735,10 @@ volumes:
     driver: local
 
   databank-vol:
+    driver: local
+
+  # ClickHouse database files
+  clickhouse-data:
     driver: local
 
   # ELK-stack related

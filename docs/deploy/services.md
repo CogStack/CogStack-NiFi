@@ -156,14 +156,14 @@ A multi-user JupyterHub instance deployed via Docker.
 
 ### Service location & files
 
-- dir: `services/cogstack-jupyter-hub/`
-- docker compose file: `services/cogstack-jupyter-hub/docker/`
-- env: `services/cogstack-jupyter-hub/env/jupyter.env`
+- dir: `services/cogstack-platform/apps/cogstack-jupyter-hub/`
+- docker compose file: `services/cogstack-platform/apps/cogstack-jupyter-hub/docker/`
+- env: `services/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env`
 
 ### Supports
 
 - Per-user containers
-- CPU/RAM limits (via  `services/cogstack-jupyter-hub/env/jupyter.env`)
+- CPU/RAM limits (via  `services/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env`)
 - Optional GPU support
 - Notebook image selection
 
@@ -175,7 +175,7 @@ A multi-user JupyterHub instance deployed via Docker.
 
 ### README
 
-Please check the service's own [README.md](https://github.com/CogStack/cogstack-jupyter-hub/blob/main/README.md) file.
+Please check the service's own [README.md](https://github.com/CogStack/cogstack-platform/blob/main/apps/cogstack-jupyter-hub/README.md) file.
 
 ---
 
@@ -503,17 +503,17 @@ cogstacksystems/cogstack-ocr-service:<release>
 
 ### Service Location & Files
 
-- Docker Compose files: `services/ocr-service/docker/docker-compose.base.yml`
-  and `services/ocr-service/docker/docker-compose.prod.yml`
-- service directory: `services/ocr-service/`
+- Docker Compose files: `services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml`
+  and `services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml`
+- service directory: `services/cogstack-platform/apps/ocr-service/`
 - logs:  
-  - Host: `services/ocr-service/log/`  
+  - Host: `services/cogstack-platform/apps/ocr-service/log/`  
   - Container: `/ocr_service/log/`
 
 - env files:
   - `deploy/general.env` — shared variables  
-  - `services/ocr-service/env/ocr_service.env` — full OCR config  
-  - `services/ocr-service/env/ocr_service_text_only.env` — overrides for text-only pipeline  
+  - `services/cogstack-platform/apps/ocr-service/env/ocr_service.env` — full OCR config  
+  - `services/cogstack-platform/apps/ocr-service/env/ocr_service_text_only.env` — overrides for text-only pipeline  
 
 ### Ports
 
@@ -524,7 +524,7 @@ cogstacksystems/cogstack-ocr-service:<release>
 
 Both expose the API internally on port `8090`.
 
-Please check the service's own [README.md](https://github.com/CogStack/ocr-service/blob/main/README.md)
+Please check the service's own [README.md](https://github.com/CogStack/cogstack-platform/blob/main/apps/ocr-service/README.md)
 
 ---
 
