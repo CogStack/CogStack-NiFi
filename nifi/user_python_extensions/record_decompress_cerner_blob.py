@@ -30,7 +30,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.3'
+        version = '0.0.4'
         description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
         tags = ["cerner", "oracle", "blob"]
 
@@ -128,10 +128,14 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
     @staticmethod
     def _strip_known_blob_wrappers(payload: bytes | bytearray) -> bytes:
-        output = bytes(payload)
-        for wrapper in (b"\nocf_blob\x00", b"ocf_blob\x00", b"ocr_blob\x00"):
-            output = output.replace(wrapper, b"")
-        return output
+        original = bytes(payload)
+        trimmed = original.rstrip(b"\x00")
+
+        for marker in (b"\r\nocf_blob", b"\nocf_blob", b"ocf_blob"):
+            if trimmed.endswith(marker):
+                return trimmed[:-len(marker)]
+
+        return original
 
     def _extract_pdf_payload(self, payload: bytes | bytearray) -> bytes | None:
         cleaned_payload = self._strip_known_blob_wrappers(payload)
@@ -331,6 +335,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                         f"Expected bytes in {self.binary_field_name} for part {k}, got {type(v)}"
                     )
 
+            temporary_blob = self._strip_known_blob_wrappers(temporary_blob)
             full_compressed_blob.extend(temporary_blob)
 
         # build / add new attributes to dict before doing anything else to have some trace.
