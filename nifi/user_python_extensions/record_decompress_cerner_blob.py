@@ -30,7 +30,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.2'
+        version = '0.0.3'
         description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
         tags = ["cerner", "oracle", "blob"]
 
@@ -47,6 +47,8 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         self.binary_field_source_encoding: str = "base64"
         self.blob_sequence_order_field_name: str = "blob_sequence_num"
         self.blob_sequence_order_resolve_duplicate_policy: str = "fail"
+        self.blob_compression_cdf_meaning_field_name: str = "blob_compression_cdf_meaning_field_name"
+        self.blob_code_value_field_name: str = "code_value"
 
         # this is directly mirrored to the UI
         self._properties = [
@@ -88,11 +90,19 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
             PropertyDescriptor(name="blob_sequence_order_field_name",
                                description="Blob sequence order field name, \
                                   if the blob is split across multiple records",
-                               required=False,
+                               required=True,
                                default_value="blob_sequence_num"),
+            PropertyDescriptor(name="blob_compression_cdf_meaning_field_name",
+                               description="Blob compression cdf_meaning field name",
+                               required=True,
+                               default_value="cdf_meaning"),
+            PropertyDescriptor(name="blob_code_value_field_name",
+                               description="Blob compression cd field name",
+                               required=True,
+                               default_value="compression_cd"),
             PropertyDescriptor(name="blob_sequence_order_resolve_duplicate_policy",
-                               description="What to do when duplicate blob sequences are detected ? fail? continue going ?",
-                               required=False,
+                               description="What to do when duplicate sequences are detected? fail? continue going?",
+                               required=True,
                                default_value="fail",
                                allowable_values=["fail", "keep_first", "keep_last"]),
         ]
@@ -240,6 +250,17 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 "Cannot safely reconstruct blob stream."
             )
 
+        compression_types: list[str] = list(set([record[self.blob_compression_cdf_meaning_field_name] \
+                                       for record in records]))
+
+        if not compression_types:
+            raise ValueError("Could not determine compression types for blobs, please check")
+        elif len(compression_types) != 1 or compression_types[0] not in ["NOCOMP", "OCFCOMP"]:
+            raise ValueError(f"Unknown compression type detected: '{compression_types[0]}' ... aborting records")
+
+        # final type
+        compression_type: str = compression_types[0]
+
         for record in records:
             if self.binary_field_name not in record or record[self.binary_field_name] in (None, ""):
                 raise ValueError(f"Missing '{self.binary_field_name}' in a record")
@@ -324,25 +345,33 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         attributes["blob_seq_max"] = str(order_of_blobs_keys[-1]) if order_of_blobs_keys else ""
         attributes["compressed_len"] = str(len(full_compressed_blob))
         attributes["compressed_head_hex"] = bytes(full_compressed_blob[:16]).hex()
+        attributes["blob_compression_type"] = str(compression_type)
 
         # If payload already contains an embedded PDF/RTF stream, extract it directly.
         # Otherwise run the Cerner LZW decompressor. Any error bubbles to transform(),
         # which handles routing to failure.
         output_bytes_decompressed: bytes | bytearray | None = None
         payload_source: str = ""
-        is_lzw_compressed: bool = False
+        is_lzw_compressed: bool = compression_type == "OCFCOMP"
 
-        output_bytes_decompressed, payload_source, extraction_error = self._try_extract_embedded_payload(
-            full_compressed_blob,
-            "embedded",
-            fail_on_invalid_stream=False,
-        )
-        if extraction_error:
-            attributes["embedded_payload_extract_error"] = extraction_error
+        if compression_type == "NOCOMP":
+            output_bytes_decompressed, payload_source, extraction_error = self._try_extract_embedded_payload(
+                full_compressed_blob,
+                "uncompressed",
+                fail_on_invalid_stream=True,
+            )
 
-        if output_bytes_decompressed is None:
+            if extraction_error:
+                attributes["blob_extract_error"] = extraction_error
+            
+            if output_bytes_decompressed is None:
+                output_bytes_decompressed = bytes(full_compressed_blob)
+                payload_source = "uncompressed_raw"
+
+        elif compression_type == "OCFCOMP":
+
             lzw_payload = self._decompress_cerner_lzw(full_compressed_blob)
-            is_lzw_compressed = True
+
             attributes["decompressed_len"] = str(len(lzw_payload))
             attributes["decompressed_head_hex"] = lzw_payload[:16].hex()
 
