@@ -18,8 +18,23 @@ class DecompressLzwCernerBlob:
 
     def save_to_lookup_table(self, compressed_code: int):
         self.tmp_buffer_index = -1
+        visited = set()
+        initial_code = compressed_code
         while compressed_code >= 258:
+            if compressed_code >= self.code_count:
+                raise ValueError(f"Invalid dict ref: {compressed_code},code_count={self.code_count}"
+                )
+            if compressed_code in visited:
+                raise ValueError(f"Circular LZW dict ref: initial={initial_code}, \
+                        current={compressed_code}, code_count={self.code_count}")
+
+            visited.add(compressed_code)
             self.tmp_buffer_index += 1
+
+            if self.tmp_buffer_index >= len(self.tmp_decompression_buffer):
+                raise ValueError(f"LZW overflow: index = {self.tmp_buffer_index}, \
+                        capacity={len(self.tmp_decompression_buffer)}, code={compressed_code}")
+
             self.tmp_decompression_buffer[self.tmp_buffer_index] = self.lzw_lookup_table[compressed_code].suffix
             compressed_code = self.lzw_lookup_table[compressed_code].prefix
 
@@ -60,16 +75,13 @@ class DecompressLzwCernerBlob:
                         raise ValueError("Truncated input_stream")
 
                     middle_code = input_stream[byte_buffer_index]
-
                     first_code = (first_code << (current_shift + 8)) | (middle_code << current_shift)
-
                     byte_buffer_index += 1
 
                     if byte_buffer_index >= len(input_stream):
                         raise ValueError("Truncated input_stream")
 
                     middle_code = input_stream[byte_buffer_index]
-
                     tmp_code = middle_code >> (8 - current_shift)
                     lookup_index = first_code | tmp_code
                     skip_flag = True
@@ -93,10 +105,10 @@ class DecompressLzwCernerBlob:
 
                 if lookup_index == 256:
                     shift = 1
-                    current_shift = 1
+                    current_shift += 1
                     previous_code = 0
                     skip_flag = False
- 
+
                     self.tmp_decompression_buffer = [0] * self.MAX_CODES
                     self.tmp_buffer_index = 0
                     self.lzw_lookup_table = [LzwItem() for _ in range(self.MAX_CODES)]
@@ -105,25 +117,29 @@ class DecompressLzwCernerBlob:
                     first_code = input_stream[byte_buffer_index]
                     continue
 
-                elif lookup_index == 257:  # EOF marker
+                elif lookup_index == 257: # EOF marker
                     return self.output_stream
 
             skip_flag = False
 
             # skipit part
-            if previous_code == 0:
+            if previous_code == 0: 
                 self.tmp_decompression_buffer[0] = lookup_index
+
+            if lookup_index > self.code_count:
+                raise ValueError(f"Invalid LZW code {lookup_index}, \
+                        code_count={self.code_count}, input_offset={byte_buffer_index}")
 
             if lookup_index < self.code_count:
                 self.save_to_lookup_table(lookup_index)
                 if self.code_count < self.MAX_CODES:
                     self.lzw_lookup_table[self.code_count] = \
-                        LzwItem(previous_code, self.tmp_decompression_buffer[self.tmp_buffer_index])
+                    LzwItem(previous_code, self.tmp_decompression_buffer[self.tmp_buffer_index])
                     self.code_count += 1
             else:
                 if self.code_count < self.MAX_CODES:
                     self.lzw_lookup_table[self.code_count] = \
-                        LzwItem(previous_code, self.tmp_decompression_buffer[self.tmp_buffer_index])
+                    LzwItem(previous_code, self.tmp_decompression_buffer[self.tmp_buffer_index])
                     self.code_count += 1
                 self.save_to_lookup_table(lookup_index)
             # end of skipit
@@ -136,3 +152,4 @@ class DecompressLzwCernerBlob:
                 current_shift += 1
 
             previous_code = lookup_index
+
