@@ -78,7 +78,10 @@ x-nifi-volumes: &nifi-volumes
 
   # User overrides bundled in the image
   - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
-  - ../nifi/user_schemas:/opt/nifi/user_schemas:ro
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+
+  # Live Python package imports
+  - ../nifi/user_scripts/:/opt/nifi/nifi-current/python/framework/nifi/user_scripts:rw
 
   # Python processors (NiFi 2.x)
   - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
