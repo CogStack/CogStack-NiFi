@@ -30,7 +30,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.4'
+        version = '0.0.5'
         description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
         tags = ["cerner", "oracle", "blob"]
 
@@ -199,7 +199,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         except Exception as exc:
             raise ValueError(
                 "Blob payload is not an embedded PDF/RTF stream and did not decode "
-                "as a Cerner LZW stream"
+                f"as a Cerner LZW stream {exc}"
             ) from exc
 
         output_payload = bytes(decompress_blob.output_stream)
