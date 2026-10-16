@@ -374,8 +374,16 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                 payload_source = "uncompressed_raw"
 
         elif compression_type == "OCFCOMP":
-
-            lzw_payload = self._decompress_cerner_lzw(full_compressed_blob)
+            
+            try:
+                lzw_payload = self._decompress_cerner_lzw(full_compressed_blob)
+            except Exception as exc:
+                raise ValueError(f"Cerner LZW decompression failed: "
+                                f"compressed_len={len(full_compressed_blob)}, "
+                                f"blob_parts={len(order_of_blobs_keys)}, "
+                                f"document_id={output_merged_record.get(self.document_id_field_name)}, "
+                                f"error={exc}"
+                                ) from exc
 
             attributes["decompressed_len"] = str(len(lzw_payload))
             attributes["decompressed_head_hex"] = lzw_payload[:16].hex()
