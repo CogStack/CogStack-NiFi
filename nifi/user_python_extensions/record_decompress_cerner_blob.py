@@ -1,3 +1,4 @@
+
 import base64
 import json
 
@@ -18,8 +19,8 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
     It expects a JSON array of records, each containing a field with the binary data.
     All RECORDS are expected to have the same fields, and presumably belonging to the same DOCUMENT.
     All the fields of these records should have the same field values, except for the binary data field.
-    The binary data field is expected to be a base64 encoded string, which will be concatenated according to 
-    the blob_sequence_order_field_name field, preserving the order of the blobs and composing 
+    The binary data field is expected to be a base64 encoded string, which will be concatenated according to
+    the blob_sequence_order_field_name field, preserving the order of the blobs and composing
     the whole document (supposedly).
     The final base64 encoded string will be decoded back to binary data, then decompressed using LZW algorithm.
 
@@ -30,7 +31,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.5'
+        version = '0.0.7'
         description = "Decompresses Cerner LZW compressed blobs from a JSON input stream"
         tags = ["cerner", "oracle", "blob"]
 
@@ -128,14 +129,15 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
     @staticmethod
     def _strip_known_blob_wrappers(payload: bytes | bytearray) -> bytes:
-        original = bytes(payload)
-        trimmed = original.rstrip(b"\x00")
+        output = bytes(payload)
+        #trimmed = original.rstrip(b"\x00")
 
-        for marker in (b"\r\nocf_blob", b"\nocf_blob", b"ocf_blob"):
-            if trimmed.endswith(marker):
-                return trimmed[:-len(marker)]
+        #for marker in (b"\r\nocf_blob", b"\nocf_blob", b"ocf_blob"):
+        for marker in (b"ocf_blob\x00", b"ocf_blob"):
+            if output.endswith(marker):
+                return output[:-len(marker)]
 
-        return original
+        return output
 
     def _extract_pdf_payload(self, payload: bytes | bytearray) -> bytes | None:
         cleaned_payload = self._strip_known_blob_wrappers(payload)
@@ -304,13 +306,16 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
         # double check to make sure there is no gap in the blob sequence, i.e missing blob.
         order_of_blobs_keys = sorted(concatenated_blob_sequence_order.keys())
-         
+
         for i in range(1, len(order_of_blobs_keys)):
             if order_of_blobs_keys[i] != order_of_blobs_keys[i-1] + 1:
                 raise ValueError(
                     f"Sequence gap: missing {order_of_blobs_keys[i-1] + 1} "
                     f"(have {order_of_blobs_keys[i-1]} then {order_of_blobs_keys[i]})"
                 )
+
+        blob_boundaries = []
+
 
         for k in order_of_blobs_keys:
             v = concatenated_blob_sequence_order[k]
@@ -334,8 +339,18 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
                     raise ValueError(
                         f"Expected bytes in {self.binary_field_name} for part {k}, got {type(v)}"
                     )
+            raw_len=len(temporary_blob)
+            marker_pos=temporary_blob.rfind(b"ocf_blob")
 
             temporary_blob = self._strip_known_blob_wrappers(temporary_blob)
+            blob_boundaries.append({
+               "seq": k,
+               "start": len(full_compressed_blob),
+               "end": len(full_compressed_blob) + len(temporary_blob),
+               "raw_len" : raw_len,
+               "clean_len": len(temporary_blob),
+               "marker_pos": marker_pos,
+            })
             full_compressed_blob.extend(temporary_blob)
 
         # build / add new attributes to dict before doing anything else to have some trace.
@@ -368,19 +383,20 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
 
             if extraction_error:
                 attributes["blob_extract_error"] = extraction_error
-            
+
             if output_bytes_decompressed is None:
                 output_bytes_decompressed = bytes(full_compressed_blob)
                 payload_source = "uncompressed_raw"
 
         elif compression_type == "OCFCOMP":
-            
+
             try:
                 lzw_payload = self._decompress_cerner_lzw(full_compressed_blob)
             except Exception as exc:
                 raise ValueError(f"Cerner LZW decompression failed: "
                                 f"compressed_len={len(full_compressed_blob)}, "
                                 f"blob_parts={len(order_of_blobs_keys)}, "
+                                f"blob_boundaries={blob_boundaries}"
                                 f"document_id={output_merged_record.get(self.document_id_field_name)}, "
                                 f"error={exc}"
                                 ) from exc
@@ -414,3 +430,4 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         return FlowFileTransformResult(relationship=self.REL_SUCCESS.name,
                                        attributes=attributes,
                                        contents=json.dumps(output_contents).encode("utf-8"))
+
