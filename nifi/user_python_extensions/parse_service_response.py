@@ -17,6 +17,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
     coercing single objects to lists.
     Exposes configurable properties for output text field name, service message type,
     document ID/text fields, and MedCAT DEID behaviour so the same processor can be reused across services.
+    Empty-text documents are retained for OCR and, by default, for MedCAT DEID responses.
 
     """
 
@@ -24,7 +25,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.3'
+        version = '0.0.4'
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
@@ -35,7 +36,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         self.document_id_field_name: str = "_id"
         self.medcat_output_mode: str = "not_set"
         self.medcat_deid_keep_annotations: bool = True
-        self.medcat_empty_text_handling: str = "drop"
+        self.medcat_empty_text_handling: str = "restore"
         self.medcat_no_annotations_handling: str = "restore"
 
         # this is directly mirrored to the UI
@@ -75,7 +76,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
                                description="in DEID mode, how to handle MedCAT results whose text is empty or "
                                "whitespace: drop omits the record; restore reconstructs the original document "
                                "from the response footer",
-                               default_value="drop",
+                               default_value="restore",
                                required=True,
                                allowable_values=["drop", "restore"],
                                ),
@@ -160,13 +161,13 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
 
                 _record = {}
                 _record["metadata"] = result.get("metadata", {})
-                _record[self.output_text_field_name] = result.get("text", "")
                 _record["success"] = result.get("success", False)
                 _record["timestamp"] = result.get("timestamp", None)
 
-                if "footer" in result:
-                    for k, v in result["footer"].items():
-                        _record[k] = v
+                for k, v in (result.get("footer") or {}).items():
+                    _record[k] = v
+
+                _record[self.output_text_field_name] = result.get("text", "")
                 
                 if self.document_id_field_name in _record:
                     additional_attributes[self.document_id_field_name] = str(_record[self.document_id_field_name])
