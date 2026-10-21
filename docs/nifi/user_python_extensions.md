@@ -65,6 +65,27 @@ then refresh the lock with `uv lock`.
 - Restart the container to pick up bind-mounted extension changes, and rebuild the image to refresh the
   installed `nifi.user_scripts` package.
 
+### Verify service response restoration
+
+`CogStackParseCogStackServiceResult` version `0.0.6` restores original requests with a
+`content` envelope, and bare requests containing `footer`, even when no text key exists.
+It emits every footer field plus the original text, including an empty string.
+The output remains a JSON array, as with normal service responses.
+
+After deploying the source, restart NiFi and check that the parser instance uses
+version `0.0.6`. If it still uses an older version, update that instance to the new
+version before testing restoration.
+
+Check the connection entering the parser as well. The bundled OCR and MedCAT flows
+send `InvokeHTTP`'s `Response` relationship to the parser, while `No Retry`, `Retry`,
+and `Failure` go to a funnel. Those original failure FlowFiles cannot be restored by
+this parser unless they are routed to it. Inspect the actual incoming FlowFile content
+and the parser's outgoing content when diagnosing missing fields.
+
+If the parser receives an unrecognised error body without the original request, it
+routes the FlowFile to `failure` without replacing its content. A service error body
+alone cannot reconstruct a footer that is only present in the original request.
+
 ## Related docs
 
 - `docs/nifi/processor_scripting.md` for a side-by-side guide of extension processors vs `ExecuteStreamCommand`.
