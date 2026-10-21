@@ -78,7 +78,10 @@ x-nifi-volumes: &nifi-volumes
 
   # User overrides bundled in the image
   - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
-  - ../nifi/user_schemas:/opt/nifi/user_schemas:ro
+  - ../nifi/user_schemas:/opt/nifi/user_schemas:rw
+
+  # Live Python package imports
+  - ../nifi/user_scripts/:/opt/nifi/nifi-current/python/framework/nifi/user_scripts:rw
 
   # Python processors (NiFi 2.x)
   - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
@@ -139,6 +142,9 @@ x-es-common-volumes: &es-common-volumes
   - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
   - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
   - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
+  # Shared local ML model repository. Register files with a
+  # file:///usr/share/opensearch/models/<model>.zip URL.
+  - ../services/elasticsearch/models:/usr/share/opensearch/models:ro
   # Shared system settings
   - ../services/elasticsearch/sysctl.conf:/etc/sysctl.conf:ro
   # Shared snapshot mounts
@@ -289,6 +295,46 @@ services:
       - 1433:1433
     networks:
       - cognet
+
+#---------------------------------------------------------------------------#
+# ClickHouse analytics database                                             #
+#---------------------------------------------------------------------------#
+  clickhouse:
+    image: ${CLICKHOUSE_DOCKER_IMAGE:-clickhouse/clickhouse-server:26.8}
+    container_name: cogstack-clickhouse
+    hostname: clickhouse
+    restart: unless-stopped
+    env_file:
+      - ./database.env
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    deploy:
+      resources:
+        limits:
+          cpus: "${CLICKHOUSE_DOCKER_CPU_MAX:-2}"
+          memory: "${CLICKHOUSE_DOCKER_RAM:-2g}"
+        reservations:
+          cpus: "${CLICKHOUSE_DOCKER_CPU_MIN:-0.5}"
+          memory: "${CLICKHOUSE_DOCKER_RAM_MIN:-512m}"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ports:
+      - "${CLICKHOUSE_OUTPUT_HOST:-127.0.0.1}:${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_OUTPUT_HOST:-127.0.0.1}:${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    expose:
+      - "8123"
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --user \"$${CLICKHOUSE_USER}\" --password \"$${CLICKHOUSE_PASSWORD}\" --query 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - cognet
+    logging: *logging-common
 
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
@@ -476,6 +522,106 @@ services:
     logging: *es-logging-common
 
 #---------------------------------------------------------------------------#
+# Ollama local model inference                                              #
+#---------------------------------------------------------------------------#
+  ollama:
+    image: ${OLLAMA_DOCKER_IMAGE:-ollama/ollama:latest}
+    container_name: ${OLLAMA_CONTAINER_NAME:-cogstack-ollama}
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    env_file:
+      - ./ollama.env
+    deploy:
+      resources:
+        limits:
+          cpus: "${OLLAMA_DOCKER_CPU_MAX:-4}"
+          memory: "${OLLAMA_DOCKER_RAM:-12g}"
+        reservations:
+          cpus: "${OLLAMA_DOCKER_CPU_MIN:-1}"
+          memory: "${OLLAMA_DOCKER_RAM_MIN:-2g}"
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      # Keep the unauthenticated Ollama API local to the Docker host.
+      - "${OLLAMA_OUTPUT_HOST:-127.0.0.1}:${OLLAMA_OUTPUT_PORT:-11434}:11434"
+    expose:
+      - "11434"
+    networks:
+      - cognet
+    logging: *logging-common
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+#---------------------------------------------------------------------------#
+# OpenSearch-to-Ollama tool-call compatibility proxy                        #
+#---------------------------------------------------------------------------#
+  ollama-openai-proxy:
+    build:
+      context: ../services/ollama-openai-proxy
+    image: ${OLLAMA_OPENAI_PROXY_DOCKER_IMAGE:-cogstack/ollama-openai-proxy:local}
+    container_name: ${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      OLLAMA_UPSTREAM_HOST: ollama
+      OLLAMA_UPSTREAM_PORT: 11434
+      OLLAMA_UPSTREAM_TIMEOUT_SECONDS: ${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    expose:
+      - "11435"
+    networks:
+      - cognet
+    logging: *logging-common
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:11435/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+#---------------------------------------------------------------------------#
+# Open WebUI for local Ollama chat and model management                      #
+#---------------------------------------------------------------------------#
+  open-webui:
+    image: ${OPENWEBUI_DOCKER_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    container_name: ${OPENWEBUI_CONTAINER_NAME:-cogstack-open-webui}
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
+    restart: unless-stopped
+    env_file:
+      - ./openwebui.env
+    depends_on:
+      ollama:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "${OPENWEBUI_DOCKER_CPU_MAX:-1}"
+          memory: "${OPENWEBUI_DOCKER_RAM:-2g}"
+        reservations:
+          cpus: "${OPENWEBUI_DOCKER_CPU_MIN:-0.25}"
+          memory: "${OPENWEBUI_DOCKER_RAM_MIN:-256m}"
+    volumes:
+      - openwebui-data:/app/backend/data
+    ports:
+      # Port 3000 is already used by Gitea in this Compose project.
+      - "${OPENWEBUI_OUTPUT_HOST:-127.0.0.1}:${OPENWEBUI_OUTPUT_PORT:-3001}:8080"
+    expose:
+      - "8080"
+    networks:
+      - cognet
+    logging: *logging-common
+
+#---------------------------------------------------------------------------#
 # NiFi webapp                                                               #
 #---------------------------------------------------------------------------#
   nifi:
@@ -594,6 +740,10 @@ volumes:
   databank-vol:
     driver: local
 
+  # ClickHouse database files
+  clickhouse-data:
+    driver: local
+
   # ELK-stack related
   elasticsearch-vol-1:
     driver: local
@@ -630,6 +780,14 @@ volumes:
   filebeat-data-2:
     driver: local
   filebeat-data-3:
+    driver: local
+
+  # Ollama model cache
+  ollama-models:
+    driver: local
+
+  # Open WebUI database, uploads, configuration, and generated secret key
+  openwebui-data:
     driver: local
 
   # NiFi related

@@ -108,6 +108,8 @@ nifi:
 
 When enabled, the chart grants the service account the required namespace-scoped Lease and ConfigMap permissions.
 
+NiFi 2.12.0 requires DNS hostnames for TLS cluster connections. The chart sets both `nifi.cluster.node.address` and `nifi.cluster.load.balance.host` to `<pod-name>.<headless-service>.<namespace>.svc`; node certificates must include the corresponding DNS names in their Subject Alternative Names. See the [Apache NiFi migration guidance](https://cwiki.apache.org/confluence/spaces/NIFI/pages/57905503/Migration%2BGuidance).
+
 Before using cluster mode in production, also review the NiFi authentication and authorization model. The repo defaults use single-user authentication and one shared NiFi certificate; a production NiFi cluster should normally use node-specific identities and an authorizer configuration that grants those node identities cluster access.
 
 ## Notes

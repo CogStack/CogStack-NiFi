@@ -73,8 +73,8 @@ echo "✅ Submodule update complete."
 
 # fix jupyter-hub cookie file permissions
 for f in \
-  "../services/cogstack-jupyter-hub/config/jupyterhub_cookie_secret" \
-  "services/cogstack-jupyter-hub/config/jupyterhub_cookie_secret"
+  "../services/cogstack-platform/apps/cogstack-jupyter-hub/config/jupyterhub_cookie_secret" \
+  "services/cogstack-platform/apps/cogstack-jupyter-hub/config/jupyterhub_cookie_secret"
 do
 
     [ -f "$f" ] && chmod 500 "$f" && echo "Fixing jupyter-hub cookie secret file permissions. $f"

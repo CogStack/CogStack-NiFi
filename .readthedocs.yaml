@@ -10,12 +10,13 @@ build:
     python: "3.13"
   jobs:
     pre_create_environment:
-        - asdf plugin add uv
-        - UV_VERSION="$(sed -n 's/^required-version = "==\([^"]*\)"$/\1/p' pyproject.toml)" && test -n "${UV_VERSION}" && asdf install uv "${UV_VERSION}" && asdf global uv "${UV_VERSION}"
+      - asdf plugin add uv
+      - asdf install uv 0.12.1
+      - asdf global uv 0.12.1
     create_environment:
-        - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+      - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
     install:
-        - cd docs && UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen
+      - cd docs && UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen
 
 mkdocs:
   configuration: mkdocs.yml

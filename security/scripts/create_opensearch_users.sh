@@ -169,12 +169,19 @@ api_put "roles/cogstack_ingest" '{
 }'
 
 api_put "roles/cogstack_access" '{
-  "cluster_permissions": ["cluster_composite_ops"],
+  "cluster_permissions": ["cluster_composite_ops", "cluster_monitor"],
   "index_permissions": [{
     "index_patterns": ["cogstack_*", "nifi_*"],
     "fls": [],
     "masked_fields": [],
-    "allowed_actions": ["search", "read", "get"]
+    "allowed_actions": [
+      "search",
+      "read",
+      "get",
+      "indices_monitor",
+      "indices:admin/mappings/get",
+      "indices:monitor/settings/get"
+    ]
   }],
   "tenant_permissions": [{
     "tenant_patterns": ["cogstack_tenant"],
@@ -204,6 +211,12 @@ api_put "rolesmapping/cogstack_access" '{
   "backend_roles": ["cogstack_access"],
   "hosts": [],
   "users": ["cogstack_user"]
+}'
+
+api_put "rolesmapping/query_assistant_access" '{
+  "backend_roles": ["cogstack_access"],
+  "hosts": [],
+  "users": ["admin"]
 }'
 
 api_put "rolesmapping/cogstack_ingest" '{

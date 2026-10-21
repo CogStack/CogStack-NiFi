@@ -52,3 +52,5 @@ site/
 **/*.env
 !*.env.template
 !**/*.env.template
+!deploy/ollama.env
+!deploy/openwebui.env

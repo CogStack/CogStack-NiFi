@@ -18,10 +18,11 @@ From the repository root:
 ```bash
 cd deploy
 source export_env_vars.sh
+make init-security
 make start-nifi
 ```
 
-Then open NiFi at `https://localhost:8082`.
+Then open NiFi through nginx at `https://localhost:8443`.
 
 ## Repository map
 

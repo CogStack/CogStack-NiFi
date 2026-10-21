@@ -111,6 +111,8 @@ services:
     build:
        context: ..
        dockerfile: nifi/Dockerfile
+       args:
+         NIFI_VERSION: ${NIFI_VERSION:-2.12.0}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
