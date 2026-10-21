@@ -229,6 +229,11 @@ The MedCAT-prefixed properties are shared by the generic parser and are not used
 normal OCR response. Connect `success` to `SplitJson` and `failure` to its funnel;
 `original` is auto-terminated.
 
+If an original request from an HTTP failure route is sent to this parser, it restores
+all footer fields and any original text under `document_text_field_name`. Both `content`
+envelopes and the bare `binary_data`/`footer` requests produced by the OCR preparation
+processor are supported. If no original text is available, the text field is empty.
+
 ### 6. `SplitJson`
 
 | Property | Bundled value |

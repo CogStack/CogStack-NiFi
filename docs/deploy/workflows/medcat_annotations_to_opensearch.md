@@ -187,13 +187,18 @@ contract expected by the preparation and parser processors.
 | `document_text_field_name` | `text` | Source text field |
 | `output_text_field_name` | `text` | Restored output text |
 | `medcat_output_mode` | `not_set` | Normal annotations, not de-identification |
-| `medcat_empty_text_handling` | `drop` | Do not emit empty-text documents |
+| `medcat_empty_text_handling` | `drop` | Legacy setting; empty-text DEID documents are always restored |
 | `medcat_no_annotations_handling` | `restore` | Restore a document with no annotations |
 | `medcat_deid_keep_annotations` | `true` | Relevant only in de-identification mode |
 
 The parser combines the source document ID and MedCAT annotation ID into
 `annotation_id`. Connect `success` to `SplitJson`, route `failure` to its funnel, and
 leave `original` auto-terminated.
+
+If an original request from an HTTP failure route is sent to this parser, it accepts
+`{"content": {"text": "...", "footer": {...}}}` and the bulk form with a `content` list.
+It restores every footer field and the original text under `document_text_field_name`,
+including empty text, independently of service type or MedCAT output mode.
 
 ### 5. `SplitJson`
 

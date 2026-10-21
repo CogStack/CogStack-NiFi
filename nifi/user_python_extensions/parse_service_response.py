@@ -25,7 +25,7 @@ class CogStackParseCogStackServiceResult(BaseNiFiProcessor):
         implements = ['org.apache.nifi.python.processor.FlowFileTransform']
 
     class ProcessorDetails:
-        version = '0.0.4'
+        version = '0.0.5'
 
     def __init__(self, jvm: JVMView):
         super().__init__(jvm)
