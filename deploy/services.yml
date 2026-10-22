@@ -679,25 +679,6 @@ services:
     logging: *nifi-logging-common
 
 #---------------------------------------------------------------------------#
-# Cogstack cohort service                                                   #
-#---------------------------------------------------------------------------#
-  cogstack-cohort:
-      container_name: cogstack-cohort
-      image: cogstacksystems/cogstackcohort:latest
-      shm_size: ${DOCKER_SHM_SIZE:-"1g"}
-      restart: always
-      env_file: *all-env
-      volumes:
-        - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
-        - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
-        - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
-      networks:
-        - cognet
-      ports:
-        - "3001:3000"
-      logging: *logging-common
-
-#---------------------------------------------------------------------------#
 # Version control service                                                   #
 #---------------------------------------------------------------------------#
   gitea:

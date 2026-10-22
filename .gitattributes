@@ -70,5 +70,3 @@
 #*.exe filter=lfs diff=lfs merge=lfs -text
 # Doc images
 #docs/_static/img filter=lfs diff=lfs merge=lfs -text
-#services/cogstack-cohort/cui_pt2ch.json filter=lfs diff=lfs merge=lfs -text
-#services/cogstack-cohort/snomed_terms.json filter=lfs diff=lfs merge=lfs -text
