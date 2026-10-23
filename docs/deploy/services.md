@@ -26,7 +26,6 @@ The core services defined in `services.yml` include:
 - **nifi-nginx** — Reverse proxy providing secure access to NiFi.
 - **kibana** — Kibana or OpenSearch Dashboards, depending on the backend.
 - **gitea** — Self-hosted Git service.
-- **cogstack-cohort** — Cohort discovery interface.
 
 Additional services, including MedCAT, MedCAT Trainer, OCR, and JupyterHub, are
 started from Compose files in their respective `services/` directories.

@@ -32,6 +32,8 @@ usersEnvFile:
   # Only these keys are imported into the credentials Secret.
   includeKeys:
     - OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    - OPENSEARCH_COMPLIANCE_SALT
+    - OPENSEARCH_DATASOURCE_MASTER_KEY
     - KIBANA_USER
     - KIBANA_PASSWORD
 
@@ -52,14 +54,14 @@ opensearch:
     tag: "3.5.0"
     pullPolicy: IfNotPresent
   clusterName: elasticsearch-cogstack-cluster
-  javaOpts: "-Xms512m -Xmx512m -Des.failure_store_feature_flag_enabled=true"
+  javaOpts: "-Xms512m -Xmx512m -Des.failure_store_feature_flag_enabled=true --enable-native-access=ALL-UNNAMED"
   resources:
     requests:
       cpu: "500m"
-      memory: "1Gi"
+      memory: "2Gi"
     limits:
       cpu: "1"
-      memory: "1Gi"
+      memory: "2Gi"
   persistence:
     enabled: true
     accessModes:
@@ -150,6 +152,10 @@ credentials:
   create: true
   existingSecret: ""
   adminPassword: "Kibanaserver!1"
+  # Required when usersEnvFile.raw overrides the bundled development values.
+  # Use deployment-specific values or credentials.existingSecret in production.
+  complianceSalt: ""
+  datasourceMasterKey: ""
   kibanaUser: kibanaserver
   kibanaPassword: kibanaserver
 

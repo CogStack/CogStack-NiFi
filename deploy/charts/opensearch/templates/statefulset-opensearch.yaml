@@ -80,6 +80,8 @@ spec:
         - name: opensearch
           image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
           imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
+          command: ["/bin/bash", "/opt/cogstack/search-entrypoint.sh"]
+          args: ["opensearch"]
           securityContext:
             {{- toYaml .Values.opensearch.securityContext | nindent 12 }}
           ports:
@@ -120,6 +122,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
                   key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+            - name: OPENSEARCH_COMPLIANCE_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
+                  key: OPENSEARCH_COMPLIANCE_SALT
+            - name: OPENSEARCH_DATASOURCE_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cogstack-opensearch.credentialsSecretName" . }}
+                  key: OPENSEARCH_DATASOURCE_MASTER_KEY
             {{- with .Values.opensearch.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -141,63 +153,79 @@ spec:
             {{- toYaml .Values.opensearch.resources | nindent 12 }}
           volumeMounts:
             - name: opensearch-config
-              mountPath: /usr/share/opensearch/config/opensearch.yml
+              mountPath: /opt/cogstack/search-entrypoint.sh
+              subPath: search-entrypoint.sh
+              readOnly: true
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config-input/opensearch.yml
               subPath: opensearch.yml
             - name: opensearch-config
-              mountPath: /usr/share/opensearch/config/log4j2.properties
+              mountPath: /usr/share/opensearch/config-input/log4j2.properties
               subPath: log4j2.properties
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config-input/opensearch-performance-analyzer/performance-analyzer.properties
+              subPath: performance-analyzer.properties
+              readOnly: true
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config-input/opensearch-performance-analyzer/plugin-stats-metadata
+              subPath: plugin-stats-metadata
+              readOnly: true
+            - name: opensearch-config
+              mountPath: /usr/share/opensearch/config-input/opensearch-performance-analyzer/agent-stats-metadata
+              subPath: agent-stats-metadata
+              readOnly: true
             - name: opensearch-security
-              mountPath: /usr/share/opensearch/config/opensearch-security/config.yml
+              mountPath: /usr/share/opensearch/config-input/opensearch-security/config.yml
               subPath: config.yml
             - name: opensearch-security
-              mountPath: /usr/share/opensearch/config/opensearch-security/internal_users.yml
+              mountPath: /usr/share/opensearch/config-input/opensearch-security/internal_users.yml
               subPath: internal_users.yml
             - name: opensearch-security
-              mountPath: /usr/share/opensearch/config/opensearch-security/roles.yml
+              mountPath: /usr/share/opensearch/config-input/opensearch-security/roles.yml
               subPath: roles.yml
             - name: opensearch-security
-              mountPath: /usr/share/opensearch/config/opensearch-security/roles_mapping.yml
+              mountPath: /usr/share/opensearch/config-input/opensearch-security/roles_mapping.yml
               subPath: roles_mapping.yml
             {{- if gt (len $nodeCertFiles) 0 }}
             - name: opensearch-certs-runtime
-              mountPath: /usr/share/opensearch/config/root-ca.crt
+              mountPath: /usr/share/opensearch/config-input/root-ca.crt
               subPath: root-ca.crt
               readOnly: true
             - name: opensearch-certs-runtime
-              mountPath: /usr/share/opensearch/config/esnode.crt
+              mountPath: /usr/share/opensearch/config-input/esnode.crt
               subPath: esnode.crt
               readOnly: true
             - name: opensearch-certs-runtime
-              mountPath: /usr/share/opensearch/config/esnode.key
+              mountPath: /usr/share/opensearch/config-input/esnode.key
               subPath: esnode.key
               readOnly: true
             - name: opensearch-certs-runtime
-              mountPath: /usr/share/opensearch/config/admin.crt
+              mountPath: /usr/share/opensearch/config-input/admin.crt
               subPath: admin.crt
               readOnly: true
             - name: opensearch-certs-runtime
-              mountPath: /usr/share/opensearch/config/admin.key.pem
+              mountPath: /usr/share/opensearch/config-input/admin.key.pem
               subPath: admin.key.pem
               readOnly: true
             {{- else }}
             - name: opensearch-certs
-              mountPath: /usr/share/opensearch/config/root-ca.crt
+              mountPath: /usr/share/opensearch/config-input/root-ca.crt
               subPath: {{ .Values.certificates.opensearchFiles.rootCA }}
               readOnly: true
             - name: opensearch-certs
-              mountPath: /usr/share/opensearch/config/esnode.crt
+              mountPath: /usr/share/opensearch/config-input/esnode.crt
               subPath: {{ .Values.certificates.opensearchFiles.nodeCert }}
               readOnly: true
             - name: opensearch-certs
-              mountPath: /usr/share/opensearch/config/esnode.key
+              mountPath: /usr/share/opensearch/config-input/esnode.key
               subPath: {{ .Values.certificates.opensearchFiles.nodeKey }}
               readOnly: true
             - name: opensearch-certs
-              mountPath: /usr/share/opensearch/config/admin.crt
+              mountPath: /usr/share/opensearch/config-input/admin.crt
               subPath: {{ .Values.certificates.opensearchFiles.adminCert }}
               readOnly: true
             - name: opensearch-certs
-              mountPath: /usr/share/opensearch/config/admin.key.pem
+              mountPath: /usr/share/opensearch/config-input/admin.key.pem
               subPath: {{ .Values.certificates.opensearchFiles.adminKey }}
               readOnly: true
             {{- end }}
@@ -206,7 +234,7 @@ spec:
             - name: logs
               mountPath: /usr/share/opensearch/logs
             - name: performance-analyzer
-              mountPath: /usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata
+              mountPath: /var/lib/opensearch-performance-analyzer
             {{- if .Values.opensearch.snapshotBackups.enabled }}
             - name: snapshot-backup-data
               mountPath: {{ .Values.opensearch.snapshotBackups.data.mountPath }}

@@ -128,20 +128,25 @@ x-db-common: &db-common
 
 x-es-common-volumes: &es-common-volumes
   # Shared configs
-  - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-  - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+  - ../services/elasticsearch/search-entrypoint.sh:/usr/local/bin/cogstack-search-entrypoint.sh:ro
+  - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
+  - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/log4j2.properties:ro
+  # Supply Performance Analyzer files missing from some OpenSearch images.
+  - ../services/elasticsearch/config/performance-analyzer/performance-analyzer.properties:/usr/share/opensearch/config-input/opensearch-performance-analyzer/performance-analyzer.properties:ro
+  - ../services/elasticsearch/config/performance-analyzer/plugin-stats-metadata:/usr/share/opensearch/config-input/opensearch-performance-analyzer/plugin-stats-metadata:ro
+  - ../services/elasticsearch/config/performance-analyzer/agent-stats-metadata:/usr/share/opensearch/config-input/opensearch-performance-analyzer/agent-stats-metadata:ro
   # Shared root CA + admin certs
-  - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+  - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/root-ca.crt:ro
   # OPENSEARCH specific (always mounted even if unused)
-  - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-  - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+  - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/admin.crt:ro
+  - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/admin.key.pem:ro
   # Shared roles
-  - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-  - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
-  - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
-  - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
-  - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
-  - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
+  - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config-input/role_mapping.yml:ro
+  - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config-input/roles.yml:ro
+  - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config-input/opensearch-security/config.yml:ro
+  - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config-input/opensearch-security/internal_users.yml:ro
+  - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config-input/opensearch-security/roles_mapping.yml:ro
+  - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config-input/opensearch-security/roles.yml:ro
   # Shared local ML model repository. Register files with a
   # file:///usr/share/opensearch/models/<model>.zip URL.
   - ../services/elasticsearch/models:/usr/share/opensearch/models:ro
@@ -154,6 +159,9 @@ x-es-common-volumes: &es-common-volumes
 x-es-common: &es-common
   <<: *common-ulimits
   image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:latest}
+  entrypoint: ["/bin/bash", "/usr/local/bin/cogstack-search-entrypoint.sh"]
+  environment:
+    ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
   shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
   restart: unless-stopped
   env_file: *es-env
@@ -339,6 +347,21 @@ services:
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
+  opensearch-performance-analyzer-init:
+    # Named volumes previously mounted over metadata files are owned by root.
+    # Prepare the database directories for OpenSearch's uid/gid without touching data.
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:latest}
+    user: "0"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - chown 1000:1000 /pa-1 /pa-2 /pa-3
+    restart: "no"
+    network_mode: none
+    volumes:
+      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/pa-1
+      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/pa-2
+      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/pa-3
+
   es_native_create_certs:
     container_name: es_create_certs
     image: docker.elastic.co/elasticsearch/elasticsearch:latest
@@ -358,6 +381,9 @@ services:
   elasticsearch-base:
     <<: *es-common
     profiles: ["_elasticsearch_base"]
+    depends_on:
+      opensearch-performance-analyzer-init:
+        condition: service_completed_successfully
     security_opt:
       - seccomp=unconfined
     volumes: *es-common-volumes
@@ -369,15 +395,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_1_NAME:-es01}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugin-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
@@ -390,15 +416,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_2_NAME:-es02}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
@@ -411,15 +437,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_3_NAME:-es03}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
@@ -677,25 +703,6 @@ services:
       - cognet
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
-
-#---------------------------------------------------------------------------#
-# Cogstack cohort service                                                   #
-#---------------------------------------------------------------------------#
-  cogstack-cohort:
-      container_name: cogstack-cohort
-      image: cogstacksystems/cogstackcohort:latest
-      shm_size: ${DOCKER_SHM_SIZE:-"1g"}
-      restart: always
-      env_file: *all-env
-      volumes:
-        - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
-        - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
-        - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
-      networks:
-        - cognet
-      ports:
-        - "3001:3000"
-      logging: *logging-common
 
 #---------------------------------------------------------------------------#
 # Version control service                                                   #
