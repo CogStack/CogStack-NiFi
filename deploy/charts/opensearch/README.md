@@ -20,6 +20,7 @@ Helm chart for deploying OpenSearch and/or OpenSearch Dashboards using the CogSt
 2. Kubernetes Secrets containing TLS materials for enabled components.
 3. If `credentials.create=false`, an existing Secret with:
    - `OPENSEARCH_INITIAL_ADMIN_PASSWORD` when `opensearch.enabled=true`
+   - `OPENSEARCH_COMPLIANCE_SALT` and `OPENSEARCH_DATASOURCE_MASTER_KEY` when `opensearch.enabled=true`
    - `KIBANA_USER` and `KIBANA_PASSWORD` when `dashboards.enabled=true`
 
 ## Required certificate secrets
@@ -103,11 +104,14 @@ helm template cogstack-opensearch ./deploy/charts/opensearch \
 - The standard install/render commands now use `-f ./deploy/helm/opensearch.values.yaml`; that file is for cluster-specific overrides only.
 - The shared `services/`, `security/`, and selected `deploy/` env files are consumed automatically by the chart defaults; you do not need to repeat those paths in the values file.
 - `envFile.raw` defaults to `deploy/elasticsearch.env` and can still be overridden; the chart reads only `ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, and `KIBANA_SERVER_NAME`, while pod IP and discovery hosts remain Kubernetes-specific.
-- `usersEnvFile.raw` defaults to `security/env/users_elasticsearch.env` and can still be overridden; only the credential keys required by the enabled components are imported.
+- `usersEnvFile.raw` defaults to `security/env/users_elasticsearch.env` and can still be overridden; only the credential keys required by the enabled components are imported. The bundled values are public development defaults. Provide a deployment-specific masking salt and datasource encryption key through this override or `credentials.existingSecret` in production, with identical values on every node.
 - `certificatesEnvFile.raw` defaults to `security/env/certificates_elasticsearch.env` and can still be overridden; currently `ES_CLIENT_CERT_NAME` is used to resolve Dashboards cert secret keys (`<name>.pem` / `<name>.key`).
 - `deploy/elasticsearch.env` shared values are used where they make sense on Kubernetes (`ELASTICSEARCH_CLUSTER_NAME`, `ELASTICSEARCH_JAVA_OPTS` / `OPENSEARCH_JAVA_OPTS`, `KIBANA_SERVER_NAME`), while pod IP and discovery hosts remain Kubernetes-specific.
 - By default, `certificates.opensearchNodeFiles[*]` maps pod ordinals `0/1/2` to repo-style node cert keys `elasticsearch-1/2/3`.
 - `opensearch.logPersistence` and `opensearch.performanceAnalyzerPersistence` default to PVC-backed storage to stay closer to the Docker Compose deployment.
+- Performance Analyzer configuration and metadata files come from `services/elasticsearch/config/performance-analyzer/`. Its metrics database volume is mounted at `/var/lib/opensearch-performance-analyzer`; metadata paths are regular files mounted from the ConfigMap.
+- The shared entrypoint skips the legacy Performance Analyzer agent when its RCA libraries are absent, as in the OpenSearch 3.9 image. The in-process collectors remain installed, but the legacy port 9600 API is unavailable without a compatible agent distribution.
+- Deployment configuration and certificates are mounted under `config-input/`. The shared search entrypoint copies them into the image's runtime `config/` directory and sets OpenSearch directories to `0700` and files to `0600` before calling the original image entrypoint. Restart pods after updating inputs. The demo security installer is disabled because this chart supplies its own configuration.
 - `opensearch.snapshotBackups` adds shared PVC-backed mounts for `/mnt/es_data_backups` and `/mnt/es_config_backups`; use RWX storage or set `existingClaim` values, and still set `path.repo` in the shared OpenSearch config if you want the cluster to use them.
 - `configFiles.opensearchRaw` can be set from `services/elasticsearch/config/opensearch.yml`.
 - `configFiles.log4jRaw` can be set from `services/elasticsearch/config/log4j2_opensearch.properties`.
