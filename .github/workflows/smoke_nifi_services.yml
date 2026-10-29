@@ -1,9 +1,31 @@
 name: smoke-nifi-services
 
 on:
-  pull_request:
   push:
     branches: ['**']
+    paths: &paths
+      - ".github/workflows/smoke_nifi_services.yml"
+      - ".gitattributes"
+      - "deploy/Makefile"
+      - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/*.env"
+      - "security/env/*.env"
+      - "security/scripts/**"
+      - "security/templates/**"
+      - ".dockerignore"
+      - "nifi/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "services/nginx/**"
+      - "deploy/services.dev.yml"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/smoke_nifi_services.sh"
+      - "scripts/tests/smoke_http_checks.sh"
+      - "!**/*.md"
+      - "!**/README*"
+  pull_request:
+    paths: *paths
   workflow_dispatch:
 
 concurrency:

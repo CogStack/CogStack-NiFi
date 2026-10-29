@@ -1,3 +1,12 @@
+{{/* Prefer the immutable digest when supplied. */}}
+{{- define "cogstack-opensearch.image" -}}
+{{- if .digest -}}
+{{- printf "%s@%s" .repository .digest -}}
+{{- else -}}
+{{- printf "%s:%s" .repository .tag -}}
+{{- end -}}
+{{- end -}}
+
 {{/* Chart name */}}
 {{- define "cogstack-opensearch.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}

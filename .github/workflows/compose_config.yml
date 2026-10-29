@@ -6,14 +6,54 @@ on:
     paths:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/Makefile"
+      - "security/scripts/**"
+      - "scripts/opensearch-ai-init.sh"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/test_configuration.py"
+      - "scripts/tests/check_opensearch_settings.py"
+      - "scripts/tests/test_opensearch_deployment.py"
+      - "services/elasticsearch/**"
+      - "services/kibana/config/opensearch.yml"
+      - "security/templates/**"
+      - "security/es_roles/opensearch/**"
+      - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
+      - "deploy/charts/**"
+      - "deploy/helm/**"
+      - "nifi/Dockerfile"
+      - "services/nginx/Dockerfile"
+      - "services/ollama-openai-proxy/Dockerfile"
+      - "scripts/tests/check_deployment_images.py"
+      - "scripts/tests/test_deployment_images.py"
       - "security/env/*.env"
       - ".github/workflows/compose_config.yml"
   pull_request:
     paths:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/Makefile"
+      - "security/scripts/**"
+      - "scripts/opensearch-ai-init.sh"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/test_configuration.py"
+      - "scripts/tests/check_opensearch_settings.py"
+      - "scripts/tests/test_opensearch_deployment.py"
+      - "services/elasticsearch/**"
+      - "services/kibana/config/opensearch.yml"
+      - "security/templates/**"
+      - "security/es_roles/opensearch/**"
+      - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
+      - "deploy/charts/**"
+      - "deploy/helm/**"
+      - "nifi/Dockerfile"
+      - "services/nginx/Dockerfile"
+      - "services/ollama-openai-proxy/Dockerfile"
+      - "scripts/tests/check_deployment_images.py"
+      - "scripts/tests/test_deployment_images.py"
       - "security/env/*.env"
       - ".github/workflows/compose_config.yml"
   workflow_dispatch:
@@ -32,10 +72,41 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Set up Java for certificate generation tests
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install deployment test dependency
+        run: python3 -m pip install PyYAML==6.0.3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5.0.1
+        with:
+          version: v4.3.1
+
       - name: Validate Compose files
         shell: bash
         run: |
-          set -euo pipefail
-          source deploy/export_env_vars.sh
-          docker compose -f deploy/services.yml config --quiet
-          docker compose -f deploy/services.dev.yml config --quiet
+          make -C deploy check-config
+
+      - name: Verify deployment image pins
+        run: python3 -B scripts/tests/check_deployment_images.py --helm
+
+      - name: Test image drift checks
+        run: python3 -B -m unittest discover -s scripts/tests -p test_deployment_images.py -v
+
+      - name: Test configuration profiles and resource guards
+        run: python3 -B -m unittest discover -s scripts/tests -p test_configuration.py -v
+
+      - name: Test OpenSearch AI configuration
+        run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_ai_init.py -v
+
+      - name: Test OpenSearch Compose and Helm compatibility
+        run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_deployment.py -v

@@ -52,11 +52,16 @@ This table describes repository layout. For setup and operations, use the deploy
 ```bash
 # from repository root
 git lfs pull
-make -C deploy git-update-submodules
+make -C deploy git-init-submodules
 make -C deploy help
+make -C deploy check-config
 make -C deploy init-security
 make -C deploy start-data-infra
 ```
+
+Setup uses the recorded submodule commits and pinned container images. See
+[Repeatable deployments](./docs/deploy/reproducible.md) for explicit upgrades
+and local image builds.
 
 After services start:
 

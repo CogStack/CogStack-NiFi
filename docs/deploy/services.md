@@ -26,7 +26,6 @@ The core services defined in `services.yml` include:
 - **nifi-nginx** — Reverse proxy providing secure access to NiFi.
 - **kibana** — Kibana or OpenSearch Dashboards, depending on the backend.
 - **gitea** — Self-hosted Git service.
-- **cogstack-cohort** — Cohort discovery interface.
 
 Additional services, including MedCAT, MedCAT Trainer, OCR, and JupyterHub, are
 started from Compose files in their respective `services/` directories.
@@ -464,6 +463,13 @@ Image selection controlled by:
 - Must be started after Elasticsearch/OpenSearch  
 - Connects automatically using `ELASTICSEARCH_HOSTS`  
 - TLS/user settings are applied from the `/security` env files  
+
+---
+
+## 🤖 OpenSearch AI with SGLang
+
+To connect OpenSearch Dashboards AI features to an existing SGLang server, see
+the [OpenSearch AI with SGLang](./sglang.md) deployment guide.
 
 ---
 

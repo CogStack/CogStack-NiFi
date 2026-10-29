@@ -26,6 +26,11 @@
 
 set -euo pipefail
 
+# Compose requires the pinned image references as well as certificate settings.
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/../../deploy/export_env_vars.sh"
+set -euo pipefail
+
 cleanup_es_native_artifacts() {
     docker ps -a -q --filter name="deploy-es_native_create_certs-run-*" |
         while IFS= read -r container_id; do
@@ -41,8 +46,6 @@ cleanup_es_native_artifacts() {
 
 if [ ! -d "../certificates/elastic/elasticsearch" ]; then
     echo "====================================== CREATE_ES_NATIVE_CERTS ==============================="
-    source ../env/certificates_elasticsearch.env
-    source ../env/users_elasticsearch.env
     echo "Removing previous cert container and volume if existent...."
     cleanup_es_native_artifacts || true
 

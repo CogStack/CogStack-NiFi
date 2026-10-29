@@ -20,32 +20,32 @@ x-logging-common: &logging-common
     max-file: ${DOCKER_LOG_NUM_FILES:-10}
 
 x-all-env: &all-env
-  - ./project.env
-  - ./general.env
-  - ./nifi.env
-  - ./gitea.env
-  - ./nginx.env
-  - ./telemetry.env
-  - ./database.env
-  - ./elasticsearch.env
-  - ./network_settings.env
-  - ../security/env/users_nifi.env
-  - ../security/env/users_database.env
-  - ../security/env/users_nginx.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_general.env
-  - ../security/env/certificates_elasticsearch.env
-  - ../security/env/certificates_nifi.env
+  - "${COGSTACK_PROJECT_ENV_FILE:-./project.env}"
+  - "${COGSTACK_GENERAL_ENV_FILE:-./general.env}"
+  - "${COGSTACK_NIFI_ENV_FILE:-./nifi.env}"
+  - "${COGSTACK_GITEA_ENV_FILE:-./gitea.env}"
+  - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
+  - "${COGSTACK_TELEMETRY_ENV_FILE:-./telemetry.env}"
+  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_USERS_NIFI_ENV_FILE:-../security/env/users_nifi.env}"
+  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
+  - "${COGSTACK_USERS_NGINX_ENV_FILE:-../security/env/users_nginx.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE:-../security/env/certificates_general.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_NIFI_ENV_FILE:-../security/env/certificates_nifi.env}"
 
 x-es-env: &es-env
-  - ./network_settings.env
-  - ./elasticsearch.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_elasticsearch.env
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
 
 x-db-env: &db-env
-  - ./database.env
-  - ../security/env/users_database.env
+  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
+  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
 
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
@@ -96,10 +96,10 @@ x-nifi-volumes: &nifi-volumes
   - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
   # Ingest data directory
-  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+  - ${NIFI_DATA_PATH:-../data/}:/data/:rw
 
   # MedCAT models
-  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+  - ${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
   # NiFi repositories/state
   - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -128,20 +128,25 @@ x-db-common: &db-common
 
 x-es-common-volumes: &es-common-volumes
   # Shared configs
-  - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
-  - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/log4j2.properties:ro
+  - ../services/elasticsearch/search-entrypoint.sh:/usr/local/bin/cogstack-search-entrypoint.sh:ro
+  - ../services/elasticsearch/config/${ELASTICSEARCH_VERSION:-opensearch}.yml:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/${ELASTICSEARCH_VERSION:-opensearch}.yml:ro
+  - ../services/elasticsearch/config/log4j2_${ELASTICSEARCH_VERSION:-opensearch}.properties:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/log4j2.properties:ro
+  # Supply Performance Analyzer files missing from some OpenSearch images.
+  - ../services/elasticsearch/config/performance-analyzer/performance-analyzer.properties:/usr/share/opensearch/config-input/opensearch-performance-analyzer/performance-analyzer.properties:ro
+  - ../services/elasticsearch/config/performance-analyzer/plugin-stats-metadata:/usr/share/opensearch/config-input/opensearch-performance-analyzer/plugin-stats-metadata:ro
+  - ../services/elasticsearch/config/performance-analyzer/agent-stats-metadata:/usr/share/opensearch/config-input/opensearch-performance-analyzer/agent-stats-metadata:ro
   # Shared root CA + admin certs
-  - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/root-ca.crt:ro
+  - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/root-ca.crt:ro
   # OPENSEARCH specific (always mounted even if unused)
-  - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.crt:ro
-  - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/admin.key.pem:ro
+  - ../security/certificates/elastic/opensearch/admin.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/admin.crt:ro
+  - ../security/certificates/elastic/opensearch/admin.key.pem:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/admin.key.pem:ro
   # Shared roles
-  - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config/role_mapping.yml:ro
-  - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml:ro
-  - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro
-  - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml:ro
-  - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro
-  - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml:ro
+  - ../security/es_roles/elasticsearch/role_mapping.yml:/usr/share/elasticsearch/config-input/role_mapping.yml:ro
+  - ../security/es_roles/elasticsearch/roles.yml:/usr/share/elasticsearch/config-input/roles.yml:ro
+  - ../security/es_roles/opensearch/config.yml:/usr/share/opensearch/config-input/opensearch-security/config.yml:ro
+  - ../security/es_roles/opensearch/internal_users.yml:/usr/share/opensearch/config-input/opensearch-security/internal_users.yml:ro
+  - ../security/es_roles/opensearch/roles_mapping.yml:/usr/share/opensearch/config-input/opensearch-security/roles_mapping.yml:ro
+  - ../security/es_roles/opensearch/roles.yml:/usr/share/opensearch/config-input/opensearch-security/roles.yml:ro
   # Shared local ML model repository. Register files with a
   # file:///usr/share/opensearch/models/<model>.zip URL.
   - ../services/elasticsearch/models:/usr/share/opensearch/models:ro
@@ -153,7 +158,10 @@ x-es-common-volumes: &es-common-volumes
 
 x-es-common: &es-common
   <<: *common-ulimits
-  image: ${ELASTICSEARCH_DOCKER_IMAGE:-opensearchproject/opensearch:latest}
+  image: ${ELASTICSEARCH_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
+  entrypoint: ["/bin/bash", "/usr/local/bin/cogstack-search-entrypoint.sh"]
+  environment:
+    ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-opensearch}
   shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
   restart: unless-stopped
   env_file: *es-env
@@ -172,13 +180,13 @@ x-es-common: &es-common
 
 x-metricbeat-common: &metricbeat-common
   <<: *common-ulimits
-  image: ${METRICBEAT_IMAGE:-docker.elastic.co/beats/metricbeat:latest}
+  image: ${METRICBEAT_IMAGE:?Source deploy/export_env_vars.sh first}
   command: -e --strict.perms=false
   restart: unless-stopped
   shm_size: ${METRICBEAT_DOCKER_SHM:-1g}
   env_file:
-    - ./elasticsearch.env
-    - ../security/env/users_elasticsearch.env
+    - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+    - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
   deploy:
     resources:
       limits:
@@ -197,13 +205,13 @@ x-metricbeat-common: &metricbeat-common
 
 x-filebeat-common: &filebeat-common
   <<: *common-ulimits
-  image: ${FILEBEAT_IMAGE:-docker.elastic.co/beats/filebeat:latest}
+  image: ${FILEBEAT_IMAGE:?Source deploy/export_env_vars.sh first}
   command: ${FILEBEAT_STARTUP_COMMAND:-'-e --strict.perms=false'}
   restart: unless-stopped
   shm_size: ${FILEBEAT_DOCKER_SHM:-1g}
   env_file:
-    - ./elasticsearch.env
-    - ../security/env/users_elasticsearch.env
+    - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+    - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
   deploy:
     resources:
       limits:
@@ -230,7 +238,7 @@ services:
 #---------------------------------------------------------------------------#
   samples-db:
     <<: *db-common
-    image: postgres:18.6-trixie
+    image: postgres:18.6-trixie@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4
     container_name: cogstack-samples-db
     platform: linux/amd64
     environment:
@@ -257,7 +265,7 @@ services:
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
     <<: *db-common
-    image: postgres:18.6-trixie
+    image: postgres:18.1-trixie@sha256:1090bc3a8ccfb0b55f78a494d76f8d603434f7e4553543d6e807bc7bd6bbd17f
     container_name: cogstack-production-databank-db
     platform: linux/amd64
     environment:
@@ -280,7 +288,7 @@ services:
 
   cogstack-databank-db-mssql:
     <<: *db-common
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2019-latest@sha256:07d7dedecdbfcf6776035dc5eefb5bfd9aa1804b2f6b99f7dedb397d8a599069
     container_name: cogstack-production-databank-db-mssql
     environment:
       - ACCEPT_EULA=y
@@ -300,12 +308,12 @@ services:
 # ClickHouse analytics database                                             #
 #---------------------------------------------------------------------------#
   clickhouse:
-    image: ${CLICKHOUSE_DOCKER_IMAGE:-clickhouse/clickhouse-server:26.8}
+    image: ${CLICKHOUSE_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-clickhouse
     hostname: clickhouse
     restart: unless-stopped
     env_file:
-      - ./database.env
+      - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
     ulimits:
       nofile:
         soft: 262144
@@ -339,9 +347,24 @@ services:
 #---------------------------------------------------------------------------#
 # ElasticSearch cluster                                                     #
 #---------------------------------------------------------------------------#
+  opensearch-performance-analyzer-init:
+    # Named volumes previously mounted over metadata files are owned by root.
+    # Prepare the database directories for OpenSearch's uid/gid without touching data.
+    image: ${ELASTICSEARCH_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
+    user: "0"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - chown 1000:1000 /pa-1 /pa-2 /pa-3
+    restart: "no"
+    network_mode: none
+    volumes:
+      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/pa-1
+      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/pa-2
+      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/pa-3
+
   es_native_create_certs:
     container_name: es_create_certs
-    image: docker.elastic.co/elasticsearch/elasticsearch:latest
+    image: ${ES_NATIVE_CERTS_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     shm_size: ${ELASTICSEARCH_DOCKER_SHM_SIZE:-1g}
     env_file: *es-env
     restart: "no"
@@ -358,6 +381,9 @@ services:
   elasticsearch-base:
     <<: *es-common
     profiles: ["_elasticsearch_base"]
+    depends_on:
+      opensearch-performance-analyzer-init:
+        condition: service_completed_successfully
     security_opt:
       - seccomp=unconfined
     volumes: *es-common-volumes
@@ -369,15 +395,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_1_NAME:-es01}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_1_DATA_VOL_NAME:-elasticsearch-vol-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_1_LOG_VOL_NAME:-elasticsearch-vol-log-1}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugin-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_1_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-1}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_1_OUTPUT_PORT:-9200}:9200"
       - "${ELASTICSEARCH_NODE_1_COMM_OUTPUT_PORT:-9300}:9300"
@@ -390,15 +416,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_2_NAME:-es02}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_2:-elasticsearch-2}/${ES_INSTANCE_NAME_2:-elasticsearch-2}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_2_DATA_VOL_NAME:-elasticsearch-vol-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_2_LOG_VOL_NAME:-elasticsearch-vol-log-2}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_2_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-2}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_2_OUTPUT_PORT:-9201}:9200"
       - "${ELASTICSEARCH_NODE_2_COMM_OUTPUT_PORT:-9301}:9300"
@@ -411,15 +437,15 @@ services:
     environment:
       node.name: ${ELASTICSEARCH_NODE_3_NAME:-es03}
     volumes:
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.p12:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config/esnode.key:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.p12:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.p12:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.crt:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.crt:ro
+      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_3:-elasticsearch-3}/${ES_INSTANCE_NAME_3:-elasticsearch-3}.key:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/config-input/esnode.key:ro
       # ES data persistence
       - ${ELASTICSEARCH_NODE_3_DATA_VOL_NAME:-elasticsearch-vol-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/data
       # ES logs
       - ${ELASTICSEARCH_NODE_3_LOG_VOL_NAME:-elasticsearch-vol-log-3}:/usr/share/${ELASTICSEARCH_VERSION:-opensearch}/logs
-      # OpenSearch performance analyzer
-      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/usr/share/opensearch/config/opensearch-performance-analyzer/plugins-stats-metadata:rw
+      # Performance Analyzer metrics database; metadata above is a regular config file.
+      - ${ELASTICSEARCH_NODE_3_PA_VOL_NAME:-elasticsearch-vol-performance-analyzer-3}:/var/lib/opensearch-performance-analyzer:rw
     ports:
       - "${ELASTICSEARCH_NODE_3_OUTPUT_PORT:-9202}:9200"
       - "${ELASTICSEARCH_NODE_3_COMM_OUTPUT_PORT:-9302}:9300"
@@ -487,7 +513,7 @@ services:
 #---------------------------------------------------------------------------#
   kibana:
     <<: *common-ulimits
-    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:-opensearchproject/opensearch-dashboards:latest}
+    image: ${ELASTICSEARCH_KIBANA_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-kibana
     shm_size: ${KIBANA_DOCKER_SHM_SIZE:-1g}
     restart: always
@@ -525,12 +551,12 @@ services:
 # Ollama local model inference                                              #
 #---------------------------------------------------------------------------#
   ollama:
-    image: ${OLLAMA_DOCKER_IMAGE:-ollama/ollama:latest}
+    image: ${OLLAMA_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: ${OLLAMA_CONTAINER_NAME:-cogstack-ollama}
     platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
-      - ./ollama.env
+      - "${COGSTACK_OLLAMA_ENV_FILE:-./ollama.env}"
     deploy:
       resources:
         limits:
@@ -563,6 +589,7 @@ services:
     build:
       context: ../services/ollama-openai-proxy
     image: ${OLLAMA_OPENAI_PROXY_DOCKER_IMAGE:-cogstack/ollama-openai-proxy:local}
+    pull_policy: build
     container_name: ${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}
     restart: unless-stopped
     read_only: true
@@ -593,12 +620,12 @@ services:
 # Open WebUI for local Ollama chat and model management                      #
 #---------------------------------------------------------------------------#
   open-webui:
-    image: ${OPENWEBUI_DOCKER_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    image: ${OPENWEBUI_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: ${OPENWEBUI_CONTAINER_NAME:-cogstack-open-webui}
     platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: unless-stopped
     env_file:
-      - ./openwebui.env
+      - "${COGSTACK_OPENWEBUI_ENV_FILE:-./openwebui.env}"
     depends_on:
       ollama:
         condition: service_healthy
@@ -626,13 +653,13 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
-    image: ${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}
+    image: ${NIFI_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
       - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
-      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+      - JVM_OPTS=${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
     deploy:
       resources:
         limits:
@@ -654,7 +681,7 @@ services:
     logging: *nifi-logging-common
 
   nifi-nginx:
-    image: cogstacksystems/nifi-nginx:latest
+    image: ${NIFI_NGINX_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-nifi-nginx
     restart: always
     shm_size: ${NGINX_SHM_SIZE:-1g}
@@ -679,31 +706,12 @@ services:
     logging: *nifi-logging-common
 
 #---------------------------------------------------------------------------#
-# Cogstack cohort service                                                   #
-#---------------------------------------------------------------------------#
-  cogstack-cohort:
-      container_name: cogstack-cohort
-      image: cogstacksystems/cogstackcohort:latest
-      shm_size: ${DOCKER_SHM_SIZE:-"1g"}
-      restart: always
-      env_file: *all-env
-      volumes:
-        - ./../data/cogstack-cohort:/usr/src/app/server/data:rw
-        - ./../services/cogstack-cohort/cui_pt2ch.json:/usr/src/app/server/data/cui_pt2ch.json:rw
-        - ./../services/cogstack-cohort/snomed_terms.json:/usr/src/app/server/data/snomed_terms.json:rw
-      networks:
-        - cognet
-      ports:
-        - "3001:3000"
-      logging: *logging-common
-
-#---------------------------------------------------------------------------#
 # Version control service                                                   #
 #---------------------------------------------------------------------------#
   gitea:
     <<: *common-ulimits
     container_name: cogstack-gitea
-    image: ${GITEA_DOCKER_IMAGE:-gitea/gitea:rootless-latest}
+    image: ${GITEA_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     shm_size: ${GITEA_DOCKER_SHM_SIZE:-"1g"}
     restart: always
     deploy:

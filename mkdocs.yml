@@ -44,8 +44,10 @@ nav:
   - 📋 Prerequisites: deploy/main.md
   - 📦 Air-gapped NiFi: deploy/air-gapped.md
   - 📦 Deployment: deploy/deployment.md
+  - 📌 Repeatable deployments: deploy/reproducible.md
   - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md
+  - 🤖 OpenSearch AI with SGLang: deploy/sglang.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - 🔀 Workflows:
       - Overview: deploy/workflows.md

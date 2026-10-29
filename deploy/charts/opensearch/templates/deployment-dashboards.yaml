@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: dashboards
-          image: "{{ .Values.dashboards.image.repository }}:{{ .Values.dashboards.image.tag }}"
+          image: {{ include "cogstack-opensearch.image" .Values.dashboards.image | quote }}
           imagePullPolicy: {{ .Values.dashboards.image.pullPolicy }}
           ports:
             - name: http
@@ -85,14 +85,6 @@ spec:
             - name: dashboards-certs
               mountPath: /certificates/elastic/opensearch/elastic-stack-ca.crt.pem
               subPath: {{ .Values.certificates.dashboardsFiles.rootCA }}
-              readOnly: true
-            - name: dashboards-certs
-              mountPath: /certificates/elastic/opensearch/admin.crt
-              subPath: {{ .Values.certificates.dashboardsFiles.adminCert }}
-              readOnly: true
-            - name: dashboards-certs
-              mountPath: /certificates/elastic/opensearch/admin.key.pem
-              subPath: {{ .Values.certificates.dashboardsFiles.adminKey }}
               readOnly: true
             - name: dashboards-certs
               mountPath: /certificates/elastic/opensearch/es_kibana_client.pem

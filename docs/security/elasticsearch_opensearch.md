@@ -44,6 +44,60 @@ ELASTICSEARCH_VERSION=elasticsearch
 
 This ensures the correct certificate directory (`elasticsearch` or `opensearch`) is mounted into containers.
 
+#### OpenSearch security setting deprecations
+
+The shared `services/elasticsearch/config/opensearch.yml` is used by Docker Compose and the OpenSearch Helm chart. It uses `transport.ssl.enforce_hostname_verification` instead of the deprecated `plugins.security.ssl.transport.enforce_hostname_verification`. The value remains `false`, preserving the existing transport TLS behavior. Enable verification only after ensuring node certificates cover the hostnames used for inter-node connections. See [Configuring TLS certificates](https://docs.opensearch.org/latest/security/configuration/tls/#advanced-hostname-verification-and-dns-lookup).
+
+The deprecated `plugins.security.system_indices.indices` list has no replacement YAML setting. The bundled plugins register their system index descriptors with OpenSearch. The shared configuration keeps `plugins.security.system_indices.enabled: true` and `plugins.security.system_indices.permission.enabled: true`, so registered system indices remain protected and roles can still grant explicit `system:admin/system_index` access. See [System indexes](https://docs.opensearch.org/latest/security/configuration/system-indices/).
+
+Before applying this configuration to an existing cluster, check for legacy or custom indices that depended on the old list. Plugin registrations do not necessarily cover every name matched by the old wildcards; for example, `.opendistro-notebooks` is a legacy name, while the current Observability plugin registers `.opensearch-notebooks`. Keep any required legacy protection until the owning plugin registers those indices or the data has been migrated. Such deployments may need to retain the deprecated list temporarily.
+
+Apply the same configuration to every OpenSearch node and perform a rolling restart, waiting for each node to rejoin and the cluster to recover before restarting the next. These are static node settings; updating the Security plugin roles or calling its configuration API does not apply them. For Helm deployments, upgrade the ConfigMap and restart the OpenSearch pods; the chart mounts `opensearch.yml` using `subPath`.
+
+#### Field masking salt and datasource encryption key
+
+The shared OpenSearch configuration reads `plugins.security.compliance.salt` from `OPENSEARCH_COMPLIANCE_SALT` and `plugins.query.datasources.encryption.masterkey` from `OPENSEARCH_DATASOURCE_MASTER_KEY`. All nodes must receive identical values. Compose reads them from `security/env/users_elasticsearch.env`; the Helm chart imports them into the credentials Secret and references that Secret from every OpenSearch pod.
+
+The checked-in values are public development defaults. The salt requires at least 16 ASCII characters; the datasource key requires 16, 24, or 32 ASCII characters. Supply deployment-specific values through local configuration or an external secret store for production. Generate a 16-character ASCII salt with `openssl rand -hex 8` and a 32-character datasource key with `openssl rand -hex 16`. Preserve both values across restarts and keep a backup of the key: changing it prevents decryption of credentials already stored in SQL/PPL datasource definitions. Changing the salt changes field-masking hashes. See [Field masking](https://docs.opensearch.org/latest/security/access-control/field-masking/#set-the-salt-setting) and [Data sources](https://docs.opensearch.org/latest/dashboards/management/data-sources/).
+
+For Helm, supply these keys in `usersEnvFile.raw` together with the existing credential keys, or include them in `credentials.existingSecret`. When overriding `usersEnvFile.raw` without these keys, set `credentials.complianceSalt` and `credentials.datasourceMasterKey` explicitly. Recreate Compose containers one node at a time after changing their environment; `docker compose restart` does not reload `env_file` values.
+
+OpenSearch Security 3.9.0 can still log one warning containing its built-in salt during startup. Its internal `FieldMasking.Config.DEFAULT` is initialized from `Settings.EMPTY`, which creates a default `Salt` before the node-specific configuration is used. Inspection of the installed 3.9.0.0 plugin confirms this initialization path. A single such warning does not establish that field masking uses the default salt. Keep the configured salt consistent across nodes.
+
+#### Runtime configuration permissions and JVM warnings
+
+The shared `services/elasticsearch/search-entrypoint.sh` copies read-only deployment inputs from `config-input/` into the image's writable `config/` directory before calling the original image entrypoint. Image defaults, including JVM configuration and the keystore, are preserved. For OpenSearch, runtime configuration directories are set to `0700` and files to `0600`; host source permissions are left unchanged. Compose and Helm both use this startup hook. Configuration and certificate changes are copied on container startup, so restart or recreate the container after changing inputs.
+
+The startup hook sets `DISABLE_INSTALL_DEMO_CONFIG=true` because the deployment supplies its own security configuration and certificates. This skips the demo installer while retaining the Security plugin. The shared JVM options include `--enable-native-access=ALL-UNNAMED` for dependencies that load native libraries. See [Docker configuration](https://docs.opensearch.org/latest/install-and-configure/install-opensearch/docker/) and [JDK native access](https://bugs.openjdk.org/browse/JDK-8334569).
+
+Messages about Byte Buddy's `sun.misc.Unsafe` calls and missing SLF4J providers originate in bundled dependencies. Resolving them requires compatible upstream dependency changes. Optional-plugin and incubating-vector messages can also appear during normal startup; check node readiness and cluster health to establish whether startup completed.
+
+#### Repeated startup and out-of-memory exits
+
+The development configuration allows 2 GiB per OpenSearch node while retaining a 512 MiB Java heap. OpenSearch 3.9 plugin initialization exceeded the former 1 GiB container limit in this deployment, causing repeated Docker `oom` events followed by exit code `137`. The container limit must also cover direct buffers, native allocations, thread stacks, and plugin memory. Ensure the Docker VM or Kubernetes worker has enough memory for every node and the other services.
+
+Check Docker's event history when startup repeats without a Java exception. `OOMKilled` and cgroup memory counters describe the current container execution and can reset after an automatic restart. Historical `oom` and `die` events identify the cause of earlier executions. See [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/).
+
+#### Performance Analyzer configuration
+
+`services/elasticsearch/config/performance-analyzer/` supplies `performance-analyzer.properties`, `plugin-stats-metadata`, and `agent-stats-metadata` for both Compose and Helm. This also covers OpenSearch images that omit these configuration files. See [Performance Analyzer configuration](https://docs.opensearch.org/latest/monitoring-plugins/pa/index/#configure-performance-analyzer).
+
+The OpenSearch 3.9 image also contains a legacy agent launcher whose `PerformanceAnalyzerApp` class is absent because the RCA application was removed. This is separate from the in-process collectors loading their configuration successfully. The shared entrypoint detects missing RCA library JARs, reports that the agent and port 9600 API are unavailable, and sets `DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true`. An explicitly supplied flag takes precedence for custom images. The collector plugin remains installed. See [the upstream missing-RCA issue](https://github.com/opensearch-project/performance-analyzer/issues/904).
+
+The metadata paths must be regular files. The former volume mounts at `plugin-stats-metadata` and `plugins-stats-metadata` created directories at those paths. Performance Analyzer volumes now hold metrics databases at `/var/lib/opensearch-performance-analyzer`, while temporary metrics stay in `/dev/shm/performanceanalyzer/`. Compose runs a small initialization service to assign the database volume roots to OpenSearch's UID/GID 1000; Helm uses the pod's `fsGroup` for volume access.
+
+Recreate existing Compose containers to apply the corrected mounts, waiting for each node to recover before moving to the next. Load the deployment environment first, as for other Compose commands. For example:
+
+```bash
+source deploy/export_env_vars.sh
+docker compose -f deploy/services.yml up -d elasticsearch-1
+# Wait for node 1 to rejoin and the cluster to recover.
+docker compose -f deploy/services.yml up -d elasticsearch-2
+# Repeat for elasticsearch-3 if it is deployed.
+```
+
+Keep the existing data and log volumes. No volume deletion is needed for this repair.
+
 ---
 
 ### 🧩 Common certificate layout
@@ -114,8 +168,8 @@ This produces:
 
 | File | Purpose |
 |------|----------|
-| `admin.crt`, `admin.key.pem` | Admin dashboard certificate |
-| `es_kibana_client.pem`, `es_kibana_client.key` | Client certificate for Kibana/OpenDashboard |
+| `admin.crt`, `admin.key.pem` | Administrative client certificate for security management |
+| `es_kibana_client.pem`, `es_kibana_client.key` | HTTPS server certificate for OpenSearch Dashboards |
 | `*.jks` | Node keystores/truststores for HTTPS and inter-node encryption |
 
 The resulting certificates are placed in:
@@ -124,6 +178,19 @@ The resulting certificates are placed in:
 security/certificates/elastic/opensearch/
 ```
 
+The signing scripts preserve the SANs configured in `ES_NODE_SUBJ_ALT_NAMES` and
+`ES_CLIENT_SUBJ_ALT_NAMES`. The defaults cover Compose names, localhost, and the
+Helm release `cogstack-opensearch` in namespace `cogstack`: node certificates
+include `cogstack-opensearch-client.cogstack.svc` and its `.cluster.local` form;
+the Dashboards certificate covers the corresponding
+`cogstack-opensearch-dashboards` Service. Add service names for a different
+release, namespace, cluster domain, or external hostname before generation.
+
+`init-security-opensearch` preserves complete existing certificate sets. If an
+existing leaf certificate lacks these SANs, plan a leaf certificate reissue
+using the existing CA, then update the mounted files or Kubernetes TLS Secret
+and restart the affected services. Keep the existing CA and data volumes.
+
 ---
 
 ### 📁 Kibana / OpenDashboard certificates
@@ -131,15 +198,38 @@ security/certificates/elastic/opensearch/
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
 | **Kibana** | `elasticsearch-{1,2,3}.crt`, `elasticsearch-{1,2,3}.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/elasticsearch/` |
-| **OpenDashboard (OpenSearch)** | `admin.crt`, `admin.key.pem`, `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
+| **OpenDashboard (OpenSearch)** | `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
 
 All certificate references in `services/kibana/config/opensearch.yml` or `services.yml` must point to these locations.
+
+Dashboards authenticates to OpenSearch with `KIBANA_USER` and `KIBANA_PASSWORD`
+and verifies the server CA and hostname. Its outgoing connection does not use
+the administrative client certificate. The Helm chart can use a separate
+`certificates.dashboardsSecretName` containing only the three Dashboards files.
 
 ---
 
 ### 🔐 Users and roles
 
 #### OpenSearch
+
+The bundled development admin login is `admin` / `admin`; the Dashboards service
+account is `kibanaserver` / `kibanaserver`. These match the hashes in
+`security/es_roles/opensearch/internal_users.yml`. `ELASTIC_USER` defaults to
+`admin`; select `elastic` when using native Elasticsearch.
+
+`OPENSEARCH_INITIAL_ADMIN_PASSWORD` is an input to the upstream demo installer,
+which this deployment disables. Changing it does not change these logins.
+Password values must match the internal-user hashes and the running security
+index. Use the rotation procedure below to update both; changing an environment
+file or Helm Secret alone does not rotate internal users. See the upstream
+[password configuration](https://docs.opensearch.org/latest/security/configuration/passwords/).
+
+Run `make -C deploy check-opensearch-settings` before starting services. It
+validates required credentials, key lengths, and matching image release tags
+without printing secret values. Helm validates generated credentials and TLS
+Secret mappings during rendering; external Secret contents must satisfy the
+same requirements.
 
 1. Edit the password values in `security/env/users_elasticsearch.env` and ensure every required user is present in `security/es_roles/opensearch/internal_users.yml`.
 2. With OpenSearch running, validate and then apply hashes for all internal users:

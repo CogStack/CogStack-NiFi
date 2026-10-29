@@ -4,7 +4,15 @@ on:
   push:
     branches: ['**']
     tags: ['v*.*.*']
+    paths: &paths
+      - ".github/workflows/docker_nifi_nginx.yml"
+      - ".github/workflows/_docker_template.yml"
+      - ".gitattributes"
+      - "services/nginx/**"
+      - "!**/*.md"
+      - "!**/README*"
   pull_request:
+    paths: *paths
   release:
     types: [published]
   workflow_dispatch:

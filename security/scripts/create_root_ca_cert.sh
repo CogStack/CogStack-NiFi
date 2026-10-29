@@ -22,14 +22,16 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_TEMPLATES_FOLDER="${SCRIPT_DIR}/../templates/"
 SECURITY_CERTIFICATES_FOLDER="${SCRIPT_DIR}/../certificates/"
-SECURITY_ENV_FOLDER="${SCRIPT_DIR}/../env/"
 
 # The path is resolved dynamically from this script's location.
 # shellcheck disable=SC1090
-source "${SECURITY_ENV_FOLDER}certificates_general.env"
+source "$(cogstack_env_file security/env/certificates_general.env)" || exit 1
 
 # === Validate required env vars
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
