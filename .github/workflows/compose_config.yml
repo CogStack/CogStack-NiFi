@@ -7,6 +7,13 @@ on:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
       - "deploy/services*.yml"
+      - "deploy/charts/**"
+      - "deploy/helm/**"
+      - "nifi/Dockerfile"
+      - "services/nginx/Dockerfile"
+      - "services/ollama-openai-proxy/Dockerfile"
+      - "scripts/tests/check_deployment_images.py"
+      - "scripts/tests/test_deployment_images.py"
       - "security/env/*.env"
       - ".github/workflows/compose_config.yml"
   pull_request:
@@ -14,6 +21,13 @@ on:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
       - "deploy/services*.yml"
+      - "deploy/charts/**"
+      - "deploy/helm/**"
+      - "nifi/Dockerfile"
+      - "services/nginx/Dockerfile"
+      - "services/ollama-openai-proxy/Dockerfile"
+      - "scripts/tests/check_deployment_images.py"
+      - "scripts/tests/test_deployment_images.py"
       - "security/env/*.env"
       - ".github/workflows/compose_config.yml"
   workflow_dispatch:
@@ -32,6 +46,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Set up Helm
+        uses: azure/setup-helm@v5.0.1
+        with:
+          version: v4.3.1
+
       - name: Validate Compose files
         shell: bash
         run: |
@@ -39,3 +58,9 @@ jobs:
           source deploy/export_env_vars.sh
           docker compose -f deploy/services.yml config --quiet
           docker compose -f deploy/services.dev.yml config --quiet
+
+      - name: Verify deployment image pins
+        run: python3 -B scripts/tests/check_deployment_images.py --helm
+
+      - name: Test image drift checks
+        run: python3 -B -m unittest discover -s scripts/tests -p test_deployment_images.py -v

@@ -6,6 +6,7 @@ replicaCount: 1
 image:
   repository: cogstacksystems/cogstack-nifi
   tag: latest
+  digest: sha256:f3f0ce9c23f9e503042f646675ddef372acda5cffc2491f07a38996a95a948dd
   pullPolicy: IfNotPresent
 
 envFile:

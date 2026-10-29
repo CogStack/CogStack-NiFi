@@ -52,6 +52,7 @@ opensearch:
   image:
     repository: opensearchproject/opensearch
     tag: "3.5.0"
+    digest: sha256:dbb01641baadae5104e18acd888bf05e8fdd9af3567fd30624a76ba3e5a31dec
     pullPolicy: IfNotPresent
   clusterName: elasticsearch-cogstack-cluster
   javaOpts: "-Xms512m -Xmx512m -Des.failure_store_feature_flag_enabled=true --enable-native-access=ALL-UNNAMED"
@@ -128,6 +129,7 @@ dashboards:
   image:
     repository: opensearchproject/opensearch-dashboards
     tag: "3.5.0"
+    digest: sha256:03afc96f2f50a02246294aaa37adffc41270104676eff7c5f377c40ae9dd1ff2
     pullPolicy: IfNotPresent
   serverName: cogstack-kibana
   service:

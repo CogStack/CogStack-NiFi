@@ -60,11 +60,15 @@ Navigate to the root folder of the repository
 ```bash
 # from repository root
 git lfs pull
-make -C deploy git-update-submodules
+make -C deploy git-init-submodules
 make -C deploy help
 make -C deploy init-security
 make -C deploy start-data-infra
 ```
+
+Setup uses the recorded submodule commits and pinned container images. See
+[Repeatable deployments](deploy/reproducible.md) for explicit upgrades and
+local image builds.
 
 Once the services have started, you can find the following services at corresponding URLs:
 

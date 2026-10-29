@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: dashboards
-          image: "{{ .Values.dashboards.image.repository }}:{{ .Values.dashboards.image.tag }}"
+          image: {{ include "cogstack-opensearch.image" .Values.dashboards.image | quote }}
           imagePullPolicy: {{ .Values.dashboards.image.pullPolicy }}
           ports:
             - name: http

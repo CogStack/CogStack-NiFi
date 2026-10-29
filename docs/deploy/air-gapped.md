@@ -58,7 +58,7 @@ assumes the repository has already been cloned into `cogstack_nifi`:
 ```bash
 cd cogstack_nifi
 git switch --detach <release-tag-or-commit>
-git submodule update --init --recursive
+git submodule update --init --recursive --checkout
 git lfs pull
 git submodule foreach --recursive git lfs pull
 git status --short

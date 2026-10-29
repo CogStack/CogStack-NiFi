@@ -42,7 +42,7 @@ spec:
       {{- if gt (len $nodeCertFiles) 0 }}
       initContainers:
         - name: prepare-opensearch-certs
-          image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
+          image: {{ include "cogstack-opensearch.image" .Values.opensearch.image | quote }}
           imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.opensearch.securityContext | nindent 12 }}
@@ -78,7 +78,7 @@ spec:
       {{- end }}
       containers:
         - name: opensearch
-          image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
+          image: {{ include "cogstack-opensearch.image" .Values.opensearch.image | quote }}
           imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
           command: ["/bin/bash", "/opt/cogstack/search-entrypoint.sh"]
           args: ["opensearch"]

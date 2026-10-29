@@ -108,11 +108,14 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
+    image: ${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}
+    pull_policy: build
     build:
        context: ..
        dockerfile: nifi/Dockerfile
        args:
          NIFI_VERSION: ${NIFI_VERSION:-2.12.0}
+         NIFI_BASE_IMAGE: ${NIFI_BASE_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
@@ -140,6 +143,7 @@ services:
     logging: *nifi-logging-common
   
   nifi-nginx:
+    pull_policy: build
     build:
       context: ../services/nginx
       dockerfile: Dockerfile
@@ -170,7 +174,7 @@ services:
 # Observability stack                                                       #
 #---------------------------------------------------------------------------#
   otel-collector:
-    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:-otel/opentelemetry-collector-contrib:0.132.0}
+    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
@@ -187,7 +191,7 @@ services:
     logging: *nifi-logging-common
 
   data-prepper:
-    image: ${DATA_PREPPER_DOCKER_IMAGE:-opensearchproject/data-prepper:2.11.0}
+    image: ${DATA_PREPPER_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-data-prepper
     restart: unless-stopped
     env_file: *all-env

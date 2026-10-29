@@ -261,7 +261,11 @@ make -C deploy remote-delete-service \
 | `make init-security-elasticsearch` | Generate the native Elasticsearch certificate set if missing |
 | `make git-freeze-security`   | Freeze all security submodules (read-only) |
 | `make git-unfreeze-security` | Unfreeze security submodules              |
-| `make git-update-submodules` | Update all submodules                      |
+| `make git-init-submodules` | Initialize submodules at the recorded commits |
+| `make git-update-submodules` | Explicitly upgrade direct submodules for review; no staging or commits |
+
+See [Repeatable deployments](./reproducible.md) for image pins, submodule
+upgrades, and local build commands.
 
 ---
 

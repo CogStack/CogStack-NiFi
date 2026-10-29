@@ -91,8 +91,13 @@ git-freeze-security: ## Apply restricted git settings for safer shell operations
 git-unfreeze-security: ## Revert restricted git settings
 	@../scripts/git_unfreeze_security.sh
 
-git-update-submodules: ## Update submodules recursively in this repository
+git-init-submodules: ## Initialize submodules at the commits recorded by this checkout
+	@../scripts/git_init_submodules_in_repo.sh
+
+git-update-submodules: ## Explicitly upgrade direct submodules for review (never stages or commits)
 	@../scripts/git_update_submodules_in_repo.sh
+
+.PHONY: git-init-submodules git-update-submodules
 
 load-env: ## Load variables from export_env_vars.sh in a subshell
 	$(WITH_ENV) echo "Environment variables loaded."
@@ -310,9 +315,10 @@ start-nifi-dev-build: ## Build and start NiFi dev services
 build-nifi-image: ## Build the local NiFi image without starting services
 	$(WITH_ENV) docker build \
 		--build-arg NIFI_VERSION="$${NIFI_VERSION:-2.12.0}" \
+		--build-arg NIFI_BASE_IMAGE="$${NIFI_BASE_IMAGE}" \
 		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
 		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
-		--tag "$${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}" \
+		--tag "$${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}" \
 		--file ../nifi/Dockerfile \
 		..
 

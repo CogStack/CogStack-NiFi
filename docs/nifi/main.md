@@ -41,15 +41,13 @@ For end-to-end scripting patterns (including `ExecuteStreamCommand` stdin/stdout
 
 For any deployment it is recommended to build and use the custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows.
 
-The Docker image recipe is defined in `Dockerfile` file.
-There are two images being built as part of CI process:
+The Docker image recipe is defined in `nifi/Dockerfile`. Deployment uses the
+published image digest recorded in `deploy/nifi.env`. CI also publishes branch,
+commit, and release tags for selecting a future image update.
 
-- `cogstacksystems/cogstack-nifi:latest` - the latest image built from `master` branch,
-- `cogstacksystems/cogstack-nifi:dev-latest` - the latest image built from `devel` branch.
-
-There are also release images built for each release, for example:
-
-- `cogstacksystems/cogstack-nifi:1.0.0` - release 1.0
+`make -C deploy build-nifi-image` builds the source checkout using the separate
+`NIFI_LOCAL_DOCKER_IMAGE` tag. Run it through `make -C deploy start-nifi-dev`.
+See [Repeatable deployments](../deploy/reproducible.md) for the update procedure.
 
 ## Apache NiFi configuration
 
