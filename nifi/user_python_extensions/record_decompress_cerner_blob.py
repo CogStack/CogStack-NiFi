@@ -320,7 +320,7 @@ class CogStackJsonRecordDecompressCernerBlob(BaseNiFiProcessor):
         for k in order_of_blobs_keys:
             v = concatenated_blob_sequence_order[k]
 
-            temporary_blob: bytes = b""
+            temporary_blob: bytes | bytearray = b""
 
             if self.binary_field_source_encoding == "base64":
                 if not isinstance(v, str):
