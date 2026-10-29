@@ -57,7 +57,7 @@ def render_compose(path: Path) -> dict:
         [
             "bash", "-c",
             'source "$1" >/dev/null; set -euo pipefail; '
-            'exec docker compose --profile "*" -f "$2" config --format json',
+            + 'exec docker compose --profile "*" -f "$2" config --format json',
             "check-deployment-images", str(ROOT / "deploy/export_env_vars.sh"), str(path),
         ],
         text=True, capture_output=True, check=True, timeout=60,
