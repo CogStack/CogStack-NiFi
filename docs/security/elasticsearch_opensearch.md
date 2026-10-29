@@ -58,7 +58,7 @@ Apply the same configuration to every OpenSearch node and perform a rolling rest
 
 The shared OpenSearch configuration reads `plugins.security.compliance.salt` from `OPENSEARCH_COMPLIANCE_SALT` and `plugins.query.datasources.encryption.masterkey` from `OPENSEARCH_DATASOURCE_MASTER_KEY`. All nodes must receive identical values. Compose reads them from `security/env/users_elasticsearch.env`; the Helm chart imports them into the credentials Secret and references that Secret from every OpenSearch pod.
 
-The checked-in values are public development defaults. Supply deployment-specific values through local configuration or an external secret store for production. Generate a 16-character ASCII salt with `openssl rand -hex 8` and a 32-character datasource key with `openssl rand -hex 16`. Preserve both values across restarts and keep a backup of the key: changing it prevents decryption of credentials already stored in SQL/PPL datasource definitions. Changing the salt changes field-masking hashes. See [Field masking](https://docs.opensearch.org/latest/security/access-control/field-masking/#set-the-salt-setting) and [Data sources](https://docs.opensearch.org/latest/dashboards/management/data-sources/).
+The checked-in values are public development defaults. The salt requires at least 16 ASCII characters; the datasource key requires 16, 24, or 32 ASCII characters. Supply deployment-specific values through local configuration or an external secret store for production. Generate a 16-character ASCII salt with `openssl rand -hex 8` and a 32-character datasource key with `openssl rand -hex 16`. Preserve both values across restarts and keep a backup of the key: changing it prevents decryption of credentials already stored in SQL/PPL datasource definitions. Changing the salt changes field-masking hashes. See [Field masking](https://docs.opensearch.org/latest/security/access-control/field-masking/#set-the-salt-setting) and [Data sources](https://docs.opensearch.org/latest/dashboards/management/data-sources/).
 
 For Helm, supply these keys in `usersEnvFile.raw` together with the existing credential keys, or include them in `credentials.existingSecret`. When overriding `usersEnvFile.raw` without these keys, set `credentials.complianceSalt` and `credentials.datasourceMasterKey` explicitly. Recreate Compose containers one node at a time after changing their environment; `docker compose restart` does not reload `env_file` values.
 
@@ -168,8 +168,8 @@ This produces:
 
 | File | Purpose |
 |------|----------|
-| `admin.crt`, `admin.key.pem` | Admin dashboard certificate |
-| `es_kibana_client.pem`, `es_kibana_client.key` | Client certificate for Kibana/OpenDashboard |
+| `admin.crt`, `admin.key.pem` | Administrative client certificate for security management |
+| `es_kibana_client.pem`, `es_kibana_client.key` | HTTPS server certificate for OpenSearch Dashboards |
 | `*.jks` | Node keystores/truststores for HTTPS and inter-node encryption |
 
 The resulting certificates are placed in:
@@ -178,6 +178,19 @@ The resulting certificates are placed in:
 security/certificates/elastic/opensearch/
 ```
 
+The signing scripts preserve the SANs configured in `ES_NODE_SUBJ_ALT_NAMES` and
+`ES_CLIENT_SUBJ_ALT_NAMES`. The defaults cover Compose names, localhost, and the
+Helm release `cogstack-opensearch` in namespace `cogstack`: node certificates
+include `cogstack-opensearch-client.cogstack.svc` and its `.cluster.local` form;
+the Dashboards certificate covers the corresponding
+`cogstack-opensearch-dashboards` Service. Add service names for a different
+release, namespace, cluster domain, or external hostname before generation.
+
+`init-security-opensearch` preserves complete existing certificate sets. If an
+existing leaf certificate lacks these SANs, plan a leaf certificate reissue
+using the existing CA, then update the mounted files or Kubernetes TLS Secret
+and restart the affected services. Keep the existing CA and data volumes.
+
 ---
 
 ### 📁 Kibana / OpenDashboard certificates
@@ -185,15 +198,38 @@ security/certificates/elastic/opensearch/
 | Platform | Required Certificates | Source Folder |
 |-----------|----------------------|----------------|
 | **Kibana** | `elasticsearch-{1,2,3}.crt`, `elasticsearch-{1,2,3}.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/elasticsearch/` |
-| **OpenDashboard (OpenSearch)** | `admin.crt`, `admin.key.pem`, `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
+| **OpenDashboard (OpenSearch)** | `es_kibana_client.pem`, `es_kibana_client.key`, `elastic-stack-ca.crt.pem` | `security/certificates/elastic/opensearch/` |
 
 All certificate references in `services/kibana/config/opensearch.yml` or `services.yml` must point to these locations.
+
+Dashboards authenticates to OpenSearch with `KIBANA_USER` and `KIBANA_PASSWORD`
+and verifies the server CA and hostname. Its outgoing connection does not use
+the administrative client certificate. The Helm chart can use a separate
+`certificates.dashboardsSecretName` containing only the three Dashboards files.
 
 ---
 
 ### 🔐 Users and roles
 
 #### OpenSearch
+
+The bundled development admin login is `admin` / `admin`; the Dashboards service
+account is `kibanaserver` / `kibanaserver`. These match the hashes in
+`security/es_roles/opensearch/internal_users.yml`. `ELASTIC_USER` defaults to
+`admin`; select `elastic` when using native Elasticsearch.
+
+`OPENSEARCH_INITIAL_ADMIN_PASSWORD` is an input to the upstream demo installer,
+which this deployment disables. Changing it does not change these logins.
+Password values must match the internal-user hashes and the running security
+index. Use the rotation procedure below to update both; changing an environment
+file or Helm Secret alone does not rotate internal users. See the upstream
+[password configuration](https://docs.opensearch.org/latest/security/configuration/passwords/).
+
+Run `make -C deploy check-opensearch-settings` before starting services. It
+validates required credentials, key lengths, and matching image release tags
+without printing secret values. Helm validates generated credentials and TLS
+Secret mappings during rendering; external Secret contents must satisfy the
+same requirements.
 
 1. Edit the password values in `security/env/users_elasticsearch.env` and ensure every required user is present in `security/es_roles/opensearch/internal_users.yml`.
 2. With OpenSearch running, validate and then apply hashes for all internal users:

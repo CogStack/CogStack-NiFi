@@ -22,7 +22,6 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
 
 
-SECURITY_TEMPLATES_FOLDER="../templates/"
 SECURITY_CERTIFICATES_FOLDER="../certificates/"
 
 ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
@@ -38,6 +37,7 @@ source "$(cogstack_env_file security/env/certificates_elasticsearch.env)" || exi
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
 : "${ROOT_CERTIFICATE_KEYSTORE_PASSWORD:?Must be set in certificates_general.env}"
 : "${ES_CLIENT_SUBJ_LINE:?Must be set in certificates_elasticsearch.env}"
+: "${ES_CLIENT_SUBJ_ALT_NAMES:?Must be set in certificates_elasticsearch.env}"
 : "${ES_CLIENT_CERT_NAME:?Must be set in certificates_elasticsearch.env}"
 : "${ES_ADMIN_SUBJ_LINE:?Must be set in certificates_elasticsearch.env}"
 : "${ES_KEY_SIZE:?Must be set in certificates_elasticsearch.env}"
@@ -54,7 +54,6 @@ echo "==========================================================================
 
 CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
 CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
-EXT_FILE="${SECURITY_TEMPLATES_FOLDER}ssl-extensions-x509.cnf"
 
 # === Client cert ===
 echo "Generating a key for: $ES_CLIENT_CERT_NAME"
@@ -71,7 +70,13 @@ openssl x509 -req -days "$ES_CERTIFICATE_TIME_VALIDITY_IN_DAYS" \
   -in "$ES_CLIENT_CERT_NAME.csr" \
   -CA "$CA_ROOT_CERT" -CAkey "$CA_ROOT_KEY" -CAcreateserial \
   -out "$ES_CLIENT_CERT_NAME.pem" \
-  -extensions v3_leaf -extfile "$EXT_FILE"
+  -extfile <(printf '%s\n' \
+    'basicConstraints=critical,CA:FALSE' \
+    'keyUsage=critical,digitalSignature,keyEncipherment' \
+    'extendedKeyUsage=serverAuth,clientAuth' \
+    'subjectKeyIdentifier=hash' \
+    'authorityKeyIdentifier=keyid,issuer' \
+    "$ES_CLIENT_SUBJ_ALT_NAMES")
 
 mv "$ES_CLIENT_CERT_NAME"* "$OPENSEARCH_ES_CERTIFICATES_FOLDER"
 

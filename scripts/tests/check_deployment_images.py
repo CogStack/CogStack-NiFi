@@ -72,11 +72,6 @@ def helm_errors() -> list[str]:
             "helm", "template", f"check-{chart}", str(ROOT / "deploy/charts" / chart),
             "-f", str(ROOT / "deploy/helm" / f"{chart}.values.yaml"),
         ]
-        if chart == "opensearch":
-            # Image rendering only: deployment credentials are supplied externally.
-            command.extend([
-                "--set", "credentials.create=false", "--set", "credentials.existingSecret=check-credentials",
-            ])
         result = subprocess.run(command, text=True, capture_output=True, check=True, timeout=60)
         images = re.findall(r"^\s*(?:image|imageName):\s*(\S+)", result.stdout, re.MULTILINE)
         if not images:

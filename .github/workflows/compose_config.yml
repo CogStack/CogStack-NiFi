@@ -12,6 +12,12 @@ on:
       - "scripts/opensearch-ai-init.sh"
       - "scripts/tests/check_nifi_resources.py"
       - "scripts/tests/test_configuration.py"
+      - "scripts/tests/check_opensearch_settings.py"
+      - "scripts/tests/test_opensearch_deployment.py"
+      - "services/elasticsearch/**"
+      - "services/kibana/config/opensearch.yml"
+      - "security/templates/**"
+      - "security/es_roles/opensearch/**"
       - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
       - "deploy/charts/**"
@@ -33,6 +39,12 @@ on:
       - "scripts/opensearch-ai-init.sh"
       - "scripts/tests/check_nifi_resources.py"
       - "scripts/tests/test_configuration.py"
+      - "scripts/tests/check_opensearch_settings.py"
+      - "scripts/tests/test_opensearch_deployment.py"
+      - "services/elasticsearch/**"
+      - "services/kibana/config/opensearch.yml"
+      - "security/templates/**"
+      - "security/es_roles/opensearch/**"
       - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
       - "deploy/charts/**"
@@ -60,6 +72,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Set up Java for certificate generation tests
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install deployment test dependency
+        run: python3 -m pip install PyYAML==6.0.3
+
       - name: Set up Helm
         uses: azure/setup-helm@v5.0.1
         with:
@@ -81,3 +107,6 @@ jobs:
 
       - name: Test OpenSearch AI configuration
         run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_ai_init.py -v
+
+      - name: Test OpenSearch Compose and Helm compatibility
+        run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_deployment.py -v

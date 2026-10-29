@@ -124,9 +124,30 @@ python3 -B -m unittest discover -s scripts/tests -p test_submodule_checkout.py -
 
 The image check requires Docker Compose and Helm, but no running Docker daemon
 or Kubernetes cluster. It validates both core Compose files, their local build
-bases, and the three owned Helm charts. Helm image validation supplies an
-existing credentials Secret name; deployment-specific credentials and TLS
-Secrets must still be provided for an installation.
+bases, and the three owned Helm charts. OpenSearch renders its normal generated
+credentials Secret from the shared development settings. An installation still
+requires TLS Secrets and deployment-specific credentials.
+
+## OpenSearch Compose and Helm compatibility
+
+The reference Compose deployment and Helm chart both select OpenSearch and
+OpenSearch Dashboards 3.9.0 with matching image digests. When upgrading, update
+`deploy/elasticsearch.env`, both images in `deploy/charts/opensearch/values.yaml`,
+and the chart's `appVersion` together.
+
+```bash
+make -C deploy check-opensearch-settings
+python3 -B -m unittest discover -s scripts/tests -p test_opensearch_deployment.py -v
+```
+
+The compatibility tests require Helm, Docker Compose, PyYAML, OpenSSL, and Java
+`keytool`. They compare image versions and digests, shared configuration,
+credential Secret references, profile selection, and TLS mappings. They also
+generate temporary certificates and verify the Compose and Kubernetes service
+names against a temporary CA. They do not change existing certificates or
+start a cluster. CI runs these checks and a separate live Compose smoke test
+that verifies password authentication, the running OpenSearch version, and
+Dashboards readiness over verified HTTPS.
 
 Optional services such as OCR, MedCAT, and JupyterHub use deployment definitions
 inside their pinned submodules. Image and model versioning within those

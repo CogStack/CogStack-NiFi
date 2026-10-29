@@ -326,10 +326,13 @@ _check-remote-params:
 check-nifi-resources: ## Validate NiFi heap sizes against the container memory limit
 	@$(WITH_ENV) python3 ../scripts/tests/check_nifi_resources.py
 
-check-config: check-nifi-resources ## Validate resolved settings and both core Compose files
-	@$(WITH_ENV) docker compose -f services.yml config --quiet && docker compose -f services.dev.yml config --quiet
+check-opensearch-settings: ## Validate search credentials, encryption keys, and image versions
+	@$(WITH_ENV) python3 ../scripts/tests/check_opensearch_settings.py
 
-.PHONY: check-nifi-resources check-config
+check-config: check-nifi-resources check-opensearch-settings ## Validate resolved settings and both core Compose files
+	@$(WITH_ENV) docker compose --profile "*" -f services.yml config --quiet && docker compose --profile "*" -f services.dev.yml config --quiet
+
+.PHONY: check-nifi-resources check-opensearch-settings check-config
 
 # start services
 
@@ -352,19 +355,19 @@ build-nifi-image: ## Build the local NiFi image without starting services
 		--file ../nifi/Dockerfile \
 		..
 
-start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
+start-elastic: check-opensearch-settings ## Start elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
-start-elastic-cluster: ## Start full 3-node Elasticsearch cluster
+start-elastic-cluster: check-opensearch-settings ## Start full 3-node Elasticsearch cluster
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 elasticsearch-3
 
-start-elastic-1:
+start-elastic-1: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1
 
-start-elastic-2:
+start-elastic-2: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-2
 
-start-elastic-3:
+start-elastic-3: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-3
 
 start-metricbeat-1:
@@ -385,7 +388,7 @@ start-filebeat-2:
 start-filebeat-3:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) filebeat-3
 
-start-kibana:
+start-kibana: check-opensearch-settings ## Start Kibana or OpenSearch Dashboards
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) kibana
 
 start-ollama: ## Start the Ollama inference service
@@ -459,7 +462,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init opensearch-ai-init-sglang start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
+.PHONY: start-kibana start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init opensearch-ai-init-sglang start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
 
 
 # stop services

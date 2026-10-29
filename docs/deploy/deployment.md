@@ -135,6 +135,11 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 > The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
 > The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
 
+Compose and Helm use the same OpenSearch and Dashboards 3.9.0 image digests.
+See [compatibility checks](reproducible.md#opensearch-compose-and-helm-compatibility)
+and the [credentials and certificate requirements](../security/elasticsearch_opensearch.md).
+The Helm Make targets also honor `COGSTACK_CONFIG_DIR`.
+
 ## ⎈ Helm (GitEA / Gitea)
 
 GitEA can be deployed with the official Gitea Helm chart. The Makefile adds the
@@ -252,8 +257,9 @@ make -C deploy remote-delete-service \
 | Command                 | Description                                |
 |------------------------|---------------------------------------------|
 | `make load-env`        | Load all environment variables              |
-| `make check-config`    | Validate selected configuration, NiFi memory, and both core Compose files |
+| `make check-config`    | Validate selected configuration, NiFi memory, search settings, and both core Compose files |
 | `make check-nifi-resources` | Check JVM heap sizes against the container memory limit |
+| `make check-opensearch-settings` | Check search credentials, encryption keys, and image versions |
 | `make show-env`        | Print environment variables (sorted)        |
 | `make init-security`   | Generate missing NiFi, Gitea, and selected search-backend certificates |
 | `make init-security-root-ca` | Generate the shared root CA if missing |

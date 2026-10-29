@@ -65,7 +65,7 @@ for port in "${ELASTICSEARCH_PORT_LIST[@]}"; do
 done
 
 KIBANA_CHECKS=(
-  "kibana|https://${KIBANA_HOST}:${KIBANA_PORT}/"
+  "kibana|https://${KIBANA_HOST}:${KIBANA_PORT}/api/status"
 )
 
 if [[ "$START_SERVICES" != "0" ]]; then
@@ -74,8 +74,8 @@ if [[ "$START_SERVICES" != "0" ]]; then
     exit 1
   fi
 
-  echo "Starting Elasticsearch services using 'make -C deploy start-elastic'."
-  make -C "${ROOT_DIR}/deploy" start-elastic
+  echo "Starting the search cluster and Dashboards."
+  make -C "${ROOT_DIR}/deploy" start-elastic-cluster start-kibana
 fi
 
 set_smoke_allowed_codes 200
@@ -85,13 +85,41 @@ wait_for_checks \
   "$ELASTICSEARCH_DELAY_SECONDS" \
   "${ELASTICSEARCH_CHECKS[@]}"
 
+# Check the actual internal-user credentials as well as the admin certificate.
+: "${ELASTIC_USER:?ELASTIC_USER is required for search smoke checks}"
+: "${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is required for search smoke checks}"
+set_smoke_curl_args --user "${ELASTIC_USER}:${ELASTIC_PASSWORD}"
+wait_for_checks \
+  "Search password authentication" \
+  "$ELASTICSEARCH_RETRIES" \
+  "$ELASTICSEARCH_DELAY_SECONDS" \
+  "${ELASTICSEARCH_CHECKS[@]}"
+
+if [[ "$SEARCH_BACKEND" == "opensearch" ]]; then
+  # Strip the digest before extracting the human-readable release tag.
+  image_tag="${ELASTICSEARCH_DOCKER_IMAGE%@*}"
+  expected_version="${image_tag##*:}"
+  if [[ "$expected_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    actual_version="$(curl --silent --show-error --fail \
+      --connect-timeout "$SMOKE_CONNECT_TIMEOUT" --max-time "$SMOKE_MAX_TIME" \
+      --cacert "$SMOKE_CA_CERT" --user "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+      "https://${HOST}:${ELASTICSEARCH_PORT_LIST[0]}/" \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"]["number"])')"
+    if [[ "$actual_version" != "$expected_version" ]]; then
+      echo "FAIL: OpenSearch version ${actual_version} differs from selected ${expected_version}" >&2
+      exit 1
+    fi
+    echo "OK: OpenSearch version ${actual_version}"
+  fi
+fi
+
 if [[ "$KIBANA_GRACE_SECONDS" -gt 0 ]]; then
   echo "Elasticsearch is healthy. Waiting ${KIBANA_GRACE_SECONDS}s before Kibana checks."
   sleep "$KIBANA_GRACE_SECONDS"
 fi
 
-set_smoke_curl_args
-set_smoke_allowed_codes 200 301 302 303 307 308
+set_smoke_curl_args --user "${ELASTIC_USER}:${ELASTIC_PASSWORD}"
+set_smoke_allowed_codes 200
 wait_for_checks \
   "Kibana" \
   "$KIBANA_RETRIES" \

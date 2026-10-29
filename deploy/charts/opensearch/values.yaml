@@ -51,8 +51,8 @@ opensearch:
   replicas: 3
   image:
     repository: opensearchproject/opensearch
-    tag: "3.5.0"
-    digest: sha256:dbb01641baadae5104e18acd888bf05e8fdd9af3567fd30624a76ba3e5a31dec
+    tag: "3.9.0"
+    digest: sha256:3b55f6b6249cfdb92b52ee59adc8a266203ba9ef9f5d82544fad6f1af2f3609e
     pullPolicy: IfNotPresent
   clusterName: elasticsearch-cogstack-cluster
   javaOpts: "-Xms512m -Xmx512m -Des.failure_store_feature_flag_enabled=true --enable-native-access=ALL-UNNAMED"
@@ -128,8 +128,8 @@ dashboards:
   opensearchHosts: []
   image:
     repository: opensearchproject/opensearch-dashboards
-    tag: "3.5.0"
-    digest: sha256:03afc96f2f50a02246294aaa37adffc41270104676eff7c5f377c40ae9dd1ff2
+    tag: "3.9.0"
+    digest: sha256:256d4cea5928868ac09bca642a0ac8285a2b7e4b7fdd45c4ec06e75a5cf3184c
     pullPolicy: IfNotPresent
   serverName: cogstack-kibana
   service:
@@ -154,7 +154,7 @@ credentials:
   create: true
   existingSecret: ""
   adminPassword: "Kibanaserver!1"
-  # Required when usersEnvFile.raw overrides the bundled development values.
+  # Required for OpenSearch; bundled development values come from usersEnvFile.
   # Use deployment-specific values or credentials.existingSecret in production.
   complianceSalt: ""
   datasourceMasterKey: ""
@@ -197,7 +197,5 @@ certificates:
   dashboardsFiles:
     # Secret key names for Dashboards cert material.
     rootCA: elastic-stack-ca.crt.pem
-    adminCert: admin.crt
-    adminKey: admin.key.pem
     serverCert: es_kibana_client.pem
     serverKey: es_kibana_client.key
