@@ -137,6 +137,8 @@ opensearch.requestHeadersAllowlist: ["securitytenant", "Authorization"]
 ml_commons_dashboards.enabled: true
 assistant.chat.enabled: true
 assistant.incontextInsight.enabled: true
+assistant.next.enabled: true
+assistant.text2viz.enabled: true
 observability.query_assist.enabled: true
 
 savedObjects.permission.enabled: true

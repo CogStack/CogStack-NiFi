@@ -33,6 +33,10 @@ ENV_OVERRIDE_NAMES=(
   OLLAMA_CONTAINER_NAME
   OLLAMA_MODEL
   OLLAMA_OPENAI_PROXY_CONTAINER_NAME
+  OPENSEARCH_AI_PROVIDER
+  SGLANG_BASE_URL
+  SGLANG_MODEL
+  SGLANG_API_KEY
   OPENSEARCH_AI_CHAT_ENDPOINT
   OPENSEARCH_AI_OPENSEARCH_CONTAINER
   OPENSEARCH_AI_OPENSEARCH_USER
@@ -71,6 +75,7 @@ done
 load_env_file "$PROJECT_DIR/security/env/users_elasticsearch.env"
 load_env_file "$PROJECT_DIR/deploy/elasticsearch.env"
 load_env_file "$PROJECT_DIR/deploy/ollama.env"
+load_env_file "$PROJECT_DIR/deploy/sglang.env"
 for variable_assignment in "${ENV_OVERRIDES[@]}"; do
   variable_name="${variable_assignment%%=*}"
   printf -v "$variable_name" '%s' "${variable_assignment#*=}"
@@ -82,34 +87,70 @@ OPENSEARCH_USER="${OPENSEARCH_AI_OPENSEARCH_USER:-${ELASTIC_USER:-admin}}"
 OPENSEARCH_PASSWORD="${OPENSEARCH_AI_OPENSEARCH_PASSWORD:-${ELASTIC_PASSWORD:-}}"
 OLLAMA_CONTAINER="${OLLAMA_CONTAINER_NAME:-cogstack-ollama}"
 OLLAMA_OPENAI_PROXY_CONTAINER="${OLLAMA_OPENAI_PROXY_CONTAINER_NAME:-cogstack-ollama-openai-proxy}"
-OLLAMA_MODEL_NAME="${OLLAMA_MODEL:-qwen3.5:9b-q4_K_M}"
 CHAT_ENDPOINT="${OPENSEARCH_AI_CHAT_ENDPOINT:-ollama-openai-proxy:11435}"
+PROVIDER="${OPENSEARCH_AI_PROVIDER:-ollama}"
+API_KEY=""
+CONNECTOR_NAME_PREFIX="Ollama Qwen"
+MODEL_NAME_PREFIX="Qwen 3.5"
+AGENT_NAME_PREFIX="Qwen"
+REMOTE_MODEL_NAME_PREFIX="Qwen 3.5 Ollama"
+DEFAULT_CHAT_MODEL_NAME="Qwen 3.5 Ollama Agent Model"
+DEFAULT_CHAT_AGENT_NAME="Qwen 3.5 Conversational Agent v2"
+DEFAULT_REASONING_EFFORT="none"
+
+case "$PROVIDER" in
+  ollama)
+    PROVIDER_LABEL="Ollama"
+    MODEL_NAME="${OLLAMA_MODEL:-qwen3.5:9b-q4_K_M}"
+    BASE_URL="http://ollama:11434/v1"
+    CHAT_BASE_URL="http://$CHAT_ENDPOINT/v1"
+    ;;
+  sglang)
+    PROVIDER_LABEL="SGLang"
+    MODEL_NAME="${SGLANG_MODEL:-}"
+    BASE_URL="${SGLANG_BASE_URL:-http://host.docker.internal:30000/v1}"
+    BASE_URL="${BASE_URL%/}"
+    [[ "$BASE_URL" =~ ^https?://[^/?#@[:space:]]+(/[^?#[:space:]]*)?/v1$ && "$BASE_URL" != *\\* ]] \
+      || die "SGLANG_BASE_URL must be an http(s) URL ending in /v1, without credentials, query, or fragment"
+    CHAT_BASE_URL="$BASE_URL"
+    API_KEY="${SGLANG_API_KEY:-}"
+    CONNECTOR_NAME_PREFIX="SGLang"
+    MODEL_NAME_PREFIX="SGLang"
+    AGENT_NAME_PREFIX="SGLang"
+    REMOTE_MODEL_NAME_PREFIX="SGLang"
+    DEFAULT_CHAT_MODEL_NAME="SGLang Agent Model"
+    DEFAULT_CHAT_AGENT_NAME="SGLang Conversational Agent"
+    # Reasoning controls vary by model; let SGLang use its server defaults.
+    DEFAULT_REASONING_EFFORT=""
+    ;;
+  *) die "unsupported OPENSEARCH_AI_PROVIDER '$PROVIDER'; expected ollama or sglang" ;;
+esac
 
 CONNECTION_TIMEOUT="${OPENSEARCH_AI_CONNECTION_TIMEOUT_SECONDS:-120}"
 READ_TIMEOUT="${OPENSEARCH_AI_READ_TIMEOUT_SECONDS:-360}"
 DEPLOY_TIMEOUT="${OPENSEARCH_AI_DEPLOY_TIMEOUT_SECONDS:-300}"
 MAX_TOKENS="${OPENSEARCH_AI_MAX_TOKENS:-256}"
 UTILITY_MAX_TOKENS="${OPENSEARCH_AI_UTILITY_MAX_TOKENS:-1024}"
-REASONING_EFFORT="${OPENSEARCH_AI_REASONING_EFFORT:-none}"
+REASONING_EFFORT="${OPENSEARCH_AI_REASONING_EFFORT-$DEFAULT_REASONING_EFFORT}"
 CHAT_MAX_ITERATIONS="${OPENSEARCH_AI_CHAT_MAX_ITERATIONS:-8}"
 PPL_RESULT_LIMIT="${OPENSEARCH_AI_PPL_RESULT_LIMIT:-100}"
 
-CHAT_CONNECTOR_NAME="${OPENSEARCH_AI_CHAT_CONNECTOR_NAME:-Ollama Qwen Agent Connector}"
-CHAT_MODEL_NAME="${OPENSEARCH_AI_CHAT_MODEL_NAME:-Qwen 3.5 Ollama Agent Model}"
-CHAT_AGENT_NAME="${OPENSEARCH_AI_CHAT_AGENT_NAME:-Qwen 3.5 Conversational Agent v2}"
-ROOT_AGENT_NAME="${OPENSEARCH_AI_ROOT_AGENT_NAME:-Qwen Dashboards Root Agent}"
-PPL_CONNECTOR_NAME="${OPENSEARCH_AI_PPL_CONNECTOR_NAME:-Ollama Qwen PPL Connector}"
-PPL_MODEL_NAME="${OPENSEARCH_AI_PPL_MODEL_NAME:-Qwen 3.5 Ollama PPL Model}"
-PPL_AGENT_NAME="${OPENSEARCH_AI_PPL_AGENT_NAME:-Qwen PPL Query Assist Agent}"
-TIME_RANGE_CONNECTOR_NAME="${OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME:-Ollama Qwen Time Range Connector}"
-TIME_RANGE_MODEL_NAME="${OPENSEARCH_AI_TIME_RANGE_MODEL_NAME:-Qwen 3.5 Ollama Time Range Model}"
-TIME_RANGE_AGENT_NAME="${OPENSEARCH_AI_TIME_RANGE_AGENT_NAME:-Qwen Query Time Range Parser Agent}"
-UTILITY_CONNECTOR_NAME="${OPENSEARCH_AI_UTILITY_CONNECTOR_NAME:-Ollama Qwen Dashboards Utility Connector}"
-UTILITY_MODEL_NAME="${OPENSEARCH_AI_UTILITY_MODEL_NAME:-Qwen 3.5 Dashboards Utility Model}"
-AD_CONNECTOR_NAME="${OPENSEARCH_AI_AD_CONNECTOR_NAME:-Ollama Qwen Anomaly Suggestion Connector}"
-AD_MODEL_NAME="${OPENSEARCH_AI_AD_MODEL_NAME:-Qwen 3.5 Anomaly Suggestion Model}"
-VISUAL_CONNECTOR_NAME="${OPENSEARCH_AI_VISUAL_CONNECTOR_NAME:-Ollama Qwen Visualization Connector}"
-VISUAL_MODEL_NAME="${OPENSEARCH_AI_VISUAL_MODEL_NAME:-Qwen 3.5 Visualization Model}"
+CHAT_CONNECTOR_NAME="${OPENSEARCH_AI_CHAT_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX Agent Connector}"
+CHAT_MODEL_NAME="${OPENSEARCH_AI_CHAT_MODEL_NAME:-$DEFAULT_CHAT_MODEL_NAME}"
+CHAT_AGENT_NAME="${OPENSEARCH_AI_CHAT_AGENT_NAME:-$DEFAULT_CHAT_AGENT_NAME}"
+ROOT_AGENT_NAME="${OPENSEARCH_AI_ROOT_AGENT_NAME:-$AGENT_NAME_PREFIX Dashboards Root Agent}"
+PPL_CONNECTOR_NAME="${OPENSEARCH_AI_PPL_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX PPL Connector}"
+PPL_MODEL_NAME="${OPENSEARCH_AI_PPL_MODEL_NAME:-$REMOTE_MODEL_NAME_PREFIX PPL Model}"
+TIME_RANGE_CONNECTOR_NAME="${OPENSEARCH_AI_TIME_RANGE_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX Time Range Connector}"
+TIME_RANGE_MODEL_NAME="${OPENSEARCH_AI_TIME_RANGE_MODEL_NAME:-$REMOTE_MODEL_NAME_PREFIX Time Range Model}"
+PPL_AGENT_NAME="${OPENSEARCH_AI_PPL_AGENT_NAME:-$AGENT_NAME_PREFIX PPL Query Assist Agent}"
+TIME_RANGE_AGENT_NAME="${OPENSEARCH_AI_TIME_RANGE_AGENT_NAME:-$AGENT_NAME_PREFIX Query Time Range Parser Agent}"
+UTILITY_CONNECTOR_NAME="${OPENSEARCH_AI_UTILITY_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX Dashboards Utility Connector}"
+UTILITY_MODEL_NAME="${OPENSEARCH_AI_UTILITY_MODEL_NAME:-$MODEL_NAME_PREFIX Dashboards Utility Model}"
+AD_CONNECTOR_NAME="${OPENSEARCH_AI_AD_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX Anomaly Suggestion Connector}"
+AD_MODEL_NAME="${OPENSEARCH_AI_AD_MODEL_NAME:-$MODEL_NAME_PREFIX Anomaly Suggestion Model}"
+VISUAL_CONNECTOR_NAME="${OPENSEARCH_AI_VISUAL_CONNECTOR_NAME:-$CONNECTOR_NAME_PREFIX Visualization Connector}"
+VISUAL_MODEL_NAME="${OPENSEARCH_AI_VISUAL_MODEL_NAME:-$MODEL_NAME_PREFIX Visualization Model}"
 
 OPENSEARCH_URL="https://localhost:9200"
 OPENSEARCH_CA="/usr/share/opensearch/config/root-ca.crt"
@@ -121,16 +162,23 @@ for command_name in docker jq; do
   command -v "$command_name" >/dev/null 2>&1 || die "$command_name is required"
 done
 
+REASONING_OPTION=""
+if [[ -n "$REASONING_EFFORT" ]]; then
+  REASONING_OPTION=", \"reasoning_effort\": $(jq -nc --arg effort "$REASONING_EFFORT" '$effort')"
+fi
+
 for integer_value in "$CONNECTION_TIMEOUT" "$READ_TIMEOUT" "$DEPLOY_TIMEOUT" "$MAX_TOKENS" "$UTILITY_MAX_TOKENS" "$CHAT_MAX_ITERATIONS" "$PPL_RESULT_LIMIT"; do
   [[ "$integer_value" =~ ^[1-9][0-9]*$ ]] || die "timeout and token settings must be positive integers"
 done
 
 [[ "$(docker inspect --format '{{.State.Running}}' "$OPENSEARCH_CONTAINER" 2>/dev/null)" == "true" ]] \
   || die "OpenSearch container '$OPENSEARCH_CONTAINER' is not running"
-[[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_CONTAINER" 2>/dev/null)" == "true" ]] \
-  || die "Ollama container '$OLLAMA_CONTAINER' is not running"
-[[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_OPENAI_PROXY_CONTAINER" 2>/dev/null)" == "true" ]] \
-  || die "Ollama OpenAI compatibility proxy '$OLLAMA_OPENAI_PROXY_CONTAINER' is not running"
+if [[ "$PROVIDER" == "ollama" ]]; then
+  [[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_CONTAINER" 2>/dev/null)" == "true" ]] \
+    || die "Ollama container '$OLLAMA_CONTAINER' is not running"
+  [[ "$(docker inspect --format '{{.State.Running}}' "$OLLAMA_OPENAI_PROXY_CONTAINER" 2>/dev/null)" == "true" ]] \
+    || die "Ollama OpenAI compatibility proxy '$OLLAMA_OPENAI_PROXY_CONTAINER' is not running"
+fi
 
 os_request() {
   local method="$1"
@@ -181,17 +229,64 @@ wait_for_opensearch() {
 
 wait_for_ollama() {
   local deadline=$((SECONDS + DEPLOY_TIMEOUT))
-  log "Waiting for Ollama and ensuring model '$OLLAMA_MODEL_NAME' is available"
+  log "Waiting for Ollama and ensuring model '$MODEL_NAME' is available"
   while (( SECONDS < deadline )); do
     if docker exec "$OLLAMA_CONTAINER" ollama list >/dev/null 2>&1; then
-      if ! docker exec "$OLLAMA_CONTAINER" ollama show "$OLLAMA_MODEL_NAME" >/dev/null 2>&1; then
-        docker exec "$OLLAMA_CONTAINER" ollama pull "$OLLAMA_MODEL_NAME"
+      if ! docker exec "$OLLAMA_CONTAINER" ollama show "$MODEL_NAME" >/dev/null 2>&1; then
+        docker exec "$OLLAMA_CONTAINER" ollama pull "$MODEL_NAME"
       fi
       return 0
     fi
     sleep 5
   done
   die "Ollama did not become ready within ${DEPLOY_TIMEOUT}s"
+}
+
+check_sglang() {
+  local response model_count
+  local curl_args=(--silent --show-error --fail --connect-timeout "$CONNECTION_TIMEOUT" --max-time "$READ_TIMEOUT")
+  if [[ -n "$API_KEY" ]]; then
+    curl_args+=(--header "Authorization: Bearer $API_KEY")
+  fi
+  log "Checking SGLang from '$OPENSEARCH_CONTAINER' at $BASE_URL/models"
+  response="$(docker exec "$OPENSEARCH_CONTAINER" curl "${curl_args[@]}" "$BASE_URL/models")" \
+    || die "SGLang is unreachable from OpenSearch; check SGLANG_BASE_URL, API key, listening interface, and host mapping (localhost refers to the container)"
+  jq -e '.data | type == "array" and length > 0' <<<"$response" >/dev/null \
+    || die "SGLang /v1/models did not return a non-empty model list"
+  if [[ -z "$MODEL_NAME" ]]; then
+    model_count="$(jq '.data | length' <<<"$response")"
+    [[ "$model_count" == "1" ]] || die "SGLang exposes multiple models; set SGLANG_MODEL to the desired model ID"
+    MODEL_NAME="$(jq -r '.data[0].id // empty' <<<"$response")"
+  fi
+  if [[ -z "$MODEL_NAME" ]] || ! jq -e --arg model "$MODEL_NAME" 'any(.data[]; .id == $model)' <<<"$response" >/dev/null; then
+    die "SGLANG_MODEL '$MODEL_NAME' was not found in SGLang /v1/models"
+  fi
+  log "Using SGLang model '$MODEL_NAME'"
+}
+
+trust_sglang_endpoint() {
+  local settings payload
+  settings="$(os_request GET '/_cluster/settings?include_defaults=true&flat_settings=true')"
+  # Java Pattern.quote syntax trusts this exact inference URL, including any
+  # reverse-proxy path. Preserve existing allowlists and transient overrides.
+  payload="$(jq -c --arg url "$BASE_URL/chat/completions" '
+    . as $settings
+    | ("^\\Q" + $url + "\\E$") as $pattern
+    | ["plugins.ml_commons.trusted_connector_endpoints_regex",
+       "plugins.ml_commons.trusted_connector_private_endpoints_regex"] as $keys
+    | reduce $keys[] as $key ({persistent:{}, transient:{}};
+        .persistent[$key] = (($settings.persistent[$key] // $settings.defaults[$key] // []) + [$pattern] | unique)
+        | if $settings.transient[$key] != null then
+            .transient[$key] = ($settings.transient[$key] + [$pattern] | unique)
+          else . end)
+    | .persistent["plugins.ml_commons.connector.private_ip_enabled"] = true
+    | if $settings.transient["plugins.ml_commons.connector.private_ip_enabled"] != null then
+        .transient["plugins.ml_commons.connector.private_ip_enabled"] = true
+      else . end
+    | if .transient == {} then del(.transient) else . end
+  ' <<<"$settings")"
+  log "Trusting the SGLang inference URL in OpenSearch"
+  os_request PUT '/_cluster/settings' "$payload" >/dev/null
 }
 
 search_resource_id() {
@@ -304,8 +399,9 @@ register_model() {
   local payload response model_id task_id task_response task_state
   payload="$(jq -nc \
     --arg name "$name" \
+    --arg provider "$PROVIDER_LABEL" \
     --arg connector_id "$connector_id" \
-    '{name:$name, description:("Ollama remote model for " + $name), function_name:"remote", connector_id:$connector_id}')"
+    '{name:$name, description:($provider + " remote model for " + $name), function_name:"remote", connector_id:$connector_id}')"
   response="$(os_request POST '/_plugins/_ml/models/_register' "$payload")"
   model_id="$(jq -r '.model_id // empty' <<<"$response")"
   task_id="$(jq -r '.task_id // empty' <<<"$response")"
@@ -392,95 +488,93 @@ ensure_utility_agent() {
 }
 
 wait_for_opensearch
-wait_for_ollama
+if [[ "$PROVIDER" == "sglang" ]]; then
+  check_sglang
+  trust_sglang_endpoint
+else
+  wait_for_ollama
+fi
 
 # The single quotes deliberately preserve ML Commons ${parameters.*}
 # placeholders until connector inference time.
 # shellcheck disable=SC2016
 printf -v CHAT_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"${parameters.system_prompt}"},{"role":"user","content":"Join orders with customers on customer_id and return order_id and customer name, limited to 10 rows."},{"role":"assistant","content":"","tool_calls":[{"id":"join_example","index":0,"type":"function","function":{"name":"TransferQuestionToPPLAndExecuteTool","arguments":"{\\\"index\\\":\\\"orders\\\",\\\"question\\\":\\\"Join orders with customers on customer_id. Return order_id and customer name. Limit to 10 rows.\\\"}"}}]},{"role":"tool","tool_call_id":"join_example","name":"TransferQuestionToPPLAndExecuteTool","content":"PPL: source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.order_id, r.name | head 10. Result: order_id 1, name Alice. Total rows: 1."},{"role":"assistant","content":"The join returned one row: order 1 belongs to Alice."},${parameters._chat_history:-}{"role":"user","content":"${parameters.prompt}"}${parameters._interactions:-}], "stream": false, "temperature": 0, "max_tokens": %d, "reasoning_effort": "%s"${parameters.tool_configs:-} }' \
-  "$MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"${parameters.system_prompt}"},{"role":"user","content":"Join orders with customers on customer_id and return order_id and customer name, limited to 10 rows."},{"role":"assistant","content":"","tool_calls":[{"id":"join_example","index":0,"type":"function","function":{"name":"TransferQuestionToPPLAndExecuteTool","arguments":"{\\\"index\\\":\\\"orders\\\",\\\"question\\\":\\\"Join orders with customers on customer_id. Return order_id and customer name. Limit to 10 rows.\\\"}"}}]},{"role":"tool","tool_call_id":"join_example","name":"TransferQuestionToPPLAndExecuteTool","content":"PPL: source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.order_id, r.name | head 10. Result: order_id 1, name Alice. Total rows: 1."},{"role":"assistant","content":"The join returned one row: order 1 belongs to Alice."},${parameters._chat_history:-}{"role":"user","content":"${parameters.prompt}"}${parameters._interactions:-}], "stream": false, "temperature": 0, "max_tokens": %d%s${parameters.tool_configs:-} }' \
+  "$MAX_TOKENS" "$REASONING_OPTION"
 
 # shellcheck disable=SC2016
 printf -v PPL_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Translate the request into exactly one valid, read-only OpenSearch PPL query and return only the query, with no Markdown or explanation. Never use SQL syntax such as SELECT, FROM, JOIN ... ON, LIMIT, or column AS aliases. For every two-index join, aliases MUST be exactly l for the left index and r for the right index. The condition MUST compare l.join_field = r.join_field; never compare the same alias on both sides. Prefix every projected left field with l and every projected right field with r. Preserve every requested output field in the fields command, including a join field when the user requests it as output. Put the right index immediately after the join condition. Use fields, never select, to project columns. Use head, never limit, to cap results. Filter each side before joining when filters are requested. Finish with head 100 unless the request asks for a smaller limit. Never target system indices whose names start with a dot."},{"role":"user","content":"Join orders with customers on customer_id and return customer_id, order_id, and customer name, limited to 10 rows."},{"role":"assistant","content":"source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.customer_id, l.order_id, r.name | head 10"},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "temperature": 0, "max_tokens": %d, "reasoning_effort": "%s" }' \
-  "$MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Translate the request into exactly one valid, read-only OpenSearch PPL query and return only the query, with no Markdown or explanation. Never use SQL syntax such as SELECT, FROM, JOIN ... ON, LIMIT, or column AS aliases. For every two-index join, aliases MUST be exactly l for the left index and r for the right index. The condition MUST compare l.join_field = r.join_field; never compare the same alias on both sides. Prefix every projected left field with l and every projected right field with r. Preserve every requested output field in the fields command, including a join field when the user requests it as output. Put the right index immediately after the join condition. Use fields, never select, to project columns. Use head, never limit, to cap results. Filter each side before joining when filters are requested. Finish with head 100 unless the request asks for a smaller limit. Never target system indices whose names start with a dot."},{"role":"user","content":"Join orders with customers on customer_id and return customer_id, order_id, and customer name, limited to 10 rows."},{"role":"assistant","content":"source = orders | inner join left=l right=r on l.customer_id = r.customer_id customers | fields l.customer_id, l.order_id, r.name | head 10"},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "temperature": 0, "max_tokens": %d%s }' \
+  "$MAX_TOKENS" "$REASONING_OPTION"
 
 # shellcheck disable=SC2016
 printf -v TIME_RANGE_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Parse time constraints for an OpenSearch date picker. Follow the requested XML output format exactly and return no explanation."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
-  "$MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Parse time constraints for an OpenSearch date picker. Follow the requested XML output format exactly and return no explanation."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d%s }' \
+  "$MAX_TOKENS" "$REASONING_OPTION"
 
 # General-purpose strict-output connector used by the feature-specific agents
 # below. Their MLModelTool prompts define the exact response contract expected
 # by each OpenSearch Dashboards route.
 # shellcheck disable=SC2016
 printf -v UTILITY_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Follow the requested output format exactly. Do not add Markdown fences or commentary outside that format."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
-  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Follow the requested output format exactly. Do not add Markdown fences or commentary outside that format."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d%s }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_OPTION"
 
 # The anomaly detector UI calls String.split on every multi-value property.
-# Enforce strings at the Ollama decoder so the UI never receives JSON arrays.
+# Enforce strings at the model decoder so the UI never receives JSON arrays.
 # shellcheck disable=SC2016
 printf -v AD_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Suggest anomaly detector parameters from the supplied index mapping. Follow the JSON schema exactly."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s", "response_format":{"type":"json_schema","json_schema":{"name":"anomaly_detector_parameters","strict":true,"schema":{"type":"object","properties":{"categoryField":{"type":"string"},"aggregationField":{"type":"string"},"aggregationMethod":{"type":"string"},"dateFields":{"type":"string"}},"required":["categoryField","aggregationField","aggregationMethod","dateFields"],"additionalProperties":false}}} }' \
-  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Suggest anomaly detector parameters from the supplied index mapping. Follow the JSON schema exactly."},{"role":"user","content":"${parameters.prompt}"}], "stream": false, "max_tokens": %d%s, "response_format":{"type":"json_schema","json_schema":{"name":"anomaly_detector_parameters","strict":true,"schema":{"type":"object","properties":{"categoryField":{"type":"string"},"aggregationField":{"type":"string"},"aggregationMethod":{"type":"string"},"dateFields":{"type":"string"}},"required":["categoryField","aggregationField","aggregationMethod","dateFields"],"additionalProperties":false}}} }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_OPTION"
 
-# Qwen 3.5 is multimodal. Send notebook visualization screenshots through the
+# A multimodal model is needed for notebook visualization screenshots. Use the
 # OpenAI-compatible image_url message format and make the model emit the nested
 # JSON shape expected by the Dashboards investigation plugin.
 # shellcheck disable=SC2016
 printf -v VISUAL_REQUEST_BODY \
-  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Summarize the supplied OpenSearch visualization. Return only JSON shaped as {\\"output\\":{\\"message\\":{\\"content\\":[{\\"text\\":\\"concise summary\\"}]}}}."},{"role":"user","content":[{"type":"text","text":"Explain the notable trends, outliers, and operational meaning. Local timezone offset in minutes: ${parameters.local_time_offset}"},{"type":"image_url","image_url":{"url":"data:image/jpeg;base64,${parameters.image_base64}"}}]}], "stream": false, "max_tokens": %d, "reasoning_effort": "%s" }' \
-  "$UTILITY_MAX_TOKENS" "$REASONING_EFFORT"
+  '{ "model": "${parameters.model}", "messages": [{"role":"system","content":"Summarize the supplied OpenSearch visualization. Return only JSON shaped as {\\"output\\":{\\"message\\":{\\"content\\":[{\\"text\\":\\"concise summary\\"}]}}}."},{"role":"user","content":[{"type":"text","text":"Explain the notable trends, outliers, and operational meaning. Local timezone offset in minutes: ${parameters.local_time_offset}"},{"type":"image_url","image_url":{"url":"data:image/jpeg;base64,${parameters.image_base64}"}}]}], "stream": false, "max_tokens": %d%s }' \
+  "$UTILITY_MAX_TOKENS" "$REASONING_OPTION"
 
 CLIENT_CONFIG="$(jq -nc \
   --argjson connection_timeout "$CONNECTION_TIMEOUT" \
   --argjson read_timeout "$READ_TIMEOUT" \
   '{max_connection:10, connection_timeout:$connection_timeout, read_timeout:$read_timeout, max_retry_times:0}')"
 
-CHAT_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$CHAT_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg endpoint "$CHAT_ENDPOINT" \
-  --arg request_body "$CHAT_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"OpenAI-compatible Ollama connector for OpenSearch conversational agents", version:"1", protocol:"http", parameters:{endpoint:$endpoint, model:$model}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+# All feature connectors share provider, authentication, and timeout settings.
+# Ollama chat retains its compatibility proxy; SGLang uses its native API.
+connector_payload() {
+  local name="$1"
+  local purpose="$2"
+  local base_url="$3"
+  local request_body="$4"
+  local response_filter="${5-}"
+  jq -nc \
+    --arg name "$name" \
+    --arg description "$PROVIDER_LABEL connector for $purpose" \
+    --arg model "$MODEL_NAME" \
+    --arg base_url "$base_url" \
+    --arg api_key "$API_KEY" \
+    --arg response_filter "$response_filter" \
+    --arg request_body "$request_body" \
+    --argjson client_config "$CLIENT_CONFIG" \
+    '{name:$name, description:$description, version:"1", protocol:"http",
+      parameters:({base_url:$base_url, model:$model} +
+        if $response_filter == "" then {} else {response_filter:$response_filter} end),
+      credential:{api_key:(if $api_key == "" then "local" else $api_key end)},
+      client_config:$client_config,
+      actions:[{action_type:"predict", method:"POST",
+        url:"${parameters.base_url}/chat/completions",
+        headers:({"Content-Type":"application/json"} +
+          if $api_key == "" then {} else {Authorization:"Bearer ${credential.api_key}"} end),
+        request_body:$request_body}]}'
+}
 
-PPL_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$PPL_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg request_body "$PPL_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"Prompt-compatible Ollama connector for OpenSearch PPL query assist", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
-
-TIME_RANGE_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$TIME_RANGE_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg request_body "$TIME_RANGE_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"Ollama connector for OpenSearch query time-range parsing", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
-
-UTILITY_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$UTILITY_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg request_body "$UTILITY_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"Ollama connector for OpenSearch Dashboards feature agents", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
-
-AD_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$AD_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg request_body "$AD_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"Structured-output Ollama connector for anomaly detector suggestions", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
-
-VISUAL_CONNECTOR_PAYLOAD="$(jq -nc \
-  --arg name "$VISUAL_CONNECTOR_NAME" \
-  --arg model "$OLLAMA_MODEL_NAME" \
-  --arg request_body "$VISUAL_REQUEST_BODY" \
-  --argjson client_config "$CLIENT_CONFIG" \
-  '{name:$name, description:"OpenAI-compatible Ollama connector for visualization screenshots", version:"1", protocol:"http", parameters:{endpoint:"ollama:11434", model:$model, response_filter:"$.choices[0].message.content"}, credential:{ollama_key:"local"}, client_config:$client_config, actions:[{action_type:"predict", method:"POST", url:"http://${parameters.endpoint}/v1/chat/completions", headers:{"Content-Type":"application/json"}, request_body:$request_body}]}')"
+CHAT_CONNECTOR_PAYLOAD="$(connector_payload "$CHAT_CONNECTOR_NAME" "OpenSearch conversational agents" "$CHAT_BASE_URL" "$CHAT_REQUEST_BODY")"
+PPL_CONNECTOR_PAYLOAD="$(connector_payload "$PPL_CONNECTOR_NAME" "OpenSearch PPL query assist" "$BASE_URL" "$PPL_REQUEST_BODY" '$.choices[0].message.content')"
+TIME_RANGE_CONNECTOR_PAYLOAD="$(connector_payload "$TIME_RANGE_CONNECTOR_NAME" "OpenSearch query time-range parsing" "$BASE_URL" "$TIME_RANGE_REQUEST_BODY" '$.choices[0].message.content')"
+UTILITY_CONNECTOR_PAYLOAD="$(connector_payload "$UTILITY_CONNECTOR_NAME" "OpenSearch Dashboards feature agents" "$BASE_URL" "$UTILITY_REQUEST_BODY" '$.choices[0].message.content')"
+AD_CONNECTOR_PAYLOAD="$(connector_payload "$AD_CONNECTOR_NAME" "anomaly detector suggestions" "$BASE_URL" "$AD_REQUEST_BODY" '$.choices[0].message.content')"
+VISUAL_CONNECTOR_PAYLOAD="$(connector_payload "$VISUAL_CONNECTOR_NAME" "visualization screenshots" "$BASE_URL" "$VISUAL_REQUEST_BODY" '$.choices[0].message.content')"
 
 CHAT_CONNECTOR_ID="$(upsert_connector "$CHAT_CONNECTOR_NAME" "$CHAT_CONNECTOR_PAYLOAD")"
 CHAT_MODEL_ID="$(ensure_model "$CHAT_MODEL_NAME" "$CHAT_CONNECTOR_ID")"
@@ -616,15 +710,15 @@ Data schema: ${parameters.dataSchema}
 Sample data: ${parameters.sampleData}
 Use field names that exist in the supplied data. Return only one valid JSON object. Do not include width, height, or inline data.'
 
-DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Data Summary Agent" "Summarize Discover result samples" "os_data2summary" "$DATA2SUMMARY_PROMPT")"
-LOG_DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Log Data Summary Agent" "Summarize Discover log result samples" "os_data2summary" "$LOG_DATA2SUMMARY_PROMPT")"
-INDEX_TYPE_AGENT_ID="$(ensure_utility_agent "Qwen Index Type Detection Agent" "Classify whether an index contains operational log data" "os_index_type_detect" "$INDEX_TYPE_PROMPT")"
-QUERY_RESPONSE_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Query Response Summary Agent" "Summarize successful PPL query results" "query_assist" "$QUERY_RESPONSE_SUMMARY_PROMPT")"
-QUERY_ERROR_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Query Error Summary Agent" "Explain failed PPL queries" "query_assist" "$QUERY_ERROR_SUMMARY_PROMPT")"
-ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Alert Summary Agent" "Summarize alert context" "os_summary" "$ALERT_SUMMARY_PROMPT")"
-LOG_ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "Qwen Log Alert Summary Agent" "Summarize log alert context" "os_summary" "$LOG_ALERT_SUMMARY_PROMPT")"
-TEXT2VEGA_AGENT_ID="$(ensure_utility_agent "Qwen Text to Vega Agent" "Create Vega-Lite specifications from query results" "os_text2vega" "$TEXT2VEGA_PROMPT")"
-TEXT2VEGA_INSTRUCTIONS_AGENT_ID="$(ensure_utility_agent "Qwen Text to Vega Instructions Agent" "Modify Vega-Lite specifications using user instructions" "os_text2vega" "$TEXT2VEGA_INSTRUCTIONS_PROMPT")"
+DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Data Summary Agent" "Summarize Discover result samples" "os_data2summary" "$DATA2SUMMARY_PROMPT")"
+LOG_DATA2SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Log Data Summary Agent" "Summarize Discover log result samples" "os_data2summary" "$LOG_DATA2SUMMARY_PROMPT")"
+INDEX_TYPE_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Index Type Detection Agent" "Classify whether an index contains operational log data" "os_index_type_detect" "$INDEX_TYPE_PROMPT")"
+QUERY_RESPONSE_SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Query Response Summary Agent" "Summarize successful PPL query results" "query_assist" "$QUERY_RESPONSE_SUMMARY_PROMPT")"
+QUERY_ERROR_SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Query Error Summary Agent" "Explain failed PPL queries" "query_assist" "$QUERY_ERROR_SUMMARY_PROMPT")"
+ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Alert Summary Agent" "Summarize alert context" "os_summary" "$ALERT_SUMMARY_PROMPT")"
+LOG_ALERT_SUMMARY_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Log Alert Summary Agent" "Summarize log alert context" "os_summary" "$LOG_ALERT_SUMMARY_PROMPT")"
+TEXT2VEGA_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Text to Vega Agent" "Create Vega-Lite specifications from query results" "os_text2vega" "$TEXT2VEGA_PROMPT")"
+TEXT2VEGA_INSTRUCTIONS_AGENT_ID="$(ensure_utility_agent "$AGENT_NAME_PREFIX Text to Vega Instructions Agent" "Modify Vega-Lite specifications using user instructions" "os_text2vega" "$TEXT2VEGA_INSTRUCTIONS_PROMPT")"
 
 AD_CONNECTOR_ID="$(upsert_connector "$AD_CONNECTOR_NAME" "$AD_CONNECTOR_PAYLOAD")"
 AD_MODEL_ID="$(ensure_model "$AD_MODEL_NAME" "$AD_CONNECTOR_ID")"
@@ -640,17 +734,19 @@ Choose one to three suitable numeric or countable aggregation fields, matching a
 Return only valid JSON in this exact shape: {"categoryField":"service.keyword","aggregationField":"latency,error_count","aggregationMethod":"avg,sum","dateFields":"@timestamp"}. Every property value must be a JSON string, never an array. Represent multiple fields or methods inside one comma-delimited string. Use an empty categoryField when none is suitable. The aggregationField and aggregationMethod comma-delimited lists must have equal lengths.'
 
 SUGGEST_AD_AGENT_PAYLOAD="$(jq -nc \
+  --arg name "$AGENT_NAME_PREFIX Anomaly Detector Suggestion Agent" \
   --arg model_id "$AD_MODEL_ID" \
   --arg prompt "$SUGGEST_AD_PROMPT" \
-  '{name:"Qwen Anomaly Detector Suggestion Agent", description:"Suggest anomaly detector fields from an index mapping", type:"flow", app_type:"os_suggest_ad", tools:[{type:"IndexMappingTool", name:"IndexMappingTool", include_output_in_agent_response:false, parameters:{index:"${parameters.index}"}},{type:"MLModelTool", name:"SuggestAnomalyDetectorTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
-SUGGEST_AD_AGENT_ID="$(upsert_agent "Qwen Anomaly Detector Suggestion Agent" "$SUGGEST_AD_AGENT_PAYLOAD")"
+  '{name:$name, description:"Suggest anomaly detector fields from an index mapping", type:"flow", app_type:"os_suggest_ad", tools:[{type:"IndexMappingTool", name:"IndexMappingTool", include_output_in_agent_response:false, parameters:{index:"${parameters.index}"}},{type:"MLModelTool", name:"SuggestAnomalyDetectorTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", prompt:$prompt, response_filter:"$.choices[0].message.content"}}]}')"
+SUGGEST_AD_AGENT_ID="$(upsert_agent "$AGENT_NAME_PREFIX Anomaly Detector Suggestion Agent" "$SUGGEST_AD_AGENT_PAYLOAD")"
 
 VISUAL_CONNECTOR_ID="$(upsert_connector "$VISUAL_CONNECTOR_NAME" "$VISUAL_CONNECTOR_PAYLOAD")"
 VISUAL_MODEL_ID="$(ensure_model "$VISUAL_MODEL_NAME" "$VISUAL_CONNECTOR_ID")"
 VISUAL_SUMMARY_AGENT_PAYLOAD="$(jq -nc \
+  --arg name "$AGENT_NAME_PREFIX Visualization Summary Agent" \
   --arg model_id "$VISUAL_MODEL_ID" \
-  '{name:"Qwen Visualization Summary Agent", description:"Summarize OpenSearch notebook visualization screenshots", type:"flow", app_type:"os_visualization_summary", tools:[{type:"MLModelTool", name:"VisualizationSummaryTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", response_filter:"$.choices[0].message.content"}}]}')"
-VISUAL_SUMMARY_AGENT_ID="$(upsert_agent "Qwen Visualization Summary Agent" "$VISUAL_SUMMARY_AGENT_PAYLOAD")"
+  '{name:$name, description:"Summarize OpenSearch notebook visualization screenshots", type:"flow", app_type:"os_visualization_summary", tools:[{type:"MLModelTool", name:"VisualizationSummaryTool", include_output_in_agent_response:true, parameters:{model_id:$model_id, model_type:"OPENAI", response_filter:"$.choices[0].message.content"}}]}')"
+VISUAL_SUMMARY_AGENT_ID="$(upsert_agent "$AGENT_NAME_PREFIX Visualization Summary Agent" "$VISUAL_SUMMARY_AGENT_PAYLOAD")"
 
 write_ml_config os_chat os_chat_root_agent "$ROOT_AGENT_ID"
 write_ml_config os_query_assist_ppl os_query_assist_ppl_agent "$PPL_AGENT_ID"
@@ -667,7 +763,7 @@ write_ml_config os_text2vega_with_instructions os_text2vega_agent "$TEXT2VEGA_IN
 write_ml_config os_suggest_ad os_suggest_ad_agent "$SUGGEST_AD_AGENT_ID"
 write_ml_config os_visualization_summary os_visualization_summary_agent "$VISUAL_SUMMARY_AGENT_ID"
 
-log "Bootstrap complete"
+log "Bootstrap complete (provider=$PROVIDER, model=$MODEL_NAME)"
 printf '  chat_connector_id=%s\n' "$CHAT_CONNECTOR_ID"
 printf '  chat_model_id=%s\n' "$CHAT_MODEL_ID"
 printf '  chat_agent_id=%s\n' "$CHAT_AGENT_ID"

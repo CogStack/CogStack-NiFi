@@ -46,6 +46,7 @@ nav:
   - 📦 Deployment: deploy/deployment.md
   - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md
+  - 🤖 OpenSearch AI with SGLang: deploy/sglang.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - 🔀 Workflows:
       - Overview: deploy/workflows.md

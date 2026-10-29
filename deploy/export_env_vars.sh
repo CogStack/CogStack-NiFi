@@ -30,6 +30,7 @@ env_files=(
   "$DEPLOY_DIR/nifi.env"
   "$DEPLOY_DIR/elasticsearch.env"
   "$DEPLOY_DIR/ollama.env"
+  "$DEPLOY_DIR/sglang.env"
   "$DEPLOY_DIR/openwebui.env"
   "$DEPLOY_DIR/database.env"
   "$DEPLOY_DIR/network_settings.env"

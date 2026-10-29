@@ -466,6 +466,13 @@ Image selection controlled by:
 
 ---
 
+## 🤖 OpenSearch AI with SGLang
+
+To connect OpenSearch Dashboards AI features to an existing SGLang server, see
+the [OpenSearch AI with SGLang](./sglang.md) deployment guide.
+
+---
+
 ## 🤖 OCR Service
 
 High-performance document text-extraction engine for OCR and text processing.

@@ -363,8 +363,16 @@ pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
-opensearch-ai-init: start-ollama-openai-proxy ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
-	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
+opensearch-ai-init: ## Create or update OpenSearch AI connectors and agents using OPENSEARCH_AI_PROVIDER
+	$(WITH_ENV) \
+	case "$${OPENSEARCH_AI_PROVIDER:-ollama}" in \
+	  ollama) docker compose -f services.yml $(DC_START_CMD) --build ollama-openai-proxy ;; \
+	  sglang) ;; \
+	  *) echo "Unsupported OPENSEARCH_AI_PROVIDER: $${OPENSEARCH_AI_PROVIDER}" >&2; exit 1 ;; \
+	esac && ../scripts/opensearch-ai-init.sh
+
+opensearch-ai-init-sglang: ## Connect all OpenSearch AI features to the locally hosted SGLang server
+	$(WITH_ENV) OPENSEARCH_AI_PROVIDER=sglang ../scripts/opensearch-ai-init.sh
 
 start-openwebui: ## Start Open WebUI and its Ollama dependency
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) open-webui
@@ -415,7 +423,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
+.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init opensearch-ai-init-sglang start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
 
 
 # stop services
