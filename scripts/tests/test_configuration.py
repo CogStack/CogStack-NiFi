@@ -76,7 +76,7 @@ class ConfigurationTest(unittest.TestCase):
                 self.assertEqual(nifi["environment"]["NIFI_JVM_HEAP_MAX"], "1536m")
                 # Compose escapes dollar signs when serializing a reusable model.
                 password = nifi["environment"]["NIFI_SINGLE_USER_CREDENTIALS_PASSWORD"].replace("$$", "$")
-                self.assertTrue(password == selected_password)
+                self.assertEqual(password, selected_password)
                 self.assertEqual(int(nifi["deploy"]["resources"]["limits"]["memory"]), 3 * 1024**3)
                 self.assertTrue(any(port.get("published") == "18082" for port in nifi["ports"]))
                 data_mount = next(volume for volume in nifi["volumes"] if volume["target"] == "/data")
