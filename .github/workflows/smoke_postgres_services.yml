@@ -1,9 +1,24 @@
 name: smoke-postgres-services
 
 on:
-  pull_request:
   push:
     branches: ['**']
+    paths: &paths
+      - ".github/workflows/smoke_postgres_services.yml"
+      - ".gitattributes"
+      - "deploy/Makefile"
+      - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/*.env"
+      - "security/env/*.env"
+      - "deploy/services.yml"
+      - "services/pgsamples"
+      - "services/pgsamples/**"
+      - "scripts/tests/smoke_postgres_services.sh"
+      - "!**/*.md"
+      - "!**/README*"
+  pull_request:
+    paths: *paths
   workflow_dispatch:
 
 concurrency:

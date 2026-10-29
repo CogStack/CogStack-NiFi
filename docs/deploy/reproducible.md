@@ -27,6 +27,14 @@ CI checks these recorded commits with read-only repository permissions. It no
 longer advances dependencies or pushes synchronization commits when a branch
 changes.
 
+Image builds and live service smoke tests run for changes to their source,
+deployment configuration, helper scripts, or workflow files. Markdown and
+README changes skip these expensive workflows; documentation checks still run.
+Build workflows also run for version tag pushes, published releases, and manual
+dispatches. Smoke workflows can be run manually when a full service check is
+needed. Push and pull-request triggers share the same path filters. See
+[GitHub's path-filter behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushpull_requestpull_request_targetpathspaths-ignore).
+
 ## Upgrade submodules explicitly
 
 In a development checkout, run:

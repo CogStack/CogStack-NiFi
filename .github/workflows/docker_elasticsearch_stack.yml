@@ -4,7 +4,16 @@ on:
   push:
     branches: ['**']
     tags: ['v*.*.*']
+    paths: &paths
+      - ".github/workflows/docker_elasticsearch_stack.yml"
+      - ".github/workflows/_docker_template.yml"
+      - ".gitattributes"
+      - "services/elasticsearch/**"
+      - "services/kibana/**"
+      - "!**/*.md"
+      - "!**/README*"
   pull_request:
+    paths: *paths
   release:
     types: [published]
   workflow_dispatch:

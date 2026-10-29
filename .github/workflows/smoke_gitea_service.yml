@@ -1,9 +1,26 @@
 name: smoke-gitea-service
 
 on:
-  pull_request:
   push:
     branches: ['**']
+    paths: &paths
+      - ".github/workflows/smoke_gitea_service.yml"
+      - ".gitattributes"
+      - "deploy/Makefile"
+      - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/*.env"
+      - "security/env/*.env"
+      - "security/scripts/**"
+      - "security/templates/**"
+      - "deploy/services.yml"
+      - "services/gitea/**"
+      - "scripts/tests/smoke_gitea_service.sh"
+      - "scripts/tests/smoke_http_checks.sh"
+      - "!**/*.md"
+      - "!**/README*"
+  pull_request:
+    paths: *paths
   workflow_dispatch:
 
 concurrency:
