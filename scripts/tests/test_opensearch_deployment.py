@@ -156,7 +156,7 @@ class OpenSearchDeploymentTest(unittest.TestCase):
                 env=environment, text=True, capture_output=True, check=True, timeout=30,
             )
             password = json.loads(result.stdout)["services"]["kibana"]["environment"]["KIBANA_PASSWORD"]
-            self.assertTrue(password == secret["stringData"]["KIBANA_PASSWORD"])
+            self.assertEqual(password, secret["stringData"]["KIBANA_PASSWORD"])
 
     def test_invalid_credentials_and_incomplete_tls_mapping_fail_rendering(self) -> None:
         cases = [
