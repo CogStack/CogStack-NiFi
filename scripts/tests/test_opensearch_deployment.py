@@ -149,7 +149,7 @@ class OpenSearchDeploymentTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             secret = next(document for document in yaml_documents(result.stdout) if document["kind"] == "Secret")
-            self.assertTrue(secret["stringData"]["KIBANA_PASSWORD"] == "fixture-selected-password")
+            self.assertEqual(secret["stringData"]["KIBANA_PASSWORD"], "fixture-selected-password")
             result = subprocess.run(
                 ["bash", "-c", 'source "$1" >/dev/null && docker compose --profile "*" -f "$2" config --format json',
                  "read-compose", str(ROOT / "deploy/export_env_vars.sh"), str(ROOT / "deploy/services.yml")],
