@@ -4,6 +4,9 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_DIR="${SECURITY_DIR_OVERRIDE:-$(cd -- "${SCRIPT_DIR}/.." && pwd)}"
 SECURITY_ENV_DIR="${SECURITY_DIR}/env"
@@ -12,8 +15,8 @@ ROOT_CERTIFICATES_DIR="${CERTIFICATES_DIR}/root"
 GITEA_CERTIFICATES_DIR="${CERTIFICATES_DIR}/gitea"
 EXT_FILE="${SECURITY_DIR}/templates/ssl-extensions-x509.cnf"
 
-# shellcheck disable=SC1091
-source "${SECURITY_ENV_DIR}/certificates_general.env"
+# shellcheck disable=SC1090,SC1091
+source "$(cogstack_env_file security/env/certificates_general.env "${SECURITY_ENV_DIR}/certificates_general.env")" || exit 1
 
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
 : "${ROOT_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:?Must be set in certificates_general.env}"

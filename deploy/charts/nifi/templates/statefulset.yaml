@@ -94,6 +94,20 @@
 {{- if hasKey $envData "NIFI_DOCKER_RAM" -}}
 {{- $memoryLimit = include "cogstack-nifi.normalizeMemory" (index $envData "NIFI_DOCKER_RAM") -}}
 {{- end -}}
+{{- range $heap := list $heapInit $heapMax -}}
+{{- if not (regexMatch "^[0-9]+[kKmMgG]?$" (printf "%v" $heap)) -}}
+{{- fail "NiFi JVM heap sizes must use positive integers with optional k, m, or g suffixes" -}}
+{{- end -}}
+{{- end -}}
+{{- $heapInitBytes := include "cogstack-nifi.memoryBytes" $heapInit | float64 -}}
+{{- $heapMaxBytes := include "cogstack-nifi.memoryBytes" $heapMax | float64 -}}
+{{- $memoryLimitBytes := include "cogstack-nifi.memoryBytes" $memoryLimit | float64 -}}
+{{- if gt $heapInitBytes $heapMaxBytes -}}
+{{- fail "NIFI_JVM_HEAP_INIT must not exceed NIFI_JVM_HEAP_MAX" -}}
+{{- end -}}
+{{- if ge $heapMaxBytes $memoryLimitBytes -}}
+{{- fail "NIFI_JVM_HEAP_MAX must be smaller than NIFI_DOCKER_RAM; leave memory for native allocations and Python processors" -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

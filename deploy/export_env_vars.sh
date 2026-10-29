@@ -1,67 +1,90 @@
 #!/usr/bin/env bash
+# Source selected configuration without changing the caller's shell options.
 
-# Enable strict mode (without -e to avoid exit-on-error)
-set -uo pipefail
-
-# Support being sourced in shells where BASH_SOURCE is unset (e.g. zsh)
-SCRIPT_SOURCE="${BASH_SOURCE[0]-$0}"
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
-SCRIPT_NAME="$(basename "$SCRIPT_SOURCE")"
-
-echo "🔧 Running $SCRIPT_NAME..."
-
-set -a
-
-DEPLOY_DIR="$SCRIPT_DIR"
-SECURITY_DIR="$SCRIPT_DIR/../security/env"
-SERVICES_DIR="$SCRIPT_DIR/../services"
-
-
-env_files=(
-  "$SECURITY_DIR/certificates_nifi.env"
-  "$SECURITY_DIR/certificates_general.env"
-  "$SECURITY_DIR/certificates_elasticsearch.env"
-  "$SECURITY_DIR/users_elasticsearch.env"
-  "$SECURITY_DIR/users_database.env"
-  "$SECURITY_DIR/users_nifi.env"
-  "$SECURITY_DIR/users_nginx.env"
-
-  "$DEPLOY_DIR/general.env"
-  "$DEPLOY_DIR/nifi.env"
-  "$DEPLOY_DIR/elasticsearch.env"
-  "$DEPLOY_DIR/ollama.env"
-  "$DEPLOY_DIR/sglang.env"
-  "$DEPLOY_DIR/openwebui.env"
-  "$DEPLOY_DIR/database.env"
-  "$DEPLOY_DIR/network_settings.env"
-  "$DEPLOY_DIR/project.env"
-  "$DEPLOY_DIR/gitea.env"
-  "$DEPLOY_DIR/nginx.env"
-  "$DEPLOY_DIR/telemetry.env"
-
-  "$SERVICES_DIR/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env"
-  "$SERVICES_DIR/cogstack-platform/apps/ocr-service/env/ocr_service.env"
-  "$SERVICES_DIR/cogstack-nlp/medcat-service/env/app.env"
-  "$SERVICES_DIR/cogstack-nlp/medcat-service/env/medcat.env"
-  "$SERVICES_DIR/cogstack-nlp/medcat-trainer/envs/env-prod"
-)
-
-for env_file in "${env_files[@]}"; do
-  if [ -f "$env_file" ]; then
-    echo "✅ Sourcing $env_file"
-    # shellcheck disable=SC1090
-    source "$env_file"
+_cogstack_load_environment() {
+  local loader_path
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    # The expression is evaluated only by zsh; Bash uses BASH_SOURCE below.
+    eval 'loader_path=${(%):-%x}'
   else
-    echo "⚠️ Skipping missing env file: $env_file"
+    loader_path="${BASH_SOURCE[0]}"
   fi
-done
+  local deploy_path
+  deploy_path="$(cd "$(dirname "$loader_path")" && pwd)" || return 1
+  # shellcheck disable=SC1091
+  source "$deploy_path/config_files.sh" || return 1
+  cogstack_config_init "$(cd "$deploy_path/.." && pwd)" || return 1
 
-# for nginx vars
-export DOLLAR="$"
+  local relative_files=(
+    security/env/certificates_nifi.env
+    security/env/certificates_general.env
+    security/env/certificates_elasticsearch.env
+    security/env/users_elasticsearch.env
+    security/env/users_database.env
+    security/env/users_nifi.env
+    security/env/users_nginx.env
+    deploy/general.env
+    deploy/nifi.env
+    deploy/elasticsearch.env
+    deploy/ollama.env
+    deploy/sglang.env
+    deploy/openwebui.env
+    deploy/database.env
+    deploy/network_settings.env
+    deploy/project.env
+    deploy/gitea.env
+    deploy/nginx.env
+    deploy/telemetry.env
+  )
+  local relative_file selected_file variable_name file_name
+  local restore_allexport=1
+  case "$-" in *a*) restore_allexport=0 ;; esac
+  set -a
+  for relative_file in "${relative_files[@]}"; do
+    selected_file="$(cogstack_env_file "$relative_file")" || {
+      if [[ "$restore_allexport" == 1 ]]; then set +a; fi
+      return 1
+    }
+    file_name="${relative_file##*/}"
+    variable_name="COGSTACK_$(printf '%s' "${file_name%.env}" | tr '[:lower:]' '[:upper:]')_ENV_FILE"
+    export "$variable_name=$selected_file"
+    # shellcheck disable=SC1090
+    source "$selected_file" || {
+      echo "ERROR: Failed to load configuration: $selected_file" >&2
+      if [[ "$restore_allexport" == 1 ]]; then set +a; fi
+      return 1
+    }
+  done
 
-# Disable auto-export
-set +a
+  # Service-owned configuration remains optional and uses its own directories.
+  local service_files=(
+    services/cogstack-platform/apps/cogstack-jupyter-hub/env/jupyter.env
+    services/cogstack-platform/apps/ocr-service/env/ocr_service.env
+    services/cogstack-nlp/medcat-service/env/app.env
+    services/cogstack-nlp/medcat-service/env/medcat.env
+    services/cogstack-nlp/medcat-trainer/envs/env-prod
+  )
+  for relative_file in "${service_files[@]}"; do
+    selected_file="$COGSTACK_REPO_ROOT/$relative_file"
+    if [[ -f "$selected_file" ]]; then
+      # shellcheck disable=SC1090
+      source "$selected_file" || {
+        echo "ERROR: Failed to load service configuration: $selected_file" >&2
+        if [[ "$restore_allexport" == 1 ]]; then set +a; fi
+        return 1
+      }
+    fi
+  done
+  export DOLLAR='$'
+  if [[ "$restore_allexport" == 1 ]]; then set +a; fi
+  echo "Configuration loaded from ${COGSTACK_CONFIG_DIR:-repository defaults}."
+}
 
-# Restore safe defaults for interactive/dev shell
-set +u
-set +o pipefail
+if _cogstack_load_environment; then
+  unset -f _cogstack_load_environment
+else
+  unset -f _cogstack_load_environment
+  # Also support executing the loader instead of sourcing it.
+  # shellcheck disable=SC2317
+  return 1 2>/dev/null || exit 1
+fi

@@ -1,7 +1,7 @@
 # ⚙️ Configuration
 
-CogStack separates deployment configuration from local-development security
-settings:
+CogStack selects deployment configuration and security settings from the
+repository defaults or a directory selected with `COGSTACK_CONFIG_DIR`:
 
 - `deploy/*.env` configures services, images, ports, resource limits, and the
   shared Docker network.
@@ -25,6 +25,8 @@ The core Compose file, `deploy/services.yml`, loads these files:
 | `deploy/nifi.env` | NiFi image, ports, resources, proxy settings, and paths |
 | `deploy/elasticsearch.env` | Elasticsearch/OpenSearch, Dashboards/Kibana, and Beats |
 | `deploy/ollama.env` | Ollama image, model selection, port, and resource limits |
+| `deploy/sglang.env` | Existing SGLang endpoint, served model, and API key |
+| `deploy/openwebui.env` | Open WebUI image, access, and resource limits |
 | `deploy/database.env` | Sample and production database resources |
 | `deploy/gitea.env` | Gitea image, ports, and application settings |
 | `deploy/nginx.env` | NiFi nginx proxy settings |
@@ -81,17 +83,110 @@ credentials and certificate passwords.
 
 ## Deployment-specific overrides
 
-For a separate deployment, copy the tracked defaults to a protected location
-and edit the copies there:
+Copy the files you need to customize into a protected directory. Run these
+commands from the repository root:
 
 ```bash
-cp deploy/*.env /path/to/deployment-config/
-cp security/env/*.env /path/to/deployment-config/security/
+mkdir -p /path/to/deployment-config/security
+cp deploy/nifi.env /path/to/deployment-config/nifi.env
+cp security/env/users_nifi.env /path/to/deployment-config/security/users_nifi.env
+cp security/env/certificates_nifi.env /path/to/deployment-config/security/certificates_nifi.env
+
+# Edit the copied files, then validate and start the deployment.
+COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy check-config
+COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy init-security
+COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy start-data-infra
 ```
 
-You must then adapt your Compose invocation or deployment tooling to load those
-copies. The repository Makefile always loads the paths listed in
-`deploy/export_env_vars.sh`.
+You can also copy all `deploy/*.env` files and all `security/env/*.env` files
+into these two directories. Protect files containing credentials with the
+permissions required by your deployment.
+
+For local configuration, `deploy/local/` is ignored by Git:
+
+```bash
+mkdir -p deploy/local
+cp deploy/nifi.env deploy/local/nifi.env
+COGSTACK_CONFIG_DIR=deploy/local make -C deploy check-config
+```
+
+Relative `COGSTACK_CONFIG_DIR` paths are resolved from the repository root,
+including when using `make -C deploy`. An explicit missing directory, an
+unreadable selected file, or a broken profile symlink causes an error.
+
+### File selection and precedence
+
+| Setting | Selected file, in priority order |
+|---|---|
+| Core settings such as `nifi.env` | `$COGSTACK_CONFIG_DIR/nifi.env`, then `deploy/nifi.env` |
+| Security settings such as `users_nifi.env` | `$COGSTACK_CONFIG_DIR/security/users_nifi.env`, then `security/env/users_nifi.env` |
+
+A matching profile file replaces the complete default file. Copy the original
+before editing it; individual keys are not merged with the original. Files
+absent from the profile use their repository defaults. Make, Compose,
+certificate helpers, and the owned Helm Make targets use the selected files.
+
+Files are sourced as shell assignments. Plain `KEY=value` assignments replace
+inherited values. Assignments such as `KEY=${KEY:-default}` honor an existing
+value, as used by the SGLang settings. Use plain assignments for authoritative
+profile values, and keep these trusted files compatible with Compose's
+environment-file syntax.
+
+For direct Compose commands, select the profile before loading configuration:
+
+```bash
+export COGSTACK_CONFIG_DIR=/path/to/deployment-config
+source deploy/export_env_vars.sh
+docker compose -f deploy/services.yml config --quiet
+docker compose -f deploy/services.yml up -d nifi nifi-nginx
+```
+
+After editing a selected file, source the loader again before invoking Compose.
+It exports `COGSTACK_*_ENV_FILE` paths for Compose and preserves the caller's
+shell options. Explicit Compose `environment` entries and `docker compose run -e`
+retain their normal [precedence](https://docs.docker.com/compose/how-tos/environment-variables/envvars-precedence/).
+
+Relative data and model mount paths remain relative to `deploy/`; absolute paths
+are supported through `NIFI_DATA_PATH` and
+`NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH`. Certificate material is generated
+and mounted under `security/certificates/` using the selected security settings.
+
+### Helm and standalone services
+
+The owned Helm Make targets pass selected files through `--set-file`:
+
+```bash
+COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy helm-template-nifi
+```
+
+Use `HELM_NIFI_VALUES_FILE`, `HELM_OPENSEARCH_VALUES_FILE`, or
+`HELM_POSTGRESQL_VALUES_FILE` for cluster-specific values. Direct Helm commands
+should supply selected files with `--set-file envFile.raw`,
+`--set-file usersEnvFile.raw`, and, where used, `--set-file certificatesEnvFile.raw`.
+
+Standalone services in submodules retain their own environment configuration.
+
+## NiFi memory defaults and validation
+
+| Setting | Default |
+|---|---|
+| Initial JVM heap | `NIFI_JVM_HEAP_INIT=768m` |
+| Maximum JVM heap | `NIFI_JVM_HEAP_MAX=1g` |
+| Container memory limit | `NIFI_DOCKER_RAM=2g` |
+
+The remaining memory accommodates native JVM allocations and Python processors.
+Tune these values together for the workload; see the
+[NiFi sizing guidance](../nifi/main.md#critical-deploynifienv-settings).
+
+`make -C deploy check-config` validates the resolved memory settings and both
+core Compose files without starting services. NiFi start targets run the memory
+check automatically. Direct Helm rendering also rejects inconsistent heap and
+limit values.
+
+Validation requires positive memory sizes, an initial heap no larger than the
+maximum heap, and a maximum heap smaller than the container limit. JVM heaps
+use whole numbers with optional `k`, `m`, or `g` suffixes. Container memory
+also accepts units such as `GiB`.
 
 ## Multiple deployments on one host
 

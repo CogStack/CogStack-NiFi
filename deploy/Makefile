@@ -39,9 +39,11 @@ SECURITY_SCRIPTS_DIR ?= $(SECURITY_DIR)/scripts
 SECURITY_CERTIFICATES_DIR ?= $(SECURITY_DIR)/certificates
 SECURITY_ENV_DIR ?= $(SECURITY_DIR)/env
 OPENSEARCH_CERT_NAMES ?=
+COGSTACK_CONFIG_DIR ?=
+export COGSTACK_CONFIG_DIR
 
 define WITH_ENV
-set -a && source ./export_env_vars.sh;
+source ./export_env_vars.sh || exit $$?;
 endef
 
 # list all make targets in this file
@@ -107,7 +109,8 @@ show-env: ## Print sorted environment variables after loading export_env_vars.sh
 
 init-security-root-ca: ## Generate the shared root CA only when no CA material exists
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_general.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE}"; \
 	root_dir="$(SECURITY_CERTIFICATES_DIR)/root"; \
 	if [[ -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.key" \
 	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.pem" \
@@ -152,7 +155,8 @@ init-security-gitea: init-security-root-ca ## Generate a dedicated Gitea leaf ce
 
 init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, client, and admin certificates when missing
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}"; \
 	if [[ -n "$(strip $(OPENSEARCH_CERT_NAMES))" ]]; then \
 		read -r -a node_names <<< "$(strip $(OPENSEARCH_CERT_NAMES))"; \
 	else \
@@ -191,7 +195,8 @@ init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, cli
 
 init-security-elasticsearch: ## Generate native Elasticsearch certificates when the output directory is absent
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}"; \
 	elasticsearch_dir="$(SECURITY_CERTIFICATES_DIR)/elastic/elasticsearch"; \
 	certificate_set_complete=1; \
 	for required_file in \
@@ -221,7 +226,8 @@ init-security-elasticsearch: ## Generate native Elasticsearch certificates when 
 
 init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from elasticsearch.env
 	@set -euo pipefail; \
-	source ./elasticsearch.env; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_ELASTICSEARCH_ENV_FILE}"; \
 	case "$${ELASTICSEARCH_VERSION}" in \
 		opensearch|elasticsearch) \
 			$(MAKE) --no-print-directory "init-security-$${ELASTICSEARCH_VERSION}" \
@@ -240,25 +246,41 @@ init-security: ## Generate missing NiFi, Gitea, and selected search-backend cert
 .PHONY: init-security init-security-root-ca init-security-nifi init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
 helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG)
+	$(WITH_ENV) helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) \
+		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
 
 helm-install-opensearch: ## Install/upgrade OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
 
 kube-install-cnpg-operator: ## Install CloudNativePG operator/CRDs from the pinned upstream manifest
 	kubectl apply --server-side -f $(CNPG_OPERATOR_MANIFEST)
 
 helm-template-nifi: ## Render CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE)
+	$(WITH_ENV) helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) \
+		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
 
 helm-install-nifi: ## Install/upgrade CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
 
 helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE)
+	$(WITH_ENV) helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) \
+		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
 
 helm-install-postgresql: ## Install/upgrade CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
 
 helm-repo-add-gitea: ## Add/update the official Gitea Helm repository
 	@if ! helm repo list | awk '$$1 == "$(HELM_GITEA_REPO_NAME)" { found=1 } END { exit !found }'; then \
@@ -301,15 +323,23 @@ _check-remote-params:
 
 .PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-nifi helm-install-nifi helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
 	
+check-nifi-resources: ## Validate NiFi heap sizes against the container memory limit
+	@$(WITH_ENV) python3 ../scripts/tests/check_nifi_resources.py
+
+check-config: check-nifi-resources ## Validate resolved settings and both core Compose files
+	@$(WITH_ENV) docker compose -f services.yml config --quiet && docker compose -f services.dev.yml config --quiet
+
+.PHONY: check-nifi-resources check-config
+
 # start services
 
-start-nifi: ## Start NiFi and NiFi nginx (services.yml)
+start-nifi: check-nifi-resources ## Start NiFi and NiFi nginx (services.yml)
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
-start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
+start-nifi-dev: check-nifi-resources ## Start NiFi and NiFi nginx (services.dev.yml)
 	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
-start-nifi-dev-build: ## Build and start NiFi dev services
+start-nifi-dev-build: check-nifi-resources ## Build and start NiFi dev services
 	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 build-nifi-image: ## Build the local NiFi image without starting services

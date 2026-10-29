@@ -46,8 +46,6 @@ cleanup_es_native_artifacts() {
 
 if [ ! -d "../certificates/elastic/elasticsearch" ]; then
     echo "====================================== CREATE_ES_NATIVE_CERTS ==============================="
-    source ../env/certificates_elasticsearch.env
-    source ../env/users_elasticsearch.env
     echo "Removing previous cert container and volume if existent...."
     cleanup_es_native_artifacts || true
 

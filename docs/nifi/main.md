@@ -84,7 +84,15 @@ NIFI_DOCKER_RAM=6g
 NIFI_DOCKER_SHM_SIZE=2g
 ```
 
-Note: the current defaults in `deploy/nifi.env` are small development-oriented values, so production deployments should usually increase these settings.
+The reference profile uses a `768m` initial heap, a `1g` maximum heap, and a `2g`
+container limit. Larger document batches or additional Python processors may
+need more memory. Put deployment-specific settings in a copied `nifi.env`
+selected with `COGSTACK_CONFIG_DIR`; see
+[configuration profiles](../deploy/configuration.md#deployment-specific-overrides).
+
+`make -C deploy check-config` validates these settings before startup. NiFi start
+targets also reject a heap that reaches the container limit, or an initial
+heap larger than the maximum heap.
 
 For much more detailed information please refer to the official [Apache NiFi System Administrator's Guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html). Another good reference for these properties is the [Cloudera Doc](https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.3.1/nifi-system-properties/hdf-nifi-system-properties.pdf) which describes everything in detail.
 <br>

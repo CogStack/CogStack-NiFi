@@ -5,11 +5,12 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-REPO_ROOT="$(cd "${SECURITY_DIR}/.." && pwd)"
 
-SECURITY_ENV_DIR="${SECURITY_DIR}/env"
 DEFAULT_CA_CERT="${SECURITY_DIR}/certificates/elastic/opensearch/elastic-stack-ca.crt.pem"
 
 usage() {
@@ -50,10 +51,10 @@ json_escape() {
 }
 
 source_env_files() {
-  # shellcheck disable=SC1091
-  source "${REPO_ROOT}/deploy/elasticsearch.env"
-  # shellcheck disable=SC1091
-  source "${SECURITY_ENV_DIR}/users_elasticsearch.env"
+  # shellcheck disable=SC1090,SC1091
+  source "$(cogstack_env_file deploy/elasticsearch.env)" || exit 1
+  # shellcheck disable=SC1090,SC1091
+  source "$(cogstack_env_file security/env/users_elasticsearch.env)" || exit 1
 }
 
 OPENSEARCH_HOST=""

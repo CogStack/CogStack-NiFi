@@ -252,6 +252,8 @@ make -C deploy remote-delete-service \
 | Command                 | Description                                |
 |------------------------|---------------------------------------------|
 | `make load-env`        | Load all environment variables              |
+| `make check-config`    | Validate selected configuration, NiFi memory, and both core Compose files |
+| `make check-nifi-resources` | Check JVM heap sizes against the container memory limit |
 | `make show-env`        | Print environment variables (sorted)        |
 | `make init-security`   | Generate missing NiFi, Gitea, and selected search-backend certificates |
 | `make init-security-root-ca` | Generate the shared root CA if missing |

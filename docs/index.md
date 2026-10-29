@@ -62,6 +62,7 @@ Navigate to the root folder of the repository
 git lfs pull
 make -C deploy git-init-submodules
 make -C deploy help
+make -C deploy check-config
 make -C deploy init-security
 make -C deploy start-data-infra
 ```

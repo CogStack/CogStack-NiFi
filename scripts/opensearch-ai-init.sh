@@ -5,6 +5,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# shellcheck disable=SC1091
+source "$PROJECT_DIR/deploy/config_files.sh"
+cogstack_config_init "$PROJECT_DIR"
+
 log() {
   printf '[opensearch-ai-init] %s\n' "$*" >&2
 }
@@ -15,7 +19,8 @@ die() {
 }
 
 load_env_file() {
-  local env_file="$1"
+  local env_file
+  env_file="$(cogstack_env_file "${1#"$PROJECT_DIR/"}")" || return 1
   if [[ -f "$env_file" ]]; then
     set -a
     # shellcheck disable=SC1090

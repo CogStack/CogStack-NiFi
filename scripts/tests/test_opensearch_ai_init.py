@@ -93,12 +93,16 @@ class OpenSearchAIInitTest(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / "scripts").mkdir()
         (self.root / "deploy").mkdir()
+        (self.root / "security/env").mkdir(parents=True)
+        (self.root / "security/env/users_elasticsearch.env").write_text("ELASTIC_USER=admin\n")
+        (self.root / "deploy/elasticsearch.env").write_text("")
+        shutil.copy(PROJECT_DIR / "deploy/config_files.sh", self.root / "deploy/config_files.sh")
         self.script = self.root / "scripts/opensearch-ai-init.sh"
         shutil.copy(PROJECT_DIR / "scripts/opensearch-ai-init.sh", self.script)
         (self.root / "deploy/ollama.env").write_text(
             "OLLAMA_MODEL=file-model\nOPENSEARCH_AI_CHAT_ENDPOINT=ollama-openai-proxy:11435\n"
         )
-        shutil.copy(PROJECT_DIR / "deploy/sglang.env", self.root / "deploy/sglang.env")
+        (self.root / "deploy/sglang.env").write_text("SGLANG_MODEL=\n")
         docker = self.root / "docker"
         docker.write_text(FAKE_DOCKER)
         docker.chmod(0o755)
@@ -114,7 +118,7 @@ class OpenSearchAIInitTest(unittest.TestCase):
         }))
         self.env = {
             key: value for key, value in os.environ.items()
-            if not key.startswith(("OPENSEARCH_AI_", "SGLANG_", "OLLAMA_"))
+            if not key.startswith(("OPENSEARCH_AI_", "SGLANG_", "OLLAMA_", "COGSTACK_"))
         }
         self.env.update({
             "PATH": f"{self.root}:{os.environ['PATH']}",

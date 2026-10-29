@@ -6,6 +6,13 @@ on:
     paths:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/Makefile"
+      - "security/scripts/**"
+      - "scripts/opensearch-ai-init.sh"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/test_configuration.py"
+      - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
       - "deploy/charts/**"
       - "deploy/helm/**"
@@ -20,6 +27,13 @@ on:
     paths:
       - "deploy/*.env"
       - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/Makefile"
+      - "security/scripts/**"
+      - "scripts/opensearch-ai-init.sh"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/test_configuration.py"
+      - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
       - "deploy/charts/**"
       - "deploy/helm/**"
@@ -54,13 +68,16 @@ jobs:
       - name: Validate Compose files
         shell: bash
         run: |
-          set -euo pipefail
-          source deploy/export_env_vars.sh
-          docker compose -f deploy/services.yml config --quiet
-          docker compose -f deploy/services.dev.yml config --quiet
+          make -C deploy check-config
 
       - name: Verify deployment image pins
         run: python3 -B scripts/tests/check_deployment_images.py --helm
 
       - name: Test image drift checks
         run: python3 -B -m unittest discover -s scripts/tests -p test_deployment_images.py -v
+
+      - name: Test configuration profiles and resource guards
+        run: python3 -B -m unittest discover -s scripts/tests -p test_configuration.py -v
+
+      - name: Test OpenSearch AI configuration
+        run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_ai_init.py -v

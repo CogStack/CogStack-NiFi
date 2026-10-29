@@ -33,6 +33,7 @@ build
 
 # env files with passwords or local paths
 *.env
+deploy/local/
 security/certificates/
 security/certificates/**
 security/env/

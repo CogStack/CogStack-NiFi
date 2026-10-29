@@ -9,32 +9,32 @@ x-nifi-logging-common: &nifi-logging-common
     max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
 
 x-all-env: &all-env
-  - ./project.env
-  - ./general.env
-  - ./nifi.env
-  - ./gitea.env
-  - ./nginx.env
-  - ./telemetry.env
-  - ./database.env
-  - ./elasticsearch.env
-  - ./network_settings.env
-  - ../security/env/users_nifi.env
-  - ../security/env/users_database.env
-  - ../security/env/users_nginx.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_general.env
-  - ../security/env/certificates_elasticsearch.env
-  - ../security/env/certificates_nifi.env
+  - "${COGSTACK_PROJECT_ENV_FILE:-./project.env}"
+  - "${COGSTACK_GENERAL_ENV_FILE:-./general.env}"
+  - "${COGSTACK_NIFI_ENV_FILE:-./nifi.env}"
+  - "${COGSTACK_GITEA_ENV_FILE:-./gitea.env}"
+  - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
+  - "${COGSTACK_TELEMETRY_ENV_FILE:-./telemetry.env}"
+  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_USERS_NIFI_ENV_FILE:-../security/env/users_nifi.env}"
+  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
+  - "${COGSTACK_USERS_NGINX_ENV_FILE:-../security/env/users_nginx.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE:-../security/env/certificates_general.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_NIFI_ENV_FILE:-../security/env/certificates_nifi.env}"
 
 x-es-env: &es-env
-  - ./network_settings.env
-  - ./elasticsearch.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_elasticsearch.env
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
 
 x-db-env: &db-env
-  - ./database.env
-  - ../security/env/users_database.env
+  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
+  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
 
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
@@ -82,10 +82,10 @@ x-nifi-volumes: &nifi-volumes
   - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
   # Ingest data directory
-  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+  - ${NIFI_DATA_PATH:-../data/}:/data/:rw
 
   # MedCAT models
-  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+  - ${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
   # NiFi repositories/state
   - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -121,7 +121,7 @@ services:
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
       - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
-      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+      - JVM_OPTS=${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
     deploy:
       resources:
         limits:

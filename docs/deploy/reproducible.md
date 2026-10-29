@@ -13,6 +13,7 @@ Run these commands from the repository root:
 ```bash
 git lfs pull
 make -C deploy git-init-submodules
+make -C deploy check-config
 make -C deploy init-security
 make -C deploy start-data-infra
 ```

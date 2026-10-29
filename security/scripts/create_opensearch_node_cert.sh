@@ -25,17 +25,22 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 
 SECURITY_TEMPLATES_FOLDER="../templates/"
 SECURITY_CERTIFICATES_FOLDER="../certificates/"
-SECURITY_ENV_FOLDER="../env/"
 
 ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
 
 # required env var files
-source "${SECURITY_ENV_FOLDER}certificates_general.env"
-source "${SECURITY_ENV_FOLDER}certificates_elasticsearch.env"
-source "${SECURITY_ENV_FOLDER}users_elasticsearch.env"
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/certificates_general.env)" || exit 1
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/certificates_elasticsearch.env)" || exit 1
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/users_elasticsearch.env)" || exit 1
 
 # === Required Input ===
 if [[ "$#" -lt 1 ]]; then
