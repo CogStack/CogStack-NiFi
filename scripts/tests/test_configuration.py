@@ -63,8 +63,8 @@ class ConfigurationTest(unittest.TestCase):
             "NIFI_JVM_HEAP_MAX": "1536m", "NIFI_DOCKER_RAM": "3g", "NIFI_OUTPUT_PORT": "18082",
             "NIFI_DATA_PATH": str(self.directory / "data with spaces"),
         })
-        selected_password = "fixture-$value with spaces"
-        self.settings("users_nifi.env", {"NIFI_SINGLE_USER_CREDENTIALS_PASSWORD": selected_password})
+        selected_value = "fixture-$value with spaces"
+        self.settings("users_nifi.env", {"NIFI_TEST_VALUE": selected_value})
         for compose_file in ("services.yml", "services.dev.yml"):
             with self.subTest(compose_file=compose_file):
                 result = self.run_bash(
@@ -75,8 +75,8 @@ class ConfigurationTest(unittest.TestCase):
                 nifi = json.loads(result.stdout)["services"]["nifi"]
                 self.assertEqual(nifi["environment"]["NIFI_JVM_HEAP_MAX"], "1536m")
                 # Compose escapes dollar signs when serializing a reusable model.
-                password = nifi["environment"]["NIFI_SINGLE_USER_CREDENTIALS_PASSWORD"].replace("$$", "$")
-                self.assertEqual(password, selected_password)
+                value = nifi["environment"]["NIFI_TEST_VALUE"].replace("$$", "$")
+                self.assertEqual(value, selected_value)
                 self.assertEqual(int(nifi["deploy"]["resources"]["limits"]["memory"]), 3 * 1024**3)
                 self.assertTrue(any(port.get("published") == "18082" for port in nifi["ports"]))
                 data_mount = next(volume for volume in nifi["volumes"] if volume["target"] == "/data")
