@@ -42,6 +42,7 @@ with log.open("a") as stream:
     stream.write(json.dumps({
         "args": args,
         "password_from_env": os.environ.get("SQLCMDPASSWORD") == "fixture-password",
+        "stdin": sys.stdin.read() if "-x" in args else "",
     }) + "\\n")
 if "-Q" in args and "SELECT 1" in args[args.index("-Q") + 1]:
     attempts = sum("-Q" in c["args"] and "SELECT 1" in c["args"][c["args"].index("-Q") + 1] for c in calls)
@@ -50,6 +51,8 @@ if "-Q" in args and "SELECT 1" in args[args.index("-Q") + 1]:
 if "-Q" in args and "CREATE DATABASE" in args[args.index("-Q") + 1] and os.environ.get("FAKE_CREATE_FAILURE"):
     sys.exit(7)
 if "-i" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-i") + 1]).name:
+    sys.exit(7)
+if "-x" in args and os.environ.get("FAKE_ACCESS_FAILURE"):
     sys.exit(7)
 """
         )
@@ -63,6 +66,8 @@ if "-i" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-i
             "MSSQL_INIT_RETRIES": "3",
             "MSSQL_INIT_RETRY_DELAY_SECONDS": "0",
             "SQLCMD_BIN": str(self.sqlcmd),
+            "COGSTACK_INGEST_USER": "fixture_ingest",
+            "COGSTACK_INGEST_PASSWORD": "fixture-ingest-password",
             "FAKE_SQLCMD_LOG": str(self.log),
         }
 
@@ -89,7 +94,7 @@ if "-i" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-i
         result = self.run_job(FAKE_NOT_READY="2")
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
-        self.assertEqual(len(calls), 7)
+        self.assertEqual(len(calls), 8)
         self.assertEqual(
             self.applied_files(),
             ["cogstack_db_01 first.sql", "cogstack_db_02 second.sql", self.annotations.name],
@@ -149,6 +154,7 @@ if "-i" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-i
     def test_schema_directory_defaults_to_the_mounted_bootstrap_bundle(self):
         script = self.directory / "init_db.sh"
         shutil.copy2(INITIALIZER, script)
+        shutil.copytree(INITIALIZER.parent / "access", self.directory / "access")
         shutil.copytree(self.schemas, self.directory / "schemas")
         result = self.run_job(script=script, MSSQL_SCHEMA_DIR="")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -156,6 +162,33 @@ if "-i" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-i
             if "-i" in call["args"]:
                 path = Path(call["args"][call["args"].index("-i") + 1])
                 self.assertEqual(path.parent, self.directory / "schemas")
+
+    def test_verified_tls_requires_encryption_without_trust_bypass(self):
+        result = self.run_job(MSSQL_TRUST_SERVER_CERTIFICATE="false", MSSQL_TLS_HOSTNAME="db.example.org")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for call in self.calls():
+            self.assertIn("-N", call["args"])
+            self.assertNotIn("-C", call["args"])
+            self.assertEqual(call["args"][call["args"].index("-F") + 1], "db.example.org")
+
+    def test_invalid_tls_configuration_fails_before_connecting(self):
+        result = self.run_job(MSSQL_TRUST_SERVER_CERTIFICATE="typo")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.calls(), [])
+
+    def test_ingestion_password_is_escaped_on_stdin_without_sqlcmd_expansion(self):
+        password = "fixture'$(literal)password"
+        result = self.run_job(COGSTACK_INGEST_PASSWORD=password)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        call = self.calls()[-1]
+        self.assertIn("-x", call["args"])
+        self.assertNotIn(password, call["args"])
+        self.assertIn("N'fixture''$(literal)password'", call["stdin"])
+
+    def test_access_provisioning_failure_fails_the_job(self):
+        result = self.run_job(FAKE_ACCESS_FAILURE="1")
+        self.assertEqual(result.returncode, 7)
+        self.assertNotIn("initialization completed", result.stdout)
 
 
 if __name__ == "__main__":

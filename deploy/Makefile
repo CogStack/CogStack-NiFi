@@ -127,7 +127,7 @@ init-security-root-ca: ## Generate the shared root CA only when no CA material e
 		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_root_ca_cert.sh); \
 	fi
 
-init-security-nifi: init-security-root-ca ## Generate NiFi certificates only when they are missing or incomplete
+init-security-nifi: init-security-opensearch init-security-postgresql ## Prepare NiFi certificates and its search/database certificate inputs
 	@set -euo pipefail; \
 	nifi_dir="$(SECURITY_CERTIFICATES_DIR)/nifi"; \
 	if [[ -f "$$nifi_dir/nifi.key" \
@@ -173,8 +173,7 @@ init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, cli
 			fi; \
 		done; \
 	done; \
-	if [[ ! -f "$$opensearch_dir/elastic-stack-ca.crt.pem" \
-	   || ! -f "$$opensearch_dir/elastic-stack-ca.p12" ]]; then \
+	if [[ ! -f "$$opensearch_dir/elastic-stack-ca.crt.pem" ]]; then \
 		node_certificates_missing=1; \
 	fi; \
 	if (( node_certificates_missing )); then \
@@ -238,12 +237,15 @@ init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from el
 			;; \
 	esac
 
-init-security: ## Generate missing NiFi, Gitea, and selected search-backend certificates
+init-security-postgresql: init-security-root-ca ## Generate missing PostgreSQL TLS bundles, preserving supplied certificates
+	@$(WITH_ENV) SECURITY_CERTIFICATES_DIR="$(SECURITY_CERTIFICATES_DIR)" bash "$(SECURITY_SCRIPTS_DIR)/create_postgres_certs.sh"
+
+init-security: ## Generate missing NiFi, PostgreSQL, Gitea, and selected search-backend certificates
 	@$(MAKE) --no-print-directory init-security-nifi
 	@$(MAKE) --no-print-directory init-security-gitea
 	@$(MAKE) --no-print-directory init-security-search
 
-.PHONY: init-security init-security-root-ca init-security-nifi init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
+.PHONY: init-security init-security-root-ca init-security-nifi init-security-postgresql init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
 helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
 	$(WITH_ENV) helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) \
@@ -426,7 +428,8 @@ logs-openwebui: ## Follow the Open WebUI logs
 	$(WITH_ENV) docker compose -f services.yml logs --tail=100 -f open-webui
 
 start-samples: ## Start the sample database service
-	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db && \
+		docker compose -f services.yml exec -T -e PGHOST=samples-db samples-db /docker-entrypoint-initdb.d/access/configure.sh
 
 start-clickhouse: ## Start the ClickHouse ingestion database
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) clickhouse
@@ -450,7 +453,8 @@ start-medcat-trainer:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_START_CMD) medcattrainer nginx solr
 
 start-production-db:
-	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
+	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db && \
+		docker compose -f services.yml exec -T -e PGHOST=cogstack-databank-db cogstack-databank-db /docker-entrypoint-initdb.d/access/configure.sh
 
 start-production-db-mssql: ## Start SQL Server and wait for its schema initialization job
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) cogstack-databank-db-mssql && \

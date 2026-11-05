@@ -246,6 +246,14 @@ class OpenSearchCertificateTest(unittest.TestCase):
             key = cert.with_suffix(".key")
             self.command("openssl", "pkey", "-in", str(key), "-check", "-noout")
 
+    def test_shared_ca_signing_keys_are_not_copied_into_the_opensearch_tree(self) -> None:
+        self.assertTrue((self.certificates / "elastic-stack-ca.crt.pem").is_file())
+        self.assertFalse((self.certificates / "elastic-stack-ca.key.pem").exists())
+        self.assertFalse((self.certificates / "elastic-stack-ca.p12").exists())
+        root_ca = self.workspace / "security/certificates/root/root-ca"
+        self.assertTrue(root_ca.with_suffix(".key").is_file())
+        self.assertTrue(root_ca.with_suffix(".p12").is_file())
+
     def test_dashboards_certificate_verifies_for_localhost_and_kubernetes(self) -> None:
         cert = self.certificates / "es_kibana_client.pem"
         ca = self.certificates / "elastic-stack-ca.crt.pem"

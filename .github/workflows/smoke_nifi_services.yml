@@ -50,11 +50,9 @@ jobs:
           java-version: '21'
 
       - name: Generate certificates
-        working-directory: security/scripts
         run: |
           set -euo pipefail
-          ./create_root_ca_cert.sh
-          ./create_nifi_certs.sh
+          make -C deploy init-security-nifi
 
       - name: Smoke tests
         run: |

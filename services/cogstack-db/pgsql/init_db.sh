@@ -26,4 +26,5 @@ for schema_file in "${schema_files[@]}"; do
     "${psql_command[@]}" -f "$schema_file"
 done
 
+"$bootstrap_dir/access/configure.sh"
 echo "PostgreSQL databank initialization completed."

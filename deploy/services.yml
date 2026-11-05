@@ -26,11 +26,9 @@ x-all-env: &all-env
   - "${COGSTACK_GITEA_ENV_FILE:-./gitea.env}"
   - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
   - "${COGSTACK_TELEMETRY_ENV_FILE:-./telemetry.env}"
-  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
   - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
   - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
   - "${COGSTACK_USERS_NIFI_ENV_FILE:-../security/env/users_nifi.env}"
-  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
   - "${COGSTACK_USERS_NGINX_ENV_FILE:-../security/env/users_nginx.env}"
   - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
   - "${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE:-../security/env/certificates_general.env}"
@@ -43,9 +41,16 @@ x-es-env: &es-env
   - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
   - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
 
-x-db-env: &db-env
-  - "${COGSTACK_DATABASE_ENV_FILE:-./database.env}"
-  - "${COGSTACK_USERS_DATABASE_ENV_FILE:-../security/env/users_database.env}"
+x-nifi-db-environment: &nifi-db-environment
+  POSTGRES_SAMPLES_DB_NAME: ${POSTGRES_SAMPLES_DB_NAME:-db_samples}
+  POSTGRES_SAMPLES_JDBC_URL: ${POSTGRES_SAMPLES_JDBC_URL:-jdbc:postgresql://samples-db:5432/${POSTGRES_SAMPLES_DB_NAME:-db_samples}?sslmode=verify-full&sslrootcert=/run/database-cas/samples-ca.crt}
+  POSTGRES_INGEST_USER_SAMPLES: ${POSTGRES_INGEST_USER_SAMPLES:-cogstack_samples}
+  POSTGRES_INGEST_PASSWORD_SAMPLES: ${POSTGRES_INGEST_PASSWORD_SAMPLES:?Set the sample ingestion password}
+  DATABASE_DB_NAME: ${DATABASE_DB_NAME:-cogstack}
+  DATABASE_INGEST_USER: ${DATABASE_INGEST_USER:-cogstack_ingest}
+  DATABASE_INGEST_PASSWORD: ${DATABASE_INGEST_PASSWORD:?Set the PostgreSQL ingestion password}
+  MSSQL_INGEST_USER: ${MSSQL_INGEST_USER:-cogstack_ingest}
+  MSSQL_INGEST_PASSWORD: ${MSSQL_INGEST_PASSWORD:?Set the MSSQL ingestion password}
 
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
@@ -87,7 +92,25 @@ x-nifi-volumes: &nifi-volumes
   - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
 
   # Security certificates
-  - ../security:/security:ro
+  - ../security/certificates/nifi:/security/certificates/nifi:ro
+  - ../security/certificates/elastic/opensearch/elasticsearch:/security/certificates/elastic/opensearch/elasticsearch:ro
+  - ../security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:/security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:ro
+  - ../security/certificates/elastic/opensearch/es_kibana_client.pem:/security/certificates/elastic/opensearch/es_kibana_client.pem:ro
+  - ../security/certificates/elastic/opensearch/es_kibana_client.key:/security/certificates/elastic/opensearch/es_kibana_client.key:ro
+  - ../security/certificates/root/root-ca.pem:/security/certificates/root/root-ca.pem:ro
+  # Database clients receive only the public CA from each TLS bundle.
+  - type: bind
+    source: ${POSTGRES_SAMPLES_TLS_DIR:-../security/certificates/postgresql/samples}/ca.crt
+    target: /run/database-cas/samples-ca.crt
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ${POSTGRES_DATABANK_TLS_DIR:-../security/certificates/postgresql/databank}/ca.crt
+    target: /run/database-cas/databank-ca.crt
+    read_only: true
+    bind:
+      create_host_path: false
 
   # Security helper scripts
   - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
@@ -116,7 +139,6 @@ x-db-common: &db-common
   <<: *common-ulimits
   shm_size: ${DATABASE_DOCKER_SHM_SIZE:-"1g"}
   restart: unless-stopped
-  env_file: *db-env
   deploy:
     resources:
       limits:
@@ -125,6 +147,36 @@ x-db-common: &db-common
       reservations:
         cpus: "${DATABASE_DOCKER_CPU_MIN}"
         memory: "${DATABASE_DOCKER_RAM}"
+
+x-postgres-common: &postgres-common
+  <<: *db-common
+  image: postgres:18.6-trixie@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4
+  platform: linux/amd64
+  # Stage host/Secret keys with PostgreSQL ownership before its usual privilege drop.
+  entrypoint:
+    - /bin/bash
+    - -ec
+    - |
+      install -d -m 700 -o postgres -g postgres /run/postgresql/tls
+      install -m 600 -o postgres -g postgres /run/database-tls/server.key /run/postgresql/tls/server.key
+      install -m 644 -o postgres -g postgres /run/database-tls/server.crt /run/postgresql/tls/server.crt
+      install -m 644 -o postgres -g postgres /run/database-tls/ca.crt /run/postgresql/tls/ca.crt
+      exec /usr/local/bin/docker-entrypoint.sh "$$@"
+    - --
+  command:
+    - postgres
+    - -c
+    - max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}
+    - -c
+    - ssl=on
+    - -c
+    - ssl_min_protocol_version=TLSv1.2
+    - -c
+    - ssl_cert_file=/run/postgresql/tls/server.crt
+    - -c
+    - ssl_key_file=/run/postgresql/tls/server.key
+    - -c
+    - hba_file=/docker-entrypoint-initdb.d/access/pg_hba_tls.conf
 
 x-es-common-volumes: &es-common-volumes
   # Shared configs
@@ -237,23 +289,29 @@ services:
 # Postgres container with sample data                                       #
 #---------------------------------------------------------------------------#
   samples-db:
-    <<: *db-common
-    image: postgres:18.6-trixie@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4
+    <<: *postgres-common
     container_name: cogstack-samples-db
-    platform: linux/amd64
     environment:
-      # PG env vars
-      - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_SAMPLES:-test}
-      - POSTGRES_DB=${POSTGRES_SAMPLES_DB_NAME:-db_samples}
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /run/postgresql/tls/ca.crt
+      POSTGRES_USER: ${POSTGRES_USER_SAMPLES:-test}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_SAMPLES:?Set the sample bootstrap password}
+      POSTGRES_DB: ${POSTGRES_SAMPLES_DB_NAME:-db_samples}
+      COGSTACK_INGEST_USER: ${POSTGRES_INGEST_USER_SAMPLES:-cogstack_samples}
+      COGSTACK_INGEST_PASSWORD: ${POSTGRES_INGEST_PASSWORD_SAMPLES:?Set the sample ingestion password}
     volumes:
       # Editable bootstrap script, schemas, and dumps share one read-only mount.
       - ../services/pgsamples:/docker-entrypoint-initdb.d:ro
       # data persistence
       - samples-vol:/var/lib/postgresql
-    command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
+      - type: bind
+        source: ${POSTGRES_SAMPLES_TLS_DIR:-../security/certificates/postgresql/samples}
+        target: /run/database-tls
+        read_only: true
+        bind:
+          create_host_path: false
     ports:
-      - 5554:5432
+      - "${POSTGRES_SAMPLES_OUTPUT_HOST:-127.0.0.1}:${POSTGRES_SAMPLES_OUTPUT_PORT:-5554}:5432"
     expose:
       - 5432
     networks:
@@ -263,21 +321,29 @@ services:
 # CogStack Databank / Cogstack-DB, production database                      #
 #---------------------------------------------------------------------------#
   cogstack-databank-db:
-    <<: *db-common
-    image: postgres:18.6-trixie@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4
+    <<: *postgres-common
     container_name: cogstack-production-databank-db
-    platform: linux/amd64
     environment:
-      - POSTGRES_USER=${DATABASE_USER:-admin}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-admin}
-      - POSTGRES_DB=${DATABASE_DB_NAME:-cogstack}
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /run/postgresql/tls/ca.crt
+      POSTGRES_USER: ${DATABASE_USER:-admin}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set the PostgreSQL bootstrap password}
+      POSTGRES_DB: ${DATABASE_DB_NAME:-cogstack}
+      POSTGRES_DB_SCHEMA_PREFIX: ${POSTGRES_DB_SCHEMA_PREFIX:-cogstack_db}
+      COGSTACK_INGEST_USER: ${DATABASE_INGEST_USER:-cogstack_ingest}
+      COGSTACK_INGEST_PASSWORD: ${DATABASE_INGEST_PASSWORD:?Set the PostgreSQL ingestion password}
     volumes:
       - ../services/cogstack-db/pgsql:/docker-entrypoint-initdb.d:ro
       # data persistence
       - databank-vol:/var/lib/postgresql
-    command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
+      - type: bind
+        source: ${POSTGRES_DATABANK_TLS_DIR:-../security/certificates/postgresql/databank}
+        target: /run/database-tls
+        read_only: true
+        bind:
+          create_host_path: false
     ports:
-      - 5558:5432
+      - "${POSTGRES_DATABANK_OUTPUT_HOST:-127.0.0.1}:${POSTGRES_DATABANK_OUTPUT_PORT:-5558}:5432"
     expose:
       - 5432
     networks:
@@ -288,21 +354,29 @@ services:
     image: &mssql-image mcr.microsoft.com/mssql/server:2019-latest@sha256:07d7dedecdbfcf6776035dc5eefb5bfd9aa1804b2f6b99f7dedb397d8a599069
     container_name: cogstack-production-databank-db-mssql
     environment:
-      - ACCEPT_EULA=y
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set the SQL Server bootstrap password}
     volumes:
       # Keep SQL Server files separate from the PostgreSQL databank volume.
       - databank-mssql-vol:/var/opt/mssql
     ports:
-      - 1433:1433
+      - "${MSSQL_OUTPUT_HOST:-127.0.0.1}:${MSSQL_OUTPUT_PORT:-1433}:1433"
     networks:
       - cognet
 
   cogstack-databank-db-mssql-init:
     image: *mssql-image
     restart: "no"
-    env_file: *db-env
     environment:
       MSSQL_SERVER: cogstack-databank-db-mssql,1433
+      MSSQL_SA_USER: ${MSSQL_SA_USER:-sa}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set the SQL Server bootstrap password}
+      DATABASE_DB_NAME: ${DATABASE_DB_NAME:-cogstack}
+      POSTGRES_DB_SCHEMA_PREFIX: ${POSTGRES_DB_SCHEMA_PREFIX:-cogstack_db}
+      COGSTACK_INGEST_USER: ${MSSQL_INGEST_USER:-cogstack_ingest}
+      COGSTACK_INGEST_PASSWORD: ${MSSQL_INGEST_PASSWORD:?Set the MSSQL ingestion password}
+      MSSQL_TRUST_SERVER_CERTIFICATE: ${MSSQL_TRUST_SERVER_CERTIFICATE:-true}
+      MSSQL_TLS_HOSTNAME: ${MSSQL_TLS_HOSTNAME:-}
     depends_on:
       cogstack-databank-db-mssql:
         condition: service_started
@@ -540,14 +614,15 @@ services:
 
       # Security certificates, general
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.crt.pem:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.crt:ro
-      - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elastic-stack-ca.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/root-ca.p12:ro
 
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.crt:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.crt:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.key:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.key:ro
       - ../security/certificates/elastic/${ELASTICSEARCH_VERSION:-opensearch}/elasticsearch/${ES_INSTANCE_NAME_1:-elasticsearch-1}/${ES_INSTANCE_NAME_1:-elasticsearch-1}.p12:/usr/share/${KIBANA_VERSION:-opensearch-dashboards}/config/esnode1.p12:ro
 
       # OpenSearch uses some default certs
-      - ../security/certificates:/certificates:ro
+      - ../security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:ro
+      - ../security/certificates/elastic/opensearch/es_kibana_client.pem:/certificates/elastic/opensearch/es_kibana_client.pem:ro
+      - ../security/certificates/elastic/opensearch/es_kibana_client.key:/certificates/elastic/opensearch/es_kibana_client.key:ro
     ports:
       - "${KIBANA_SERVER_OUTPUT_PORT:-5601}:5601"
     networks:
@@ -666,8 +741,9 @@ services:
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
-      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
-      - JVM_OPTS=${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
+      <<: *nifi-db-environment
+      PYTHONPATH: ${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+      JVM_OPTS: ${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
     deploy:
       resources:
         limits:
@@ -705,7 +781,8 @@ services:
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
-      - ../security/certificates:/certificates:ro
+      - ../security/certificates/nifi:/certificates/nifi:ro
+      - ../security/certificates/root/root-ca.pem:/certificates/root/root-ca.pem:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:

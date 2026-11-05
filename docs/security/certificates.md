@@ -4,7 +4,7 @@ This section describes the full structure of the `security/certificates/` direct
 
 The supported entry point is `make -C deploy init-security`. It generates the shared **Root Certificate Authority (CA)** and the required service certificates locally. Generated certificate material is ignored by Git.
 
-The shared root CA signs the locally generated NiFi, OpenSearch, and Gitea certificates. Native Elasticsearch is the exception: it uses Elastic's certificate tooling to generate a backend-specific CA and certificate set.
+The shared root CA signs the locally generated NiFi, PostgreSQL, OpenSearch, and Gitea certificates. Native Elasticsearch is the exception: it uses Elastic's certificate tooling to generate a backend-specific CA and certificate set.
 
 ---
 
@@ -38,8 +38,7 @@ security/
     │       │   │   ├── elasticsearch-*-truststore.key  # Truststores
     │       │   │   └── http-elasticsearch-*.csr/key    # HTTP layer certs
     │       ├── es_kibana_client.{pem,key,p12,csr}      # Kibana client certs
-    │       ├── elastic-stack-ca.*                      # OpenSearch cluster CA
-    │       └── elastic-stack-ca.*                     # Shared CA copied for OpenSearch consumers
+    │       └── elastic-stack-ca.crt.pem               # Public shared CA certificate only
     │   
     ├── nifi/                                           # NiFi HTTPS and toolkit certificates
     │   ├── nifi.{crt,key,p12,pem,csr}                  # Primary NiFi node certificates
@@ -49,12 +48,20 @@ security/
     ├── gitea/                                          # Dedicated Gitea leaf certificate
     │   └── gitea.{crt,key,pem,csr}
     │
+    ├── postgresql/                                     # PostgreSQL server TLS bundles
+    │   └── {samples,databank}/
+    │       └── server.crt, server.key, ca.crt
+    │
     └── root/                                           # Root Certificate Authority (CA)
         ├── root-ca.key, root-ca.pem                    # Private key and public cert
         ├── root-ca.p12, root-ca-keystore.jks           # PKCS#12 and Java Keystore formats
         ├── root-ca-truststore.jks                      # Truststore for client-side verification
         └── root-ca.csr, root-ca.srl                    # Certificate signing request and serial
 ```
+
+OpenSearch generators copy only the public CA certificate into the OpenSearch
+directory. The shared CA signing key and key-bearing CA stores remain under
+`root/` and are not mounted into service containers.
 
 ---
 
@@ -79,8 +86,9 @@ The Make targets load the required `.env` files automatically. The lower-level s
 
 ### 🛠️ Generation workflow
 
-From the repository root, initialize all certificates required by NiFi, Gitea,
-and the search backend selected by `ELASTICSEARCH_VERSION` in `deploy/elasticsearch.env`:
+From the repository root, initialize all certificates required by NiFi,
+PostgreSQL, Gitea, and the search backend selected by `ELASTICSEARCH_VERSION` in
+`deploy/elasticsearch.env`:
 
 ```bash
 make -C deploy init-security
@@ -91,10 +99,15 @@ You can also initialize certificate sets independently:
 ```bash
 make -C deploy init-security-root-ca
 make -C deploy init-security-nifi
+make -C deploy init-security-postgresql
 make -C deploy init-security-gitea
 make -C deploy init-security-opensearch
 make -C deploy init-security-elasticsearch
 ```
+
+`init-security-nifi` also prepares the OpenSearch leaf certificates and public
+CA, plus the PostgreSQL CA files mounted at the paths used by maintained flows,
+regardless of the selected search backend or whether the databases are started.
 
 The initialization targets are idempotent: complete certificate sets are left
 unchanged. Root CA and native Elasticsearch generation refuse to overwrite an

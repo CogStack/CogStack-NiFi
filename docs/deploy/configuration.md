@@ -46,6 +46,12 @@ The following security files are also loaded where required:
 See the `env_file` anchors at the top of `deploy/services.yml` for the exact
 files consumed by each core service.
 
+Database credentials use explicit, per-service environment mappings. The complete
+`users_database.env` file is read by the deployment loader but is not injected
+into database containers, NiFi, or nginx. NiFi receives restricted ingestion
+credentials. See [Docker database security](../security/databases.md) for role
+setup, profile upgrades, and the default PostgreSQL TLS configuration.
+
 ## Standalone service files
 
 Services launched from their own Compose projects use environment files below
@@ -207,6 +213,13 @@ before starting services:
 ```bash
 make -C deploy init-security
 ```
+
+This includes PostgreSQL server bundles and the public CAs mounted into NiFi.
+Use `make -C deploy init-security-postgresql` to prepare only the database
+bundles. Their paths are configured by `POSTGRES_SAMPLES_TLS_DIR` and
+`POSTGRES_DATABANK_TLS_DIR` in `database.env`; see
+[Docker database security](../security/databases.md) for trusted certificate
+requirements.
 
 Do not reuse development certificates or tracked development credentials in
 production. See the [security overview](../security/main.md) for production

@@ -261,9 +261,10 @@ make -C deploy remote-delete-service \
 | `make check-nifi-resources` | Check JVM heap sizes against the container memory limit |
 | `make check-opensearch-settings` | Check search credentials, encryption keys, and image versions |
 | `make show-env`        | Print environment variables (sorted)        |
-| `make init-security`   | Generate missing NiFi, Gitea, and selected search-backend certificates |
+| `make init-security`   | Generate missing NiFi, PostgreSQL, Gitea, and selected search-backend certificates |
 | `make init-security-root-ca` | Generate the shared root CA if missing |
-| `make init-security-nifi` | Generate the NiFi certificate set if missing |
+| `make init-security-nifi` | Prepare NiFi certificates, mounted OpenSearch leaf/public CA files, and PostgreSQL CA files for maintained flows |
+| `make init-security-postgresql` | Generate the samples and databank PostgreSQL TLS bundles if missing |
 | `make init-security-gitea` | Generate the dedicated Gitea leaf certificate if missing |
 | `make init-security-opensearch` | Generate the OpenSearch certificate set if missing |
 | `make init-security-elasticsearch` | Generate the native Elasticsearch certificate set if missing |

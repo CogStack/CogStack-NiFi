@@ -121,7 +121,8 @@ security/certificates/elastic/
 │       ├── sample-kibana.yml
 │       └── README.txt
 └── opensearch/
-    ├── admin.*, es_kibana_client.*, elastic-stack-ca.*
+    ├── admin.*, es_kibana_client.*
+    ├── elastic-stack-ca.crt.pem                 # Public CA certificate only
     └── elasticsearch/{1,2,3}/...
 ```
 
@@ -170,6 +171,7 @@ This produces:
 |------|----------|
 | `admin.crt`, `admin.key.pem` | Administrative client certificate for security management |
 | `es_kibana_client.pem`, `es_kibana_client.key` | HTTPS server certificate for OpenSearch Dashboards |
+| `elastic-stack-ca.crt.pem` | Public shared CA certificate; signing keys stay under `root/` |
 | `*.jks` | Node keystores/truststores for HTTPS and inter-node encryption |
 
 The resulting certificates are placed in:

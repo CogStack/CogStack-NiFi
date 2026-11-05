@@ -67,6 +67,7 @@ nav:
       - security/main.md
       - 🏛️ Certificates and Root CA: security/certificates.md
       - 🗄️ Additional services: security/services.md
+      - 🗃️ Docker database security: security/databases.md
       - 🔐 NiFi TLS & Admin Access Setup (with NGINX): security/nifi.md
       - 🌐 Elasticsearch / OpenSearch Security: security/elasticsearch_opensearch.md
 

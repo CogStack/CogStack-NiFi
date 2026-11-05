@@ -19,10 +19,12 @@ class DatabaseConfig(BaseSettings):
     host: str = Field(default="localhost", validation_alias=AliasChoices("POSTGRES_HOST"))
     port: int = Field(default=5432,validation_alias=AliasChoices("POSTGRES_PORT"), ge=1, le=65535)
 
-    database_name : str = Field(default="db_samples", validation_alias=AliasChoices("DB", "DB_NAME"))
-    username: str = Field(default="test", validation_alias=AliasChoices("POSTGRES_USER_SAMPLES", "POSTGRES_USER"))
-    password: SecretStr = Field(default_factory=lambda: SecretStr("test"),
-                                validation_alias=AliasChoices("POSTGRES_PASSWORD_SAMPLES",
+    database_name : str = Field(default="db_samples", validation_alias=AliasChoices(
+        "POSTGRES_SAMPLES_DB_NAME", "DB", "DB_NAME"))
+    username: str = Field(default="cogstack_samples", validation_alias=AliasChoices(
+        "POSTGRES_INGEST_USER_SAMPLES", "POSTGRES_USER_SAMPLES", "POSTGRES_USER"))
+    password: SecretStr = Field(validation_alias=AliasChoices("POSTGRES_INGEST_PASSWORD_SAMPLES",
+                                                              "POSTGRES_PASSWORD_SAMPLES",
                                                               "password",
                                                               "POSTGRES_PASSWORD"))
     timeout: PositiveInt = Field(default=60, validation_alias=AliasChoices("TIMEOUT"))

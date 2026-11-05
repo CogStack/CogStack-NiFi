@@ -15,6 +15,12 @@ on:
       - "scripts/tests/check_opensearch_settings.py"
       - "scripts/tests/test_opensearch_deployment.py"
       - "services/elasticsearch/**"
+      - "services/cogstack-db/**"
+      - "services/pgsamples/**"
+      - "scripts/tests/test_database_deployment_security.py"
+      - "scripts/tests/test_postgres_certificates.py"
+      - "scripts/tests/test_postgres_initialization.py"
+      - "scripts/tests/test_mssql_initialization.py"
       - "services/kibana/config/opensearch.yml"
       - "security/templates/**"
       - "security/es_roles/opensearch/**"
@@ -42,6 +48,12 @@ on:
       - "scripts/tests/check_opensearch_settings.py"
       - "scripts/tests/test_opensearch_deployment.py"
       - "services/elasticsearch/**"
+      - "services/cogstack-db/**"
+      - "services/pgsamples/**"
+      - "scripts/tests/test_database_deployment_security.py"
+      - "scripts/tests/test_postgres_certificates.py"
+      - "scripts/tests/test_postgres_initialization.py"
+      - "scripts/tests/test_mssql_initialization.py"
       - "services/kibana/config/opensearch.yml"
       - "security/templates/**"
       - "security/es_roles/opensearch/**"
@@ -104,6 +116,12 @@ jobs:
 
       - name: Test configuration profiles and resource guards
         run: python3 -B -m unittest discover -s scripts/tests -p test_configuration.py -v
+
+      - name: Test database bootstrap and credential isolation
+        run: |
+          python3 -B -m unittest discover -s scripts/tests -p 'test_*initialization.py' -v
+          python3 -B scripts/tests/test_database_deployment_security.py
+          python3 -B scripts/tests/test_postgres_certificates.py
 
       - name: Test OpenSearch AI configuration
         run: python3 -B -m unittest discover -s scripts/tests -p test_opensearch_ai_init.py -v

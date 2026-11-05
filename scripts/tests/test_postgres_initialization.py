@@ -39,7 +39,7 @@ import sys
 from pathlib import Path
 
 args = sys.argv[1:]
-stdin = "" if "-f" in args else sys.stdin.read()
+stdin = "" if "-f" in args or "-c" in args else sys.stdin.read()
 with Path(os.environ["FAKE_PSQL_LOG"]).open("a") as stream:
     stream.write(json.dumps({"args": args, "stdin": stdin}) + "\\n")
 if "-f" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-f") + 1]).name:
@@ -53,11 +53,15 @@ if "-f" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-f
             "POSTGRES_USER": "site user",
             "POSTGRES_DB": "site database",
             "POSTGRES_DB_SCHEMA_PREFIX": "cogstack_db",
+            "POSTGRES_PASSWORD": "fixture-bootstrap-password",
+            "COGSTACK_INGEST_USER": "fixture_ingest",
+            "COGSTACK_INGEST_PASSWORD": "fixture-ingest-password",
             "FAKE_PSQL_LOG": str(self.log),
         }
 
     def install_samples_bundle(self):
         shutil.copy2(ROOT / "services/pgsamples/init_db.sh", self.script)
+        shutil.copytree(ROOT / "services/pgsamples/access", self.bundle / "access")
         (self.schemas / "samples_db_schema.sql").write_text("-- sample schema\n")
         for name in ("encounters_pdf_text_small.sql", "encounters_docx_small.sql"):
             (self.dumps / name).write_text("-- " + name + "\n")
@@ -70,6 +74,7 @@ if "-f" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-f
 
     def install_databank_bundle(self):
         shutil.copy2(ROOT / "services/cogstack-db/pgsql/init_db.sh", self.script)
+        shutil.copytree(ROOT / "services/cogstack-db/pgsql/access", self.bundle / "access")
         for name in (
             "annotations_nlp_create_schema.sql",
             "cogstack_db_02 second.sql",
@@ -95,7 +100,7 @@ if "-f" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-f
         result = self.run_loader()
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
-        self.assertEqual(len(calls), 6)
+        self.assertEqual(len(calls), 8)
         self.assertEqual(Path(calls[0]["args"][-1]), self.schemas / "samples_db_schema.sql")
         self.assertIn("samples_db_data.sql.gz", calls[1]["stdin"])
         self.assertEqual(Path(calls[2]["args"][-1]).name, "encounters_pdf_text_small.sql")
@@ -136,10 +141,10 @@ if "-f" in args and os.environ.get("FAKE_FAIL_FILE") == Path(args[args.index("-f
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
         self.assertEqual(
-            [Path(c["args"][-1]).name for c in calls],
+            [Path(c["args"][-1]).name for c in calls[:3]],
             ["annotations_nlp_create_schema.sql", "cogstack_db_01 first.sql", "cogstack_db_02 second.sql"],
         )
-        for call in calls:
+        for call in calls[:3]:
             self.assertEqual(Path(call["args"][-1]).parent, self.schemas)
             self.assertEqual(call["args"][call["args"].index("-d") + 1], "site database")
             self.assertNotIn("CREATE DATABASE", call["stdin"])

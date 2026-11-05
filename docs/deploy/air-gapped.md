@@ -231,15 +231,20 @@ Review the files in `deploy/*.env`, especially:
 
 Set the final hostname, IP address, and certificate subject alternative names
 before generating certificates. Replace any example or default credentials in
-`security/env/` with deployment-specific values. Then generate only the CA and
-NiFi certificate set required by this guide, from the repository root:
+`security/env/` with deployment-specific values. Then generate the certificate
+files mounted into NiFi, from the repository root:
 
 ```bash
 make -C deploy init-security-nifi
 ```
 
-The broader `init-security` target also prepares certificates for Gitea and the
-configured search backend. Use it only when those services and their offline
+NiFi initialization also prepares the mounted OpenSearch leaf certificates,
+public search CA, and PostgreSQL CA files for existing flows. These files are
+required even when the database and search services run
+elsewhere or are not started. The mounts retain existing certificate paths while
+excluding CA signing keys and PostgreSQL private keys. The broader
+`init-security` target also prepares certificates for Gitea and the configured
+search backend. Use it only when those services and their offline
 dependencies are included in the deployment bundle. The OpenSearch host setting
 `vm.max_map_count=262144` is not required for a NiFi-only deployment.
 

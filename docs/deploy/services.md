@@ -195,6 +195,10 @@ The loader resolves its input paths relative to that directory. Set
 `POSTGRES_SAMPLES_DB_NAME` in `deploy/database.env` to choose the sample database
 name; Compose passes it to the official image as `POSTGRES_DB`.
 
+TLS is required by default. Run `make -C deploy init-security-postgresql` (or
+`init-security`) before starting the service. The sample JDBC URL verifies the
+server certificate and hostname using the CA mounted into NiFi.
+
 ### Access
 
 - `localhost:5554`
@@ -207,6 +211,10 @@ name; Compose passes it to the official image as `POSTGRES_DB`.
 ### Credentials
 
 Local development credentials are defined in `security/env/users_database.env`. Override them for non-local deployments.
+
+NiFi uses the read-only `POSTGRES_INGEST_USER_SAMPLES` account rather than the
+bootstrap administrator. See [Docker database security](../security/databases.md)
+for credential configuration, existing-volume upgrades, and TLS.
 
 ---
 
@@ -226,6 +234,9 @@ Where `<DB_PROVIDER>` can be `mssql` or `pgsql`.
 PostgreSQL applies its initialization SQL only when its data volume is first
 created. Compose sets `POSTGRES_DB` from `DATABASE_DB_NAME`, and the official
 PostgreSQL entrypoint creates the database before running the bundled loader.
+PostgreSQL requires TLS by default; generate its certificate bundle with
+`make -C deploy init-security-postgresql` (also included in `init-security`) or
+provide a trusted bundle through `POSTGRES_DATABANK_TLS_DIR`.
 SQL Server runs as the main process in its own container; a separate
 `cogstack-databank-db-mssql-init` client job waits for a successful query, creates
 the configured database if needed, applies `cogstack_db*.sql` files in filename
@@ -248,9 +259,9 @@ database configuration. Its readiness wait defaults to 60 attempts, two seconds
 apart (each connection attempt has a five-second login timeout). Override
 `MSSQL_INIT_RETRIES` and `MSSQL_INIT_RETRY_DELAY_SECONDS` in the initializer's
 environment if necessary. The bundled tables use the `CogStack` SQL schema
-within the selected database. The job accepts the reference server's self-signed
-TLS certificate; adapt client trust settings when supplying a managed server
-certificate.
+within the selected database. The job always requests TLS. The development
+default `MSSQL_TRUST_SERVER_CERTIFICATE=true` accepts the self-signed server
+certificate; set `false` with a trusted CA to enable certificate verification.
 
 Bundled MSSQL initialization preserves existing tables and data on repeat runs.
 It does not alter existing column definitions. Apply explicit migrations when
@@ -284,6 +295,12 @@ volume before switching. No existing volumes are automatically moved or deleted.
 ### Credentials
 
 PostgreSQL and MSSQL development credentials are defined in `security/env/users_database.env`. Production credentials must be injected through deployment-local configuration or a secret manager.
+
+Applications use the separate `DATABASE_INGEST_USER` and `MSSQL_INGEST_USER`
+accounts. Their grants cover read/write access to application tables, without
+database or schema administration. Host ports default to loopback. See
+[Docker database security](../security/databases.md) for scope, provisioning,
+network overrides, and verified TLS deployment.
 
 ### Access
 

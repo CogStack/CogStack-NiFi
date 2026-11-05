@@ -41,4 +41,5 @@ for gzip_file in "${extra_gzip_files[@]}"; do
     gunzip -c "$gzip_file" | "${psql_command[@]}"
 done
 
+"$bootstrap_dir/access/configure.sh"
 echo "Sample database initialization completed."

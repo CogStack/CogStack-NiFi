@@ -70,7 +70,6 @@ OPENSEARCH_FOLDER="${SECURITY_CERTIFICATES_FOLDER}elastic/opensearch/"
 ES_CERTIFICATES_FOLDER="${OPENSEARCH_FOLDER}elasticsearch/"
 CA_ROOT_CERT="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.pem"
 CA_ROOT_KEY="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.key"
-CA_ROOT_KEYSTORE="${ROOT_CERTIFICATES_FOLDER}${ROOT_CERTIFICATE_NAME}.p12"
 
 # === Validate Root CA Files ===
 if [[ ! -f "$CA_ROOT_CERT" || ! -f "$CA_ROOT_KEY" ]]; then
@@ -145,11 +144,9 @@ for cert_name in "${CERT_NAMES[@]}"; do
   generate_node_cert "$cert_name"
 done
 
-# === Copy Root CA files to opensearch folder ===
+# === Copy only the public root CA certificate to the served tree ===
 ELASTIC_CA_PREFIX="elastic-stack-ca"
-cp "$CA_ROOT_KEY" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.key.pem"
 cp "$CA_ROOT_CERT" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.crt.pem"
-cp "$CA_ROOT_KEYSTORE" "${OPENSEARCH_FOLDER}${ELASTIC_CA_PREFIX}.p12"
 
 # Ensure generated cert artifacts are readable and directories are traversable.
 # Note: certificate/key files should not be executable.
