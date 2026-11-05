@@ -1,41 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# PostgreSQL's entrypoint creates POSTGRES_DB before running this loader.
+set -euo pipefail
 
-set -e
+bootstrap_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+schema_dir="$bootstrap_dir/schemas"
+db_user="${POSTGRES_USER:-admin}"
+db_name="${POSTGRES_DB:-cogstack}"
+schema_prefix="${POSTGRES_DB_SCHEMA_PREFIX:-cogstack_db}"
+annotations_schema="$schema_dir/annotations_nlp_create_schema.sql"
 
+if [[ ! -r "$annotations_schema" ]]; then
+    echo "Missing annotation schema: $annotations_schema" >&2
+    exit 1
+fi
 
-# global variables
-#
-POSTGRES_DATABANK_DB=${POSTGRES_DATABANK_DB:-"cogstack"}
-POSTGRES_USER=${POSTGRES_USER:-"admin"}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"admin"}
-DATA_DIR="/data"
-ANNOTATIONS_NLP_DB_SCHEMA_FILE="annotations_nlp_create_schema.sql"
+psql_command=(psql -v ON_ERROR_STOP=1 -U "$db_user" -d "$db_name")
+echo "Defining annotation schemas in $db_name"
+"${psql_command[@]}" -f "$annotations_schema"
 
-# database schemas that you wish to be created
-POSTGRES_DB_SCHEMA_PREFIX=${POSTGRES_DB_SCHEMA_PREFIX:-"cogstack_db"}
-
-# create the user, the database and set up the access
-#
-echo "Creating database: $POSTGRES_DATABANK_DB and user: $POSTGRES_USER"
-psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" <<-EOSQL
-CREATE DATABASE $POSTGRES_DATABANK_DB;
-GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DATABANK_DB TO $POSTGRES_USER;
-EOSQL
-
-# create schemas
-#
-echo "Defining ANNOTATION DB schemas"
-psql -v ON_ERROR_STOP=1 -U $POSTGRES_USER -d $POSTGRES_DATABANK_DB -f $DATA_DIR/$ANNOTATIONS_NLP_DB_SCHEMA_FILE
-
-# custom db schema
-echo "Creating custom databank DB schemas"
-
-file_paths=$(find $DATA_DIR/ -name "$POSTGRES_DB_SCHEMA_PREFIX*")
-
-for file_path in $file_paths; do
-    psql -v ON_ERROR_STOP=1 -U $POSTGRES_USER -d $POSTGRES_DATABANK_DB -f $file_path;
+# Glob order is deterministic, and quoted arrays preserve spaces in file names.
+shopt -s nullglob
+schema_files=("$schema_dir"/"$schema_prefix"*.sql)
+for schema_file in "${schema_files[@]}"; do
+    echo "Applying schema: $schema_file"
+    "${psql_command[@]}" -f "$schema_file"
 done
 
-# cleanup
-#
-echo "Done with initializing the sample data."
+echo "PostgreSQL databank initialization completed."

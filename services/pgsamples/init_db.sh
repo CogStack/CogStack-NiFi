@@ -1,54 +1,44 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# PostgreSQL's entrypoint creates POSTGRES_DB before running this loader.
+set -euo pipefail
 
-set -e
-
-
-# global variables
-#
-DB_USER=${POSTGRES_USER:-"test"}
-DB_USER_PASSWORD=${POSTGRES_PASSWORD_SAMPLES:-"test"}
-DB_NAME="db_samples"
-
-DATA_DIR="/data"
-DB_DUMP_FILE="/db_dump/samples_db_data.sql.gz"
-DB_SCHEMA_FILE="/schemas/samples_db_schema.sql"
-
-DB_DUMP_FILES_EXTRA_SQL_FILES=(
-    $DATA_DIR"/db_dump/encounters_pdf_text_small.sql"
-    $DATA_DIR"/db_dump/encounters_docx_small.sql"
+bootstrap_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+db_user="${POSTGRES_USER:-test}"
+db_name="${POSTGRES_DB:-db_samples}"
+schema_file="$bootstrap_dir/schemas/samples_db_schema.sql"
+dump_file="$bootstrap_dir/db_dump/samples_db_data.sql.gz"
+extra_sql_files=(
+    "$bootstrap_dir/db_dump/encounters_pdf_text_small.sql"
+    "$bootstrap_dir/db_dump/encounters_docx_small.sql"
+)
+extra_gzip_files=(
+    "$bootstrap_dir/db_dump/encounters_jpg_small.sql.gz"
+    "$bootstrap_dir/db_dump/encounters_pdf_img_small.sql.gz"
 )
 
-DB_DUMP_FILES_EXTRA_SQL_GZ_FILES=(
-    $DATA_DIR"/db_dump/encounters_jpg_small.sql.gz"
-    $DATA_DIR"/db_dump/encounters_pdf_img_small.sql.gz"
-)
-
-# create the user, the database and set up the access
-#
-echo "Creating database: $DB_NAME and user: $DB_USER"
-psql -v ON_ERROR_STOP=1 -U "$DB_USER" <<-EOSQL
-CREATE DATABASE $DB_NAME OWNER $DB_USER;
-GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
-EOSQL
-
-# create schemas
-#
-echo "Defining DB schemas: $DB_SCHEMA_FILE"
-psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME -f $DATA_DIR/$DB_SCHEMA_FILE
-
-echo "Restoring DB from dump: $DB_DUMP_FILE"
-gunzip -c $DATA_DIR/$DB_DUMP_FILE | psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME
-
-for sqlfile in "${DB_DUMP_FILES_EXTRA_SQL_FILES[@]}"; do
-  echo "=== Applying $sqlfile ==="
-  psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" -f "$sqlfile"
+# Check the bundle before making any schema or data changes.
+for input_file in "$schema_file" "$dump_file" "${extra_sql_files[@]}" "${extra_gzip_files[@]}"; do
+    if [[ ! -r "$input_file" ]]; then
+        echo "Missing sample database input: $input_file" >&2
+        exit 1
+    fi
 done
 
-for gzfile in "${DB_DUMP_FILES_EXTRA_SQL_GZ_FILES[@]}"; do
-  echo "=== Applying $gzfile ==="
-gunzip -c "$gzfile" | psql -v ON_ERROR_STOP=1 -U $DB_USER -d $DB_NAME
+psql_command=(psql -v ON_ERROR_STOP=1 -U "$db_user" -d "$db_name")
+echo "Defining sample database schemas in $db_name"
+"${psql_command[@]}" -f "$schema_file"
+
+echo "Restoring sample data from $dump_file"
+gunzip -c "$dump_file" | "${psql_command[@]}"
+
+for sql_file in "${extra_sql_files[@]}"; do
+    echo "Applying $sql_file"
+    "${psql_command[@]}" -f "$sql_file"
 done
 
-# cleanup
-#
-echo "Done with initializing the sample data."
+for gzip_file in "${extra_gzip_files[@]}"; do
+    echo "Restoring $gzip_file"
+    gunzip -c "$gzip_file" | "${psql_command[@]}"
+done
+
+echo "Sample database initialization completed."

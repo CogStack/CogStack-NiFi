@@ -452,6 +452,10 @@ start-medcat-trainer:
 start-production-db:
 	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
 
+start-production-db-mssql: ## Start SQL Server and wait for its schema initialization job
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) cogstack-databank-db-mssql && \
+		docker compose -f services.yml run --rm --no-deps cogstack-databank-db-mssql-init
+
 start-ocr-services:
 	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
 
@@ -518,7 +522,7 @@ delete-openwebui: ## Remove the Open WebUI container but preserve its data
 	$(WITH_ENV) docker compose -f services.yml rm -f -s open-webui
 
 delete-databank:
-	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql
+	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql-init cogstack-databank-db-mssql
 
 delete-databank-volumes:
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v cogstack-databank-db cogstack-databank-db-mssql
@@ -623,6 +627,11 @@ stop-ocr-services:
 
 stop-production-db:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
+
+stop-production-db-mssql: ## Stop the SQL Server initializer and server without removing data
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db-mssql-init cogstack-databank-db-mssql
+
+.PHONY: start-production-db-mssql stop-production-db-mssql
 
 stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastructure
 

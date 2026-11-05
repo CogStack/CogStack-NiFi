@@ -245,11 +245,10 @@ services:
       # PG env vars
       - POSTGRES_USER=${POSTGRES_USER_SAMPLES:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_SAMPLES:-test}
+      - POSTGRES_DB=${POSTGRES_SAMPLES_DB_NAME:-db_samples}
     volumes:
-      # mapping postgres data dump and initialization
-      - ../services/pgsamples/db_dump:/data/db_dump:rw
-      - ../services/pgsamples/schemas:/data/schemas:rw
-      - ../services/pgsamples/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      # Editable bootstrap script, schemas, and dumps share one read-only mount.
+      - ../services/pgsamples:/docker-entrypoint-initdb.d:ro
       # data persistence
       - samples-vol:/var/lib/postgresql
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
@@ -271,11 +270,9 @@ services:
     environment:
       - POSTGRES_USER=${DATABASE_USER:-admin}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-admin}
-      - POSTGRES_DATABANK_DB=${DATABASE_DB_NAME:-cogstack}
+      - POSTGRES_DB=${DATABASE_DB_NAME:-cogstack}
     volumes:
-      # mapping postgres data dump and initialization
-      - ../services/cogstack-db/pgsql/schemas:/data/:ro
-      - ../services/cogstack-db/pgsql/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh:ro
+      - ../services/cogstack-db/pgsql:/docker-entrypoint-initdb.d:ro
       # data persistence
       - databank-vol:/var/lib/postgresql
     command: postgres -c "max_connections=${POSTGRES_DB_MAX_CONNECTIONS:-100}"
@@ -288,19 +285,30 @@ services:
 
   cogstack-databank-db-mssql:
     <<: *db-common
-    image: mcr.microsoft.com/mssql/server:2019-latest@sha256:07d7dedecdbfcf6776035dc5eefb5bfd9aa1804b2f6b99f7dedb397d8a599069
+    image: &mssql-image mcr.microsoft.com/mssql/server:2019-latest@sha256:07d7dedecdbfcf6776035dc5eefb5bfd9aa1804b2f6b99f7dedb397d8a599069
     container_name: cogstack-production-databank-db-mssql
     environment:
       - ACCEPT_EULA=y
     volumes:
-      # mapping postgres data dump and initialization
-      - ../services/cogstack-db/mssql/schemas:/data/:ro
-      - ../services/cogstack-db/mssql/init_db.sh:/usr/src/app/init_db.sh:ro
-      # data persistence
-      - databank-vol:/var/opt/mssql
-    entrypoint: "nohup bash -c '/usr/src/app/init_db.sh'"
+      # Keep SQL Server files separate from the PostgreSQL databank volume.
+      - databank-mssql-vol:/var/opt/mssql
     ports:
       - 1433:1433
+    networks:
+      - cognet
+
+  cogstack-databank-db-mssql-init:
+    image: *mssql-image
+    restart: "no"
+    env_file: *db-env
+    environment:
+      MSSQL_SERVER: cogstack-databank-db-mssql,1433
+    depends_on:
+      cogstack-databank-db-mssql:
+        condition: service_started
+    volumes:
+      - ../services/cogstack-db/mssql:/bootstrap:ro
+    entrypoint: ["/bin/bash", "/bootstrap/init_db.sh"]
     networks:
       - cognet
 
@@ -746,6 +754,9 @@ volumes:
     driver: local
 
   databank-vol:
+    driver: local
+
+  databank-mssql-vol:
     driver: local
 
   # ClickHouse database files
