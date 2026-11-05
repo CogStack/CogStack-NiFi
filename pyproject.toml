@@ -62,9 +62,9 @@ dependencies = [
     "elasticsearch9==9.5.1",
     "fhir.resources==8.3.0",
     "geocoder==1.38.1",
-    "jsonpickle==4.1.2",
+    "jsonpickle==4.1.4",
     "mysql-connector-python==26.7.0",
-    "neo4j==6.3.1",
+    "neo4j==6.4.1",
     "nipyapi==1.7.0",
     "nltk==3.10.4",
     "numpy==2.4.6",
@@ -79,7 +79,7 @@ dependencies = [
     "pydantic==2.13.5",
     "pydantic-settings==2.15.0",
     "pydicom==3.0.2",
-    "pymssql==2.4.2",
+    "pymssql==2.4.6",
     "PyYAML==6.0.3",
     "rancoord==0.0.6",
     "requests==2.34.2",
@@ -94,7 +94,7 @@ dependencies = [
 dev = [
     "mypy==2.3.1",
     "mypy-extensions==1.1.0",
-    "ruff==0.16.9",
+    "ruff==0.17.3",
     "timeout-decorator==0.5.0",
     "types-aiofiles==25.1.0.20260518",
     "types-PyYAML==6.0.12.20250516",
@@ -102,5 +102,5 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=84.1.0"]
+requires = ["setuptools>=84.2.1"]
 build-backend = "setuptools.build_meta"
