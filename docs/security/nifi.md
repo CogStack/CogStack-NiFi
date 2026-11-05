@@ -35,8 +35,13 @@ For securing Apache NiFi endpoints with certificates, see [the official document
 
 Before starting the NiFi container:
 
-- run `make -C deploy init-security-nifi` from the repository root. This creates the shared root CA when needed, then generates the NiFi certificate bundle without replacing a complete existing bundle.
+- run `make -C deploy init-security-nifi` from the repository root. This creates the shared root CA when needed, then prepares the NiFi bundle, mounted OpenSearch leaf certificates and public CA, and PostgreSQL CA files used by maintained flows. Complete existing certificate sets are preserved, including when a different search backend is selected. For supplied PostgreSQL bundles, see [Docker database security](./databases.md).
 - set `nifi.sensitive.props.key` to a stable value (minimum 12 characters).
+
+These certificate files are required even when the database and search services
+run elsewhere or are not started. The combined `init-security` target covers all
+these sets. NiFi mounts only its required leaf certificates and public
+CAs; CA signing keys and PostgreSQL private keys are excluded.
 
 Example (`nifi/conf/nifi.properties`):
 

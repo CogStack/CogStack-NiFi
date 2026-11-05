@@ -17,9 +17,10 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 CONTAINER_NAME="${POSTGRES_SMOKE_CONTAINER_NAME:-cogstack-samples-db}"
-DB_USER="${POSTGRES_USER_SAMPLES:-test}"
-DB_PASSWORD="${POSTGRES_PASSWORD_SAMPLES:-test}"
+DB_USER="${POSTGRES_INGEST_USER_SAMPLES:-cogstack_samples}"
+DB_PASSWORD="${POSTGRES_INGEST_PASSWORD_SAMPLES:?Set the sample ingestion password}"
 DB_NAME="${POSTGRES_SAMPLES_DB_NAME:-db_samples}"
+DB_HOST="${POSTGRES_SMOKE_HOST:-samples-db}"
 
 START_SERVICES="${POSTGRES_SMOKE_START_SERVICES:-1}"
 RETRIES="${POSTGRES_SMOKE_RETRIES:-30}"
@@ -42,7 +43,7 @@ check_pg_isready() {
   if docker exec \
     -e PGPASSWORD="$DB_PASSWORD" \
     "$CONTAINER_NAME" \
-    pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
+    pg_isready -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
     echo "OK: pg_isready for database ${DB_NAME}"
     return 0
   fi
@@ -51,14 +52,15 @@ check_pg_isready() {
   return 1
 }
 
-check_basic_query() {
+check_tls_query() {
   local result
 
   if ! result="$(
     docker exec \
       -e PGPASSWORD="$DB_PASSWORD" \
       "$CONTAINER_NAME" \
-      psql -U "$DB_USER" -d "$DB_NAME" -tAc 'SELECT 1'
+      psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc \
+      'SELECT 1 FROM pg_stat_ssl WHERE pid = pg_backend_pid() AND ssl'
   )"; then
     echo "FAIL: query check failed for database ${DB_NAME}"
     return 1
@@ -66,18 +68,18 @@ check_basic_query() {
 
   result="$(echo "$result" | tr -d '[:space:]')"
   if [[ "$result" == "1" ]]; then
-    echo "OK: query check returned 1"
+    echo "OK: query used a TLS connection"
     return 0
   fi
 
-  echo "FAIL: query check returned unexpected value: ${result}"
+  echo "FAIL: TLS query check returned unexpected value: ${result}"
   return 1
 }
 
 run_checks() {
   check_container_running &&
     check_pg_isready &&
-    check_basic_query
+    check_tls_query
 }
 
 if [[ "$START_SERVICES" != "0" ]]; then
@@ -86,6 +88,8 @@ if [[ "$START_SERVICES" != "0" ]]; then
     exit 1
   fi
 
+  echo "Preparing PostgreSQL certificates using 'make -C deploy init-security-postgresql'."
+  make -C "${ROOT_DIR}/deploy" init-security-postgresql
   echo "Starting samples Postgres service using 'make -C deploy start-samples'."
   make -C "${ROOT_DIR}/deploy" start-samples
 fi

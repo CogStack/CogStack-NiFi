@@ -4,7 +4,18 @@ on:
   push:
     branches: ['**']
     tags: ['v*.*.*']
+    paths: &paths
+      - ".github/workflows/docker_nifi.yml"
+      - ".github/workflows/_docker_template.yml"
+      - ".gitattributes"
+      - ".dockerignore"
+      - "nifi/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "!**/*.md"
+      - "!**/README*"
   pull_request:
+    paths: *paths
   release:
     types: [published]
   workflow_dispatch:

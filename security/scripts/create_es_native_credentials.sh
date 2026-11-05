@@ -32,15 +32,20 @@
 
 set -uo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
 
-SECURITY_ENV_FOLDER="../env/"
+
 SECURITY_CERTIFICATES_FOLDER="../certificates/"
 ES_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}elastic/elasticsearch"
 
 # Load required env vars
-source "${SECURITY_ENV_FOLDER}"certificates_elasticsearch.env
-source "${SECURITY_ENV_FOLDER}"certificates_general.env
-source "${SECURITY_ENV_FOLDER}"users_elasticsearch.env
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/certificates_elasticsearch.env)" || exit 1
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/certificates_general.env)" || exit 1
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/users_elasticsearch.env)" || exit 1
 
 ES_CA_CERT="${ES_CERTIFICATES_FOLDER}/elastic-stack-ca.crt.pem"
 

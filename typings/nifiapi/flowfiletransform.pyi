@@ -15,5 +15,5 @@ class FlowFileTransformResult:
         self,
         relationship: str,
         attributes: dict[str, str],
-        contents: bytes | None = None,
+        contents: str | bytes | bytearray | None = None,
     ) -> None: ...

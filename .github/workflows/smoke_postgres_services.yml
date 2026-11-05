@@ -1,9 +1,26 @@
 name: smoke-postgres-services
 
 on:
-  pull_request:
   push:
     branches: ['**']
+    paths: &paths
+      - ".github/workflows/smoke_postgres_services.yml"
+      - ".gitattributes"
+      - "deploy/Makefile"
+      - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/*.env"
+      - "security/env/*.env"
+      - "security/scripts/**"
+      - "security/templates/**"
+      - "deploy/services.yml"
+      - "services/pgsamples"
+      - "services/pgsamples/**"
+      - "scripts/tests/smoke_postgres_services.sh"
+      - "!**/*.md"
+      - "!**/README*"
+  pull_request:
+    paths: *paths
   workflow_dispatch:
 
 concurrency:
@@ -20,6 +37,17 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Generate PostgreSQL certificates
+        run: |
+          set -euo pipefail
+          make -C deploy init-security-postgresql
 
       - name: Start samples database
         run: |

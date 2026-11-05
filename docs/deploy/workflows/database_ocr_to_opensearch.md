@@ -59,7 +59,8 @@ OpenSearch indexing.
   binary document column.
 - NiFi can resolve `ocr-service` on the Docker network, or the `InvokeHTTP` URL is
   changed to a reachable endpoint.
-- Database, OpenSearch, keystore, and truststore passwords are entered after import.
+- Database credentials use ingestion environment references. Enter the OpenSearch,
+  keystore, and truststore passwords after import.
 
 ## 📥 Import the flow
 
@@ -82,18 +83,18 @@ OpenSearch indexing.
 
 | Property | Bundled value |
 |---|---|
-| Database Connection URL | `jdbc:postgresql://samples-db:5432/db_samples` |
+| Database Connection URL | `${POSTGRES_SAMPLES_JDBC_URL}` |
 | Database Driver Class Name | `org.postgresql.Driver` |
 | Database Driver Locations | `/opt/nifi/drivers/postgresql-42.7.7.jar` |
-| Database User | Value of `POSTGRES_USER_SAMPLES`, `test` by default |
-| Password | Value of `POSTGRES_PASSWORD_SAMPLES` |
+| Database User | `${POSTGRES_INGEST_USER_SAMPLES}`, `cogstack_samples` by default |
+| Password | `${POSTGRES_INGEST_PASSWORD_SAMPLES}` |
 | Password Source | `PASSWORD` |
 | Max Total Connections | `8` |
 | Maximum Idle Connections | `8` |
 | Minimum Idle Connections | `0` |
 | Max Wait Time | `500 millis` |
 
-Read the credentials from `security/env/users_database.env`. When using another source,
+The bundled database credentials reference ingestion environment variables. When using another source,
 change the URL, driver class, driver JAR, and credentials together. Apply and enable the
 service.
 

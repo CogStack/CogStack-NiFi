@@ -39,9 +39,11 @@ SECURITY_SCRIPTS_DIR ?= $(SECURITY_DIR)/scripts
 SECURITY_CERTIFICATES_DIR ?= $(SECURITY_DIR)/certificates
 SECURITY_ENV_DIR ?= $(SECURITY_DIR)/env
 OPENSEARCH_CERT_NAMES ?=
+COGSTACK_CONFIG_DIR ?=
+export COGSTACK_CONFIG_DIR
 
 define WITH_ENV
-set -a && source ./export_env_vars.sh;
+source ./export_env_vars.sh || exit $$?;
 endef
 
 # list all make targets in this file
@@ -91,8 +93,13 @@ git-freeze-security: ## Apply restricted git settings for safer shell operations
 git-unfreeze-security: ## Revert restricted git settings
 	@../scripts/git_unfreeze_security.sh
 
-git-update-submodules: ## Update submodules recursively in this repository
+git-init-submodules: ## Initialize submodules at the commits recorded by this checkout
+	@../scripts/git_init_submodules_in_repo.sh
+
+git-update-submodules: ## Explicitly upgrade direct submodules for review (never stages or commits)
 	@../scripts/git_update_submodules_in_repo.sh
+
+.PHONY: git-init-submodules git-update-submodules
 
 load-env: ## Load variables from export_env_vars.sh in a subshell
 	$(WITH_ENV) echo "Environment variables loaded."
@@ -102,7 +109,8 @@ show-env: ## Print sorted environment variables after loading export_env_vars.sh
 
 init-security-root-ca: ## Generate the shared root CA only when no CA material exists
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_general.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE}"; \
 	root_dir="$(SECURITY_CERTIFICATES_DIR)/root"; \
 	if [[ -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.key" \
 	   && -f "$$root_dir/$${ROOT_CERTIFICATE_NAME}.pem" \
@@ -119,7 +127,7 @@ init-security-root-ca: ## Generate the shared root CA only when no CA material e
 		(cd "$(SECURITY_SCRIPTS_DIR)" && ./create_root_ca_cert.sh); \
 	fi
 
-init-security-nifi: init-security-root-ca ## Generate NiFi certificates only when they are missing or incomplete
+init-security-nifi: init-security-opensearch init-security-postgresql ## Prepare NiFi certificates and its search/database certificate inputs
 	@set -euo pipefail; \
 	nifi_dir="$(SECURITY_CERTIFICATES_DIR)/nifi"; \
 	if [[ -f "$$nifi_dir/nifi.key" \
@@ -147,7 +155,8 @@ init-security-gitea: init-security-root-ca ## Generate a dedicated Gitea leaf ce
 
 init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, client, and admin certificates when missing
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}"; \
 	if [[ -n "$(strip $(OPENSEARCH_CERT_NAMES))" ]]; then \
 		read -r -a node_names <<< "$(strip $(OPENSEARCH_CERT_NAMES))"; \
 	else \
@@ -164,8 +173,7 @@ init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, cli
 			fi; \
 		done; \
 	done; \
-	if [[ ! -f "$$opensearch_dir/elastic-stack-ca.crt.pem" \
-	   || ! -f "$$opensearch_dir/elastic-stack-ca.p12" ]]; then \
+	if [[ ! -f "$$opensearch_dir/elastic-stack-ca.crt.pem" ]]; then \
 		node_certificates_missing=1; \
 	fi; \
 	if (( node_certificates_missing )); then \
@@ -186,7 +194,8 @@ init-security-opensearch: init-security-root-ca ## Generate OpenSearch node, cli
 
 init-security-elasticsearch: ## Generate native Elasticsearch certificates when the output directory is absent
 	@set -euo pipefail; \
-	source "$(SECURITY_ENV_DIR)/certificates_elasticsearch.env"; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}"; \
 	elasticsearch_dir="$(SECURITY_CERTIFICATES_DIR)/elastic/elasticsearch"; \
 	certificate_set_complete=1; \
 	for required_file in \
@@ -216,7 +225,8 @@ init-security-elasticsearch: ## Generate native Elasticsearch certificates when 
 
 init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from elasticsearch.env
 	@set -euo pipefail; \
-	source ./elasticsearch.env; \
+	$(WITH_ENV) \
+	source "$${COGSTACK_ELASTICSEARCH_ENV_FILE}"; \
 	case "$${ELASTICSEARCH_VERSION}" in \
 		opensearch|elasticsearch) \
 			$(MAKE) --no-print-directory "init-security-$${ELASTICSEARCH_VERSION}" \
@@ -227,33 +237,52 @@ init-security-search: ## Generate certificates for ELASTICSEARCH_VERSION from el
 			;; \
 	esac
 
-init-security: ## Generate missing NiFi, Gitea, and selected search-backend certificates
+init-security-postgresql: init-security-root-ca ## Generate missing PostgreSQL TLS bundles, preserving supplied certificates
+	@$(WITH_ENV) SECURITY_CERTIFICATES_DIR="$(SECURITY_CERTIFICATES_DIR)" bash "$(SECURITY_SCRIPTS_DIR)/create_postgres_certs.sh"
+
+init-security: ## Generate missing NiFi, PostgreSQL, Gitea, and selected search-backend certificates
 	@$(MAKE) --no-print-directory init-security-nifi
 	@$(MAKE) --no-print-directory init-security-gitea
 	@$(MAKE) --no-print-directory init-security-search
 
-.PHONY: init-security init-security-root-ca init-security-nifi init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
+.PHONY: init-security init-security-root-ca init-security-nifi init-security-postgresql init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
 helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG)
+	$(WITH_ENV) helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) \
+		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
 
 helm-install-opensearch: ## Install/upgrade OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
 
 kube-install-cnpg-operator: ## Install CloudNativePG operator/CRDs from the pinned upstream manifest
 	kubectl apply --server-side -f $(CNPG_OPERATOR_MANIFEST)
 
 helm-template-nifi: ## Render CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE)
+	$(WITH_ENV) helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) \
+		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
 
 helm-install-nifi: ## Install/upgrade CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
+		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
 
 helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE)
+	$(WITH_ENV) helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) \
+		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
 
 helm-install-postgresql: ## Install/upgrade CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace
+	$(WITH_ENV) helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace \
+		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
+		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
 
 helm-repo-add-gitea: ## Add/update the official Gitea Helm repository
 	@if ! helm repo list | awk '$$1 == "$(HELM_GITEA_REPO_NAME)" { found=1 } END { exit !found }'; then \
@@ -296,39 +325,51 @@ _check-remote-params:
 
 .PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-nifi helm-install-nifi helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
 	
+check-nifi-resources: ## Validate NiFi heap sizes against the container memory limit
+	@$(WITH_ENV) python3 ../scripts/tests/check_nifi_resources.py
+
+check-opensearch-settings: ## Validate search credentials, encryption keys, and image versions
+	@$(WITH_ENV) python3 ../scripts/tests/check_opensearch_settings.py
+
+check-config: check-nifi-resources check-opensearch-settings ## Validate resolved settings and both core Compose files
+	@$(WITH_ENV) docker compose --profile "*" -f services.yml config --quiet && docker compose --profile "*" -f services.dev.yml config --quiet
+
+.PHONY: check-nifi-resources check-opensearch-settings check-config
+
 # start services
 
-start-nifi: ## Start NiFi and NiFi nginx (services.yml)
+start-nifi: check-nifi-resources ## Start NiFi and NiFi nginx (services.yml)
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) nifi nifi-nginx 
 
-start-nifi-dev: ## Start NiFi and NiFi nginx (services.dev.yml)
+start-nifi-dev: check-nifi-resources ## Start NiFi and NiFi nginx (services.dev.yml)
 	$(WITH_ENV) docker compose -f services.dev.yml $(DC_START_CMD) nifi nifi-nginx 
 
-start-nifi-dev-build: ## Build and start NiFi dev services
+start-nifi-dev-build: check-nifi-resources ## Build and start NiFi dev services
 	$(WITH_ENV) docker compose -f services.dev.yml up -d --build nifi nifi-nginx 
 
 build-nifi-image: ## Build the local NiFi image without starting services
 	$(WITH_ENV) docker build \
 		--build-arg NIFI_VERSION="$${NIFI_VERSION:-2.12.0}" \
+		--build-arg NIFI_BASE_IMAGE="$${NIFI_BASE_IMAGE}" \
 		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
 		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
-		--tag "$${NIFI_DOCKER_IMAGE:-cogstacksystems/cogstack-nifi:latest}" \
+		--tag "$${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}" \
 		--file ../nifi/Dockerfile \
 		..
 
-start-elastic: ## Start elasticsearch-1, elasticsearch-2 and kibana
+start-elastic: check-opensearch-settings ## Start elasticsearch-1, elasticsearch-2 and kibana
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 kibana
 
-start-elastic-cluster: ## Start full 3-node Elasticsearch cluster
+start-elastic-cluster: check-opensearch-settings ## Start full 3-node Elasticsearch cluster
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1 elasticsearch-2 elasticsearch-3
 
-start-elastic-1:
+start-elastic-1: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-1
 
-start-elastic-2:
+start-elastic-2: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-2
 
-start-elastic-3:
+start-elastic-3: check-opensearch-settings
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) elasticsearch-3
 
 start-metricbeat-1:
@@ -349,7 +390,7 @@ start-filebeat-2:
 start-filebeat-3:
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) filebeat-3
 
-start-kibana:
+start-kibana: check-opensearch-settings ## Start Kibana or OpenSearch Dashboards
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) kibana
 
 start-ollama: ## Start the Ollama inference service
@@ -363,8 +404,16 @@ pull-ollama-model: start-ollama ## Pull the model configured by OLLAMA_MODEL
 
 setup-ollama: pull-ollama-model ## Start Ollama and pull its configured model
 
-opensearch-ai-init: start-ollama-openai-proxy ## Create or update all Ollama-backed OpenSearch Dashboards AI agents and configs
-	$(WITH_ENV) ../scripts/opensearch-ai-init.sh
+opensearch-ai-init: ## Create or update OpenSearch AI connectors and agents using OPENSEARCH_AI_PROVIDER
+	$(WITH_ENV) \
+	case "$${OPENSEARCH_AI_PROVIDER:-ollama}" in \
+	  ollama) docker compose -f services.yml $(DC_START_CMD) --build ollama-openai-proxy ;; \
+	  sglang) ;; \
+	  *) echo "Unsupported OPENSEARCH_AI_PROVIDER: $${OPENSEARCH_AI_PROVIDER}" >&2; exit 1 ;; \
+	esac && ../scripts/opensearch-ai-init.sh
+
+opensearch-ai-init-sglang: ## Connect all OpenSearch AI features to the locally hosted SGLang server
+	$(WITH_ENV) OPENSEARCH_AI_PROVIDER=sglang ../scripts/opensearch-ai-init.sh
 
 start-openwebui: ## Start Open WebUI and its Ollama dependency
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) open-webui
@@ -379,7 +428,8 @@ logs-openwebui: ## Follow the Open WebUI logs
 	$(WITH_ENV) docker compose -f services.yml logs --tail=100 -f open-webui
 
 start-samples: ## Start the sample database service
-	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) samples-db && \
+		docker compose -f services.yml exec -T -e PGHOST=samples-db samples-db /docker-entrypoint-initdb.d/access/configure.sh
 
 start-clickhouse: ## Start the ClickHouse ingestion database
 	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) clickhouse
@@ -403,7 +453,12 @@ start-medcat-trainer:
 	$(WITH_ENV) docker compose -f ../services/cogstack-nlp/medcat-trainer/docker-compose-prod.yml $(DC_START_CMD) medcattrainer nginx solr
 
 start-production-db:
-	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db
+	$(WITH_ENV) docker compose -f services.yml ${DC_START_CMD} cogstack-databank-db && \
+		docker compose -f services.yml exec -T -e PGHOST=cogstack-databank-db cogstack-databank-db /docker-entrypoint-initdb.d/access/configure.sh
+
+start-production-db-mssql: ## Start SQL Server and wait for its schema initialization job
+	$(WITH_ENV) docker compose -f services.yml $(DC_START_CMD) cogstack-databank-db-mssql && \
+		docker compose -f services.yml run --rm --no-deps cogstack-databank-db-mssql-init
 
 start-ocr-services:
 	$(WITH_ENV) docker compose -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.base.yml -f ../services/cogstack-platform/apps/ocr-service/docker/docker-compose.prod.yml $(DC_START_CMD) ocr-service ocr-service-text-only
@@ -415,7 +470,7 @@ start-data-infra: start-nifi start-elastic start-samples ## Start core data infr
 
 start-all: start-data-infra start-medcat-service start-ocr-services ## Start all major services
 
-.PHONY: start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
+.PHONY: start-kibana start-all start-data-infra start-nifi start-nifi-dev start-nifi-dev-build build-nifi-image start-elastic start-ollama start-ollama-openai-proxy pull-ollama-model setup-ollama opensearch-ai-init opensearch-ai-init-sglang start-openwebui restart-openwebui status-openwebui logs-openwebui start-samples start-clickhouse status-clickhouse logs-clickhouse start-jupyter
 
 
 # stop services
@@ -471,7 +526,7 @@ delete-openwebui: ## Remove the Open WebUI container but preserve its data
 	$(WITH_ENV) docker compose -f services.yml rm -f -s open-webui
 
 delete-databank:
-	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql
+	$(WITH_ENV) docker compose -f services.yml rm -f -s cogstack-databank-db cogstack-databank-db-mssql-init cogstack-databank-db-mssql
 
 delete-databank-volumes:
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v cogstack-databank-db cogstack-databank-db-mssql
@@ -576,6 +631,11 @@ stop-ocr-services:
 
 stop-production-db:
 	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db
+
+stop-production-db-mssql: ## Stop the SQL Server initializer and server without removing data
+	$(WITH_ENV) docker compose -f services.yml $(DC_STOP_CMD) cogstack-databank-db-mssql-init cogstack-databank-db-mssql
+
+.PHONY: start-production-db-mssql stop-production-db-mssql
 
 stop-data-infra: stop-nifi stop-elastic stop-samples ## Stop core data infrastructure
 

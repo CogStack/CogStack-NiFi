@@ -17,11 +17,12 @@ Security is achieved through:
 
     Generated certificates and private keys are deployment-local and ignored by Git. Run `make -C deploy init-security` before starting services. The tracked `security/env/*.env` files contain public development defaults only; never use those values as production secrets.
 
-## 🧩 Components secured with HTTPS
+## 🧩 Components secured with TLS
 
 | Service | Certificate location | Supported initialization target |
 |---------|----------------------|---------------------------------|
 | NiFi | `security/certificates/nifi/` | `make -C deploy init-security-nifi` |
+| PostgreSQL samples and databank | `security/certificates/postgresql/` | `make -C deploy init-security-postgresql` |
 | Elasticsearch | `security/certificates/elastic/elasticsearch/` | `make -C deploy init-security-elasticsearch` |
 | OpenSearch and Dashboards | `security/certificates/elastic/opensearch/` | `make -C deploy init-security-opensearch` |
 | Gitea | `security/certificates/gitea/` | `make -C deploy init-security-gitea` |
@@ -41,6 +42,7 @@ security/
 │   ├── elastic/                                # Elasticsearch / OpenSearch + Kibana certs
 │   ├── nifi/                                   # Apache NiFi leaf certificate and Java stores
 │   ├── gitea/                                  # Gitea leaf certificate
+│   ├── postgresql/                             # Samples and databank PostgreSQL TLS bundles
 │   └── root/                                   # Root CA files and truststores
 │               
 ├── env/                                        # Environment variable definitions for certs and users

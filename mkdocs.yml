@@ -44,8 +44,10 @@ nav:
   - 📋 Prerequisites: deploy/main.md
   - 📦 Air-gapped NiFi: deploy/air-gapped.md
   - 📦 Deployment: deploy/deployment.md
+  - 📌 Repeatable deployments: deploy/reproducible.md
   - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md
+  - 🤖 OpenSearch AI with SGLang: deploy/sglang.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - 🔀 Workflows:
       - Overview: deploy/workflows.md
@@ -65,6 +67,7 @@ nav:
       - security/main.md
       - 🏛️ Certificates and Root CA: security/certificates.md
       - 🗄️ Additional services: security/services.md
+      - 🗃️ Docker database security: security/databases.md
       - 🔐 NiFi TLS & Admin Access Setup (with NGINX): security/nifi.md
       - 🌐 Elasticsearch / OpenSearch Security: security/elasticsearch_opensearch.md
 

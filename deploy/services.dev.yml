@@ -9,32 +9,37 @@ x-nifi-logging-common: &nifi-logging-common
     max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
 
 x-all-env: &all-env
-  - ./project.env
-  - ./general.env
-  - ./nifi.env
-  - ./gitea.env
-  - ./nginx.env
-  - ./telemetry.env
-  - ./database.env
-  - ./elasticsearch.env
-  - ./network_settings.env
-  - ../security/env/users_nifi.env
-  - ../security/env/users_database.env
-  - ../security/env/users_nginx.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_general.env
-  - ../security/env/certificates_elasticsearch.env
-  - ../security/env/certificates_nifi.env
+  - "${COGSTACK_PROJECT_ENV_FILE:-./project.env}"
+  - "${COGSTACK_GENERAL_ENV_FILE:-./general.env}"
+  - "${COGSTACK_NIFI_ENV_FILE:-./nifi.env}"
+  - "${COGSTACK_GITEA_ENV_FILE:-./gitea.env}"
+  - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
+  - "${COGSTACK_TELEMETRY_ENV_FILE:-./telemetry.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_USERS_NIFI_ENV_FILE:-../security/env/users_nifi.env}"
+  - "${COGSTACK_USERS_NGINX_ENV_FILE:-../security/env/users_nginx.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE:-../security/env/certificates_general.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_NIFI_ENV_FILE:-../security/env/certificates_nifi.env}"
 
 x-es-env: &es-env
-  - ./network_settings.env
-  - ./elasticsearch.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_elasticsearch.env
+  - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+  - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+  - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+  - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
 
-x-db-env: &db-env
-  - ./database.env
-  - ../security/env/users_database.env
+x-nifi-db-environment: &nifi-db-environment
+  POSTGRES_SAMPLES_DB_NAME: ${POSTGRES_SAMPLES_DB_NAME:-db_samples}
+  POSTGRES_SAMPLES_JDBC_URL: ${POSTGRES_SAMPLES_JDBC_URL:-jdbc:postgresql://samples-db:5432/${POSTGRES_SAMPLES_DB_NAME:-db_samples}?sslmode=verify-full&sslrootcert=/run/database-cas/samples-ca.crt}
+  POSTGRES_INGEST_USER_SAMPLES: ${POSTGRES_INGEST_USER_SAMPLES:-cogstack_samples}
+  POSTGRES_INGEST_PASSWORD_SAMPLES: ${POSTGRES_INGEST_PASSWORD_SAMPLES:?Set the sample ingestion password}
+  DATABASE_DB_NAME: ${DATABASE_DB_NAME:-cogstack}
+  DATABASE_INGEST_USER: ${DATABASE_INGEST_USER:-cogstack_ingest}
+  DATABASE_INGEST_PASSWORD: ${DATABASE_INGEST_PASSWORD:?Set the PostgreSQL ingestion password}
+  MSSQL_INGEST_USER: ${MSSQL_INGEST_USER:-cogstack_ingest}
+  MSSQL_INGEST_PASSWORD: ${MSSQL_INGEST_PASSWORD:?Set the MSSQL ingestion password}
 
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
@@ -73,7 +78,25 @@ x-nifi-volumes: &nifi-volumes
   - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
 
   # Security certificates
-  - ../security:/security:ro
+  - ../security/certificates/nifi:/security/certificates/nifi:ro
+  - ../security/certificates/elastic/opensearch/elasticsearch:/security/certificates/elastic/opensearch/elasticsearch:ro
+  - ../security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:/security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:ro
+  - ../security/certificates/elastic/opensearch/es_kibana_client.pem:/security/certificates/elastic/opensearch/es_kibana_client.pem:ro
+  - ../security/certificates/elastic/opensearch/es_kibana_client.key:/security/certificates/elastic/opensearch/es_kibana_client.key:ro
+  - ../security/certificates/root/root-ca.pem:/security/certificates/root/root-ca.pem:ro
+  # Database clients receive only the public CA from each TLS bundle.
+  - type: bind
+    source: ${POSTGRES_SAMPLES_TLS_DIR:-../security/certificates/postgresql/samples}/ca.crt
+    target: /run/database-cas/samples-ca.crt
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: bind
+    source: ${POSTGRES_DATABANK_TLS_DIR:-../security/certificates/postgresql/databank}/ca.crt
+    target: /run/database-cas/databank-ca.crt
+    read_only: true
+    bind:
+      create_host_path: false
 
   # Security helper scripts
   - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
@@ -82,10 +105,10 @@ x-nifi-volumes: &nifi-volumes
   - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
 
   # Ingest data directory
-  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
+  - ${NIFI_DATA_PATH:-../data/}:/data/:rw
 
   # MedCAT models
-  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+  - ${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
 
   # NiFi repositories/state
   - nifi-vol-logs:/opt/nifi/nifi-current/logs
@@ -108,17 +131,21 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
+    image: ${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}
+    pull_policy: build
     build:
        context: ..
        dockerfile: nifi/Dockerfile
        args:
          NIFI_VERSION: ${NIFI_VERSION:-2.12.0}
+         NIFI_BASE_IMAGE: ${NIFI_BASE_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
     environment:
-      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
-      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+      <<: *nifi-db-environment
+      PYTHONPATH: ${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+      JVM_OPTS: ${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
     deploy:
       resources:
         limits:
@@ -140,6 +167,7 @@ services:
     logging: *nifi-logging-common
   
   nifi-nginx:
+    pull_policy: build
     build:
       context: ../services/nginx
       dockerfile: Dockerfile
@@ -158,7 +186,8 @@ services:
     volumes:
       - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
       - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
-      - ../security/certificates:/certificates:ro
+      - ../security/certificates/nifi:/certificates/nifi:ro
+      - ../security/certificates/root/root-ca.pem:/certificates/root/root-ca.pem:ro
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
     networks:
@@ -170,7 +199,7 @@ services:
 # Observability stack                                                       #
 #---------------------------------------------------------------------------#
   otel-collector:
-    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:-otel/opentelemetry-collector-contrib:0.132.0}
+    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
@@ -187,7 +216,7 @@ services:
     logging: *nifi-logging-common
 
   data-prepper:
-    image: ${DATA_PREPPER_DOCKER_IMAGE:-opensearchproject/data-prepper:2.11.0}
+    image: ${DATA_PREPPER_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-data-prepper
     restart: unless-stopped
     env_file: *all-env

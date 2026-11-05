@@ -155,6 +155,23 @@ app.kubernetes.io/component: nifi
 {{ toYaml $usersData }}
 {{- end -}}
 
+{{/* Convert JVM and Kubernetes memory quantities to bytes for resource validation. */}}
+{{- define "cogstack-nifi.memoryBytes" -}}
+{{- $value := lower (trim (printf "%v" .)) -}}
+{{- if not (regexMatch "^[0-9]+(\\.[0-9]+)?([kmgtpe](i?b?)?)?$" $value) -}}
+{{- fail "NiFi memory sizes must use positive quantities such as 768m, 1g, or 2Gi" -}}
+{{- end -}}
+{{- $number := regexFind "^[0-9]+(\\.[0-9]+)?" $value -}}
+{{- $suffix := trimPrefix $number $value -}}
+{{- $unit := regexFind "^[kmgtpe]" $suffix -}}
+{{- $multipliers := dict "" 1 "k" 1024 "m" 1048576 "g" 1073741824 "t" 1099511627776 "p" 1125899906842624 "e" 1152921504606846976 -}}
+{{- $bytes := mulf (float64 $number) (float64 (index $multipliers $unit)) -}}
+{{- if le $bytes (float64 0) -}}
+{{- fail "NiFi memory sizes must be positive" -}}
+{{- end -}}
+{{- printf "%.0f" $bytes -}}
+{{- end -}}
+
 {{/* Service names */}}
 {{- define "cogstack-nifi.serviceName" -}}
 {{- printf "%s" (include "cogstack-nifi.fullname" .) -}}

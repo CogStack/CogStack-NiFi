@@ -1,0 +1,22 @@
+{{- if or .Values.opensearch.enabled .Values.dashboards.enabled -}}
+{{- if and (not .Values.credentials.create) (not .Values.credentials.existingSecret) -}}
+{{- fail "credentials.existingSecret is required when credentials.create=false" -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.opensearch.enabled -}}
+{{- $_ := required "certificates.opensearchSecretName is required" .Values.certificates.opensearchSecretName -}}
+{{- if lt (int .Values.opensearch.replicas) 1 -}}
+{{- fail "opensearch.replicas must be at least 1" -}}
+{{- end -}}
+{{- $nodes := .Values.certificates.opensearchNodeFiles | default (list) -}}
+{{- if and (gt (len $nodes) 0) (lt (len $nodes) (int .Values.opensearch.replicas)) -}}
+{{- fail "certificates.opensearchNodeFiles must provide a certificate/key pair for every OpenSearch replica" -}}
+{{- end -}}
+{{- range $node := $nodes -}}
+{{- $_ := required "Every opensearchNodeFiles entry requires cert" $node.cert -}}
+{{- $_ := required "Every opensearchNodeFiles entry requires key" $node.key -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.dashboards.enabled -}}
+{{- $_ := required "certificates.dashboardsSecretName is required" .Values.certificates.dashboardsSecretName -}}
+{{- end -}}

@@ -20,7 +20,8 @@ fi
 # shellcheck disable=SC1090
 source "$SMOKE_HELPERS"
 
-HOST="${NIFI_SMOKE_HOST:-localhost}"
+# Match nginx's canonical loopback host; localhost redirects to 127.0.0.1.
+HOST="${NIFI_SMOKE_HOST:-127.0.0.1}"
 NIFI_PORT="${NIFI_EXTERNAL_PORT_NGINX:-8443}"
 # The sourced smoke helper reads this shared variable when checks run.
 # shellcheck disable=SC2034
@@ -37,23 +38,33 @@ SMOKE_CHECKS=(
 
 check_authenticated_nifi_api() {
   local token
+  local token_response
   local code
 
-  if ! token="$(
+  if ! token_response="$(
     curl \
       --silent \
       --show-error \
-      --fail \
       --cacert "$SMOKE_CA_CERT" \
       --connect-timeout "$SMOKE_CONNECT_TIMEOUT" \
       --max-time "$SMOKE_MAX_TIME" \
       --data-urlencode "username=${NIFI_SINGLE_USER_CREDENTIALS_USERNAME}" \
       --data-urlencode "password=${NIFI_SINGLE_USER_CREDENTIALS_PASSWORD}" \
+      --write-out $'\n%{http_code}' \
       "${NIFI_BASE_URL}/nifi-api/access/token"
   )"; then
     echo "FAIL: nifi-api - authentication failed" >&2
     return 1
   fi
+
+  # NiFi creates tokens with HTTP 201. In particular, curl considers redirects
+  # successful, but their HTML response bodies must never become bearer tokens.
+  code="${token_response##*$'\n'}"
+  if [[ "$code" != "201" ]]; then
+    echo "FAIL: nifi-api - authentication returned HTTP ${code} (expected HTTP 201)" >&2
+    return 1
+  fi
+  token="${token_response%$'\n'*}"
 
   if [[ -z "$token" ]]; then
     echo "FAIL: nifi-api - authentication returned an empty token" >&2
