@@ -64,7 +64,9 @@ class ConfigurationTest(unittest.TestCase):
             "NIFI_DATA_PATH": str(self.directory / "data with spaces"),
         })
         selected_value = "fixture-$value with spaces"
-        self.settings("users_nifi.env", {"NIFI_TEST_VALUE": selected_value})
+        users_settings = self.settings("users_nifi.env", {})
+        with users_settings.open("a") as settings_file:
+            settings_file.write(f"\nNIFI_TEST_VALUE='{selected_value}'\n")
         for compose_file in ("services.yml", "services.dev.yml"):
             with self.subTest(compose_file=compose_file):
                 result = self.run_bash(

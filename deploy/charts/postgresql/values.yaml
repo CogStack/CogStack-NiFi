@@ -26,7 +26,7 @@ usersEnvFile:
 cluster:
   enabled: true
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie@sha256:51bc94428be3df3e234447278e33803544a93d27a57a4b6af737f218d6472d12
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie@sha256:348997438269fddc0e2825e00594367ad61751adb08a7698a0a14f793b0dc2ce
   imagePullPolicy: IfNotPresent
   databaseName: ""
   ownerName: ""
