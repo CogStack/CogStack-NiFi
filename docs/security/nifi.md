@@ -1,6 +1,7 @@
 ## 🔐 NiFi TLS & Admin Access Setup (with NGINX)
 
-This guide documents how to configure TLS and certificate-based admin access for Apache NiFi behind NGINX.
+This guide covers HTTPS and single-user access to Apache NiFi behind nginx.
+Client-certificate administrator identities apply when that authentication mode is selected.
 For background on how certificates are generated, see [Certificates and Root CA](certificates.md).
 
 ---
@@ -36,7 +37,8 @@ For securing Apache NiFi endpoints with certificates, see [the official document
 Before starting the NiFi container:
 
 - run `make -C deploy init-security-nifi` from the repository root. This creates the shared root CA when needed, then prepares the NiFi bundle, mounted OpenSearch leaf certificates and public CA, and PostgreSQL CA files used by maintained flows. Complete existing certificate sets are preserved, including when a different search backend is selected. For supplied PostgreSQL bundles, see [Docker database security](./databases.md).
-- set `nifi.sensitive.props.key` to a stable value (minimum 12 characters).
+- supply a stable `NIFI_SENSITIVE_PROPS_KEY`
+  value (minimum 12 characters), and retain it with the persisted flow.
 
 These certificate files are required even when the database and search services
 run elsewhere or are not started. The combined `init-security` target covers all
@@ -66,10 +68,16 @@ Local single-user credentials are defined in `security/env/users_nifi.env`. They
 /opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials USERNAME PASSWORD
 ```
 
-- alternatively:
-  - set credentials in `security/env/users_nifi.env`
-  - stop NiFi (`docker stop cogstack-nifi`)
-  - run `bash security/scripts/nifi_init_create_user_auth.sh`
+- Compose passes `security/env/users_nifi.env` credentials to Apache's native
+  startup variables, which set the login automatically. Kubernetes deployments
+  can populate `SINGLE_USER_CREDENTIALS_USERNAME` and
+  `SINGLE_USER_CREDENTIALS_PASSWORD` through Secret environment references.
+- For older published images, `bash security/scripts/nifi_init_create_user_auth.sh`
+  updates the running NiFi credentials and restarts NiFi. It does not delete
+  containers.
+
+See [NiFi container runtime](../deploy/nifi-runtime.md) for non-root permissions,
+persistent configuration, Secret inputs, proxy TLS and health checks.
 
 URL: <https://localhost:8443/nifi/login>
 
@@ -109,54 +117,18 @@ nifi.security.identity.mapping.pattern.dn=^.*?CN=(.*?)(,|$)
 
 ### 🌍 NGINX reverse proxy example (NiFi)
 
-```nginx
-server {
-    listen 8443 ssl;
-    server_name nginx.local;
-
-    ssl_certificate           /certificates/nifi/nifi.pem;
-    ssl_certificate_key       /certificates/nifi/nifi.key;
-    ssl_client_certificate    /certificates/root/root-ca.pem;
-    ssl_trusted_certificate   /certificates/root/root-ca.pem;
-
-    location / {
-        proxy_set_header Host nifi;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-ProxyHost $host;
-        proxy_set_header X-ProxyPort 8443;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-ProxyScheme $scheme;
-        proxy_pass https://nifi;
-    }
-
-    location /nifi {
-        proxy_set_header Host nifi;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-ProxyHost $host;
-        proxy_set_header X-ProxyPort 8443;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-ProxyScheme $scheme;
-        proxy_pass https://nifi;
-    }
-
-    location ^~ /nifi-api/ {
-        proxy_set_header Host nifi;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-ProxyHost $host;
-        proxy_set_header X-ProxyPort 8443;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-ProxyScheme $scheme;
-        proxy_pass https://nifi/nifi-api/;
-    }
-}
-```
+The maintained template is `services/nginx/config/nginx.conf.template` and is
+included in rebuilt proxy images. It enables `proxy_ssl_verify on`, verifies the
+configured `NIFI_UPSTREAM_TLS_NAME`, and trusts `NGINX_UPSTREAM_CA`. Public
+addressing and optional context prefixes are configured through deployment
+settings; see [nginx addressing and TLS](../deploy/nifi-runtime.md#nginx-addressing-and-tls).
 
 ---
 
 ### ✅ Final checklist
 
-- [x] Certificate CN matches the NiFi admin identity
-- [x] NGINX uses the expected certificates and root CA
+- [x] Certificate SANs cover the public and upstream TLS hostnames
+- [x] nginx verifies NiFi's certificate against the expected CA
 - [x] `nifi.web.proxy.*` settings match exposed URL and context
 - [x] Clear cookies if browser UI shows `Anonymous`
 
@@ -166,10 +138,12 @@ server {
 
 ```bash
 curl --cacert security/certificates/root/root-ca.pem \
-  --cert security/certificates/nifi/nifi.pem \
-  --key security/certificates/nifi/nifi.key \
-  https://localhost:8443/nifi-api/flow/about
+  https://127.0.0.1:8443/nifi-api/authentication/configuration
 ```
+
+This checks HTTPS readiness. Use username/password login for the default
+single-user authentication mode. The maintained smoke test also requests a token
+and checks an authenticated API endpoint.
 
 ---
 

@@ -276,6 +276,10 @@ make -C deploy remote-delete-service \
 See [Repeatable deployments](./reproducible.md) for image pins, submodule
 upgrades, and local build commands.
 
+For rebuilt NiFi/nginx images, see [NiFi container runtime](./nifi-runtime.md) for
+automatic credentials, non-root file permissions, persistent configuration and
+health checks. Existing published image digests are updated as a separate release.
+
 ---
 
 ### 🚀 Start Services

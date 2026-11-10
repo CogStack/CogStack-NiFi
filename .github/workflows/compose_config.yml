@@ -12,6 +12,7 @@ on:
       - "scripts/opensearch-ai-init.sh"
       - "scripts/tests/check_nifi_resources.py"
       - "scripts/tests/test_configuration.py"
+      - "scripts/tests/test_nifi_runtime.py"
       - "scripts/tests/check_opensearch_settings.py"
       - "scripts/tests/test_opensearch_deployment.py"
       - "services/elasticsearch/**"
@@ -29,6 +30,7 @@ on:
       - "deploy/charts/**"
       - "deploy/helm/**"
       - "nifi/Dockerfile"
+      - "nifi/docker/**"
       - "services/nginx/Dockerfile"
       - "services/ollama-openai-proxy/Dockerfile"
       - "scripts/tests/check_deployment_images.py"
@@ -45,6 +47,7 @@ on:
       - "scripts/opensearch-ai-init.sh"
       - "scripts/tests/check_nifi_resources.py"
       - "scripts/tests/test_configuration.py"
+      - "scripts/tests/test_nifi_runtime.py"
       - "scripts/tests/check_opensearch_settings.py"
       - "scripts/tests/test_opensearch_deployment.py"
       - "services/elasticsearch/**"
@@ -62,6 +65,7 @@ on:
       - "deploy/charts/**"
       - "deploy/helm/**"
       - "nifi/Dockerfile"
+      - "nifi/docker/**"
       - "services/nginx/Dockerfile"
       - "services/ollama-openai-proxy/Dockerfile"
       - "scripts/tests/check_deployment_images.py"
@@ -116,6 +120,9 @@ jobs:
 
       - name: Test configuration profiles and resource guards
         run: python3 -B -m unittest discover -s scripts/tests -p test_configuration.py -v
+
+      - name: Test NiFi upstream settings, persistence and credential isolation
+        run: python3 -B scripts/tests/test_nifi_runtime.py -v
 
       - name: Test database bootstrap and credential isolation
         run: |

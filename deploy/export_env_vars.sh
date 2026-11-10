@@ -75,6 +75,12 @@ _cogstack_load_environment() {
       }
     fi
   done
+  # Local image builds match bind-mounted configuration/certificate ownership.
+  # Published images retain their Dockerfile's default non-root UID/GID.
+  export COGSTACK_LOCAL_UID="${COGSTACK_LOCAL_UID:-$(id -u)}"
+  export COGSTACK_LOCAL_GID="${COGSTACK_LOCAL_GID:-$(id -g)}"
+  if [[ "$COGSTACK_LOCAL_UID" == 0 ]]; then export COGSTACK_LOCAL_UID=1000; fi
+  if [[ "$COGSTACK_LOCAL_GID" == 0 ]]; then export COGSTACK_LOCAL_GID=1000; fi
   export DOLLAR='$'
   if [[ "$restore_allexport" == 1 ]]; then set +a; fi
   echo "Configuration loaded from ${COGSTACK_CONFIG_DIR:-repository defaults}."

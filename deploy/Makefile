@@ -351,8 +351,8 @@ build-nifi-image: ## Build the local NiFi image without starting services
 	$(WITH_ENV) docker build \
 		--build-arg NIFI_VERSION="$${NIFI_VERSION:-2.12.0}" \
 		--build-arg NIFI_BASE_IMAGE="$${NIFI_BASE_IMAGE}" \
-		--build-arg NIFI_UID="$${NIFI_UID:-1000}" \
-		--build-arg NIFI_GID="$${NIFI_GID:-1000}" \
+		--build-arg NIFI_UID="$${COGSTACK_LOCAL_UID:-1000}" \
+		--build-arg NIFI_GID="$${COGSTACK_LOCAL_GID:-1000}" \
 		--tag "$${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}" \
 		--file ../nifi/Dockerfile \
 		..

@@ -47,6 +47,7 @@ nav:
   - 📌 Repeatable deployments: deploy/reproducible.md
   - ⚙️ Configuration: deploy/configuration.md
   - 🧩 Services: deploy/services.md
+  - 💧 NiFi container runtime: deploy/nifi-runtime.md
   - 🤖 OpenSearch AI with SGLang: deploy/sglang.md
   - 📛 Troubleshooting: deploy/troubleshooting.md
   - 🔀 Workflows:

@@ -20,7 +20,7 @@ fi
 # shellcheck disable=SC1090
 source "$SMOKE_HELPERS"
 
-# Match nginx's canonical loopback host; localhost redirects to 127.0.0.1.
+# Use loopback directly for browsers affected by localhost cookie handling.
 HOST="${NIFI_SMOKE_HOST:-127.0.0.1}"
 NIFI_PORT="${NIFI_EXTERNAL_PORT_NGINX:-8443}"
 # The sourced smoke helper reads this shared variable when checks run.
@@ -107,6 +107,16 @@ fi
 
 echo "Running smoke checks against NiFi and nginx."
 wait_for_checks "NiFi" "$RETRIES" "$DELAY_SECONDS" "${SMOKE_CHECKS[@]}"
+
+if [[ "$START_SERVICES" != "0" ]]; then
+  echo "Checking non-root users and container health probes."
+  for check in \
+    "nifi|/opt/nifi/scripts/cogstack-healthcheck.sh" \
+    "nifi-nginx|/usr/local/bin/cogstack-nginx-healthcheck.sh"; do
+    docker compose -f "${ROOT_DIR}/deploy/services.dev.yml" exec -T "${check%%|*}" sh -ec \
+      'test "$(id -u)" -ne 0; "$1" live; "$1" ready' -- "${check#*|}"
+  done
+fi
 
 echo "Checking authenticated NiFi API access."
 for attempt in $(seq 1 "$RETRIES"); do

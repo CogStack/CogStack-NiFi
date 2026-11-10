@@ -18,9 +18,11 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - "services/nginx/**"
+      - "deploy/services.yml"
       - "deploy/services.dev.yml"
       - "scripts/tests/check_nifi_resources.py"
       - "scripts/tests/smoke_nifi_services.sh"
+      - "scripts/tests/test_nifi_runtime.py"
       - "scripts/tests/smoke_http_checks.sh"
       - "!**/*.md"
       - "!**/README*"
@@ -54,6 +56,12 @@ jobs:
           set -euo pipefail
           make -C deploy init-security-nifi
 
+      - name: Validate published nginx startup
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml run --rm --no-deps nifi-nginx nginx -t
+
       - name: Smoke tests
         run: |
           set -euo pipefail
@@ -64,7 +72,6 @@ jobs:
         run: |
           set -euo pipefail
           source deploy/export_env_vars.sh
-          set -euo pipefail
           docker compose -f deploy/services.dev.yml ps
           docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx
 
@@ -73,5 +80,4 @@ jobs:
         run: |
           set -euo pipefail
           source deploy/export_env_vars.sh
-          set -euo pipefail
           docker compose -f deploy/services.dev.yml down -v
