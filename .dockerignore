@@ -11,6 +11,10 @@
 # endpoints, identifiers, or other data and are not reproducible inputs.
 nifi/conf/flow.json.gz
 nifi/conf/archive/
+nifi/user_scripts/logs/
+nifi/user_scripts/db/
+nifi/user_scripts/extensions/
+nifi/**/.venv/
 
 # Development and operating-system artefacts within the included source tree.
 nifi/**/__pycache__/

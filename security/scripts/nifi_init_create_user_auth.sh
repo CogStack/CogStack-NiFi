@@ -3,10 +3,9 @@
 # ==============================================================================
 # 🔐 Initialize NiFi Single-User Authentication (from host)
 #
-# This script:
-#   1. Starts the `cogstack-nifi` container (detached)
-#   2. Executes the single-user credential setup script inside the container
-#   3. Deletes the container afterward
+# Compatibility helper for older published images. Rebuilt images apply the
+# configured credentials automatically at startup. This helper only updates and
+# restarts the running NiFi service; it never deletes NiFi or proxy containers.
 #
 # ⚠️ Assumes that the following environment variables are injected into
 #     the container via `users_nifi.env` or equivalent:
@@ -28,32 +27,10 @@ DEPLOY_DIR="${REPO_ROOT}/deploy"
 # shellcheck disable=SC1091
 source "${DEPLOY_DIR}/export_env_vars.sh"
 
-remove_existing_nifi_containers() {
-  local container_id
-  local -a container_ids=()
-
-  while IFS= read -r container_id; do
-    if [[ -n "$container_id" ]]; then
-      container_ids+=("$container_id")
-    fi
-  done < <(docker ps -a -q --filter name="cogstack-nifi*")
-
-  if (( ${#container_ids[@]} > 0 )); then
-    docker container rm -f "${container_ids[@]}"
-  fi
-}
-
-echo "🧹 Removing any existing 'cogstack-nifi' container..."
-remove_existing_nifi_containers
-
-echo "🚀 Starting NiFi container (for credential injection)..."
-docker compose --project-directory "${DEPLOY_DIR}" -f "${DEPLOY_DIR}/services.yml" up -d nifi
-
-echo "🔐 Setting NiFi single-user credentials from inside the container..."
-docker exec cogstack-nifi \
-  /bin/bash /opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh
-
-echo "🧼 Removing temporary NiFi container..."
-remove_existing_nifi_containers
-
-echo "✅ NiFi single-user credential setup completed."
+compose=(docker compose --project-directory "$DEPLOY_DIR" -f "$DEPLOY_DIR/services.yml")
+# Expand these variables inside the container, not in the host shell.
+# shellcheck disable=SC2016
+"${compose[@]}" exec -T nifi /bin/bash -ec \
+  '"${NIFI_HOME}/bin/nifi.sh" set-single-user-credentials "${NIFI_SINGLE_USER_CREDENTIALS_USERNAME:?}" "${NIFI_SINGLE_USER_CREDENTIALS_PASSWORD:?}"'
+"${compose[@]}" restart nifi
+echo "NiFi credentials updated. Rebuilt images apply these settings automatically."

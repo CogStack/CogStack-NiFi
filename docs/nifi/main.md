@@ -24,9 +24,7 @@ Avro Schema:[official documentation](https://avro.apache.org/docs/1.11.1/)
 ```text
 ├── Dockerfile - contains the base definition of the NiFi image along with all the packages/addons installed
 ├── conf - NiFi configuration files, this folder is mounted on the NiFi service container at runtime, it needs to have read & write permissions by the user
-├── devel - custom folder that is mounted on the NiFi container where you may place your own scripts, again, read & write permissions required
-├── drivers - drivers used for DB connections, currently PostgreSQL and MSSQL
-├── nifi-app.log - log file mounted directly from the container for easy log checking
+├── drivers - JDBC drivers used for database connections
 ├── user_schemas - Avro schemas used within workflows, it can also contain other schemas used in specific custom processors
 ├── user_scripts - custom scripts used in workflows, you can put them here
 ├── user_python_extensions - Python FlowFileTransform processors exposed to NiFi's extension framework
@@ -37,23 +35,31 @@ For user script organization and usage guidelines, see [user scripts](user_scrip
 For Python extension processors, see [Python extensions](user_python_extensions.md).
 For end-to-end scripting patterns (including `ExecuteStreamCommand` stdin/stdout and args), see [processor scripting guide](processor_scripting.md).
 
+Runtime logs are stored in the `nifi-vol-logs` volume at
+`/opt/nifi/nifi-current/logs` inside the container. View startup and console logs
+from the repository root with:
+
+```bash
+source deploy/export_env_vars.sh
+docker compose -f deploy/services.yml logs --tail=100 -f nifi
+```
+
 ## Custom Docker image
 
 For any deployment it is recommended to build and use the custom Docker image of Apache NiFi that will contain all the necessary configuration, drivers, custom user scripts and workflows.
 
-The Docker image recipe is defined in `Dockerfile` file.
-There are two images being built as part of CI process:
+The Docker image recipe is defined in `nifi/Dockerfile`. Deployment uses the
+published image digest recorded in `deploy/nifi.env`. CI also publishes branch,
+commit, and release tags for selecting a future image update.
 
-- `cogstacksystems/cogstack-nifi:latest` - the latest image built from `master` branch,
-- `cogstacksystems/cogstack-nifi:dev-latest` - the latest image built from `devel` branch.
-
-There are also release images built for each release, for example:
-
-- `cogstacksystems/cogstack-nifi:1.0.0` - release 1.0
+`make -C deploy build-nifi-image` builds the source checkout using the separate
+`NIFI_LOCAL_DOCKER_IMAGE` tag. Run it through `make -C deploy start-nifi-dev`.
+See [Repeatable deployments](../deploy/reproducible.md) for the update procedure.
 
 ## Apache NiFi configuration
 
-The main configuration files for NiFi are provided in [`conf`](https://github.com/CogStack/CogStack-Nifi/conf) directory.
+The main configuration files for NiFi are provided in the
+[`nifi/conf`](https://github.com/CogStack/CogStack-NiFi/tree/main/nifi/conf) directory.
 
 This section provides only a brief description of the most useful properties that you may need to modify to fit your own setup.
 <br>
@@ -86,7 +92,15 @@ NIFI_DOCKER_RAM=6g
 NIFI_DOCKER_SHM_SIZE=2g
 ```
 
-Note: the current defaults in `deploy/nifi.env` are small development-oriented values, so production deployments should usually increase these settings.
+The reference profile uses a `768m` initial heap, a `1g` maximum heap, and a `2g`
+container limit. Larger document batches or additional Python processors may
+need more memory. Put deployment-specific settings in a copied `nifi.env`
+selected with `COGSTACK_CONFIG_DIR`; see
+[configuration profiles](../deploy/configuration.md#deployment-specific-overrides).
+
+`make -C deploy check-config` validates these settings before startup. NiFi start
+targets also reject a heap that reaches the container limit, or an initial
+heap larger than the maximum heap.
 
 For much more detailed information please refer to the official [Apache NiFi System Administrator's Guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html). Another good reference for these properties is the [Cloudera Doc](https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.3.1/nifi-system-properties/hdf-nifi-system-properties.pdf) which describes everything in detail.
 <br>
@@ -152,7 +166,9 @@ To build the NiFi image without starting services, run this command from the rep
 make -C deploy build-nifi-image
 ```
 
-The Make target loads the deployment environment and tags the image using `NIFI_DOCKER_IMAGE` from `deploy/nifi.env`.
+The Make target loads the selected deployment environment and tags the image
+using `NIFI_LOCAL_DOCKER_IMAGE` (default: `cogstack/cogstack-nifi:local`).
+`NIFI_DOCKER_IMAGE` selects the published image used by `services.yml`.
 
 ### <strong>`{bootstrap.conf}`</strong>
 
@@ -160,11 +176,14 @@ The Make target loads the deployment environment and tags the image using `NIFI_
 This file allows users to configure settings for how NiFi should be started, it deals with location of configuration folder, files, JVM heap and Java System Properties.
 
 ```text
-java.arg.2=-Xms8g
-java.arg.3=-Xmx16g
+java.arg.2=-Xms768m
+java.arg.3=-Xmx1g
 ```
 
-These properties specify the maximum memory that can be allocated to the JVM `-Xmx16g` and the initial memory allocation `-Xms8g`, values of 8g and 16g are used by default, however you may need to change these to fully utilise the memory of the machines you are spinning the service on.
+These are the reference profile's initial (`-Xms768m`) and maximum (`-Xmx1g`)
+JVM heap sizes. Set `NIFI_JVM_HEAP_INIT` and `NIFI_JVM_HEAP_MAX` in the selected
+`nifi.env` to change them. Keep the maximum heap below `NIFI_DOCKER_RAM` and run
+`make -C deploy check-config` before starting services.
 <br><br>
 
 ### <strong>`{logback.xml}`</strong>
@@ -204,7 +223,7 @@ The most useful log sections are:
 <root level="WARN">
 ```
 
-- This is controls that is logged into the `./nifi/nifi-app.log`
+- This sets the default logging level for loggers without a more specific setting.
 
 ### <strong>`{zookeeper.conf}`</strong>
 

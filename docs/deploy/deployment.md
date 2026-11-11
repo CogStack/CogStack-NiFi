@@ -135,6 +135,11 @@ helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
 > The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
 > The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
 
+Compose and Helm use the same OpenSearch and Dashboards 3.9.0 image digests.
+See [compatibility checks](reproducible.md#opensearch-compose-and-helm-compatibility)
+and the [credentials and certificate requirements](../security/elasticsearch_opensearch.md).
+The Helm Make targets also honor `COGSTACK_CONFIG_DIR`.
+
 ## ⎈ Helm (GitEA / Gitea)
 
 GitEA can be deployed with the official Gitea Helm chart. The Makefile adds the
@@ -252,16 +257,28 @@ make -C deploy remote-delete-service \
 | Command                 | Description                                |
 |------------------------|---------------------------------------------|
 | `make load-env`        | Load all environment variables              |
+| `make check-config`    | Validate selected configuration, NiFi memory, search settings, and both core Compose files |
+| `make check-nifi-resources` | Check JVM heap sizes against the container memory limit |
+| `make check-opensearch-settings` | Check search credentials, encryption keys, and image versions |
 | `make show-env`        | Print environment variables (sorted)        |
-| `make init-security`   | Generate missing NiFi, Gitea, and selected search-backend certificates |
+| `make init-security`   | Generate missing NiFi, PostgreSQL, Gitea, and selected search-backend certificates |
 | `make init-security-root-ca` | Generate the shared root CA if missing |
-| `make init-security-nifi` | Generate the NiFi certificate set if missing |
+| `make init-security-nifi` | Prepare NiFi certificates, mounted OpenSearch leaf/public CA files, and PostgreSQL CA files for maintained flows |
+| `make init-security-postgresql` | Generate the samples and databank PostgreSQL TLS bundles if missing |
 | `make init-security-gitea` | Generate the dedicated Gitea leaf certificate if missing |
 | `make init-security-opensearch` | Generate the OpenSearch certificate set if missing |
 | `make init-security-elasticsearch` | Generate the native Elasticsearch certificate set if missing |
 | `make git-freeze-security`   | Freeze all security submodules (read-only) |
 | `make git-unfreeze-security` | Unfreeze security submodules              |
-| `make git-update-submodules` | Update all submodules                      |
+| `make git-init-submodules` | Initialize submodules at the recorded commits |
+| `make git-update-submodules` | Explicitly upgrade direct submodules for review; no staging or commits |
+
+See [Repeatable deployments](./reproducible.md) for image pins, submodule
+upgrades, and local build commands.
+
+For rebuilt NiFi/nginx images, see [NiFi container runtime](./nifi-runtime.md) for
+automatic credentials, non-root file permissions, persistent configuration and
+health checks. Existing published image digests are updated as a separate release.
 
 ---
 

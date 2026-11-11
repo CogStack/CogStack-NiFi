@@ -1,12 +1,9 @@
-name: submodules-sync
+name: submodules-pinned
 
 on:
-
   push:
     branches: ['**']
-    tags: ['v*.*.*']
-  release:
-    types: [published]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -14,47 +11,30 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  sync:
-    name: 'Submodules Sync'
+  verify:
+    name: Verify recorded submodule commits
     runs-on: ubuntu-latest
-    
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-
     steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
-    - name: Checkout
-      uses: actions/checkout@v7
-      with:
-        token: ${{ github.token }}
-        submodules: recursive
-        fetch-depth: 0
+      - name: Initialize recorded commits
+        run: ./scripts/git_init_submodules_in_repo.sh
 
-    - name: Sync submodules using repository script
-      id: sync_submodules
-      run: |
-        set -euo pipefail
-        before_sha="$(git rev-parse HEAD)"
+      - name: Verify recursive checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(git submodule status --recursive)"
+          printf '%s\n' "$status"
+          if grep -Eq '^[-+U]' <<< "$status"; then
+            echo "Submodules do not match the recorded commits." >&2
+            exit 1
+          fi
 
-        # script may create a commit when submodule pointers change
-        git config user.name  "Git bot"
-        git config user.email "bot@noreply.github.com"
-        ./scripts/git_update_submodules_in_repo.sh
-
-        after_sha="$(git rev-parse HEAD)"
-        if [ "$before_sha" != "$after_sha" ]; then
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-          git show --no-patch --oneline "$after_sha"
-        else
-          echo "changed=false" >> "$GITHUB_OUTPUT"
-          echo "No submodule pointer changes."
-        fi
-
-    - name: Push sync commit
-      if: startsWith(github.ref, 'refs/heads/') && steps.sync_submodules.outputs.changed == 'true'
-      run: git push origin HEAD:${GITHUB_REF##refs/heads/}
+      - name: Test initialization and explicit upgrades
+        run: python3 -B -m unittest discover -s scripts/tests -p test_submodule_checkout.py -v

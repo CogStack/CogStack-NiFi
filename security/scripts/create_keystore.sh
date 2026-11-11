@@ -24,13 +24,16 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 
 SECURITY_CERTIFICATES_FOLDER="../certificates/"
-SECURITY_ENV_FOLDER="../env/"
 
 ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
 
-source "${SECURITY_ENV_FOLDER}certificates_general.env"
+# shellcheck disable=SC1090
+source "$(cogstack_env_file security/env/certificates_general.env)" || exit 1
 
 # Validate required variables
 : "${ROOT_CERTIFICATE_NAME:?ROOT_CERTIFICATE_NAME must be set in certificates_general.env}"

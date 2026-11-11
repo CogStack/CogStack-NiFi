@@ -1,9 +1,33 @@
 name: smoke-nifi-services
 
 on:
-  pull_request:
   push:
     branches: ['**']
+    paths: &paths
+      - ".github/workflows/smoke_nifi_services.yml"
+      - ".gitattributes"
+      - "deploy/Makefile"
+      - "deploy/export_env_vars.sh"
+      - "deploy/config_files.sh"
+      - "deploy/*.env"
+      - "security/env/*.env"
+      - "security/scripts/**"
+      - "security/templates/**"
+      - ".dockerignore"
+      - "nifi/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "services/nginx/**"
+      - "deploy/services.yml"
+      - "deploy/services.dev.yml"
+      - "scripts/tests/check_nifi_resources.py"
+      - "scripts/tests/smoke_nifi_services.sh"
+      - "scripts/tests/test_nifi_runtime.py"
+      - "scripts/tests/smoke_http_checks.sh"
+      - "!**/*.md"
+      - "!**/README*"
+  pull_request:
+    paths: *paths
   workflow_dispatch:
 
 concurrency:
@@ -28,11 +52,15 @@ jobs:
           java-version: '21'
 
       - name: Generate certificates
-        working-directory: security/scripts
         run: |
           set -euo pipefail
-          ./create_root_ca_cert.sh
-          ./create_nifi_certs.sh
+          make -C deploy init-security-nifi
+
+      - name: Validate published nginx startup
+        run: |
+          set -euo pipefail
+          source deploy/export_env_vars.sh
+          docker compose -f deploy/services.yml run --rm --no-deps nifi-nginx nginx -t
 
       - name: Smoke tests
         run: |
@@ -44,7 +72,6 @@ jobs:
         run: |
           set -euo pipefail
           source deploy/export_env_vars.sh
-          set -euo pipefail
           docker compose -f deploy/services.dev.yml ps
           docker compose -f deploy/services.dev.yml logs --no-color nifi nifi-nginx
 
@@ -53,5 +80,4 @@ jobs:
         run: |
           set -euo pipefail
           source deploy/export_env_vars.sh
-          set -euo pipefail
           docker compose -f deploy/services.dev.yml down -v

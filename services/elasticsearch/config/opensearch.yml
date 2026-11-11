@@ -15,7 +15,7 @@ discovery.type: zen
 plugins.security.ssl.transport.pemcert_filepath: esnode.crt
 plugins.security.ssl.transport.pemkey_filepath: esnode.key
 plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.crt
-plugins.security.ssl.transport.enforce_hostname_verification: false
+transport.ssl.enforce_hostname_verification: false
 #plugins.security.ssl.transport.keystore_filepath: esnode-pcks12.key
 #plugins.security.ssl.transport.truststore_filepath: esnode-pcks12.key
 plugins.security.ssl.http.enabled: true
@@ -58,6 +58,11 @@ cluster.routing.allocation.disk.threshold_enabled: true
 plugins.security.ssl.http.clientauth_mode : OPTIONAL
 
 plugins.security.roles_mapping_resolution: MAPPING_ONLY
+
+# Keep these values identical on every node. Shared development values are in
+# security/env/users_elasticsearch.env; inject deployment-specific values in production.
+plugins.security.compliance.salt: ${OPENSEARCH_COMPLIANCE_SALT}
+plugins.query.datasources.encryption.masterkey: ${OPENSEARCH_DATASOURCE_MASTER_KEY}
 
 ############## REST Management API configuration settings ##############
 # Enable or disable role based access to the REST management API
@@ -176,9 +181,9 @@ plugins.security.audit.config.enable_ssl_client_auth: true
 # Specify a list of roles a user must be member of to touch any protected index.
 # plugins.security.protected_indices.roles: ['all_access']
 
-# System indices are similar to security index, except the contents are not encrypted.
-# Indices configured as system indices can be accessed by only super-admin and no role will provide access to these indices.
-# Enable system indices
+# Bundled plugins register their system indices with OpenSearch. Protect those
+# registered indices without the deprecated plugins.security.system_indices.indices list.
+# Allow explicit system:admin/system_index role permissions as well as super-admin access.
 plugins.security.system_indices.enabled: true
 plugins.security.system_indices.permission.enabled: true
 
@@ -228,22 +233,6 @@ plugins.ppl.enabled: true
 plugins.calcite.enabled: true
 # WARNING: exists only in OpenSearch > 3.4, please DISABLE if you are not on this version as this setting doesn't exist.
 plugins.calcite.all_join_types.allowed: true
-
-# Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
-plugins.security.system_indices.indices: [
-  ".opensearch_dashboards*",
-  ".opensearch-alerting-config",
-  ".opensearch-notifications-*",
-  ".opendistro-ism-*",
-  ".opendistro-reports-*",
-  ".opendistro-asynchronous-search-response*",
-  ".replication-metadata-store",
-  ".opendistro-notebooks",
-  ".opendistro-anomaly-results*", 
-  ".opendistro-anomaly-detector*", 
-  ".opendistro-anomaly-checkpoints",
-  ".opendistro-anomaly-detection-state"
-]
 
 # coordinator-level kill switch for searches
 search.cancel_after_time_interval: 5m

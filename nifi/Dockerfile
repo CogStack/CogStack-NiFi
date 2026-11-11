@@ -1,10 +1,11 @@
-ARG NIFI_VERSION=2.12.0
+# syntax=docker/dockerfile:1
+ARG NIFI_BASE_IMAGE=apache/nifi:2.12.0@sha256:6f7f2840dbf178c6dd3fa13435b9b358f3be3c6fb7417de467a35a267f4d28ad
 
-FROM apache/nifi:${NIFI_VERSION}
+FROM ${NIFI_BASE_IMAGE}
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG NIFI_VERSION
+ARG NIFI_VERSION=2.12.0
 ARG GROOVY_VERSION=5.1.0
 
 ARG HTTP_PROXY=""
@@ -12,33 +13,17 @@ ARG HTTPS_PROXY=""
 ARG no_proxy=""
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG NIFI_UID=1000
-ARG NIFI_GID=1000
-ARG UID=${NIFI_UID:-1000}
-ARG GID=${NIFI_GID:-1000}
 ARG TZ="Europe/London"
-ARG NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY="/opt/nifi/nifi-current/python/framework"
-ARG NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT="/opt/nifi/nifi-current/python_extensions"
-ARG NIFI_PYTHON_WORKING_DIRECTORY="/opt/nifi/user_scripts"
 
 ENV TZ=${TZ}
-ENV NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY}
-ENV NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT=${NIFI_PYTHON_EXTENSIONS_SOURCE_DIRECTORY_DEFAULT}
-ENV NIFI_PYTHON_WORKING_DIRECTORY=${NIFI_PYTHON_WORKING_DIRECTORY}
-ENV PYTHONPATH=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY}
+ENV PYTHONPATH=${NIFI_HOME}/python/framework
 
 # python stuff
 ENV PIP_PREFER_BINARY=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_CACHE_DIR=1
-# Enables Python to generate .pyc files in the container
-ENV PYTHONDONTWRITEBYTECODE=0
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
-
-# default env vars to prevent NiFi from running on HTTP
-ENV NIFI_WEB_HTTP_PORT=""
-ENV NIFI_WEB_HTTP_HOST=""
 
 USER root
 
@@ -109,18 +94,9 @@ RUN uv export \
     && uv pip install \
       --no-cache-dir \
       --break-system-packages \
-      --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} \
+      --target=${NIFI_HOME}/python/framework \
       -r /tmp/cogstack_nifi/requirements.txt \
       --index-url https://pypi.org/simple
-
-# install the local cogstack_nifi package so nifi.user_scripts imports resolve
-COPY nifi /tmp/cogstack_nifi/nifi
-RUN uv pip install \
-      --no-cache-dir \
-      --break-system-packages \
-      --no-deps \
-      --target=${NIFI_PYTHON_FRAMEWORK_SOURCE_DIRECTORY} \
-      /tmp/cogstack_nifi
 
 #######################################################################################################
 
@@ -129,12 +105,9 @@ ENV JAVA_OPTS="-Dhttp.proxyHost=${HTTP_PROXY} -Dhttps.proxyHost=${HTTPS_PROXY} -
 
 
 # Install Groovy
-RUN mkdir -p /opt/nifi/groovy
-WORKDIR /opt/nifi/groovy/
+WORKDIR /opt/nifi/groovy
 
 RUN set -eux; \
-  mkdir -p /opt/nifi/groovy; \
-  cd /opt/nifi/groovy; \
   url1="https://archive.apache.org/dist/groovy/${GROOVY_VERSION}/distribution/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
   url2="https://repo.maven.apache.org/maven2/org/apache/groovy/apache-groovy-binary/${GROOVY_VERSION}/apache-groovy-binary-${GROOVY_VERSION}.zip"; \
   curl -fsSL --retry 8 --retry-delay 3 --connect-timeout 20 -o groovy.zip "$url1" \
@@ -148,95 +121,95 @@ RUN $GROOVY_BIN/grape -V install org.apache.avro avro 1.12.0
 # INSTALL NAR extensions 
 WORKDIR /opt/nifi/nifi-current/lib/
 
-# Install additional NAR extensions.
+# Apache's base image already provides the standard NARs; add only missing extensions.
 RUN set -eux; \
   base="https://repo.maven.apache.org/maven2/org/apache/nifi"; \
   nars=( \
-    nifi-atlassian-nar \
-    nifi-aws-nar \
-    nifi-aws-service-api-nar \
-    nifi-aws-kinesis-nar \
-    nifi-azure-nar \
-    nifi-azure-services-api-nar \
     nifi-snowflake-processors-nar \
     nifi-snowflake-services-nar \
     nifi-snowflake-services-api-nar \
-    nifi-smb-nar \
-    nifi-slack-nar \
-    nifi-solr-nar \
     nifi-sql-reporting-nar \
     nifi-parquet-nar \
-    nifi-database-dialect-service-nar \
-    nifi-jolt-nar \
     nifi-iotdb-nar \
-    nifi-kafka-to-s3-nar \
-    nifi-kafka-service-api-nar \
-    nifi-kafka-service-aws-nar \
-    nifi-kafka-nar \
-    nifi-kerberos-iaa-providers-nar \
-    nifi-key-service-nar \
-    nifi-iceberg-shared-nar \
-    nifi-iceberg-service-api-nar \
-    nifi-iceberg-services-api-nar \
-    nifi-iceberg-processors-nar \
-    nifi-iceberg-rest-catalog-nar \
-    nifi-iceberg-azure-nar \
-    nifi-iceberg-aws-nar \
-    nifi-iceberg-gcs-nar \
-    nifi-iceberg-parquet-writer-nar \
-    nifi-hashicorp-vault-nar \
-    nifi-hashicorp-vault-client-service-api-nar \
     nifi-hadoop-libraries-nar \
     nifi-hadoop-nar \
-    nifi-hl7-nar \
-    nifi-github-nar \
-    nifi-grpc-nar \
-    nifi-groovyx-nar \
-    nifi-geohash-nar \
-    nifi-gitlab-nar \
     nifi-graph-nar \
     nifi-other-graph-services-nar \
     nifi-graph-client-service-api-nar \
     nifi-couchbase-nar \
-    nifi-framework-zookeeper-nar \
-    nifi-framework-kubernetes-nar \
-    nifi-framework-nar \
-    nifi-flow-registry-client-nar \
     nifi-media-nar \
-    nifi-mqtt-nar \
-    nifi-mongodb-nar \
     nifi-neo4j-cypher-service-nar \
     nifi-nar-provider-service-api-nar \
-    nifi-prometheus-nar \
-    nifi-opentelemetry-nar \
-    nifi-protobuf-services-nar \
-    nifi-py4j-nar \
-    nifi-redis-service-api-nar \
   ); \
   for a in "${nars[@]}"; do \
      url="${base}/${a}/${NIFI_VERSION}/${a}-${NIFI_VERSION}.nar"; \
      echo "Downloading $a"; \
-     if ! curl -fsSL \
+     curl -fsSL \
        --connect-timeout 20 \
        --retry 5 \
        --retry-connrefused \
        --retry-delay 3 \
        --retry-max-time 120 \
        -o "${a}-${NIFI_VERSION}.nar" \
-       "$url"; then \
-       echo "WARNING: NAR unavailable: $a @ ${NIFI_VERSION}"; \
-       rm -f "${a}-${NIFI_VERSION}.nar"; \
-     fi; \
-  done; \
-  chown ${UID}:${GID} ./*.nar
+       "$url"; \
+  done
 
 ########################################################################################################
 
-# copy configuration files
-WORKDIR /opt/nifi/nifi-current/conf/
+# Baseline resources work without a repository checkout. Processor directories
+# can still be overridden by writable, deployment-owned volumes.
+COPY nifi/__init__.py /tmp/cogstack_nifi/nifi/__init__.py
+COPY nifi/user_scripts /tmp/cogstack_nifi/nifi/user_scripts
+COPY nifi/user_python_extensions /tmp/cogstack_nifi/nifi/user_python_extensions
+RUN uv pip install --no-cache-dir --break-system-packages --no-deps \
+      --target=${NIFI_HOME}/python/framework /tmp/cogstack_nifi
 
-# finalize
-WORKDIR /opt/nifi/nifi-current/
+ARG NIFI_UID=1000
+ARG NIFI_GID=1000
 
-# add log file
-RUN touch logs/nifi-app.log
+COPY --chown=${NIFI_UID}:${NIFI_GID} nifi/drivers /opt/nifi/drivers
+COPY --chown=${NIFI_UID}:${NIFI_GID} nifi/user_schemas /opt/nifi/user_schemas
+COPY --chown=${NIFI_UID}:${NIFI_GID} nifi/user_templates /opt/nifi/user_templates
+COPY --chown=${NIFI_UID}:${NIFI_GID} nifi/user_scripts /opt/nifi/user_scripts
+COPY --chown=${NIFI_UID}:${NIFI_GID} nifi/user_python_extensions /opt/nifi/nifi-current/python_extensions
+COPY --chmod=755 nifi/docker/healthcheck.sh /opt/nifi/scripts/cogstack-healthcheck.sh
+
+# Keep Apache's configuration defaults and startup script. Deployment credentials
+# and mutable configuration from the checkout never enter the image.
+RUN sed -i \
+      -e 's|^nifi.security.autoreload.enabled=.*|nifi.security.autoreload.enabled=true|' \
+      -e 's|^nifi.flowcontroller.graceful.shutdown.period=.*|nifi.flowcontroller.graceful.shutdown.period=30 sec|' \
+      "${NIFI_HOME}/conf/nifi.properties" \
+    && sed -i 's|^graceful.shutdown.seconds=.*|graceful.shutdown.seconds=60|' "${NIFI_HOME}/conf/bootstrap.conf" \
+    && cp -a "${NIFI_HOME}/conf" /tmp/cogstack_nifi/nifi/conf
+
+# Apache ships owner-only executables; remap them only for custom UID builds.
+RUN set -eux; \
+    if [ "$(id -g nifi)" != "${NIFI_GID}" ]; then groupmod -o -g "${NIFI_GID}" nifi; fi; \
+    if [ "$(id -u nifi)" != "${NIFI_UID}" ]; then \
+      usermod -o -u "${NIFI_UID}" nifi; \
+      chown -R "${NIFI_UID}:${NIFI_GID}" "${NIFI_HOME}" "${NIFI_TOOLKIT_HOME}"; \
+    fi; \
+    mkdir -p "${NIFI_HOME}/run" "${NIFI_HOME}/work/python" \
+      "${NIFI_HOME}/logs/user_scripts" "${NIFI_HOME}/state/user_scripts/db" \
+      /opt/nifi/pipeline/flowfile-errors /data /opt/models; \
+    rm -rf "${NIFI_HOME}/python/framework/nifi/user_scripts"; \
+    ln -s /opt/nifi/user_scripts "${NIFI_HOME}/python/framework/nifi/user_scripts"; \
+    ln -s /opt/nifi/drivers /tmp/cogstack_nifi/nifi/drivers; \
+    ln -s /opt/nifi/user_schemas /tmp/cogstack_nifi/nifi/user_schemas; \
+    ln -s /opt/nifi/user_templates /tmp/cogstack_nifi/nifi/user_templates; \
+    chown -R "${NIFI_UID}:${NIFI_GID}" \
+      "${NIFI_HOME}"/{conf,logs,run,work,database_repository,flowfile_repository,content_repository,provenance_repository,state,nar_extensions,python_extensions} \
+      /home/nifi /opt/nifi/pipeline/flowfile-errors /data /opt/models
+
+ENV HOME=/home/nifi
+ENV NIFI_WEB_HTTPS_HOST="0.0.0.0"
+ENV PATH=/usr/local/bin:${JAVA_HOME}/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV UV_CACHE_DIR=/opt/nifi/nifi-current/work/python/uv-cache
+ENV PYTHONPYCACHEPREFIX=/opt/nifi/nifi-current/work/python/pycache
+ENV NIFI_USER_SCRIPT_LOGS_DIR=/opt/nifi/nifi-current/logs/user_scripts
+ENV NIFI_USER_SCRIPT_DB_DIR=/opt/nifi/nifi-current/state/user_scripts/db
+WORKDIR /opt/nifi/nifi-current
+USER ${NIFI_UID}:${NIFI_GID}
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=3 \
+  CMD ["/opt/nifi/scripts/cogstack-healthcheck.sh", "ready"]

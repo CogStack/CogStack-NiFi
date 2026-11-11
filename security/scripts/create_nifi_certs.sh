@@ -2,18 +2,20 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC1090,SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh" || exit 1
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SECURITY_TEMPLATES_FOLDER="${SCRIPT_DIR}/../templates/"
 SECURITY_CERTIFICATES_FOLDER="${SCRIPT_DIR}/../certificates/"
-SECURITY_ENV_FOLDER="${SCRIPT_DIR}/../env/"
 ROOT_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}root/"
 NIFI_CERTIFICATES_FOLDER="${SECURITY_CERTIFICATES_FOLDER}nifi/"
 
 # These paths are resolved dynamically from this script's location.
 # shellcheck disable=SC1090
-source "${SECURITY_ENV_FOLDER}certificates_general.env"
+source "$(cogstack_env_file security/env/certificates_general.env)" || exit 1
 # shellcheck disable=SC1090
-source "${SECURITY_ENV_FOLDER}certificates_nifi.env"
+source "$(cogstack_env_file security/env/certificates_nifi.env)" || exit 1
 
 : "${ROOT_CERTIFICATE_NAME:?Must be set in certificates_general.env}"
 : "${NIFI_CERTIFICATE_TIME_VAILIDITY_IN_DAYS:?Must be set in certificates_nifi.env}"

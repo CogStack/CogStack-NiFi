@@ -26,7 +26,6 @@ The core services defined in `services.yml` include:
 - **nifi-nginx** — Reverse proxy providing secure access to NiFi.
 - **kibana** — Kibana or OpenSearch Dashboards, depending on the backend.
 - **gitea** — Self-hosted Git service.
-- **cogstack-cohort** — Cohort discovery interface.
 
 Additional services, including MedCAT, MedCAT Trainer, OCR, and JupyterHub, are
 started from Compose files in their respective `services/` directories.
@@ -190,6 +189,16 @@ Demo dataset with:
 - cleaned reports  
 - annotation tables  
 
+The bootstrap script, schemas, and compressed dumps are supplied together through
+one read-only mount of `services/pgsamples/` at `/docker-entrypoint-initdb.d`.
+The loader resolves its input paths relative to that directory. Set
+`POSTGRES_SAMPLES_DB_NAME` in `deploy/database.env` to choose the sample database
+name; Compose passes it to the official image as `POSTGRES_DB`.
+
+TLS is required by default. Run `make -C deploy init-security-postgresql` (or
+`init-security`) before starting the service. The sample JDBC URL verifies the
+server certificate and hostname using the CA mounted into NiFi.
+
 ### Access
 
 - `localhost:5554`
@@ -203,6 +212,10 @@ Demo dataset with:
 
 Local development credentials are defined in `security/env/users_database.env`. Override them for non-local deployments.
 
+NiFi uses the read-only `POSTGRES_INGEST_USER_SAMPLES` account rather than the
+bootstrap administrator. See [Docker database security](../security/databases.md)
+for credential configuration, existing-volume upgrades, and TLS.
+
 ---
 
 ## 🏦 Cogstack databank production DB (Production only: PgSQL, MSSQL)
@@ -210,16 +223,84 @@ Local development credentials are defined in `security/env/users_database.env`. 
 Empty database for production ingestion pipelines.  
 Supports both PostgreSQL and MSSQL.
 
-Place schema files inside and they will be loaded instantly on container startup:  
+Place schema files inside:
 
 ```bash
 services/cogstack-db/<DB_PROVIDER>/schemas/
 ```
 
 Where `<DB_PROVIDER>` can be `mssql` or `pgsql`.
+
+PostgreSQL applies its initialization SQL only when its data volume is first
+created. Compose sets `POSTGRES_DB` from `DATABASE_DB_NAME`, and the official
+PostgreSQL entrypoint creates the database before running the bundled loader.
+PostgreSQL requires TLS by default; generate its certificate bundle with
+`make -C deploy init-security-postgresql` (also included in `init-security`) or
+provide a trusted bundle through `POSTGRES_DATABANK_TLS_DIR`.
+SQL Server runs as the main process in its own container; a separate
+`cogstack-databank-db-mssql-init` client job waits for a successful query, creates
+the configured database if needed, applies `cogstack_db*.sql` files in filename
+order, and then applies `annotations_nlp_create_schema.sql`. SQL errors fail the
+job instead of being hidden by a sleeping server wrapper.
+
+Start SQL Server and wait for initialization to finish with:
+
+```bash
+make -C deploy start-production-db-mssql
+```
+
+Use `make -C deploy stop-production-db-mssql` to stop it without removing data.
+For direct Compose use, load `deploy/export_env_vars.sh` and start both
+`cogstack-databank-db-mssql` and `cogstack-databank-db-mssql-init`. Starting only
+the server does not run the initializer.
+
+The job uses `DATABASE_DB_NAME` and `POSTGRES_DB_SCHEMA_PREFIX` from the shared
+database configuration. Its readiness wait defaults to 60 attempts, two seconds
+apart (each connection attempt has a five-second login timeout). Override
+`MSSQL_INIT_RETRIES` and `MSSQL_INIT_RETRY_DELAY_SECONDS` in the initializer's
+environment if necessary. The bundled tables use the `CogStack` SQL schema
+within the selected database. The job always requests TLS. The development
+default `MSSQL_TRUST_SERVER_CERTIFICATE=true` accepts the self-signed server
+certificate; set `false` with a trusted CA to enable certificate verification.
+
+Bundled MSSQL initialization preserves existing tables and data on repeat runs.
+It does not alter existing column definitions. Apply explicit migrations when
+updating an existing schema, and make any site-specific initialization SQL safe
+to rerun. SQL files stay mounted read-only so on-premises operators can maintain
+them independently of the database image.
+
+Each initializer uses one read-only bootstrap directory:
+
+| Service | Host directory | Container directory |
+|---|---|---|
+| `samples-db` | `services/pgsamples/` | `/docker-entrypoint-initdb.d` |
+| `cogstack-databank-db` | `services/cogstack-db/pgsql/` | `/docker-entrypoint-initdb.d` |
+| `cogstack-databank-db-mssql-init` | `services/cogstack-db/mssql/` | `/bootstrap` |
+
+The MSSQL job executes `/bootstrap/init_db.sh` and reads `/bootstrap/schemas/` by
+default. PostgreSQL reads its loader's sibling `schemas/` directory, plus
+`db_dump/` for samples. These directories stay editable on the host. Updating
+mounted SQL does not automatically migrate existing PostgreSQL databases.
+
+### Storage and memory
+
+- PostgreSQL retains the existing `databank-vol` volume.
+- SQL Server uses its own `databank-mssql-vol` volume at `/var/opt/mssql`.
+- The shared `DATABASE_DOCKER_RAM` default is `2g`, including the sample database.
+
+Existing deployments that stored MSSQL files in the formerly shared
+`databank-vol` must back up and restore their MSSQL databases into the dedicated
+volume before switching. No existing volumes are automatically moved or deleted.
+
 ### Credentials
 
 PostgreSQL and MSSQL development credentials are defined in `security/env/users_database.env`. Production credentials must be injected through deployment-local configuration or a secret manager.
+
+Applications use the separate `DATABASE_INGEST_USER` and `MSSQL_INGEST_USER`
+accounts. Their grants cover read/write access to application tables, without
+database or schema administration. Host ports default to loopback. See
+[Docker database security](../security/databases.md) for scope, provisioning,
+network overrides, and verified TLS deployment.
 
 ### Access
 
@@ -464,6 +545,13 @@ Image selection controlled by:
 - Must be started after Elasticsearch/OpenSearch  
 - Connects automatically using `ELASTICSEARCH_HOSTS`  
 - TLS/user settings are applied from the `/security` env files  
+
+---
+
+## 🤖 OpenSearch AI with SGLang
+
+To connect OpenSearch Dashboards AI features to an existing SGLang server, see
+the [OpenSearch AI with SGLang](./sglang.md) deployment guide.
 
 ---
 

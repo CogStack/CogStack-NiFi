@@ -1,24 +1,19 @@
-# IDE envs and system folders
+# Editor files, Python environments, and build caches
 .DS_Store
-**/.DS_Store
-.idea
-.vscode
-.venv
-.ruff_cache
-.mypy_cache
-venv
-**__pycache__
-**/venv
-*.pyc 
+.idea/
+.vscode/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
 .pyc
-build
-
-# Ignore setuptools metadata
-*.egg-info/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+build/
 *.egg-info
-**/*.egg-info/
 
-# keys and certificates
+# Generated keys, certificates, and certificate-tool downloads
 *.pem
 *.key
 *.jks
@@ -26,31 +21,44 @@ build
 *.srl
 *.crt
 *.p12
-
 *elasticsearch-ssl-http.zip
 *es_native_certs_bundle_pem.zip
 *es_native_certs_bundle.zip
 
-# env files with passwords or local paths
-*.env
-security/certificates/
-security/certificates/**
-security/env/
-security/env/**
-security/scripts/nifi_toolkit/
-security/scripts/nifi_toolkit/**
-security/templates/
-security/templates/**
+/security/certificates/*
+!/security/certificates/README.md
+/security/scripts/nifi_toolkit/
 
-# docs
-docs/build/*
-site/
-
-# Ignore all .env files at any level
-.env
+# Local configuration stays ignored; public templates can be committed.
 *.env
-**/*.env
+.env.*
 !*.env.template
-!**/*.env.template
-!deploy/ollama.env
-!deploy/openwebui.env
+/deploy/local/
+/security/env/*
+!/security/env/README.md
+!/security/env/*.env.template
+
+# Checked-in deployment defaults contain public development settings.
+!/deploy/database.env
+!/deploy/elasticsearch.env
+!/deploy/general.env
+!/deploy/gitea.env
+!/deploy/network_settings.env
+!/deploy/nginx.env
+!/deploy/nifi.env
+!/deploy/ollama.env
+!/deploy/openwebui.env
+!/deploy/project.env
+!/deploy/sglang.env
+!/deploy/telemetry.env
+!/security/env/certificates_elasticsearch.env
+!/security/env/certificates_general.env
+!/security/env/certificates_nifi.env
+!/security/env/users_database.env
+!/security/env/users_elasticsearch.env
+!/security/env/users_nginx.env
+!/security/env/users_nifi.env
+
+# Documentation output
+/docs/build/
+/site/

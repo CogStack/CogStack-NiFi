@@ -8,33 +8,140 @@ x-nifi-logging-common: &nifi-logging-common
     max-size: ${NIFI_DOCKER_LOG_SIZE_PER_FILE:-250m}
     max-file: ${NIFI_DOCKER_LOG_NUM_FILES:-10}
 
-x-all-env: &all-env
-  - ./project.env
-  - ./general.env
-  - ./nifi.env
-  - ./gitea.env
-  - ./nginx.env
-  - ./telemetry.env
-  - ./database.env
-  - ./elasticsearch.env
-  - ./network_settings.env
-  - ../security/env/users_nifi.env
-  - ../security/env/users_database.env
-  - ../security/env/users_nginx.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_general.env
-  - ../security/env/certificates_elasticsearch.env
-  - ../security/env/certificates_nifi.env
+x-env-files:
+  all: &all-env
+    - "${COGSTACK_PROJECT_ENV_FILE:-./project.env}"
+    - "${COGSTACK_GENERAL_ENV_FILE:-./general.env}"
+    - "${COGSTACK_NIFI_ENV_FILE:-./nifi.env}"
+    - "${COGSTACK_GITEA_ENV_FILE:-./gitea.env}"
+    - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
+    - "${COGSTACK_TELEMETRY_ENV_FILE:-./telemetry.env}"
+    - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+    - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+    - "${COGSTACK_USERS_NIFI_ENV_FILE:-../security/env/users_nifi.env}"
+    - "${COGSTACK_USERS_NGINX_ENV_FILE:-../security/env/users_nginx.env}"
+    - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+    - "${COGSTACK_CERTIFICATES_GENERAL_ENV_FILE:-../security/env/certificates_general.env}"
+    - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
+    - "${COGSTACK_CERTIFICATES_NIFI_ENV_FILE:-../security/env/certificates_nifi.env}"
 
-x-es-env: &es-env
-  - ./network_settings.env
-  - ./elasticsearch.env
-  - ../security/env/users_elasticsearch.env
-  - ../security/env/certificates_elasticsearch.env
+  search: &es-env
+    - "${COGSTACK_NETWORK_SETTINGS_ENV_FILE:-./network_settings.env}"
+    - "${COGSTACK_ELASTICSEARCH_ENV_FILE:-./elasticsearch.env}"
+    - "${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE:-../security/env/users_elasticsearch.env}"
+    - "${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE:-../security/env/certificates_elasticsearch.env}"
 
-x-db-env: &db-env
-  - ./database.env
-  - ../security/env/users_database.env
+  nifi-nginx: &nifi-nginx-env-files
+    - "${COGSTACK_NGINX_ENV_FILE:-./nginx.env}"
+
+x-env:
+  nifi: &nifi-env
+    POSTGRES_SAMPLES_DB_NAME: ${POSTGRES_SAMPLES_DB_NAME:-db_samples}
+    POSTGRES_SAMPLES_JDBC_URL: ${POSTGRES_SAMPLES_JDBC_URL:-jdbc:postgresql://samples-db:5432/${POSTGRES_SAMPLES_DB_NAME:-db_samples}?sslmode=verify-full&sslrootcert=/run/database-cas/samples-ca.crt}
+    POSTGRES_INGEST_USER_SAMPLES: ${POSTGRES_INGEST_USER_SAMPLES:-cogstack_samples}
+    POSTGRES_INGEST_PASSWORD_SAMPLES: ${POSTGRES_INGEST_PASSWORD_SAMPLES:?Set the sample ingestion password}
+    DATABASE_DB_NAME: ${DATABASE_DB_NAME:-cogstack}
+    DATABASE_INGEST_USER: ${DATABASE_INGEST_USER:-cogstack_ingest}
+    DATABASE_INGEST_PASSWORD: ${DATABASE_INGEST_PASSWORD:?Set the PostgreSQL ingestion password}
+    MSSQL_INGEST_USER: ${MSSQL_INGEST_USER:-cogstack_ingest}
+    MSSQL_INGEST_PASSWORD: ${MSSQL_INGEST_PASSWORD:?Set the MSSQL ingestion password}
+
+    # Apache's native startup settings; existing deployment env names remain supported.
+    AUTH: ${AUTH:-tls}
+    NIFI_SECURITY_USER_AUTHORIZER: ${NIFI_SECURITY_USER_AUTHORIZER:-single-user-authorizer}
+    NIFI_SECURITY_USER_LOGIN_IDENTITY_PROVIDER: ${NIFI_SECURITY_USER_LOGIN_IDENTITY_PROVIDER:-single-user-provider}
+    SINGLE_USER_CREDENTIALS_USERNAME: ${SINGLE_USER_CREDENTIALS_USERNAME:-${NIFI_SINGLE_USER_CREDENTIALS_USERNAME}}
+    SINGLE_USER_CREDENTIALS_PASSWORD: ${SINGLE_USER_CREDENTIALS_PASSWORD:-${NIFI_SINGLE_USER_CREDENTIALS_PASSWORD}}
+    KEYSTORE_PATH: ${KEYSTORE_PATH:-${NIFI_KEYSTORE_PATH}}
+    KEYSTORE_TYPE: ${KEYSTORE_TYPE:-${NIFI_KEYSTORE_TYPE}}
+    KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD:-${NIFI_KEYSTORE_PASSWORD}}
+    TRUSTSTORE_PATH: ${TRUSTSTORE_PATH:-${NIFI_TRUSTSTORE_PATH}}
+    TRUSTSTORE_TYPE: ${TRUSTSTORE_TYPE:-${NIFI_TRUSTSTORE_TYPE}}
+    TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD:-${NIFI_TRUSTSTORE_PASSWORD}}
+    NIFI_WEB_HTTPS_PORT: ${NIFI_WEB_HTTPS_PORT:-${NIFI_INTERNAL_PORT:-8443}}
+    NIFI_REMOTE_INPUT_SOCKET_PORT: ${NIFI_REMOTE_INPUT_SOCKET_PORT:-${NIFI_INPUT_SOCKET_PORT:-10000}}
+    PYTHONPATH: ${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
+    JVM_OPTS: ${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}
+
+  nifi-nginx: &nifi-nginx-env
+    NIFI_INTERNAL_PORT_NGINX: ${NIFI_INTERNAL_PORT_NGINX:-8443}
+    NIFI_WEB_PROXY_PORT: ${NIFI_WEB_PROXY_PORT:-8443}
+    NIFI_INTERNAL_PORT: ${NIFI_INTERNAL_PORT:-8443}
+    NIFI_UPSTREAM_HOST: ${NIFI_UPSTREAM_HOST:-nifi}
+    NIFI_UPSTREAM_PORT: ${NIFI_UPSTREAM_PORT:-${NIFI_INTERNAL_PORT:-8443}}
+    NIFI_UPSTREAM_TLS_NAME: ${NIFI_UPSTREAM_TLS_NAME:-nifi}
+
+x-mounts:
+  nifi: &nifi-volumes
+    # Drivers
+    - ../nifi/drivers:/opt/nifi/drivers:ro
+
+    # User overrides bundled in the image
+    - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
+    - ../nifi/user_schemas:/opt/nifi/user_schemas:ro
+
+    # Python processors (NiFi 2.x)
+    - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
+
+    # Security certificates
+    - ../security/certificates/nifi:/security/certificates/nifi:ro
+    - ../security/certificates/elastic/opensearch/elasticsearch:/security/certificates/elastic/opensearch/elasticsearch:ro
+    - ../security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:/security/certificates/elastic/opensearch/elastic-stack-ca.crt.pem:ro
+    - ../security/certificates/elastic/opensearch/es_kibana_client.pem:/security/certificates/elastic/opensearch/es_kibana_client.pem:ro
+    - ../security/certificates/elastic/opensearch/es_kibana_client.key:/security/certificates/elastic/opensearch/es_kibana_client.key:ro
+    - ../security/certificates/root/root-ca.pem:/security/certificates/root/root-ca.pem:ro
+    # Database clients receive only the public CA from each TLS bundle.
+    - type: bind
+      source: ${POSTGRES_SAMPLES_TLS_DIR:-../security/certificates/postgresql/samples}/ca.crt
+      target: /run/database-cas/samples-ca.crt
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ${POSTGRES_DATABANK_TLS_DIR:-../security/certificates/postgresql/databank}/ca.crt
+      target: /run/database-cas/databank-ca.crt
+      read_only: true
+      bind:
+        create_host_path: false
+
+    # Apache startup configures image defaults in this persistent, writable directory.
+    - nifi-vol-conf:/opt/nifi/nifi-current/conf
+
+    # Ingest data directory
+    - ${NIFI_DATA_PATH:-../data/}:/data/:rw
+
+    # MedCAT models
+    - ${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
+
+    # NiFi repositories/state
+    - nifi-vol-logs:/opt/nifi/nifi-current/logs
+    - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
+    - nifi-vol-database:/opt/nifi/nifi-current/database_repository
+    - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
+    - nifi-vol-content:/opt/nifi/nifi-current/content_repository
+    - nifi-vol-state:/opt/nifi/nifi-current/state
+
+    # Flowfile error output
+    - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
+
+  nifi-nginx-tmpfs: &nifi-nginx-tmpfs
+    - /tmp:mode=1777
+
+  nifi-nginx: &nifi-nginx-volumes
+    - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+    - ../security/certificates/nifi:/certificates/nifi:ro
+    - ../security/certificates/root/root-ca.pem:/certificates/root/root-ca.pem:ro
+
+  otel-collector: &otel-collector-volumes
+    - ./observability/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+
+  data-prepper: &data-prepper-volumes
+    - ./observability/data-prepper/config/data-prepper-config.yaml:/usr/share/data-prepper/config/data-prepper-config.yaml:ro
+    - ./observability/data-prepper/pipelines:/usr/share/data-prepper/pipelines:ro
+
+x-networks:
+  cognet: &cognet
+    - cognet
 
 x-common-hosts: &common-hosts
   - ${ELASTICSEARCH_1_HOST_NAME:-test-1:0.0.0.0}
@@ -58,46 +165,7 @@ x-nifi-common: &nifi-common
   restart: unless-stopped
   env_file: *all-env
   extra_hosts: *common-hosts
-  networks:
-    - cognet
-
-x-nifi-volumes: &nifi-volumes
-  # Drivers
-  - ../nifi/drivers:/opt/nifi/drivers:ro
-
-  # User overrides bundled in the image
-  - ../nifi/user_scripts:/opt/nifi/user_scripts:rw
-  - ../nifi/user_schemas:/opt/nifi/user_schemas:ro
-
-  # Python processors (NiFi 2.x)
-  - ../nifi/user_python_extensions:/opt/nifi/nifi-current/python_extensions:rw
-
-  # Security certificates
-  - ../security:/security:ro
-
-  # Security helper scripts
-  - ../security/scripts/nifi_create_single_user_auth.sh:/opt/nifi/nifi-current/security_scripts/nifi_create_single_user_auth.sh:ro
-
-  # NiFi configuration
-  - ../nifi/conf/:/opt/nifi/nifi-current/conf/:rw
-
-  # Ingest data directory
-  - ./${NIFI_DATA_PATH:-../data/}:/data/:rw
-
-  # MedCAT models
-  - ./${NIFI_MEDCAT_SERVICE_MODEL_PRODUCTION_PATH:-../services/cogstack-nlp/medcat-service/models/}:/opt/models:rw
-
-  # NiFi repositories/state
-  - nifi-vol-logs:/opt/nifi/nifi-current/logs
-  - nifi-vol-provenance:/opt/nifi/nifi-current/provenance_repository
-  - nifi-vol-database:/opt/nifi/nifi-current/database_repository
-  - nifi-vol-flowfiles:/opt/nifi/nifi-current/flowfile_repository
-  - nifi-vol-content:/opt/nifi/nifi-current/content_repository
-  - nifi-vol-state:/opt/nifi/nifi-current/state
-
-  # Flowfile error output
-  - nifi-vol-errors:/opt/nifi/pipeline/flowfile-errors
-
+  networks: *cognet
 #---------------------------------------------------------------------------#
 # Used services                                                             #
 #---------------------------------------------------------------------------#
@@ -108,17 +176,20 @@ services:
 #---------------------------------------------------------------------------#
   nifi:
     <<: *nifi-common
+    image: ${NIFI_LOCAL_DOCKER_IMAGE:-cogstack/cogstack-nifi:local}
+    pull_policy: build
     build:
        context: ..
        dockerfile: nifi/Dockerfile
        args:
          NIFI_VERSION: ${NIFI_VERSION:-2.12.0}
+         NIFI_BASE_IMAGE: ${NIFI_BASE_IMAGE:?Source deploy/export_env_vars.sh first}
+         NIFI_UID: ${COGSTACK_LOCAL_UID:-1000}
+         NIFI_GID: ${COGSTACK_LOCAL_GID:-1000}
     container_name: cogstack-nifi
     hostname: nifi
     shm_size: ${NIFI_DOCKER_SHM_SIZE:-"1g"}
-    environment:
-      - PYTHONPATH=${NIFI_PYTHONPATH:-/opt/nifi/nifi-current/python/framework}
-      - JVM_OPTS="${NIFI_JVM_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ParallelRefProcEnabled -Djava.security.egd=file:/dev/./urandom}"
+    environment: *nifi-env
     deploy:
       resources:
         limits:
@@ -129,24 +200,28 @@ services:
           memory: "${NIFI_DOCKER_RAM}"
     volumes: *nifi-volumes
 
-    # INFO : Uncomment the below line to generate your own USERNAME and PASSWORD,
-    #        a bit messy this way as you will need to copy the credentials back
-    #        to the "login-identity-providers.xml" section.
-    # entrypoint: bash -c "/opt/nifi/nifi-current/bin/nifi.sh set-single-user-credentials admin admincogstacknifi"
-    tty: true
+    stop_grace_period: 120s
     ports:
       - "${NIFI_OUTPUT_PORT:-8082}:${NIFI_INTERNAL_PORT:-8443}"
       - "${NIFI_INPUT_SOCKET_PORT:-10000}"
     logging: *nifi-logging-common
   
   nifi-nginx:
+    pull_policy: build
     build:
       context: ../services/nginx
       dockerfile: Dockerfile
+      args:
+        NGINX_UID: ${COGSTACK_LOCAL_UID:-1000}
+        NGINX_GID: ${COGSTACK_LOCAL_GID:-1000}
     container_name: cogstack-nifi-nginx
     restart: always
     shm_size: ${NGINX_SHM_SIZE:-512mb}
-    env_file: *all-env
+    env_file: *nifi-nginx-env-files
+    environment: *nifi-nginx-env
+    stop_grace_period: 90s
+    read_only: true
+    tmpfs: *nifi-nginx-tmpfs
     deploy:
       resources:
         limits:
@@ -155,14 +230,10 @@ services:
         reservations:
           cpus: "${NGINX_DOCKER_CPU_MIN}"
           memory: "${NGINX_DOCKER_RAM}"
-    volumes:
-      - ../services/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
-      - ../services/nginx/config/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
-      - ../security/certificates:/certificates:ro
+    volumes: *nifi-nginx-volumes
     ports:
       - "${NIFI_EXTERNAL_PORT_NGINX:-8443}:${NIFI_INTERNAL_PORT_NGINX:-8443}"
-    networks:
-      - cognet
+    networks: *cognet
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
 
@@ -170,35 +241,30 @@ services:
 # Observability stack                                                       #
 #---------------------------------------------------------------------------#
   otel-collector:
-    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:-otel/opentelemetry-collector-contrib:0.132.0}
+    image: ${OTEL_COLLECTOR_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     env_file: *all-env
-    volumes:
-      - ./observability/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    volumes: *otel-collector-volumes
     ports:
       - "${OTEL_COLLECTOR_OTLP_GRPC_PORT:-4317}:4317"
       - "${OTEL_COLLECTOR_OTLP_HTTP_PORT:-4318}:4318"
       - "${OTEL_COLLECTOR_HEALTH_PORT:-13133}:13133"
-    networks:
-      - cognet
+    networks: *cognet
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
 
   data-prepper:
-    image: ${DATA_PREPPER_DOCKER_IMAGE:-opensearchproject/data-prepper:2.11.0}
+    image: ${DATA_PREPPER_DOCKER_IMAGE:?Source deploy/export_env_vars.sh first}
     container_name: cogstack-data-prepper
     restart: unless-stopped
     env_file: *all-env
-    volumes:
-      - ./observability/data-prepper/config/data-prepper-config.yaml:/usr/share/data-prepper/config/data-prepper-config.yaml:ro
-      - ./observability/data-prepper/pipelines:/usr/share/data-prepper/pipelines:ro
+    volumes: *data-prepper-volumes
     ports:
       - "${DATA_PREPPER_API_PORT:-4900}:4900"
       - "${DATA_PREPPER_OTEL_TRACE_PORT:-21890}:21890"
-    networks:
-      - cognet
+    networks: *cognet
     extra_hosts: *common-hosts
     logging: *nifi-logging-common
 
@@ -206,6 +272,7 @@ services:
 # Docker named volumes                                                      #
 #---------------------------------------------------------------------------#
 volumes:
+  nifi-vol-conf:
   # NiFi related
   nifi-vol-logs:
     driver: local

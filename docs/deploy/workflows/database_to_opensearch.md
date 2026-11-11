@@ -31,7 +31,7 @@ Failure and retry relationships are routed to funnels for inspection.
 | Setting | Value |
 |---|---|
 | Database URL | `jdbc:postgresql://samples-db:5432/db_samples` |
-| Database user | `test` |
+| Database user | `cogstack_samples` |
 | JDBC driver | `/opt/nifi/drivers/postgresql-42.7.7.jar` |
 | Source table | `medical_reports_text` |
 | Incremental/partition column | `docid` |
@@ -82,19 +82,19 @@ Configure the sample PostgreSQL connection as follows:
 
 | Property | Bundled value |
 |---|---|
-| Database Connection URL | `jdbc:postgresql://samples-db:5432/db_samples` |
+| Database Connection URL | `${POSTGRES_SAMPLES_JDBC_URL}` |
 | Database Driver Class Name | `org.postgresql.Driver` |
 | Database Driver Locations | `/opt/nifi/drivers/postgresql-42.7.7.jar` |
-| Database User | Value of `POSTGRES_USER_SAMPLES`, `test` by default |
-| Password | Value of `POSTGRES_PASSWORD_SAMPLES` |
+| Database User | `${POSTGRES_INGEST_USER_SAMPLES}`, `cogstack_samples` by default |
+| Password | `${POSTGRES_INGEST_PASSWORD_SAMPLES}` |
 | Password Source | `PASSWORD` |
 | Max Total Connections | `8` |
 | Maximum Idle Connections | `8` |
 | Minimum Idle Connections | `0` |
 | Max Wait Time | `500 millis` |
 
-Read the sensitive value from `security/env/users_database.env`; do not store it in the
-flow JSON. If using another database, update the URL, driver class, driver JAR, and
+The bundled database properties reference ingestion environment variables. Keep
+password values out of flow JSON; configure them through the deployment profile. If using another database, update the URL, driver class, driver JAR, and
 credentials together. Apply the configuration and enable the service. A driver error
 usually means the JAR path does not exist inside the NiFi container.
 

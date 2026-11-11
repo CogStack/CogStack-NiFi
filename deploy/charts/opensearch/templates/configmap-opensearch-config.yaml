@@ -8,8 +8,16 @@ metadata:
   labels:
     {{- include "cogstack-opensearch.labels" . | nindent 4 }}
 data:
+  search-entrypoint.sh: |
+{{ .Files.Get "files/search-entrypoint.sh" | indent 4 }}
   opensearch.yml: |
 {{ $opensearchConfigRaw | indent 4 }}
   log4j2.properties: |
 {{ $log4jRaw | indent 4 }}
+  performance-analyzer.properties: |
+{{ .Files.Get "files/performance-analyzer/performance-analyzer.properties" | indent 4 }}
+  plugin-stats-metadata: |
+{{ .Files.Get "files/performance-analyzer/plugin-stats-metadata" | indent 4 }}
+  agent-stats-metadata: |
+{{ .Files.Get "files/performance-analyzer/agent-stats-metadata" | indent 4 }}
 {{- end }}
