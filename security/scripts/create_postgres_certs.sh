@@ -5,7 +5,9 @@ umask 077
 
 # shellcheck disable=SC1090,SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/load_config.sh"
+# shellcheck disable=SC1090
 source "$(cogstack_env_file deploy/database.env)"
+# shellcheck disable=SC1090
 source "$(cogstack_env_file security/env/certificates_general.env)"
 
 resolve_directory() {
