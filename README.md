@@ -63,6 +63,9 @@ Setup uses the recorded submodule commits and pinned container images. See
 [Repeatable deployments](./docs/deploy/reproducible.md) for explicit upgrades
 and local image builds.
 
+For Kubernetes, see [deploy/kubernetes](./deploy/kubernetes/README.md) and run
+`make -C deploy/kubernetes help` for Helm and cluster bootstrap commands.
+
 After services start:
 
 - NiFi: `https://localhost:8443`

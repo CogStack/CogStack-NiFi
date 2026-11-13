@@ -1,1 +1,0 @@
-../../../../services/elasticsearch/search-entrypoint.sh

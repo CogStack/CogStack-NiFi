@@ -11,6 +11,10 @@ Make sure you have read the [Prerequisites](./main.md) section before proceeding
 
 - **`Makefile`** – provides convenient commands for starting, stopping, and managing the deployment.
 
+- **`kubernetes/`** – groups Helm charts, deployment values, cluster prerequisites,
+  and a dedicated Kubernetes Makefile. Shared environment files remain in `deploy/`
+  and `security/env/`.
+
 - **`.env` files in `./deploy/`** , environment variables used across services, specifications:
   - environment variables that apply **only to the services defined inside `services.yml`**.  
   - Security-related `.env` files (certificates, users) are under **`/security`**
@@ -62,26 +66,32 @@ This design allows each service to be:
 
 ## ⎈ Helm (NiFi)
 
+Kubernetes deployment files are grouped under `deploy/kubernetes/`: `charts/`
+contains reusable Helm charts, `values/` contains deployment overrides, and
+`bootstrap/` contains cluster prerequisites such as the CloudNativePG operator.
+Run `make -C deploy/kubernetes help` to list Kubernetes commands. Existing
+`make -C deploy helm-*` and `make -C deploy kube-*` commands remain supported.
+
 A default Helm chart for the customised CogStack NiFi image is available at:
 
 ```bash
-./deploy/charts/nifi
+./deploy/kubernetes/charts/nifi
 ```
 
 Quick usage:
 
 ```bash
 # render manifests
-make -C deploy helm-template-nifi
+make -C deploy/kubernetes helm-template-nifi
 
 # install or upgrade
-make -C deploy helm-install-nifi
+make -C deploy/kubernetes helm-install-nifi
 ```
 
-Key defaults live in:
+Deployment overrides live in:
 
 ```bash
-./deploy/helm/nifi.values.yaml
+./deploy/kubernetes/values/nifi.yaml
 ```
 
 The chart reads selected defaults from `deploy/nifi.env`, `security/env/certificates_nifi.env`, and `security/env/users_nifi.env`.
@@ -115,19 +125,19 @@ For clustered NiFi, set `replicaCount > 1` and `nifi.cluster.enabled=true` only 
 An initial Helm chart for OpenSearch + OpenSearch Dashboards is available at:
 
 ```bash
-./deploy/charts/opensearch
+./deploy/kubernetes/charts/opensearch
 ```
 
 Quick usage:
 
 ```bash
 # render manifests
-helm template cogstack-opensearch ./deploy/charts/opensearch \
-  -f ./deploy/helm/opensearch.values.yaml
+helm template cogstack-opensearch ./deploy/kubernetes/charts/opensearch \
+  -f ./deploy/kubernetes/values/opensearch.yaml
 
 # install or upgrade
-helm upgrade --install cogstack-opensearch ./deploy/charts/opensearch \
-  -f ./deploy/helm/opensearch.values.yaml \
+helm upgrade --install cogstack-opensearch ./deploy/kubernetes/charts/opensearch \
+  -f ./deploy/kubernetes/values/opensearch.yaml \
   --namespace cogstack --create-namespace
 ```
 
@@ -149,16 +159,16 @@ Quick usage:
 
 ```bash
 # render manifests
-make -C deploy helm-template-gitea
+make -C deploy/kubernetes helm-template-gitea
 
 # install or upgrade
-make -C deploy helm-install-gitea
+make -C deploy/kubernetes helm-install-gitea
 ```
 
 Key defaults live in:
 
 ```bash
-./deploy/helm/gitea.values.yaml
+./deploy/kubernetes/values/gitea.yaml
 ```
 
 Current defaults keep the Helm deployment close to the existing Docker Compose

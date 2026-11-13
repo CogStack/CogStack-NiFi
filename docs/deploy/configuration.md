@@ -162,11 +162,15 @@ and mounted under `security/certificates/` using the selected security settings.
 The owned Helm Make targets pass selected files through `--set-file`:
 
 ```bash
-COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy helm-template-nifi
+COGSTACK_CONFIG_DIR=/path/to/deployment-config make -C deploy/kubernetes helm-template-nifi
 ```
 
 Use `HELM_NIFI_VALUES_FILE`, `HELM_OPENSEARCH_VALUES_FILE`, or
-`HELM_POSTGRESQL_VALUES_FILE` for cluster-specific values. Direct Helm commands
+`HELM_POSTGRESQL_VALUES_FILE` for cluster-specific values. Charts and deployment
+values live under `deploy/kubernetes/charts/` and `deploy/kubernetes/values/`.
+The existing `make -C deploy helm-*` entry point remains supported. Custom relative
+values paths are resolved from the directory selected by `make -C`; absolute paths
+work with either entry point. Direct Helm commands
 should supply selected files with `--set-file envFile.raw`,
 `--set-file usersEnvFile.raw`, and, where used, `--set-file certificatesEnvFile.raw`.
 

@@ -8,32 +8,6 @@ REMOTE_COMPOSE_FILE ?= services.yml
 REMOTE_SSH_KEY ?=
 REMOTE_SSH_OPTS ?=
 REMOTE_SSH_KEY_ARG = $(if $(strip $(REMOTE_SSH_KEY)),-i $(REMOTE_SSH_KEY),)
-HELM_OPENSEARCH_RELEASE ?= cogstack-opensearch
-HELM_OPENSEARCH_NAMESPACE ?= cogstack
-HELM_OPENSEARCH_CHART ?= ./charts/opensearch
-HELM_OPENSEARCH_VALUES_FILE ?= ./helm/opensearch.values.yaml
-HELM_OPENSEARCH_VALUES_ARG = -f $(HELM_OPENSEARCH_VALUES_FILE)
-HELM_POSTGRESQL_RELEASE ?= cogstack-postgresql
-HELM_POSTGRESQL_NAMESPACE ?= cogstack
-HELM_POSTGRESQL_CHART ?= ./charts/postgresql
-HELM_POSTGRESQL_VALUES_FILE ?= ./helm/postgresql.values.yaml
-HELM_POSTGRESQL_VALUES_ARG = -f $(HELM_POSTGRESQL_VALUES_FILE)
-HELM_NIFI_RELEASE ?= cogstack-nifi
-HELM_NIFI_NAMESPACE ?= cogstack
-HELM_NIFI_CHART ?= ./charts/nifi
-HELM_NIFI_VALUES_FILE ?= ./helm/nifi.values.yaml
-HELM_NIFI_VALUES_ARG = -f $(HELM_NIFI_VALUES_FILE)
-HELM_GITEA_RELEASE ?= cogstack-gitea
-HELM_GITEA_NAMESPACE ?= cogstack
-HELM_GITEA_REPO_NAME ?= gitea-charts
-HELM_GITEA_REPO_URL ?= https://dl.gitea.com/charts/
-HELM_GITEA_CHART ?= $(HELM_GITEA_REPO_NAME)/gitea
-HELM_GITEA_CHART_VERSION ?= 12.5.0
-HELM_GITEA_VALUES_FILE ?= ./helm/gitea.values.yaml
-HELM_GITEA_VALUES_ARG = -f $(HELM_GITEA_VALUES_FILE)
-CNPG_OPERATOR_MINOR ?= 1.28
-CNPG_OPERATOR_VERSION ?= 1.28.1
-CNPG_OPERATOR_MANIFEST ?= https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-$(CNPG_OPERATOR_MINOR)/releases/cnpg-$(CNPG_OPERATOR_VERSION).yaml
 SECURITY_DIR ?= ../security
 SECURITY_SCRIPTS_DIR ?= $(SECURITY_DIR)/scripts
 SECURITY_CERTIFICATES_DIR ?= $(SECURITY_DIR)/certificates
@@ -81,7 +55,7 @@ help: ## List available targets with descriptions
 			print target "\t" description; \
 		} \
 	} \
-	' $(lastword $(MAKEFILE_LIST)) | sort | awk -F '\t' '{printf "  %-28s %s\n", $$1, $$2}'
+	' $(MAKEFILE_LIST) | sort | awk -F '\t' '{printf "  %-28s %s\n", $$1, $$2}'
 
 .PHONY: help
 
@@ -247,56 +221,6 @@ init-security: ## Generate missing NiFi, PostgreSQL, Gitea, and selected search-
 
 .PHONY: init-security init-security-root-ca init-security-nifi init-security-postgresql init-security-gitea init-security-opensearch init-security-elasticsearch init-security-search
 
-helm-template-opensearch: ## Render OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	$(WITH_ENV) helm template $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) \
-		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
-		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
-
-helm-install-opensearch: ## Install/upgrade OpenSearch chart using chart defaults plus ./helm/opensearch.values.yaml
-	$(WITH_ENV) helm upgrade --install $(HELM_OPENSEARCH_RELEASE) $(HELM_OPENSEARCH_CHART) $(HELM_OPENSEARCH_VALUES_ARG) --namespace $(HELM_OPENSEARCH_NAMESPACE) --create-namespace \
-		--set-file envFile.raw="$${COGSTACK_ELASTICSEARCH_ENV_FILE}" \
-		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_ELASTICSEARCH_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_ELASTICSEARCH_ENV_FILE}"
-
-kube-install-cnpg-operator: ## Install CloudNativePG operator/CRDs from the pinned upstream manifest
-	kubectl apply --server-side -f $(CNPG_OPERATOR_MANIFEST)
-
-helm-template-nifi: ## Render CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	$(WITH_ENV) helm template $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) \
-		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
-		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
-
-helm-install-nifi: ## Install/upgrade CogStack NiFi chart using chart defaults plus ./helm/nifi.values.yaml
-	$(WITH_ENV) helm upgrade --install $(HELM_NIFI_RELEASE) $(HELM_NIFI_CHART) $(HELM_NIFI_VALUES_ARG) --namespace $(HELM_NIFI_NAMESPACE) --create-namespace \
-		--set-file envFile.raw="$${COGSTACK_NIFI_ENV_FILE}" \
-		--set-file certificatesEnvFile.raw="$${COGSTACK_CERTIFICATES_NIFI_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_NIFI_ENV_FILE}"
-
-helm-template-postgresql: ## Render CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	$(WITH_ENV) helm template $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) \
-		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
-
-helm-install-postgresql: ## Install/upgrade CloudNativePG PostgreSQL chart using chart defaults plus ./helm/postgresql.values.yaml
-	$(WITH_ENV) helm upgrade --install $(HELM_POSTGRESQL_RELEASE) $(HELM_POSTGRESQL_CHART) $(HELM_POSTGRESQL_VALUES_ARG) --namespace $(HELM_POSTGRESQL_NAMESPACE) --create-namespace \
-		--set-file envFile.raw="$${COGSTACK_DATABASE_ENV_FILE}" \
-		--set-file usersEnvFile.raw="$${COGSTACK_USERS_DATABASE_ENV_FILE}"
-
-helm-repo-add-gitea: ## Add/update the official Gitea Helm repository
-	@if ! helm repo list | awk '$$1 == "$(HELM_GITEA_REPO_NAME)" { found=1 } END { exit !found }'; then \
-		helm repo add $(HELM_GITEA_REPO_NAME) $(HELM_GITEA_REPO_URL); \
-	fi
-	helm repo update $(HELM_GITEA_REPO_NAME)
-
-helm-template-gitea: helm-repo-add-gitea ## Render the official Gitea chart using ./helm/gitea.values.yaml
-	helm template $(HELM_GITEA_RELEASE) $(HELM_GITEA_CHART) --version $(HELM_GITEA_CHART_VERSION) $(HELM_GITEA_VALUES_ARG) --namespace $(HELM_GITEA_NAMESPACE)
-
-helm-install-gitea: helm-repo-add-gitea ## Install/upgrade the official Gitea chart using ./helm/gitea.values.yaml
-	helm upgrade --install $(HELM_GITEA_RELEASE) $(HELM_GITEA_CHART) --version $(HELM_GITEA_CHART_VERSION) $(HELM_GITEA_VALUES_ARG) --namespace $(HELM_GITEA_NAMESPACE) --create-namespace
-
-
 remote-deploy-service: ## Deploy one or more services to a remote machine via SSH + docker compose
 remote-deploy-service: _check-remote-params
 	@ssh $(REMOTE_SSH_KEY_ARG) $(REMOTE_SSH_OPTS) "$(REMOTE_HOST)" 'cd "$(REMOTE_REPO_DIR)/deploy" && set -a && source ./export_env_vars.sh && docker compose -f "$(REMOTE_COMPOSE_FILE)" up -d $(REMOTE_SERVICES)'
@@ -323,7 +247,7 @@ _check-remote-params:
 		exit 1; \
 	fi
 
-.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params helm-template-opensearch helm-install-opensearch kube-install-cnpg-operator helm-template-nifi helm-install-nifi helm-template-postgresql helm-install-postgresql helm-repo-add-gitea helm-template-gitea helm-install-gitea
+.PHONY: remote-deploy-service remote-stop-service remote-delete-service _check-remote-params
 	
 check-nifi-resources: ## Validate NiFi heap sizes against the container memory limit
 	@$(WITH_ENV) python3 ../scripts/tests/check_nifi_resources.py
@@ -654,3 +578,6 @@ cleanup: ## Run docker compose down -v for services.yml
 	$(WITH_ENV) docker compose -f services.yml $(DC_DOWN_CMD) -v
 
 .PHONY: down-all cleanup
+
+# Keep Kubernetes commands available through the existing deployment entry point.
+include kubernetes/Makefile

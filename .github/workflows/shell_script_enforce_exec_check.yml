@@ -62,7 +62,7 @@ jobs:
           done < <(
             git ls-files -z -- '*.sh' \
               ':(exclude)services/**' \
-              ':(exclude)deploy/charts/**'
+              ':(exclude)deploy/kubernetes/charts/**'
           )
 
           if [[ "${#scripts[@]}" -eq 0 ]]; then

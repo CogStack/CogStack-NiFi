@@ -1,1 +1,0 @@
-../../../../../services/cogstack-db/pgsql/schemas/cogstack_db_databank.sql

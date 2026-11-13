@@ -27,8 +27,7 @@ on:
       - "security/es_roles/opensearch/**"
       - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
-      - "deploy/charts/**"
-      - "deploy/helm/**"
+      - "deploy/kubernetes/**"
       - "nifi/Dockerfile"
       - "nifi/docker/**"
       - "services/nginx/Dockerfile"
@@ -62,8 +61,7 @@ on:
       - "security/es_roles/opensearch/**"
       - "scripts/tests/test_opensearch_ai_init.py"
       - "deploy/services*.yml"
-      - "deploy/charts/**"
-      - "deploy/helm/**"
+      - "deploy/kubernetes/**"
       - "nifi/Dockerfile"
       - "nifi/docker/**"
       - "services/nginx/Dockerfile"
@@ -83,7 +81,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Docker Compose configuration
+    name: Validate Compose and Kubernetes configuration
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

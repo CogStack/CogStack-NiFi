@@ -72,7 +72,7 @@ Image selections live in:
 | Ollama and Open WebUI | `deploy/ollama.env` and `deploy/openwebui.env` |
 | Sample PostgreSQL, databank PostgreSQL, and MSSQL | `deploy/services.yml` |
 | Development observability services | `deploy/telemetry.env` |
-| Owned Helm charts | `deploy/charts/*/values.yaml`; NiFi also reads `deploy/nifi.env` |
+| Owned Helm charts | `deploy/kubernetes/charts/*/values.yaml`; NiFi also reads `deploy/nifi.env` |
 
 Compose requires these image variables to be loaded. The Make targets load
 them automatically. For direct Compose commands:
@@ -140,7 +140,7 @@ requires TLS Secrets and deployment-specific credentials.
 
 The reference Compose deployment and Helm chart both select OpenSearch and
 OpenSearch Dashboards 3.9.0 with matching image digests. When upgrading, update
-`deploy/elasticsearch.env`, both images in `deploy/charts/opensearch/values.yaml`,
+`deploy/elasticsearch.env`, both images in `deploy/kubernetes/charts/opensearch/values.yaml`,
 and the chart's `appVersion` together.
 
 ```bash

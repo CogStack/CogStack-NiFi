@@ -69,8 +69,8 @@ def helm_errors() -> list[str]:
     errors = []
     for chart in ("nifi", "opensearch", "postgresql"):
         command = [
-            "helm", "template", f"check-{chart}", str(ROOT / "deploy/charts" / chart),
-            "-f", str(ROOT / "deploy/helm" / f"{chart}.values.yaml"),
+            "helm", "template", f"check-{chart}", str(ROOT / "deploy/kubernetes/charts" / chart),
+            "-f", str(ROOT / "deploy/kubernetes/values" / f"{chart}.yaml"),
         ]
         result = subprocess.run(command, text=True, capture_output=True, check=True, timeout=60)
         images = re.findall(r"^\s*(?:image|imageName):\s*(\S+)", result.stdout, re.MULTILINE)

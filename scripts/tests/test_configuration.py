@@ -117,9 +117,9 @@ class ConfigurationTest(unittest.TestCase):
         self.env["PATH"] = f"{self.directory}:{self.env['PATH']}"
         return log
 
-    def make(self, target: str, *args: str) -> subprocess.CompletedProcess[str]:
+    def make(self, target: str, *args: str, directory: Path | None = None) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["make", "-s", "-C", str(ROOT / "deploy"), target, *args],
+            ["make", "-s", "-C", str(directory or ROOT / "deploy"), target, *args],
             env=self.env, text=True, capture_output=True, timeout=30,
         )
 
@@ -159,17 +159,23 @@ class ConfigurationTest(unittest.TestCase):
     @unittest.skipUnless(shutil.which("helm"), "Helm is required")
     def test_helm_make_target_uses_selected_nifi_settings(self) -> None:
         self.settings("nifi.env", {"NIFI_JVM_HEAP_MAX": "1536m", "NIFI_DOCKER_RAM": "3g"})
-        result = self.make("helm-template-nifi")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('"-Xmx1536m"', result.stdout)
-        self.assertIn('memory: "3Gi"', result.stdout)
+        values = self.directory / "values with spaces.yaml"
+        values.write_text("fullnameOverride: profile-nifi\n")
+        for directory in (ROOT / "deploy", ROOT / "deploy/kubernetes"):
+            with self.subTest(directory=directory):
+                result = self.make("helm-template-nifi", f"HELM_NIFI_VALUES_FILE={values}", directory=directory)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('"-Xmx1536m"', result.stdout)
+                self.assertIn('memory: "3Gi"', result.stdout)
+                self.assertIn("name: profile-nifi\n", result.stdout)
 
     @unittest.skipUnless(shutil.which("helm"), "Helm is required")
     def test_direct_helm_rejects_heap_equal_to_memory_limit(self) -> None:
         settings = self.directory / "invalid.env"
         settings.write_text("NIFI_JVM_HEAP_INIT=1g\nNIFI_JVM_HEAP_MAX=2g\nNIFI_DOCKER_RAM=2g\n")
         result = subprocess.run(
-            ["helm", "template", "invalid", str(ROOT / "deploy/charts/nifi"), "--set-file", f"envFile.raw={settings}"],
+            ["helm", "template", "invalid", str(ROOT / "deploy/kubernetes/charts/nifi"),
+             "--set-file", f"envFile.raw={settings}"],
             text=True, capture_output=True, timeout=30,
         )
         self.assertNotEqual(result.returncode, 0)

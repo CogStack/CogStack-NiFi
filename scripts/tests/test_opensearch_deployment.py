@@ -53,8 +53,8 @@ class OpenSearchDeploymentTest(unittest.TestCase):
     @staticmethod
     def render(*args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["helm", "template", "cogstack-opensearch", str(ROOT / "deploy/charts/opensearch"),
-             "-f", str(ROOT / "deploy/helm/opensearch.values.yaml"), "--namespace", "cogstack", *args],
+            ["helm", "template", "cogstack-opensearch", str(ROOT / "deploy/kubernetes/charts/opensearch"),
+             "-f", str(ROOT / "deploy/kubernetes/values/opensearch.yaml"), "--namespace", "cogstack", *args],
             env=reference_environment(), text=True, capture_output=True, timeout=30,
         )
 
@@ -67,8 +67,8 @@ class OpenSearchDeploymentTest(unittest.TestCase):
         search_image = self.compose["elasticsearch-1"]["image"]
         helm_search_image = stateful["containers"][0]["image"]
         self.assertTrue(all(container["image"] == helm_search_image for container in stateful["initContainers"]))
-        metadata = yaml_documents((ROOT / "deploy/charts/opensearch/Chart.yaml").read_text())[0]
-        values = yaml_documents((ROOT / "deploy/charts/opensearch/values.yaml").read_text())[0]
+        metadata = yaml_documents((ROOT / "deploy/kubernetes/charts/opensearch/Chart.yaml").read_text())[0]
+        values = yaml_documents((ROOT / "deploy/kubernetes/charts/opensearch/values.yaml").read_text())[0]
         for component, helm_image, compose_image in (
             ("opensearch", helm_search_image, search_image),
             ("dashboards", dashboards["containers"][0]["image"], self.compose["kibana"]["image"]),
