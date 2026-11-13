@@ -80,3 +80,6 @@ jobs:
           for file in "${scripts[@]}"; do
             bash -n "$file"
           done
+
+      - name: Test host installer without system changes
+        run: python3 -B scripts/tests/test_install_docker_and_utils.py -v

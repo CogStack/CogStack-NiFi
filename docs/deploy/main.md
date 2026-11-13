@@ -44,6 +44,27 @@ container registries.
 Assuming you are the system admin, meaning you have `sudo` rights.
 You can use the script located at `scripts/installation_utils/install_docker_and_utils.sh`; it can be used on Debian(10+)/Ubuntu(22.04+)/RedHAT RHEL 8/9 only. Run it once and everything should be set up. The script resolves its helper files relative to its own location, so it can be run from any directory.
 
+The installer also installs Kubernetes node tools (`kubeadm`, `kubelet`, and
+`kubectl`), Helm, and K3s together by default. Control K3s installation with the
+`INSTALL_K3S` environment variable:
+
+```bash
+# Enable K3s installation alongside the other tools.
+INSTALL_K3S=true bash scripts/installation_utils/install_docker_and_utils.sh
+
+# Disable K3s installation and install the other tools.
+INSTALL_K3S=false bash scripts/installation_utils/install_docker_and_utils.sh
+```
+
+Use the literal values `true` or `false`. If unset, `INSTALL_K3S` follows
+`INSTALL_KUBERNETES` (normally `true`). For a Docker-only host, set
+`INSTALL_KUBERNETES=false`. The K3s flag controls installation; skipping it
+leaves any existing K3s installation and service state intact. Newly installed
+K3s has its service unstarted and unenabled, preserving the standalone `kubectl`.
+Cluster initialization remains a separate step. See the
+[Kubernetes setup guide](https://github.com/CogStack/CogStack-NiFi/blob/main/deploy/kubernetes/README.md#install-kubernetes-tools)
+for version overrides and cluster prerequisites.
+
 Execute the following commands in the root directory of the repo:
 
 1. `git-lfs pull`
