@@ -67,7 +67,7 @@ def render_compose(path: Path) -> dict:
 
 def helm_errors() -> list[str]:
     errors = []
-    for chart in ("nifi", "opensearch", "postgresql"):
+    for chart in ("nifi",):
         command = [
             "helm", "template", f"check-{chart}", str(ROOT / "deploy/kubernetes/charts" / chart),
             "-f", str(ROOT / "deploy/kubernetes/values" / f"{chart}.yaml"),
@@ -84,7 +84,7 @@ def helm_errors() -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--helm", action="store_true", help="also render and check the owned Helm charts")
+    parser.add_argument("--helm", action="store_true", help="also render and check the NiFi Helm chart")
     args = parser.parse_args()
     errors = []
     try:

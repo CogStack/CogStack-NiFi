@@ -11,7 +11,7 @@ Make sure you have read the [Prerequisites](./main.md) section before proceeding
 
 - **`Makefile`** – provides convenient commands for starting, stopping, and managing the deployment.
 
-- **`kubernetes/`** – groups Helm charts, deployment values, cluster prerequisites,
+- **`kubernetes/`** – groups the NiFi Helm chart, deployment values,
   and a dedicated Kubernetes Makefile. Shared environment files remain in `deploy/`
   and `security/env/`.
 
@@ -67,10 +67,9 @@ This design allows each service to be:
 ## ⎈ Helm (NiFi)
 
 Kubernetes deployment files are grouped under `deploy/kubernetes/`: `charts/`
-contains reusable Helm charts, `values/` contains deployment overrides, and
-`bootstrap/` contains cluster prerequisites such as the CloudNativePG operator.
+contains the reusable NiFi Helm chart and `values/` contains deployment overrides.
 Run `make -C deploy/kubernetes help` to list Kubernetes commands. Existing
-`make -C deploy helm-*` and `make -C deploy kube-*` commands remain supported.
+`make -C deploy helm-*` commands remain supported.
 
 A default Helm chart for the customised CogStack NiFi image is available at:
 
@@ -119,36 +118,6 @@ Current defaults keep the deployment conservative:
 - Kubernetes Lease/ConfigMap clustering support available but disabled by default
 
 For clustered NiFi, set `replicaCount > 1` and `nifi.cluster.enabled=true` only after reviewing certificate and authorizer configuration. The repo defaults use single-user authentication and a shared NiFi certificate, which are appropriate for a default single-node deployment rather than a production NiFi cluster.
-
-## ⎈ Helm (OpenSearch)
-
-An initial Helm chart for OpenSearch + OpenSearch Dashboards is available at:
-
-```bash
-./deploy/kubernetes/charts/opensearch
-```
-
-Quick usage:
-
-```bash
-# render manifests
-helm template cogstack-opensearch ./deploy/kubernetes/charts/opensearch \
-  -f ./deploy/kubernetes/values/opensearch.yaml
-
-# install or upgrade
-helm upgrade --install cogstack-opensearch ./deploy/kubernetes/charts/opensearch \
-  -f ./deploy/kubernetes/values/opensearch.yaml \
-  --namespace cogstack --create-namespace
-```
-
-> The chart expects pre-created Kubernetes Secrets for TLS materials (see the chart README).
-> The chart already consumes the shared OpenSearch, Dashboards, and security YAML files automatically from this repo.
-> The values file is only for cluster-specific overrides such as secret names, storage classes, replicas, and snapshot PVC claims.
-
-Compose and Helm use the same OpenSearch and Dashboards 3.9.0 image digests.
-See [compatibility checks](reproducible.md#opensearch-compose-and-helm-compatibility)
-and the [credentials and certificate requirements](../security/elasticsearch_opensearch.md).
-The Helm Make targets also honor `COGSTACK_CONFIG_DIR`.
 
 ## ⎈ Helm (GitEA / Gitea)
 

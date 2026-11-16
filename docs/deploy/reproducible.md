@@ -72,7 +72,7 @@ Image selections live in:
 | Ollama and Open WebUI | `deploy/ollama.env` and `deploy/openwebui.env` |
 | Sample PostgreSQL, databank PostgreSQL, and MSSQL | `deploy/services.yml` |
 | Development observability services | `deploy/telemetry.env` |
-| Owned Helm charts | `deploy/kubernetes/charts/*/values.yaml`; NiFi also reads `deploy/nifi.env` |
+| NiFi Helm chart | `deploy/kubernetes/charts/nifi/values.yaml` and `deploy/nifi.env` |
 
 Compose requires these image variables to be loaded. The Make targets load
 them automatically. For direct Compose commands:
@@ -93,7 +93,7 @@ Record the returned manifest digest alongside the version in the relevant
 tracked configuration, test it, and submit the change for review. Use the
 multi-platform index digest when both amd64 and arm64 are supported.
 
-For the NiFi and OpenSearch Helm charts, `image.digest` takes precedence over
+For the NiFi Helm chart, `image.digest` takes precedence over
 `image.tag`. Update the digest together with the tag when selecting another
 image. NiFi's imported `NIFI_DOCKER_IMAGE` remains the complete image reference
 when supplied through its env file.
@@ -132,27 +132,24 @@ python3 -B -m unittest discover -s scripts/tests -p test_submodule_checkout.py -
 
 The image check requires Docker Compose and Helm, but no running Docker daemon
 or Kubernetes cluster. It validates both core Compose files, their local build
-bases, and the three owned Helm charts. OpenSearch renders its normal generated
-credentials Secret from the shared development settings. An installation still
-requires TLS Secrets and deployment-specific credentials.
+bases, and the NiFi Helm chart. A NiFi installation still requires TLS Secrets
+and deployment-specific credentials.
 
-## OpenSearch Compose and Helm compatibility
+## OpenSearch Compose validation
 
-The reference Compose deployment and Helm chart both select OpenSearch and
-OpenSearch Dashboards 3.9.0 with matching image digests. When upgrading, update
-`deploy/elasticsearch.env`, both images in `deploy/kubernetes/charts/opensearch/values.yaml`,
-and the chart's `appVersion` together.
+The reference Compose deployment selects OpenSearch and OpenSearch Dashboards
+3.9.0 with pinned image digests. When upgrading, update the matching versions
+and image digests in `deploy/elasticsearch.env` together.
 
 ```bash
 make -C deploy check-opensearch-settings
 python3 -B -m unittest discover -s scripts/tests -p test_opensearch_deployment.py -v
 ```
 
-The compatibility tests require Helm, Docker Compose, PyYAML, OpenSSL, and Java
-`keytool`. They compare image versions and digests, shared configuration,
-credential Secret references, profile selection, and TLS mappings. They also
-generate temporary certificates and verify the Compose and Kubernetes service
-names against a temporary CA. They do not change existing certificates or
+The deployment tests require Docker Compose, OpenSSL, and Java `keytool`.
+They check security settings, Dashboards configuration, and profile selection.
+They also generate temporary certificates and verify the Compose service names
+against a temporary CA. They do not change existing certificates or
 start a cluster. CI runs these checks and a separate live Compose smoke test
 that verifies password authentication, the running OpenSearch version, and
 Dashboards readiness over verified HTTPS.
