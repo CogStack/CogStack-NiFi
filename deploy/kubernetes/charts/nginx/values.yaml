@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: cogstacksystems/nifi-nginx
-  tag: "2.0.6"
-  pullPolicy: IfNotPresent
+  tag: "latest"
+  pullPolicy: Always
 
 nginx:
   internalPort: 8443

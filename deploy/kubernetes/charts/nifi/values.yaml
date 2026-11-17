@@ -5,9 +5,8 @@ replicaCount: 1
 
 image:
   repository: cogstacksystems/cogstack-nifi
-  tag: 2.0.6
-  digest: sha256:f3f0ce9c23f9e503042f646675ddef372acda5cffc2491f07a38996a95a948dd
-  pullPolicy: IfNotPresent
+  tag: "latest"
+  pullPolicy: Always
 
 
 podAnnotations: {}
@@ -15,6 +14,13 @@ podLabels: {}
 
 securityContext:
   allowPrivilegeEscalation: false
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
 
 nifi:
   internalPort: 8443
@@ -25,6 +31,30 @@ certificates:
   rootCASecret: cogstack-root-ca
   # NiFi's JKS contains its certificate and private key; the CA truststore is shared.
   existingSecret: nifi-tls
+
+persistence:
+  # null uses the cluster default; "" selects no StorageClass (pre-provisioned PVs).
+  # Select a durable production backend; Retain does not replace backups.
+  storageClassName: null
+  accessModes: [ReadWriteOnce]
+  # Every volume is a separate PVC per replica. Each can override storageClassName/accessModes.
+  # Existing data must be restored while NiFi is stopped; no automatic migration or resizing.
+  # Claim templates are immutable on existing StatefulSets; plan replacement/expansion explicitly.
+  volumes:
+    flowfile_repository:
+      size: 20Gi
+    content_repository:
+      size: 100Gi
+    provenance_repository:
+      size: 50Gi
+    database_repository:
+      size: 5Gi
+    state:
+      size: 5Gi
+    conf:
+      # Seeded only when empty; image upgrades never overwrite persisted configuration.
+      # Existing PVCs without .nifi-bootstrap-complete require verification and explicit marking.
+      size: 5Gi
 
 resources:
   requests:

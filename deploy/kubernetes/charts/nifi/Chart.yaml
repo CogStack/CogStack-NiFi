@@ -3,4 +3,4 @@ name: cogstack-nifi
 description: Helm chart for deploying CogStack Apache NiFi
 type: application
 version: 0.1.0
-appVersion: "2.0.6"
+appVersion: "latest"

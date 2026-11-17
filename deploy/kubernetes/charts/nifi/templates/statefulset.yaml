@@ -1,3 +1,4 @@
+{{- $directories := list "flowfile_repository" "content_repository" "provenance_repository" "database_repository" "state" "conf" -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -6,6 +7,9 @@ metadata:
 spec:
   serviceName: cogstack-nifi
   replicas: {{ .Values.replicaCount }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
   selector:
     matchLabels:
       app: cogstack-nifi
@@ -16,8 +20,55 @@ spec:
       annotations:
         checksum/tls-config: {{ include (print $.Template.BasePath "/tls-configmap.yaml") . | sha256sum }}
     spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      initContainers:
+        - name: initialize-conf
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              marker=/mnt/conf/.nifi-bootstrap-incomplete
+              complete=/mnt/conf/.nifi-bootstrap-complete
+              if [ -e "$marker" ]; then
+                echo "Interrupted conf initialization; restore the conf PVC before starting NiFi." >&2
+                exit 1
+              fi
+              test -w /mnt/conf || { echo "The conf PVC is not writable by the configured NiFi UID/GID." >&2; exit 1; }
+              if [ ! -f "$complete" ]; then
+                if [ -n "$(find /mnt/conf -mindepth 1 -maxdepth 1 ! -name lost+found -print -quit)" ]; then
+                  echo "Unverified non-empty conf PVC; verify or restore its configuration before creating .nifi-bootstrap-complete." >&2
+                  exit 1
+                fi
+                touch "$marker"
+                sync -f /mnt/conf
+                find "$NIFI_HOME/conf" -mindepth 1 -maxdepth 1 \
+                  -exec cp -R --preserve=mode,timestamps -t /mnt/conf -- {} +
+              fi
+              for file in nifi.properties bootstrap.conf state-management.xml authorizers.xml login-identity-providers.xml logback.xml; do
+                if [ ! -s "/mnt/conf/$file" ] || [ ! -r "/mnt/conf/$file" ] || [ ! -w "/mnt/conf/$file" ]; then
+                  echo "Missing, empty or inaccessible NiFi configuration file: $file" >&2
+                  exit 1
+                fi
+              done
+              if [ -e "$marker" ]; then
+                sync -f /mnt/conf
+                mv "$marker" "$complete"
+                sync -f /mnt/conf
+              fi
+          volumeMounts:
+            - name: conf
+              mountPath: /mnt/conf
       containers:
         - name: nifi
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: nifi-env
@@ -28,6 +79,10 @@ spec:
             - name: tls
               mountPath: /certificates
               readOnly: true
+            {{- range $directory := $directories }}
+            - name: {{ $directory | replace "_" "-" }}
+              mountPath: /opt/nifi/nifi-current/{{ $directory }}
+            {{- end }}
 
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -52,3 +107,24 @@ spec:
                   items:
                     - key: nifi-keystore.jks
                       path: nifi/nifi-keystore.jks
+
+  volumeClaimTemplates:
+    {{- range $directory := $directories }}
+    {{- $claim := required (printf "persistence.volumes.%s is required" $directory) (index $.Values.persistence.volumes $directory) }}
+    {{- $storageClass := $.Values.persistence.storageClassName }}
+    {{- if hasKey $claim "storageClassName" }}
+      {{- $storageClass = $claim.storageClassName }}
+    {{- end }}
+    - metadata:
+        name: {{ $directory | replace "_" "-" }}
+      spec:
+        accessModes:
+          {{- toYaml (default $.Values.persistence.accessModes $claim.accessModes) | nindent 10 }}
+        {{- if ne $storageClass nil }}
+        storageClassName: {{ $storageClass | quote }}
+        {{- end }}
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ required (printf "persistence.volumes.%s.size is required" $directory) $claim.size | quote }}
+    {{- end }}

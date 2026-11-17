@@ -22,23 +22,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
-          command: ["/bin/sh", "-ec"]
-          args:
-            - |
-              # Projected Secrets rotate atomically through the ..data symlink.
-              current=$(readlink /certificates/..data)
-              (
-                config="${NGINX_RUNTIME_DIR:-/tmp/nginx}/nginx.conf"
-                while sleep 10; do
-                  updated=$(readlink /certificates/..data) || continue
-                  [ "$updated" != "$current" ] || continue
-                  if nginx -t -q -c "$config" && nginx -s reload -c "$config"; then
-                    current="$updated"
-                  fi
-                done
-              ) &
-              exec /usr/local/bin/cogstack-nginx-entrypoint.sh
-
           ports:
             - containerPort: {{ .Values.nginx.internalPort }}
 
