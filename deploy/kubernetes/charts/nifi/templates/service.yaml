@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cogstack-nifi
+spec:
+  clusterIP: None
+  selector:
+    app: cogstack-nifi
+  ports:
+    - name: https
+      port: {{ .Values.nifi.internalPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cogstack-nifi-web
+spec:
+  type: ClusterIP
+  selector:
+    app: cogstack-nifi
+  ports:
+    - name: https
+      port: {{ .Values.nifi.internalPort }}
+      targetPort: {{ .Values.nifi.internalPort }}
