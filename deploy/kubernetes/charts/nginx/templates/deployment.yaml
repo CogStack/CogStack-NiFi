@@ -26,6 +26,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: nginx-env
+            - configMapRef:
+                name: nifi-env
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
