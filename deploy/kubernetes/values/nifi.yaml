@@ -9,7 +9,7 @@
 # security/env/certificates_nifi.env, and security/env/users_nifi.env.
 
 certificates:
-  existingSecret: nifi-certs
+  existingSecret: nifi-tls
 
 # Example storage override:
 # persistence:

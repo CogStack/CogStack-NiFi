@@ -13,12 +13,21 @@ spec:
     metadata:
       labels:
         app: cogstack-nifi
+      annotations:
+        checksum/tls-config: {{ include (print $.Template.BasePath "/tls-configmap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: nifi
           envFrom:
             - configMapRef:
-                name: nifi-env 
+                name: nifi-env
+            - configMapRef:
+                name: cogstack-nifi-tls-env
+
+          volumeMounts:
+            - name: tls
+              mountPath: /certificates
+              readOnly: true
 
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -27,3 +36,19 @@ spec:
           resources: 
             {{- toYaml .Values.resources | nindent 12 }}
 
+      volumes:
+        - name: tls
+          projected:
+            sources:
+              - secret:
+                  name: {{ .Values.certificates.rootCASecret }}
+                  items:
+                    - key: ca.crt
+                      path: root/root-ca.pem
+                    - key: truststore.jks
+                      path: nifi/nifi-truststore.jks
+              - secret:
+                  name: {{ .Values.certificates.existingSecret }}
+                  items:
+                    - key: nifi-keystore.jks
+                      path: nifi/nifi-keystore.jks

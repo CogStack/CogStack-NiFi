@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cogstack-nginx-env
+data:
+  NIFI_UPSTREAM_HOST: {{ default (printf "cogstack-nifi-web.%s.svc.cluster.local" .Release.Namespace) .Values.nifi.host | quote }}
+  NIFI_UPSTREAM_PORT: {{ .Values.nifi.port | quote }}
+  NIFI_UPSTREAM_TLS_NAME: {{ .Values.nifi.tlsName | quote }}
+  NIFI_INTERNAL_PORT_NGINX: {{ .Values.nginx.internalPort | quote }}
+  NIFI_WEB_PROXY_PORT: {{ .Values.nginx.internalPort | quote }}

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cogstack-nifi-tls-env
+data:
+  # Kubernetes uses /certificates; Compose retains /security/certificates.
+  NIFI_KEYSTORE_PATH: /certificates/nifi/nifi-keystore.jks
+  NIFI_TRUSTSTORE_PATH: /certificates/nifi/nifi-truststore.jks
+  NIFI_HEALTHCHECK_CA_FILE: /certificates/root/root-ca.pem
+  KEYSTORE_PATH: /certificates/nifi/nifi-keystore.jks
+  TRUSTSTORE_PATH: /certificates/nifi/nifi-truststore.jks
+  KEYSTORE_TYPE: JKS
+  TRUSTSTORE_TYPE: JKS

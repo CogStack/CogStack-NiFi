@@ -13,12 +13,31 @@ spec:
     metadata:
       labels:
         app: cogstack-nginx
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
 
     spec:
       containers:
         - name: nginx
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              # Projected Secrets rotate atomically through the ..data symlink.
+              current=$(readlink /certificates/..data)
+              (
+                config="${NGINX_RUNTIME_DIR:-/tmp/nginx}/nginx.conf"
+                while sleep 10; do
+                  updated=$(readlink /certificates/..data) || continue
+                  [ "$updated" != "$current" ] || continue
+                  if nginx -t -q -c "$config" && nginx -s reload -c "$config"; then
+                    current="$updated"
+                  fi
+                done
+              ) &
+              exec /usr/local/bin/cogstack-nginx-entrypoint.sh
 
           ports:
             - containerPort: {{ .Values.nginx.internalPort }}
@@ -28,6 +47,35 @@ spec:
                 name: nginx-env
             - configMapRef:
                 name: nifi-env
+            - configMapRef:
+                name: cogstack-nginx-env
+
+          volumeMounts:
+            - name: tls
+              mountPath: /certificates
+              readOnly: true
+
+          readinessProbe:
+            exec:
+              command: ["/usr/local/bin/cogstack-nginx-healthcheck.sh", "ready"]
+            timeoutSeconds: 10
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
+      volumes:
+        - name: tls
+          projected:
+            sources:
+              - secret:
+                  name: {{ .Values.tls.rootCASecret }}
+                  items:
+                    - key: ca.crt
+                      path: root/root-ca.pem
+              - secret:
+                  name: {{ .Values.tls.existingSecret }}
+                  items:
+                    - key: tls.crt
+                      path: nifi/nifi.pem
+                    - key: tls.key
+                      path: nifi/nifi.key

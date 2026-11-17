@@ -20,6 +20,12 @@ nifi:
   internalPort: 8443
   outputPort: 8082
 
+certificates:
+  # Shared CA only: ca.crt and truststore.jks; never the root private-key keystore.
+  rootCASecret: cogstack-root-ca
+  # NiFi's JKS contains its certificate and private key; the CA truststore is shared.
+  existingSecret: nifi-tls
+
 resources:
   requests:
     cpu: "1"

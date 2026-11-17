@@ -8,6 +8,17 @@ image:
 nginx:
   internalPort: 8443
 
+nifi:
+  # Empty uses cogstack-nifi-web.<namespace>.svc.cluster.local; override with a full DNS name.
+  host: ""
+  port: 8443
+  tlsName: nifi
+
+tls:
+  rootCASecret: cogstack-root-ca
+  # NGINX's own tls.crt/tls.key retain the image's existing /certificates/nifi paths.
+  existingSecret: nginx-tls
+
 service:
   type: ClusterIP
 

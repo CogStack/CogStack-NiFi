@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "nginx.fullname" . }}
+  name: cogstack-nginx
   labels:
-    {{- include "nginx.labels" . | nindent 4 }}
+    app: cogstack-nginx
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -30,14 +30,12 @@ spec:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- with .pathType }}
-            pathType: {{ . }}
-            {{- end }}
+            pathType: {{ .pathType | default "Prefix" }}
             backend:
               service:
-                name: {{ include "nginx.fullname" $ }}
+                name: cogstack-nginx
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ $.Values.nginx.internalPort }}
           {{- end }}
     {{- end }}
 {{- end }}
