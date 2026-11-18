@@ -74,6 +74,9 @@ spec:
                 name: nifi-env
             - configMapRef:
                 name: cogstack-nifi-tls-env
+            # Login/password variables and matching INITIAL_ADMIN_IDENTITY only; no certificate files.
+            - secretRef:
+                name: nifi-auth
 
           volumeMounts:
             - name: tls
